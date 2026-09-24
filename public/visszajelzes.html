@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingReview – Visszajelzés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body class="theme-diak">
+
+<div id="loading-screen">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info">🎓 <strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()">Kilépés</button>
+  </div>
+</div>
+
+<main class="main centered gated" id="app-main">
+  <a class="vissza-link" href="diak.html">← Feladataim</a>
+
+  <div class="page-header">
+    <h1 id="cim">Visszajelzés</h1>
+    <p id="alcim">–</p>
+  </div>
+
+  <div id="tartalom"><div class="empty-state"><div class="spinner"></div></div></div>
+</main>
+
+<script type="module">
+  import { vedettOldal, esc, datum } from './js/guard.js';
+  import { statuszBadge, STATUSZ_DIAK } from './js/ui.js';
+  import { db, doc, getDoc } from './js/firebase-config.js';
+
+  await vedettOldal('diak');
+
+  const beadasId = new URLSearchParams(location.search).get('id');
+  const tartalom = document.getElementById('tartalom');
+
+  if (!beadasId) {
+    tartalom.innerHTML = `<div class="empty-state"><p>Hiányzó azonosító.
+      <a href="diak.html">Vissza a listához</a></p></div>`;
+    throw new Error('nincs id');
+  }
+
+  // ── BEADÁS ──
+  let beadas;
+  try {
+    const snap = await getDoc(doc(db, 'beadasok', beadasId));
+    if (!snap.exists()) throw new Error('nincs');
+    beadas = snap.data();
+  } catch (e) {
+    tartalom.innerHTML = `<div class="empty-state"><p>Ez a beadás nem érhető el.
+      <a href="diak.html">Vissza</a></p></div>`;
+    throw e;
+  }
+
+  // Feladat címe
+  let feladatCim = '–';
+  let rubrika = {};
+  try {
+    const f = await getDoc(doc(db, 'feladatok', beadas.feladat_id));
+    if (f.exists()) { feladatCim = f.data().cim; rubrika = f.data().rubrika || {}; }
+  } catch (_) { /* törölt feladat */ }
+
+  document.getElementById('cim').textContent = feladatCim;
+  document.getElementById('alcim').textContent = `Beadva: ${datum(beadas.letrehozva)}`;
+
+  // ── MÉG NINCS ELKÜLDVE ──
+  // Ilyenkor a szabály sem engedné olvasni a visszajelzést.
+  if (beadas.statusz !== 'elkuldve') {
+    const mit = {
+      feltoltve:   'A dolgozatod megérkezett, még nem kezdődött el a feldolgozás.',
+      folyamatban: 'Az AI épp olvassa a dolgozatodat.',
+      javitva:     'Az AI végzett, most a tanárod ellenőrzi. Amint elküldi, itt fogod látni.',
+      hiba:        'A feldolgozás során hiba történt. Szólj a tanárodnak.'
+    }[beadas.statusz] || 'A visszajelzés még nem érkezett meg.';
+
+    tartalom.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">⏳</div>
+      <p>${statuszBadge(beadas.statusz, STATUSZ_DIAK)}</p>
+      <p style="margin-top:1rem;">${esc(mit)}</p>
+    </div>`;
+    throw new Error('meg nincs elkuldve');
+  }
+
+  // ── TANÁRI VISSZAJELZÉS ──
+  let tanari = null;
+  try {
+    const s = await getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'tanari'));
+    if (s.exists()) tanari = s.data();
+  } catch (e) {
+    console.error(e);
+  }
+
+  if (!tanari) {
+    tartalom.innerHTML = `<div class="empty-state">
+      <p>A visszajelzés nem tölthető be. Szólj a tanárodnak.</p></div>`;
+    throw new Error('nincs tanari');
+  }
+
+  tartalom.innerHTML = `
+    ${tanari.jegy ? `
+      <div class="jegy-kartya">
+        <div class="jegy-label">Jegy</div>
+        <div class="jegy-szam">${esc(tanari.jegy)}</div>
+      </div>` : ''}
+
+    <div class="panel">
+      <div class="panel-header"><h2>💬 A tanárod visszajelzése</h2></div>
+      <div class="panel-body">
+        <div class="visszajelzes-szoveg">${esc(tanari.szoveg).replace(/\n/g, '<br/>')}</div>
+        ${tanari.jovahagyva_at
+          ? `<p class="halvany" style="margin-top:1.2rem;">Elküldve: ${datum(tanari.jovahagyva_at)}</p>`
+          : ''}
+      </div>
+    </div>
+
+    ${beadas.atirat ? `
+      <div class="panel">
+        <div class="panel-header"><h2>✍️ A dolgozatod, ahogy az AI kiolvasta</h2></div>
+        <div class="panel-body">
+          <pre class="atirat">${esc(beadas.atirat)}</pre>
+          <p class="halvany">
+            Ha ez nem egyezik azzal, amit írtál, a gép félreolvasta a kézírást –
+            érdemes szólnod a tanárodnak.
+          </p>
+        </div>
+      </div>` : ''}
+
+    ${(rubrika.szempontok || []).length ? `
+      <div class="panel">
+        <div class="panel-header"><h2>📐 Mi alapján értékeltek</h2></div>
+        <div class="panel-body">
+          <table class="tabla">
+            <thead><tr><th>Szempont</th><th>Pont</th></tr></thead>
+            <tbody>${rubrika.szempontok.map((sz) =>
+              `<tr><td>${esc(sz.cim || sz.kulcs)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>` : ''}`;
+</script>
+</body>
+</html>

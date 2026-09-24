@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingReview – Belépés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+  <link rel="stylesheet" href="css/auth.css"/>
+</head>
+<body class="auth-page">
+
+<!-- Átirányítás overlay -->
+<div id="redirect-overlay">
+  <div class="big-spinner"></div>
+  <span>Átirányítás...</span>
+</div>
+
+<!-- BAL PANEL -->
+<div class="left-panel">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="hero-text">
+    <h1>AI-alapú<br/>dolgozat<em>javítás</em></h1>
+    <p>Töltsd fel a dolgozatot, a rendszer másodpercek alatt kiértékeli és visszajelez – tanárnak és diáknak egyaránt.</p>
+  </div>
+  <div class="step-list">
+    <div class="step">
+      <div class="step-num">1</div>
+      <p>A tanár létrehoz egy feladatot és megoszt egy kódot</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <p>A diák feltölti a dolgozat fotóját</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <p>Az AI kijavítja, a tanár ellenőrzi és elküldi</p>
+    </div>
+  </div>
+</div>
+
+<!-- JOBB PANEL -->
+<div class="right-panel">
+  <div class="auth-card">
+    <h2>Üdvözlünk</h2>
+    <p class="subtitle">Lépj be, vagy regisztrálj az induláshoz</p>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Belépés</button>
+      <button class="tab-btn" id="tab-register" onclick="switchTab('register')">Regisztráció</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="form-login">
+      <div class="form-group">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" placeholder="pelda@email.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="login-password">Jelszó</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn-primary" id="btn-login" onclick="emailLogin()">Belépés</button>
+      <div class="divider">vagy</div>
+      <button class="btn-google" id="btn-google-login" onclick="googleLogin()">
+        <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5L31.8 34c-2.1 1.4-4.7 2-7.8 2-5.2 0-9.5-2.9-11.2-7l-6.6 5C9.7 39.7 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l5.7 5c3.4-3.1 5.6-7.8 5.6-14.4 0-1.3-.1-2.7-.8-4z"/></svg>
+        Folytatás Google-fiókkal
+      </button>
+    </div>
+
+    <!-- REGISZTRÁCIÓ -->
+    <div id="form-register" style="display:none;">
+      <div class="form-group">
+        <label for="reg-name">Teljes név</label>
+        <input type="text" id="reg-name" placeholder="Pl. Kiss Péter" autocomplete="name" />
+      </div>
+      <div class="form-group">
+        <label for="reg-email">Email</label>
+        <input type="email" id="reg-email" placeholder="pelda@email.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="reg-password">Jelszó</label>
+        <input type="password" id="reg-password" placeholder="min. 6 karakter" autocomplete="new-password" />
+      </div>
+      <button class="btn-primary" id="btn-register" onclick="emailRegister()">Fiók létrehozása</button>
+      <div class="divider">vagy</div>
+      <button class="btn-google" id="btn-google-reg" onclick="googleLogin()">
+        <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5L31.8 34c-2.1 1.4-4.7 2-7.8 2-5.2 0-9.5-2.9-11.2-7l-6.6 5C9.7 39.7 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l5.7 5c3.4-3.1 5.6-7.8 5.6-14.4 0-1.3-.1-2.7-.8-4z"/></svg>
+        Regisztráció Google-fiókkal
+      </button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+
+<script type="module">
+  import {
+    auth, db, googleProvider,
+    doc, getDoc, setDoc, updateDoc, serverTimestamp,
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signInWithPopup,
+    getRedirectResult
+  } from './js/firebase-config.js';
+
+  // Egyszerre csak egy belépési folyamat futhat – megakadályozza, hogy
+  // az onAuthStateChanged és a getRedirectResult kétszer irányítson át.
+  let folyamatban = false;
+
+  // ── SEGÉDFÜGGVÉNYEK ──
+
+  function showMsg(text, type = 'error') {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = `msg ${type}`;
+  }
+  function clearMsg() {
+    const el = document.getElementById('msg');
+    el.className = 'msg';
+    el.textContent = '';
+  }
+
+  function setLoading(btnId, loading, label) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.innerHTML = loading ? `<span class="spinner inline"></span>Betöltés...` : label;
+  }
+
+  // A regisztrációs űrlapon megadott név.
+  //
+  // Miért modul-szintű változó, és nem paraméter: a
+  // createUserWithEmailAndPassword azonnal kiváltja az onAuthStateChanged-et,
+  // ami előbb ér ide, mint a regisztráció saját ága – és ott nincs név.
+  // Korábban ezért lett minden email-regisztrációból "Névtelen".
+  let regisztracioNev = null;
+
+  // ── PROFIL LÉTREHOZÁS / LEKÉRÉS ──
+  // Mindenki "diak" lesz alapból – a szerepet a szerep.mjs állítja át.
+  async function ensureUserProfile(user) {
+    const ref = doc(db, 'felhasznalok', user.uid);
+    const snap = await getDoc(ref);
+    const nev = regisztracioNev || user.displayName || 'Névtelen';
+
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        nev,
+        email: user.email,
+        szerep: 'diak',
+        letrehozva: serverTimestamp()
+      });
+      return 'diak';
+    }
+
+    // Önjavítás: ha a profil korábban név nélkül jött létre, de most
+    // tudjuk a nevet, pótoljuk. (A szabály a nev mező írását engedi.)
+    if (regisztracioNev && snap.data().nev === 'Névtelen') {
+      try {
+        await updateDoc(ref, { nev: regisztracioNev });
+      } catch (e) {
+        console.error('Névpótlás nem sikerült:', e);
+      }
+    }
+
+    return snap.data().szerep;
+  }
+
+  // ── ÁTIRÁNYÍTÁS ──
+  function redirect(szerep) {
+    document.getElementById('redirect-overlay').classList.add('show');
+    window.location.replace(szerep === 'tanar' ? 'tanar.html' : 'diak.html');
+  }
+
+  async function belepesUtan(user) {
+    if (folyamatban) return;
+    folyamatban = true;
+    try {
+      redirect(await ensureUserProfile(user));
+    } catch (e) {
+      folyamatban = false;
+      throw e;
+    }
+  }
+
+  // ── MÁR BE VAN LÉPVE? ──
+  onAuthStateChanged(auth, (user) => {
+    if (user) belepesUtan(user).catch((e) => console.error('Auth state hiba:', e));
+  });
+
+  // ── GOOGLE REDIRECT VISSZATÉRÉS (ha egyszer popup helyett redirectre váltunk) ──
+  try {
+    const result = await getRedirectResult(auth);
+    if (result?.user) await belepesUtan(result.user);
+  } catch (e) {
+    if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+      showMsg(translateError(e.code));
+    }
+  }
+
+  // ── FÜLVÁLTÁS ──
+  window.switchTab = (tab) => {
+    const isLogin = tab === 'login';
+    document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
+    document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
+    document.getElementById('tab-login').classList.toggle('active', isLogin);
+    document.getElementById('tab-register').classList.toggle('active', !isLogin);
+    clearMsg();
+  };
+
+  // ── EMAIL BELÉPÉS ──
+  window.emailLogin = async () => {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) { showMsg('Töltsd ki az összes mezőt!'); return; }
+    setLoading('btn-login', true, 'Belépés');
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      await belepesUtan(cred.user);
+    } catch (e) {
+      showMsg(translateError(e.code));
+      setLoading('btn-login', false, 'Belépés');
+    }
+  };
+
+  // ── EMAIL REGISZTRÁCIÓ ──
+  window.emailRegister = async () => {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    if (!name || !email || !password) { showMsg('Töltsd ki az összes mezőt!'); return; }
+    if (password.length < 6) { showMsg('A jelszó legalább 6 karakter legyen!'); return; }
+    setLoading('btn-register', true, 'Fiók létrehozása');
+    try {
+      // A név ELŐRE, mert a createUser azonnal kiváltja az
+      // onAuthStateChanged-et, és az ér ide előbb.
+      regisztracioNev = name;
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await belepesUtan(cred.user);
+    } catch (e) {
+      regisztracioNev = null;
+      showMsg(translateError(e.code));
+      setLoading('btn-register', false, 'Fiók létrehozása');
+    }
+  };
+
+  // ── GOOGLE BELÉPÉS ──
+  window.googleLogin = async () => {
+    const btnLogin = document.getElementById('btn-google-login');
+    const btnReg = document.getElementById('btn-google-reg');
+    if (btnLogin) btnLogin.disabled = true;
+    if (btnReg) btnReg.disabled = true;
+    clearMsg();
+
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      await belepesUtan(result.user);
+    } catch (e) {
+      // A felhasználó bezárta a popupot – ez nem hiba
+      if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+        showMsg(translateError(e.code));
+      }
+      if (btnLogin) btnLogin.disabled = false;
+      if (btnReg) btnReg.disabled = false;
+    }
+  };
+
+  // ── ENTER ──
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const loginVisible = document.getElementById('form-login').style.display !== 'none';
+    if (loginVisible) window.emailLogin();
+    else window.emailRegister();
+  });
+
+  // ── HIBAFORDÍTÁS ──
+  function translateError(code) {
+    const map = {
+      'auth/user-not-found':         'Nem található ilyen felhasználó.',
+      'auth/wrong-password':         'Hibás jelszó.',
+      'auth/email-already-in-use':   'Ez az email cím már regisztrálva van.',
+      'auth/invalid-email':          'Érvénytelen email cím.',
+      'auth/weak-password':          'A jelszó túl gyenge (min. 6 karakter).',
+      'auth/network-request-failed': 'Hálózati hiba. Ellenőrizd az internetkapcsolatot.',
+      'auth/too-many-requests':      'Túl sok próbálkozás. Próbáld újra később.',
+      'auth/invalid-credential':     'Hibás email vagy jelszó.',
+      'auth/popup-blocked':          'A böngésző blokkolta a felugró ablakot. Engedélyezd a popupot!',
+      'auth/unauthorized-domain':    'Ez a domain nincs engedélyezve a Firebase Auth beállításaiban.'
+    };
+    return map[code] || `Ismeretlen hiba: ${code}`;
+  }
+</script>
+</body>
+</html>

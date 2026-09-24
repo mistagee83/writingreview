@@ -1,0 +1,83 @@
+rules_version = '2';
+
+// ══════════════════════════════════════════════════════
+// WritingReview – Storage security rules
+// A modell leírása: docs/adatmodell.md
+// ══════════════════════════════════════════════════════
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── SEGÉDFÜGGVÉNYEK ──
+
+    function belepve() {
+      return request.auth != null;
+    }
+
+    function tanar() {
+      return belepve()
+        && 'szerep' in request.auth.token
+        && request.auth.token.szerep == 'tanar';
+    }
+
+    function kepVagyPdf() {
+      return request.resource.contentType.matches('image/.*')
+        || request.resource.contentType == 'application/pdf';
+    }
+
+    function maxTizMega() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    function sajatDiak(diakUid) {
+      return belepve() && request.auth.uid == diakUid;
+    }
+
+    // A tanár hozzáférését a Firestore-beli beadás tanar_id-je dönti el
+    // (cross-service rules: a Storage szabály olvashat Firestore-t).
+    function beadasTanara(beadasId) {
+      return tanar()
+        && firestore.get(/databases/(default)/documents/beadasok/$(beadasId)).data.tanar_id == request.auth.uid;
+    }
+
+    // ══════════════════════════════════════════
+    // FELADATLAPOK
+    // A diák nem innen olvassa: a feladat dokumentumban tárolt
+    // tokenes letöltési URL-t használja.
+    // ══════════════════════════════════════════
+    match /feladatlapok/{tanarUid}/{fajl} {
+      allow read: if belepve() && request.auth.uid == tanarUid;
+
+      allow create: if tanar()
+        && request.auth.uid == tanarUid
+        && kepVagyPdf()
+        && maxTizMega();
+
+      // Feltöltött feladatlapot nem írunk felül és nem törlünk kliensről –
+      // a feladat dokumentumok hivatkoznak rá.
+      allow update, delete: if false;
+    }
+
+    // ══════════════════════════════════════════
+    // DOLGOZATFOTÓK
+    // ══════════════════════════════════════════
+    match /beadasok/{diakUid}/{beadasId}/{fajl} {
+      // Ha a beadás dokumentum még nem létezik, a beadasTanara() tiltásra
+      // értékelődik – ez rendben van, a tanár csak létező beadást nézhet.
+      allow read: if sajatDiak(diakUid) || beadasTanara(beadasId);
+
+      allow create: if belepve()
+        && request.auth.uid == diakUid
+        && kepVagyPdf()
+        && maxTizMega();
+
+      // A beadott dolgozat nem cserélhető ki és nem törölhető utólag.
+      allow update, delete: if false;
+    }
+
+    // ── MINDEN MÁS TILTOTT ──
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

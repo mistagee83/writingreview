@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingReview – Diák felület</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body class="theme-diak">
+
+<div id="loading-screen">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info">🎓 <strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()">Kilépés</button>
+  </div>
+</div>
+
+<main class="main centered gated" id="app-main">
+  <div class="page-header">
+    <h1>Feladataim</h1>
+    <p>Az osztályaid feladatai automatikusan megjelennek itt</p>
+  </div>
+
+  <!-- SAJÁT NÉV -->
+  <div class="nev-kartya">
+    <div class="nev-sor">
+      <span class="halvany">A tanárod ezen a néven látja a dolgozataidat:</span>
+      <strong id="sajat-nev">–</strong>
+      <button class="btn-sm" id="btn-nev-szerk">Módosítás</button>
+    </div>
+    <div class="code-input-row" id="nev-szerkeszto" style="display:none;">
+      <input type="text" id="nev-input" maxlength="80" placeholder="Pl. Kiss Péter" />
+      <button class="btn-primary" id="btn-nev-ment">Mentés</button>
+      <button class="btn-sm" id="btn-nev-megse">Mégse</button>
+    </div>
+    <div class="msg" id="nev-msg"></div>
+  </div>
+
+  <!-- CSATLAKOZÁS -->
+  <div class="code-card">
+    <h2>🔑 Csatlakozás osztályhoz</h2>
+    <p>A tanárodtól kapott osztálykódot elég <strong>egyszer</strong> beírni.</p>
+    <div class="code-input-row">
+      <input class="code-input" type="text" id="kod" placeholder="pl. 9BK-4M2T" maxlength="8" />
+      <button class="btn-primary" id="btn-csatlakoz">Csatlakozás</button>
+    </div>
+    <div class="msg" id="kod-msg"></div>
+    <div id="osztalyaim" class="cimke-sor"></div>
+  </div>
+
+  <!-- NYITOTT FELADATOK -->
+  <div class="section-title">📝 Beadható feladatok</div>
+  <div id="feladatok"><div class="empty-state"><p>Betöltés...</p></div></div>
+
+  <!-- BEADÁSOK -->
+  <div class="section-title" style="margin-top:2rem;">📂 Beadásaim</div>
+  <div id="beadasok"><div class="empty-state"><p>Betöltés...</p></div></div>
+</main>
+
+<script type="module">
+  import { vedettOldal, esc, datum } from './js/guard.js';
+  import { statuszBadge, STATUSZ_DIAK, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import {
+    db, functions, httpsCallable,
+    collection, doc, getDoc, getDocs,
+    query, where, orderBy, onSnapshot
+  } from './js/firebase-config.js';
+
+  const { user, profil } = await vedettOldal('diak');
+
+  const osztalyhozCsatlakozas = httpsCallable(functions, 'osztalyhozCsatlakozas');
+  const nevModositas = httpsCallable(functions, 'nevModositas');
+
+  // ══════════════════════════════════════════
+  // SAJÁT NÉV
+  // A mentés Function-ön megy, mert a nevet a szabályok szerint a
+  // kliens csak a saját profiljában írhatja – az osztálynévsorban és a
+  // korábbi beadásokban nem, pedig a tanár azokat látja.
+  // ══════════════════════════════════════════
+  const nevEl = document.getElementById('sajat-nev');
+  const nevSzerk = document.getElementById('nev-szerkeszto');
+  const nevInput = document.getElementById('nev-input');
+
+  nevEl.textContent = profil.nev || '–';
+
+  function nevSzerkesztes(nyitva) {
+    nevSzerk.style.display = nyitva ? 'flex' : 'none';
+    document.getElementById('btn-nev-szerk').style.display = nyitva ? 'none' : '';
+    if (nyitva) {
+      nevInput.value = profil.nev === 'Névtelen' ? '' : (profil.nev || '');
+      nevInput.focus();
+    }
+    uzenetTorles('nev-msg');
+  }
+
+  document.getElementById('btn-nev-szerk').addEventListener('click', () => nevSzerkesztes(true));
+  document.getElementById('btn-nev-megse').addEventListener('click', () => nevSzerkesztes(false));
+
+  async function nevMentes(gomb) {
+    const ujNev = nevInput.value.trim();
+    uzenetTorles('nev-msg');
+
+    if (ujNev.length < 2) {
+      uzenet('nev-msg', 'A név legalább 2 karakter legyen.');
+      return;
+    }
+    if (ujNev === profil.nev) {
+      nevSzerkesztes(false);
+      return;
+    }
+
+    const vissza = gombVar(gomb, 'Mentés...');
+    try {
+      const { data } = await nevModositas({ nev: ujNev });
+      profil.nev = data.nev;
+      nevEl.textContent = data.nev;
+      document.getElementById('user-name').textContent = data.nev;
+      nevSzerkesztes(false);
+
+      const hol = [];
+      if (data.nevsor) hol.push(`${data.nevsor} osztálynévsor`);
+      if (data.beadas) hol.push(`${data.beadas} korábbi beadás`);
+      uzenet('nev-msg',
+        hol.length
+          ? `Kész. Frissítve: ${hol.join(', ')}.`
+          : 'A neved frissítve.',
+        'success');
+    } catch (e) {
+      uzenet('nev-msg', hibaSzoveg(e));
+    } finally {
+      vissza();
+    }
+  }
+
+  document.getElementById('btn-nev-ment')
+    .addEventListener('click', (e) => nevMentes(e.currentTarget));
+  nevInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('btn-nev-ment').click();
+    if (e.key === 'Escape') nevSzerkesztes(false);
+  });
+
+  let osztalyIdk = [];
+
+  // ══════════════════════════════════════════
+  // SAJÁT OSZTÁLYOK (a tükör alkollekcióból)
+  // ══════════════════════════════════════════
+  async function osztalyokBetolt() {
+    const snap = await getDocs(collection(db, 'felhasznalok', user.uid, 'osztalyaim'));
+    osztalyIdk = snap.docs.map((d) => d.id);
+
+    const el = document.getElementById('osztalyaim');
+    el.innerHTML = snap.empty
+      ? ''
+      : snap.docs.map((d) =>
+          `<span class="cimke">🎓 ${esc(d.data().nev)}</span>`).join('');
+
+    return snap.docs;
+  }
+
+  // ══════════════════════════════════════════
+  // CSATLAKOZÁS
+  // ══════════════════════════════════════════
+  const kodInput = document.getElementById('kod');
+  const btnCsat = document.getElementById('btn-csatlakoz');
+
+  async function csatlakoz() {
+    const kod = kodInput.value.trim().toUpperCase();
+    uzenetTorles('kod-msg');
+
+    if (!/^[A-Z2-9]{3}-[A-Z2-9]{4}$/.test(kod)) {
+      uzenet('kod-msg', 'A kód formátuma: 3 karakter, kötőjel, 4 karakter (pl. 9BK-4M2T).');
+      return;
+    }
+
+    const vissza = gombVar(btnCsat, 'Csatlakozás...');
+    try {
+      const { data } = await osztalyhozCsatlakozas({ kod });
+      kodInput.value = '';
+      uzenet('kod-msg',
+        data.mar_tag
+          ? `Már tagja vagy a(z) "${data.nev}" osztálynak.`
+          : `Csatlakoztál a(z) "${data.nev}" osztályhoz!`,
+        'success');
+      await mindentBetolt();
+    } catch (e) {
+      uzenet('kod-msg', hibaSzoveg(e));
+    } finally {
+      vissza();
+    }
+  }
+
+  btnCsat.addEventListener('click', csatlakoz);
+  kodInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') csatlakoz(); });
+
+  // ══════════════════════════════════════════
+  // BEADHATÓ FELADATOK
+  // ══════════════════════════════════════════
+  async function feladatokBetolt(osztalyDocs) {
+    const el = document.getElementById('feladatok');
+
+    if (osztalyIdk.length === 0) {
+      el.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">🔑</div>
+        <p>Még nem csatlakoztál osztályhoz.<br/>Írd be a tanárodtól kapott kódot!</p>
+      </div>`;
+      return;
+    }
+
+    // Melyik feladatra adtam már be?
+    const beadva = new Set();
+    try {
+      const sajat = await getDocs(query(
+        collection(db, 'beadasok'),
+        where('diak_id', '==', user.uid)
+      ));
+      sajat.docs.forEach((d) => beadva.add(d.data().feladat_id));
+    } catch (_) { /* a lista alább akkor is működik */ }
+
+    const nevek = Object.fromEntries(osztalyDocs.map((d) => [d.id, d.data().nev]));
+
+    // Osztályonként külön query – 1-3 osztály esetén ez néhány olvasás
+    const csoportok = await Promise.all(osztalyIdk.map((oid) =>
+      getDocs(query(
+        collection(db, 'feladatok'),
+        where('osztaly_id', '==', oid),
+        where('aktiv', '==', true)
+      )).catch(() => null)
+    ));
+
+    const feladatok = [];
+    csoportok.forEach((snap) => {
+      if (snap) snap.docs.forEach((d) => feladatok.push({ id: d.id, ...d.data() }));
+    });
+
+    if (feladatok.length === 0) {
+      el.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">🎉</div>
+        <p>Most nincs beadható feladat.</p></div>`;
+      return;
+    }
+
+    // Határidő szerint, a nélküliek a végére
+    feladatok.sort((a, b) => {
+      const x = a.hatarido?.toMillis?.() ?? Infinity;
+      const y = b.hatarido?.toMillis?.() ?? Infinity;
+      return x - y;
+    });
+
+    const most = Date.now();
+
+    el.innerHTML = feladatok.map((f) => {
+      const r = f.rubrika || {};
+      const kesz = beadva.has(f.id);
+      const lejart = f.hatarido && f.hatarido.toMillis() < most;
+      return `
+        <div class="list-card">
+          <div>
+            <h3>${esc(f.cim)}</h3>
+            <div class="list-card-meta">
+              <span>🎓 ${esc(nevek[f.osztaly_id] || '–')}</span>
+              <span>${esc(r.tipus || '–')} · ${esc(r.szint || '–')}</span>
+              ${r.min_szo && r.max_szo ? `<span>${r.min_szo}–${r.max_szo} szó</span>` : ''}
+              ${f.hatarido
+                ? `<span class="${lejart ? 'lejart' : ''}">⏰ ${datum(f.hatarido)}${lejart ? ' (lejárt)' : ''}</span>`
+                : ''}
+              ${kesz ? '<span class="badge elkuldve">✅ Beadva</span>' : ''}
+            </div>
+          </div>
+          <div class="list-card-actions">
+            <a class="btn-sm" href="beadas.html?feladat=${esc(f.id)}">
+              ${kesz ? 'Megnyitás' : 'Beadás'}
+            </a>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ══════════════════════════════════════════
+  // BEADÁSAIM (realtime – a státusz magától frissül)
+  // ══════════════════════════════════════════
+  let feladatCache = {};
+  async function feladatNev(id) {
+    if (feladatCache[id] !== undefined) return feladatCache[id];
+    try {
+      const s = await getDoc(doc(db, 'feladatok', id));
+      feladatCache[id] = s.exists() ? s.data().cim : '(törölt feladat)';
+    } catch (_) {
+      feladatCache[id] = '–';
+    }
+    return feladatCache[id];
+  }
+
+  function beadasokFigyel() {
+    const el = document.getElementById('beadasok');
+
+    onSnapshot(
+      query(
+        collection(db, 'beadasok'),
+        where('diak_id', '==', user.uid),
+        orderBy('letrehozva', 'desc')
+      ),
+      async (snap) => {
+        if (snap.empty) {
+          el.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">📭</div><p>Még nincs beadott dolgozatod.</p></div>`;
+          return;
+        }
+
+        const kartyak = await Promise.all(snap.docs.map(async (d) => {
+          const b = d.data();
+          const cim = await feladatNev(b.feladat_id);
+          const kesz = b.statusz === 'elkuldve';
+          return `
+            <div class="list-card ${kesz ? 'kattinthato' : ''}"
+                 ${kesz ? `data-id="${esc(d.id)}"` : ''}>
+              <div>
+                <h3>${esc(cim)}</h3>
+                <div class="list-card-meta">
+                  <span>Beadva: ${datum(b.letrehozva)}</span>
+                  ${statuszBadge(b.statusz, STATUSZ_DIAK)}
+                </div>
+              </div>
+              ${kesz ? '<span class="nyil">→</span>' : ''}
+            </div>`;
+        }));
+
+        el.innerHTML = kartyak.join('');
+      },
+      (e) => {
+        console.error(e);
+        el.innerHTML = `<div class="empty-state"><p>Nem sikerült betölteni a beadásaidat.</p></div>`;
+      }
+    );
+
+    el.addEventListener('click', (e) => {
+      const k = e.target.closest('.list-card[data-id]');
+      if (k) window.location.href = `visszajelzes.html?id=${k.dataset.id}`;
+    });
+  }
+
+  // ══════════════════════════════════════════
+  async function mindentBetolt() {
+    const docs = await osztalyokBetolt();
+    await feladatokBetolt(docs);
+  }
+
+  await mindentBetolt();
+  beadasokFigyel();
+</script>
+</body>
+</html>

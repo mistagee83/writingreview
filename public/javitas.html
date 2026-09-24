@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingReview – Javítási sor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()">Kilépés</button>
+  </div>
+</div>
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main narrow">
+    <div class="page-header">
+      <h1>Javítási sor</h1>
+      <p>Az AI javaslatait ellenőrizd, szerkeszd, majd küldd el a diáknak – addig ő semmit nem lát</p>
+    </div>
+
+    <div class="szuro" id="szuro">
+      <button class="szuro-btn active" data-statusz="javitva">📝 Ellenőrzésre vár</button>
+      <button class="szuro-btn" data-statusz="folyamatban">⚙️ Feldolgozás alatt</button>
+      <button class="szuro-btn" data-statusz="elkuldve">📧 Elküldve</button>
+      <button class="szuro-btn" data-statusz="hiba">⚠️ Hibás</button>
+      <button class="szuro-btn" data-statusz="mind">Mind</button>
+    </div>
+
+    <div id="lista"><div class="empty-state bare"><p>Betöltés...</p></div></div>
+  </main>
+</div>
+
+<!-- RÉSZLETEK MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-fejlec">
+      <h2 id="m-cim">–</h2>
+      <button class="btn-sm" id="m-bezar">✕</button>
+    </div>
+    <div class="modal-torzs" id="m-torzs"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { vedettOldal, esc, datum } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { statuszBadge, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import {
+    db, storage, functions, httpsCallable,
+    collection, doc, getDoc, getDocs,
+    query, where, orderBy, onSnapshot,
+    storageRef, getDownloadURL
+  } from './js/firebase-config.js';
+
+  // Az oldalsáv a hitelesítés UTÁN rendereljük: onnan tudjuk, admin-e a
+  // felhasználó, és csak akkor tesszük ki az admin menüpontot. (A sidebar
+  // a kapuzott UI-ban van, tehát addig nem is látszik.)
+  const { user, admin } = await vedettOldal('tanar');
+  oldalsav('javitas.html', { admin });
+
+  const visszajelzesJovahagyas = httpsCallable(functions, 'visszajelzesJovahagyas');
+  const beadasUjrafuttatas = httpsCallable(functions, 'beadasUjrafuttatas');
+
+  const lista = document.getElementById('lista');
+  let leiratkozas = null;
+  let feladatCache = {};
+
+  async function feladatCim(feladatId) {
+    if (feladatCache[feladatId] !== undefined) return feladatCache[feladatId];
+    try {
+      const snap = await getDoc(doc(db, 'feladatok', feladatId));
+      feladatCache[feladatId] = snap.exists() ? snap.data() : null;
+    } catch (_) {
+      feladatCache[feladatId] = null;
+    }
+    return feladatCache[feladatId];
+  }
+
+  // ══════════════════════════════════════════
+  // LISTA
+  // ══════════════════════════════════════════
+  function figyel(statusz) {
+    if (leiratkozas) leiratkozas();
+
+    const alap = [collection(db, 'beadasok'), where('tanar_id', '==', user.uid)];
+    const q = statusz === 'mind'
+      ? query(...alap, orderBy('letrehozva', 'desc'))
+      : query(...alap, where('statusz', '==', statusz), orderBy('letrehozva', 'desc'));
+
+    lista.innerHTML = `<div class="empty-state bare"><p>Betöltés...</p></div>`;
+
+    leiratkozas = onSnapshot(q, async (snap) => {
+      if (snap.empty) {
+        lista.innerHTML = `<div class="empty-state">
+          <div class="empty-icon">📭</div><p>Nincs beadás ebben az állapotban.</p></div>`;
+        return;
+      }
+
+      const kartyak = await Promise.all(snap.docs.map(async (d) => {
+        const b = d.data();
+        const f = await feladatCim(b.feladat_id);
+        return `
+          <div class="list-card">
+            <div>
+              <h3>${esc(b.diak_nev || 'Névtelen diák')}</h3>
+              <div class="list-card-meta">
+                <span>${esc(f?.cim || 'törölt feladat')}</span>
+                <span>${datum(b.letrehozva)}</span>
+                ${statuszBadge(b.statusz)}
+                ${b.atirat_olvashatosag === 'gyenge'
+                  ? '<span class="badge inaktiv">✍️ nehezen olvasható</span>' : ''}
+              </div>
+              ${b.hiba ? `<p class="hiba-szoveg">${esc(b.hiba)}</p>` : ''}
+            </div>
+            <div class="list-card-actions">
+              <button class="btn-sm" data-akcio="nyit" data-id="${esc(d.id)}">Megnyitás</button>
+              ${['hiba', 'javitva'].includes(b.statusz)
+                ? `<button class="btn-sm" data-akcio="ujra" data-id="${esc(d.id)}">🔄 Újra</button>` : ''}
+            </div>
+          </div>`;
+      }));
+
+      lista.innerHTML = kartyak.join('');
+    }, (e) => {
+      console.error(e);
+      lista.innerHTML = `<div class="empty-state bare"><p>Nem sikerült betölteni. Hiányzó index? Nézd meg a konzolt.</p></div>`;
+    });
+  }
+
+  document.getElementById('szuro').addEventListener('click', (e) => {
+    const b = e.target.closest('.szuro-btn');
+    if (!b) return;
+    document.querySelectorAll('.szuro-btn').forEach((x) => x.classList.remove('active'));
+    b.classList.add('active');
+    figyel(b.dataset.statusz);
+  });
+
+  figyel('javitva');
+
+  // ══════════════════════════════════════════
+  // AKCIÓK
+  // ══════════════════════════════════════════
+  lista.addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-akcio]');
+    if (!b) return;
+
+    if (b.dataset.akcio === 'nyit') {
+      megnyit(b.dataset.id);
+      return;
+    }
+
+    if (b.dataset.akcio === 'ujra') {
+      const vissza = gombVar(b, 'Fut...');
+      try {
+        await beadasUjrafuttatas({ beadasId: b.dataset.id });
+      } catch (err) {
+        alert('Nem sikerült: ' + hibaSzoveg(err));
+      } finally {
+        vissza();
+      }
+    }
+  });
+
+  // ══════════════════════════════════════════
+  // RÉSZLETEK
+  // ══════════════════════════════════════════
+  const modal = document.getElementById('modal');
+  const torzs = document.getElementById('m-torzs');
+
+  document.getElementById('m-bezar').addEventListener('click', () => modal.classList.remove('show'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+
+  async function megnyit(beadasId) {
+    modal.classList.add('show');
+    torzs.innerHTML = `<div class="empty-state bare"><div class="spinner"></div></div>`;
+
+    try {
+      const bSnap = await getDoc(doc(db, 'beadasok', beadasId));
+      if (!bSnap.exists()) { torzs.innerHTML = '<p>A beadás nem található.</p>'; return; }
+      const b = bSnap.data();
+      const f = await feladatCim(b.feladat_id);
+
+      document.getElementById('m-cim').textContent =
+        `${b.diak_nev || 'Névtelen'} – ${f?.cim || 'törölt feladat'}`;
+
+      const aiSnap = await getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'ai'));
+      const ai = aiSnap.exists() ? aiSnap.data() : null;
+
+      const tanariSnap = await getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'tanari'));
+      const tanari = tanariSnap.exists() ? tanariSnap.data() : null;
+
+      // Dolgozatfotók
+      const kepUrlek = await Promise.all(
+        (b.kep_paths || []).map((p) =>
+          getDownloadURL(storageRef(storage, p)).catch(() => null))
+      );
+
+      torzs.innerHTML = `
+        <div class="m-szekcio">
+          <h4>📷 Beadott fotók</h4>
+          <div class="kep-sor">
+            ${kepUrlek.filter(Boolean).map((u, i) =>
+              `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="oldal ${i + 1}" /></a>`
+            ).join('') || '<p class="halvany">Nem sikerült betölteni a képeket.</p>'}
+          </div>
+        </div>
+
+        <div class="m-szekcio">
+          <h4>✍️ Amit az AI kiolvasott
+            ${b.atirat_olvashatosag ? `<span class="badge inaktiv">${esc(b.atirat_olvashatosag)} olvashatóság</span>` : ''}
+          </h4>
+          <p class="halvany">Ha ez nem egyezik a fotóval, az AI félreolvasott – ne a diákot hibáztasd.</p>
+          <pre class="atirat">${esc(b.atirat || '(nincs átirat)')}</pre>
+          ${b.atirat_megjegyzes ? `<p class="halvany">${esc(b.atirat_megjegyzes)}</p>` : ''}
+        </div>
+
+        ${ai ? `
+        <div class="m-szekcio">
+          <h4>🤖 AI értékelés
+            <span class="badge javitva">${ai.osszpontszam}/${ai.max_pontszam} pont${ai.szazalek != null ? ` · ${ai.szazalek}%` : ''}</span>
+          </h4>
+          <table class="tabla">
+            <thead><tr><th>Szempont</th><th>Pont</th><th>Megjegyzés</th></tr></thead>
+            <tbody>${(ai.szempontok || []).map((sz) => `
+              <tr>
+                <td>${esc(sz.kulcs)}</td>
+                <td><strong>${esc(sz.pont)}</strong> / ${esc(sz.max)}</td>
+                <td>${esc(sz.megjegyzes)}</td>
+              </tr>`).join('')}</tbody>
+          </table>
+
+          ${(ai.hibak || []).length ? `
+          <h4 style="margin-top:1.2rem;">Talált hibák (${ai.hibak.length})</h4>
+          <div class="hiba-lista">
+            ${ai.hibak.map((h) => `
+              <div class="hiba-elem">
+                <span class="badge inaktiv">${esc(h.kategoria)} · ${esc(h.tipus)}</span>
+                <div><s>${esc(h.idezet)}</s> → <strong>${esc(h.javaslat)}</strong></div>
+                <p class="halvany">${esc(h.magyarazat)}</p>
+              </div>`).join('')}
+          </div>` : ''}
+
+          ${(ai.erossegek || []).length ? `
+            <h4 style="margin-top:1.2rem;">Erősségek</h4>
+            <ul class="lista-pontok">${ai.erossegek.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+          ${(ai.fejlesztendo || []).length ? `
+            <h4 style="margin-top:0.8rem;">Fejlesztendő</h4>
+            <ul class="lista-pontok">${ai.fejlesztendo.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+        </div>` : `
+        <div class="m-szekcio">
+          <p class="halvany">Ehhez a beadáshoz még nincs AI értékelés (státusz: ${esc(b.statusz)}).</p>
+        </div>`}
+
+        <div class="m-szekcio kiemelt">
+          <h4>📧 Visszajelzés a diáknak</h4>
+          <p class="halvany">
+            Ezt – és csak ezt – fogja a diák látni, az elküldés után.
+            Az AI javaslata előre be van írva; szerkeszd bátran.
+          </p>
+          <div class="form-group">
+            <label for="m-jegy">Jegy (nem kötelező)</label>
+            <select id="m-jegy">
+              <option value="">– nincs jegy –</option>
+              <option value="5">5</option><option value="4">4</option>
+              <option value="3">3</option><option value="2">2</option><option value="1">1</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="m-szoveg">Szöveges visszajelzés</label>
+            <textarea id="m-szoveg" rows="10"></textarea>
+          </div>
+          <div class="msg" id="m-msg"></div>
+          <div class="gomb-sor">
+            <button class="btn-primary" id="m-kuld">
+              ${b.statusz === 'elkuldve' ? '🔄 Módosítás elküldése' : '📧 Elküldés a diáknak'}
+            </button>
+          </div>
+        </div>`;
+
+      // Előtöltés: a már jóváhagyott szöveg, különben az AI javaslata
+      document.getElementById('m-szoveg').value = tanari?.szoveg || ai?.diak_szoveg || '';
+      if (tanari?.jegy) document.getElementById('m-jegy').value = String(tanari.jegy);
+
+      document.getElementById('m-kuld').addEventListener('click', async (ev) => {
+        uzenetTorles('m-msg');
+        const szoveg = document.getElementById('m-szoveg').value.trim();
+        const jegyStr = document.getElementById('m-jegy').value;
+
+        if (!szoveg) { uzenet('m-msg', 'A visszajelzés szövege nem lehet üres.'); return; }
+
+        const vissza = gombVar(ev.target, 'Küldés...');
+        try {
+          await visszajelzesJovahagyas({
+            beadasId,
+            jegy: jegyStr ? Number(jegyStr) : null,
+            szoveg
+          });
+          uzenet('m-msg', 'Elküldve – a diák már látja.', 'success');
+        } catch (err) {
+          uzenet('m-msg', hibaSzoveg(err));
+        } finally {
+          vissza();
+        }
+      });
+
+    } catch (e) {
+      console.error(e);
+      torzs.innerHTML = `<p>Nem sikerült betölteni: ${esc(e.message)}</p>`;
+    }
+  }
+</script>
+</body>
+</html>

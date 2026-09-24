@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingReview – Tanári felület</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()">Kilépés</button>
+  </div>
+</div>
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main">
+    <div class="page-header">
+      <h1>Főoldal</h1>
+      <p>Üdvözlünk a WritingReview tanári felületén</p>
+    </div>
+
+    <div class="stats-grid">
+      <a class="stat-card" href="javitas.html">
+        <div class="stat-label">Ellenőrzésre vár</div>
+        <div class="stat-value accent" id="stat-varakozik">–</div>
+      </a>
+      <a class="stat-card" href="feladatok.html">
+        <div class="stat-label">Aktív feladatok</div>
+        <div class="stat-value" id="stat-feladatok">–</div>
+      </a>
+      <a class="stat-card" href="osztalyok.html">
+        <div class="stat-label">Osztályok</div>
+        <div class="stat-value" id="stat-osztalyok">–</div>
+      </a>
+      <a class="stat-card" href="osztalyok.html">
+        <div class="stat-label">Összes diák</div>
+        <div class="stat-value" id="stat-diakok">–</div>
+      </a>
+    </div>
+
+    <div class="modules-grid">
+      <a class="module-card" href="osztalyok.html">
+        <div class="module-icon">🎓</div>
+        <div class="module-title">Osztályok</div>
+        <div class="module-desc">Osztály létrehozása, osztálykód megosztása, névsor megtekintése.</div>
+      </a>
+      <a class="module-card" href="feladatok.html">
+        <div class="module-icon">📋</div>
+        <div class="module-title">Feladatkezelés</div>
+        <div class="module-desc">Feladatlap feltöltése, AI által kitöltött rubrika jóváhagyása.</div>
+      </a>
+      <a class="module-card" href="javitas.html">
+        <div class="module-icon">✏️</div>
+        <div class="module-title">Javítási sor</div>
+        <div class="module-desc">Az AI javaslatainak ellenőrzése, jegy és visszajelzés elküldése.</div>
+      </a>
+      <a class="module-card" href="feladatok.html">
+        <div class="module-icon">📊</div>
+        <div class="module-title">Osztályszintű elemzés</div>
+        <div class="module-desc">Egy feladat beadásaiból típushibák, javasolt gyakorlatok és kész feladatgeneráló prompt. A feladatlistából, a 📊 gombbal.</div>
+      </a>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { vedettOldal } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import {
+    db, collection, getDocs, query, where
+  } from './js/firebase-config.js';
+
+  // Az oldalsáv a hitelesítés UTÁN rendereljük: onnan tudjuk, admin-e a
+  // felhasználó, és csak akkor tesszük ki az admin menüpontot. (A sidebar
+  // a kapuzott UI-ban van, tehát addig nem is látszik.)
+  const { user, admin } = await vedettOldal('tanar');
+  oldalsav('tanar.html', { admin });
+
+  // A számokat kliensoldalon összegezzük: egy tanárnál néhány osztály és
+  // pár száz beadás a teljes adathalmaz, ez nem indokol számlálókat.
+  function kiir(id, ertek) {
+    document.getElementById(id).textContent = ertek;
+  }
+
+  async function statisztika() {
+    try {
+      const [osztalyok, feladatok, varakozik] = await Promise.all([
+        getDocs(query(collection(db, 'osztalyok'), where('tanar_id', '==', user.uid))),
+        getDocs(query(collection(db, 'feladatok'), where('tanar_id', '==', user.uid), where('aktiv', '==', true))),
+        getDocs(query(collection(db, 'beadasok'), where('tanar_id', '==', user.uid), where('statusz', '==', 'javitva')))
+      ]);
+
+      kiir('stat-osztalyok', osztalyok.size);
+      kiir('stat-feladatok', feladatok.size);
+      kiir('stat-varakozik', varakozik.size);
+      kiir('stat-diakok', osztalyok.docs.reduce((s, d) => s + (d.data().diak_szam || 0), 0));
+    } catch (e) {
+      console.error('Statisztika hiba:', e);
+      ['stat-osztalyok', 'stat-feladatok', 'stat-varakozik', 'stat-diakok']
+        .forEach((id) => kiir(id, '?'));
+    }
+  }
+
+  statisztika();
+</script>
+</body>
+</html>

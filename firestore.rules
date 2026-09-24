@@ -1,0 +1,237 @@
+rules_version = '2';
+
+// ══════════════════════════════════════════════════════
+// WritingReview – Firestore security rules
+// A modell leírása: docs/adatmodell.md
+//
+// Alapelvek:
+//  - a szerepkör token-claim (request.auth.token.szerep), nem Firestore-mező
+//  - hiányzó claim = diák (legkisebb jogosultság)
+//  - státuszt és értékelést CSAK Cloud Function ír (admin SDK, ezt kihagyja)
+//  - minden, ami itt nincs engedélyezve, tiltott
+// ══════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── SEGÉDFÜGGVÉNYEK ──
+
+    function belepve() {
+      return request.auth != null;
+    }
+
+    function sajat(uid) {
+      return belepve() && request.auth.uid == uid;
+    }
+
+    // A claim hiányát explicit kezeljük, hogy ne dobjon hibát a kiértékelés.
+    function tanar() {
+      return belepve()
+        && 'szerep' in request.auth.token
+        && request.auth.token.szerep == 'tanar';
+    }
+
+    function osztaly(osztalyId) {
+      return get(/databases/$(database)/documents/osztalyok/$(osztalyId)).data;
+    }
+
+    function sajatOsztaly(osztalyId) {
+      return tanar() && osztaly(osztalyId).tanar_id == request.auth.uid;
+    }
+
+    function osztalyTag(osztalyId) {
+      return belepve()
+        && exists(/databases/$(database)/documents/osztalyok/$(osztalyId)/tagok/$(request.auth.uid));
+    }
+
+    // Csak a megadott mezők változhatnak egy update során.
+    function csakEzekValtoznak(mezok) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(mezok);
+    }
+
+    // ══════════════════════════════════════════
+    // FELHASZNÁLÓK
+    // ══════════════════════════════════════════
+    match /felhasznalok/{uid} {
+      allow get: if sajat(uid);
+
+      // Listázni senki nem tud – a tanár a névsort a tagok alkollekcióból
+      // olvassa, ahol a nevek denormalizáltan szerepelnek.
+      allow list: if false;
+
+      // Regisztrációkor mindenki diák. A szerepet csak a szerver (claim +
+      // tükör) állíthatja át.
+      allow create: if sajat(uid)
+        && request.resource.data.szerep == 'diak'
+        && request.resource.data.keys().hasOnly(['nev', 'email', 'szerep', 'letrehozva']);
+
+      // A nevét átírhatja, a szerepét és az emailjét nem.
+      allow update: if sajat(uid) && csakEzekValtoznak(['nev']);
+
+      allow delete: if false;
+
+      // ── SAJÁT OSZTÁLYOK (tükör) ──
+      // A diák innen listázza az osztályait – a tagok alkollekciót
+      // collection-group query nélkül nem tudná végigkeresni.
+      match /osztalyaim/{osztalyId} {
+        allow read: if sajat(uid);
+        allow write: if false;
+      }
+    }
+
+    // ══════════════════════════════════════════
+    // OSZTÁLYOK
+    // ══════════════════════════════════════════
+    match /osztalyok/{osztalyId} {
+      // Tanár a sajátját; diák azt, aminek tagja.
+      allow get: if (tanar() && resource.data.tanar_id == request.auth.uid)
+                 || osztalyTag(osztalyId);
+
+      // Listázás csak tanárnak, és a query-nek tanar_id-re kell szűrnie.
+      allow list: if tanar() && resource.data.tanar_id == request.auth.uid;
+
+      // Létrehozás CSAK Function-ön (osztalyLetrehozas): az osztálykód
+      // egyediségét a kodok/ nyilvántartóval tranzakciósan kell
+      // biztosítani, és kód nélküli osztály használhatatlan lenne.
+      allow create: if false;
+
+      allow update: if tanar()
+        && resource.data.tanar_id == request.auth.uid
+        && csakEzekValtoznak(['nev', 'aktiv']);
+
+      allow delete: if tanar() && resource.data.tanar_id == request.auth.uid;
+
+      // ── TAGOK (osztálynévsor) ──
+      match /tagok/{diakUid} {
+        allow get: if sajat(diakUid) || sajatOsztaly(osztalyId);
+        allow list: if sajatOsztaly(osztalyId);
+
+        // A csatlakozás tranzakciós, Function végzi (kodok/ + diak_szam).
+        allow write: if false;
+      }
+    }
+
+    // ══════════════════════════════════════════
+    // KÓD-NYILVÁNTARTÓ
+    // Kliensről elérhetetlen: a kódokat nem lehet végigpróbálni.
+    // ══════════════════════════════════════════
+    match /kodok/{kod} {
+      allow read, write: if false;
+    }
+
+    // ══════════════════════════════════════════
+    // FELADATOK
+    // A rubrika szándékosan látható a diáknak – nincs benne titok,
+    // a Gemini-prompt a szerveren áll össze belőle.
+    // ══════════════════════════════════════════
+    match /feladatok/{feladatId} {
+      allow get: if (tanar() && resource.data.tanar_id == request.auth.uid)
+                 || osztalyTag(resource.data.osztaly_id);
+
+      // Tanári lista (tanar_id szűrő) VAGY diák lista (osztaly_id szűrő).
+      allow list: if (tanar() && resource.data.tanar_id == request.auth.uid)
+                  || osztalyTag(resource.data.osztaly_id);
+
+      allow create: if tanar()
+        && request.resource.data.tanar_id == request.auth.uid
+        && sajatOsztaly(request.resource.data.osztaly_id)
+        && request.resource.data.rubrika is map
+        && request.resource.data.cim is string
+        && request.resource.data.cim.size() > 0
+        && request.resource.data.cim.size() <= 200;
+
+      allow update: if tanar()
+        && resource.data.tanar_id == request.auth.uid
+        && csakEzekValtoznak(['cim', 'aktiv', 'hatarido', 'rubrika']);
+
+      allow delete: if tanar() && resource.data.tanar_id == request.auth.uid;
+
+      // ── OSZTÁLYSZINTŰ ELEMZÉS ──
+      // A feladat maga látható a diákoknak, az elemzés NEM: benne van az
+      // osztály teljesítménye és más diákok hibái. Alkollekció, mert a
+      // szabályok dokumentum szintjén kapuznak.
+      match /elemzes/{docId} {
+        allow read: if tanar()
+          && get(/databases/$(database)/documents/feladatok/$(feladatId))
+               .data.tanar_id == request.auth.uid;
+
+        // Csak a feladatElemzes Function írja
+        allow write: if false;
+      }
+    }
+
+    // ══════════════════════════════════════════
+    // RUBRIKA-SABLONOK
+    //
+    // A tanár elmentett értékelési rubrikái, hogy ne kelljen minden
+    // feladatnál újra összeállítani. Tisztán a tanár sajátja: nincs
+    // denormalizálás és nincs diák-hozzáférés, ezért kliensről írható –
+    // szemben az osztályokkal vagy a névvel.
+    // ══════════════════════════════════════════
+    match /rubrikak/{sablonId} {
+      allow get: if tanar() && resource.data.tanar_id == request.auth.uid;
+      allow list: if tanar() && resource.data.tanar_id == request.auth.uid;
+
+      allow create: if tanar()
+        && request.resource.data.tanar_id == request.auth.uid
+        && request.resource.data.nev is string
+        && request.resource.data.nev.size() > 0
+        && request.resource.data.nev.size() <= 100
+        && request.resource.data.rubrika is map;
+
+      allow update: if tanar()
+        && resource.data.tanar_id == request.auth.uid
+        && request.resource.data.tanar_id == resource.data.tanar_id
+        && csakEzekValtoznak(['nev', 'rubrika', 'frissitve']);
+
+      allow delete: if tanar() && resource.data.tanar_id == request.auth.uid;
+    }
+
+    // ══════════════════════════════════════════
+    // BEADÁSOK
+    // ══════════════════════════════════════════
+    match /beadasok/{beadasId} {
+      function beadas() {
+        return get(/databases/$(database)/documents/beadasok/$(beadasId)).data;
+      }
+
+      allow get, list: if sajat(resource.data.diak_id)
+                       || (tanar() && resource.data.tanar_id == request.auth.uid);
+
+      // A diák a sajátját adja be, kötelezően 'feltoltve' státusszal,
+      // és csak olyan osztályba, aminek tagja.
+      allow create: if belepve()
+        && request.resource.data.diak_id == request.auth.uid
+        && request.resource.data.statusz == 'feltoltve'
+        && osztalyTag(request.resource.data.osztaly_id)
+        && request.resource.data.kep_paths is list
+        && request.resource.data.kep_paths.size() > 0
+        && request.resource.data.kep_paths.size() <= 10;
+
+      // Státuszváltás, javítás, jóváhagyás: mind Cloud Function.
+      // Így a diák nem tudja 'elkuldve'-re állítani a saját beadását,
+      // és nem tudja újraindítani a javítást sem.
+      allow update, delete: if false;
+
+      // ── ÉRTÉKELÉS ──
+      match /ertekeles/{docId} {
+        // Ez az a pont, amiért az értékelés nem a szülő dokumentumban van:
+        // a szabályok nem tudnak mező szintjén szűrni, dokumentum szintjén
+        // viszont igen.
+        allow get: if (tanar() && beadas().tanar_id == request.auth.uid)
+                   || (
+                        sajat(beadas().diak_id)
+                        && docId == 'tanari'
+                        && beadas().statusz == 'elkuldve'
+                      );
+
+        allow list: if tanar() && beadas().tanar_id == request.auth.uid;
+
+        allow write: if false;
+      }
+    }
+
+    // Minden más: tiltott (a Firestore alapból is így működik,
+    // ez csak emlékeztető).
+  }
+}

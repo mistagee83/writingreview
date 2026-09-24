@@ -1,0 +1,14 @@
+# A repó LF sorvégekkel tárol mindent, függetlenül attól, hogy Windowson
+# dolgozunk. Enélkül a git a CRLF-re váltáskor egész fájlokat jelöl
+# módosítottnak, és a valódi változás elveszik a diffben.
+* text=auto eol=lf
+
+# Bináris fájlok – ezekbe ne nyúljon
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary

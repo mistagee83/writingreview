@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingReview – Szerepkezelés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy">🔑 Admin &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()">Kilépés</button>
+  </div>
+</div>
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main narrow">
+    <div class="page-header">
+      <h1>Szerepkezelés</h1>
+      <p>Itt nevezhetsz ki tanárokat. Mindenki diákként regisztrál – tanári
+         jogot innen kap.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Tanár</div>
+        <div class="stat-value accent" id="stat-tanar">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Diák</div>
+        <div class="stat-value" id="stat-diak">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Admin</div>
+        <div class="stat-value" id="stat-admin">–</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>👥 Felhasználók</h2>
+        <button class="btn-sm" id="btn-frissit">🔄 Frissítés</button>
+      </div>
+      <div class="panel-body">
+        <div class="code-input-row">
+          <input type="text" id="kereso" placeholder="Keresés név vagy email szerint…" />
+          <select id="szuro" style="max-width:190px;">
+            <option value="mind">Mindenki</option>
+            <option value="tanar">Csak tanárok</option>
+            <option value="diak">Csak diákok</option>
+            <option value="admin">Csak adminok</option>
+          </select>
+        </div>
+        <div class="msg" id="msg"></div>
+      </div>
+      <div class="panel-body flush">
+        <div id="lista"><div class="empty-state bare"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <p class="halvany">
+      A szerepváltás a felhasználó belépési tokenjébe épül. Ha épp be van
+      lépve, a következő oldalbetöltésnél magától frissül – ha mégsem, ki- és
+      belépés után biztosan.
+    </p>
+  </main>
+</div>
+
+<script type="module">
+  import { vedettOldal, esc } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { functions, httpsCallable } from './js/firebase-config.js';
+
+  // Tanári szerep ÉS admin claim is kell
+  const { user } = await vedettOldal('tanar', { admin: true });
+  oldalsav('admin.html', { admin: true });
+
+  const felhasznalokListaja = httpsCallable(functions, 'felhasznalokListaja');
+  const szerepBeallitas = httpsCallable(functions, 'szerepBeallitas');
+
+  const lista = document.getElementById('lista');
+  const kereso = document.getElementById('kereso');
+  const szuro = document.getElementById('szuro');
+  let felhasznalok = [];
+
+  // ══════════════════════════════════════════
+  // BETÖLTÉS
+  // ══════════════════════════════════════════
+  async function betolt() {
+    lista.innerHTML = `<div class="empty-state bare"><div class="spinner"></div></div>`;
+    try {
+      const { data } = await felhasznalokListaja();
+      felhasznalok = data.felhasznalok;
+
+      document.getElementById('stat-tanar').textContent =
+        felhasznalok.filter((f) => f.szerep === 'tanar').length;
+      document.getElementById('stat-diak').textContent =
+        felhasznalok.filter((f) => f.szerep === 'diak').length;
+      document.getElementById('stat-admin').textContent =
+        felhasznalok.filter((f) => f.admin).length;
+
+      if (data.csonkolt) {
+        uzenet('msg', 'Több mint 1000 felhasználó – a lista csonkolt.');
+      }
+      rajzol();
+    } catch (e) {
+      lista.innerHTML =
+        `<div class="empty-state bare"><p>${esc(hibaSzoveg(e))}</p></div>`;
+    }
+  }
+
+  // ══════════════════════════════════════════
+  // RENDERELÉS
+  // ══════════════════════════════════════════
+  function szurtLista() {
+    const q = kereso.value.trim().toLowerCase();
+    const sz = szuro.value;
+    return felhasznalok.filter((f) => {
+      if (sz === 'tanar' && f.szerep !== 'tanar') return false;
+      if (sz === 'diak' && f.szerep !== 'diak') return false;
+      if (sz === 'admin' && !f.admin) return false;
+      if (!q) return true;
+      return f.nev.toLowerCase().includes(q) || f.email.toLowerCase().includes(q);
+    });
+  }
+
+  function rajzol() {
+    const sorok = szurtLista();
+
+    if (sorok.length === 0) {
+      lista.innerHTML =
+        `<div class="empty-state bare"><p>Nincs találat.</p></div>`;
+      return;
+    }
+
+    lista.innerHTML = sorok.map((f) => {
+      const enSajat = f.uid === user.uid;
+      return `
+        <div class="list-card">
+          <div>
+            <h3>${esc(f.nev)}${enSajat ? ' <span class="badge inaktiv">te</span>' : ''}</h3>
+            <div class="list-card-meta">
+              <span>${esc(f.email)}</span>
+              <span class="badge ${f.szerep === 'tanar' ? 'aktiv' : 'inaktiv'}">
+                ${f.szerep === 'tanar' ? '👨‍🏫 Tanár' : '🎓 Diák'}
+              </span>
+              ${f.admin ? '<span class="badge javitva">🔑 Admin</span>' : ''}
+              ${f.tukor_eltero
+                ? '<span class="badge feltoltve" title="A felhasználó tokenje még a régi szerepet tartalmazza">⏳ belépés kell</span>'
+                : ''}
+            </div>
+          </div>
+          <div class="list-card-actions">
+            <button class="btn-sm" data-akcio="szerep"
+                    data-uid="${esc(f.uid)}"
+                    data-szerep="${f.szerep === 'tanar' ? 'diak' : 'tanar'}"
+                    data-nev="${esc(f.nev)}">
+              ${f.szerep === 'tanar' ? '↓ Diákká' : '↑ Tanárrá'}
+            </button>
+            <button class="btn-sm ${f.admin ? 'danger' : ''}" data-akcio="admin"
+                    data-uid="${esc(f.uid)}"
+                    data-admin="${f.admin ? '0' : '1'}"
+                    data-nev="${esc(f.nev)}"
+                    ${enSajat && f.admin ? 'disabled title="A saját admin jogodat nem veheted el"' : ''}>
+              ${f.admin ? '🔑 Admin le' : '🔑 Admin fel'}
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  kereso.addEventListener('input', rajzol);
+  szuro.addEventListener('change', rajzol);
+  document.getElementById('btn-frissit').addEventListener('click', betolt);
+
+  // ══════════════════════════════════════════
+  // MÓDOSÍTÁS
+  // ══════════════════════════════════════════
+  lista.addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-akcio]');
+    if (!b || b.disabled) return;
+
+    const { akcio, uid, nev } = b.dataset;
+    uzenetTorles('msg');
+
+    let keres;
+    let kerdes;
+
+    if (akcio === 'szerep') {
+      const ujSzerep = b.dataset.szerep;
+      keres = { uid, szerep: ujSzerep };
+      kerdes = ujSzerep === 'tanar'
+        ? `${nev} tanári jogot kap. Létrehozhat osztályt, feladatot, és láthatja a saját diákjai dolgozatait. Mehet?`
+        : `${nev} tanári jogát elveszed. A már létrehozott osztályai és feladatai megmaradnak, de nem fog hozzájuk férni. Mehet?`;
+    } else {
+      const ujAdmin = b.dataset.admin === '1';
+      keres = { uid, adminJog: ujAdmin };
+      kerdes = ujAdmin
+        ? `${nev} admin jogot kap – ő is ki tud nevezni tanárokat. Mehet?`
+        : `${nev} admin jogát elveszed. Mehet?`;
+    }
+
+    if (!confirm(kerdes)) return;
+
+    const vissza = gombVar(b, '');
+    try {
+      await szerepBeallitas(keres);
+      await betolt();
+      uzenet('msg', `${nev} módosítva.`, 'success');
+    } catch (err) {
+      uzenet('msg', hibaSzoveg(err));
+      vissza();
+    }
+  });
+
+  betolt();
+</script>
+</body>
+</html>

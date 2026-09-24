@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingReview – Dolgozat beadása</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body class="theme-diak">
+
+<div id="loading-screen">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info">🎓 <strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()">Kilépés</button>
+  </div>
+</div>
+
+<main class="main centered gated" id="app-main">
+  <a class="vissza-link" href="diak.html">← Feladataim</a>
+
+  <div class="page-header">
+    <h1 id="cim">–</h1>
+    <p id="alcim">–</p>
+  </div>
+
+  <!-- RUBRIKA -->
+  <div class="panel">
+    <div class="panel-header"><h2>📐 Mi alapján értékelnek</h2></div>
+    <div class="panel-body" id="rubrika-nezet"></div>
+  </div>
+
+  <!-- MÁR BEADOTT ÁLLAPOT -->
+  <div class="panel" id="allapot-panel" style="display:none;">
+    <div class="panel-header"><h2>📄 A beadásod</h2></div>
+    <div class="panel-body" id="allapot-torzs"></div>
+  </div>
+
+  <!-- FELTÖLTÉS -->
+  <div class="panel" id="feltoltes-panel" style="display:none;">
+    <div class="panel-header"><h2>📷 Dolgozat feltöltése</h2></div>
+    <div class="panel-body">
+      <p class="halvany">
+        Fotózd le a dolgozat minden oldalát, jó fényben. A képek automatikusan
+        kisebbre méreteződnek a feltöltés előtt. Legfeljebb 10 oldal.
+      </p>
+
+      <div class="upload-zone" id="zona">
+        <input type="file" id="fajlok" accept="image/*" multiple capture="environment" />
+        <div class="upload-icon">📷</div>
+        <p><strong>Kattints ide</strong> vagy húzd ide a fotókat</p>
+        <p>JPG, PNG – oldalanként egy kép</p>
+      </div>
+
+      <div id="elonezet" class="kep-sor"></div>
+
+      <div class="msg" id="msg"></div>
+
+      <div class="gomb-sor">
+        <button class="btn-primary" id="btn-bead" disabled>📤 Beadás</button>
+      </div>
+      <p class="halvany" style="margin-top:0.75rem;">
+        A beadás után a dolgozat nem cserélhető ki.
+      </p>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { vedettOldal, esc, datum } from './js/guard.js';
+  import { statuszBadge, STATUSZ_DIAK, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { atmeretez, tulNagy, meret } from './js/kep.js';
+  import {
+    db, storage,
+    collection, doc, getDoc, getDocs, setDoc,
+    query, where, onSnapshot, serverTimestamp,
+    storageRef, uploadBytes
+  } from './js/firebase-config.js';
+
+  const { user, profil } = await vedettOldal('diak');
+
+  const feladatId = new URLSearchParams(location.search).get('feladat');
+  if (!feladatId) {
+    document.getElementById('cim').textContent = 'Hiányzó feladat';
+    document.getElementById('alcim').innerHTML =
+      'Nincs megadva, melyik feladatról van szó. <a href="diak.html">Vissza a listához</a>';
+    throw new Error('nincs feladat id');
+  }
+
+  // ══════════════════════════════════════════
+  // FELADAT BETÖLTÉSE
+  // A szabály csak akkor engedi, ha tagja vagyok az osztálynak.
+  // ══════════════════════════════════════════
+  let feladat;
+  try {
+    const snap = await getDoc(doc(db, 'feladatok', feladatId));
+    if (!snap.exists()) throw new Error('nincs');
+    feladat = snap.data();
+  } catch (e) {
+    document.getElementById('cim').textContent = 'Nem érhető el';
+    document.getElementById('alcim').innerHTML =
+      'Ez a feladat nem létezik, vagy nem tagja vagy az osztálynak. <a href="diak.html">Vissza</a>';
+    throw e;
+  }
+
+  const r = feladat.rubrika || {};
+  document.getElementById('cim').textContent = feladat.cim;
+  document.getElementById('alcim').textContent =
+    [r.nyelv, r.tipus, r.szint, r.min_szo && r.max_szo ? `${r.min_szo}–${r.max_szo} szó` : null,
+     feladat.hatarido ? `határidő: ${datum(feladat.hatarido)}` : null]
+      .filter(Boolean).join(' · ');
+
+  // ── RUBRIKA MEGJELENÍTÉSE ──
+  document.getElementById('rubrika-nezet').innerHTML = `
+    ${r.feladat_leiras ? `<p>${esc(r.feladat_leiras)}</p>` : ''}
+    ${(r.szempontok || []).length ? `
+      <table class="tabla" style="margin-top:1rem;">
+        <thead><tr><th>Szempont</th><th>Pont</th></tr></thead>
+        <tbody>${r.szempontok.map((sz) =>
+          `<tr><td>${esc(sz.cim || sz.kulcs)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
+      </table>` : ''}
+    ${feladat.feladatlap?.url
+      ? `<p style="margin-top:1rem;"><a class="btn-sm" href="${esc(feladat.feladatlap.url)}" target="_blank" rel="noopener">📄 Feladatlap megnyitása</a></p>`
+      : ''}`;
+
+  // ══════════════════════════════════════════
+  // VAN-E MÁR BEADÁSOM?
+  // ══════════════════════════════════════════
+  const sajatSnap = await getDocs(query(
+    collection(db, 'beadasok'),
+    where('diak_id', '==', user.uid),
+    where('feladat_id', '==', feladatId)
+  ));
+
+  if (!sajatSnap.empty) {
+    allapotFigyel(sajatSnap.docs[0].id);
+  } else if (!feladat.aktiv) {
+    document.getElementById('allapot-panel').style.display = 'block';
+    document.getElementById('allapot-torzs').innerHTML =
+      `<p class="halvany">Ez a feladat már zárt, nem lehet rá beadni.</p>`;
+  } else {
+    document.getElementById('feltoltes-panel').style.display = 'block';
+  }
+
+  // ══════════════════════════════════════════
+  // ÁLLAPOT KÖVETÉSE (onSnapshot – nem kell újratölteni)
+  // ══════════════════════════════════════════
+  function allapotFigyel(beadasId) {
+    const panel = document.getElementById('allapot-panel');
+    const torzs = document.getElementById('allapot-torzs');
+    panel.style.display = 'block';
+
+    onSnapshot(doc(db, 'beadasok', beadasId), (snap) => {
+      if (!snap.exists()) return;
+      const b = snap.data();
+
+      const magyarazat = {
+        feltoltve:   'A dolgozatod megérkezett, hamarosan feldolgozzuk.',
+        folyamatban: 'Az AI épp olvassa a dolgozatodat. Ez néhány percet vehet igénybe – nem kell itt maradnod.',
+        javitva:     'Az AI végzett, most a tanárod ellenőrzi. A visszajelzést ő küldi el.',
+        elkuldve:    'Megérkezett a tanári visszajelzés!',
+        hiba:        'A feldolgozás során hiba történt. Szólj a tanárodnak – ő újra tudja futtatni.'
+      }[b.statusz] || '';
+
+      torzs.innerHTML = `
+        <div class="allapot-fej">
+          ${statuszBadge(b.statusz, STATUSZ_DIAK)}
+          <span class="halvany">Beadva: ${datum(b.letrehozva)}</span>
+        </div>
+        <p style="margin-top:0.75rem;">${esc(magyarazat)}</p>
+        ${b.statusz === 'folyamatban' ? '<div class="spinner" style="margin-top:1rem;"></div>' : ''}
+        ${b.statusz === 'elkuldve'
+          ? `<p style="margin-top:1rem;"><a class="btn-primary" href="visszajelzes.html?id=${esc(beadasId)}" style="text-decoration:none;">Visszajelzés megnyitása →</a></p>`
+          : ''}
+        ${b.atirat && ['javitva', 'elkuldve'].includes(b.statusz) ? `
+          <details style="margin-top:1.2rem;">
+            <summary>Mit olvasott ki az AI a kézírásodból?</summary>
+            <pre class="atirat">${esc(b.atirat)}</pre>
+            <p class="halvany">Ha ez nem egyezik azzal, amit írtál, szólj a tanárodnak.</p>
+          </details>` : ''}`;
+    });
+  }
+
+  // ══════════════════════════════════════════
+  // FELTÖLTÉS
+  // ══════════════════════════════════════════
+  let fajlok = [];
+  const elonezet = document.getElementById('elonezet');
+  const btnBead = document.getElementById('btn-bead');
+
+  document.getElementById('fajlok').addEventListener('change', async (e) => {
+    uzenetTorles('msg');
+    const ujak = [...e.target.files];
+    if (!ujak.length) return;
+
+    if (fajlok.length + ujak.length > 10) {
+      uzenet('msg', 'Legfeljebb 10 oldalt tölthetsz fel.');
+      return;
+    }
+
+    for (const f of ujak) {
+      const kicsi = await atmeretez(f);
+      if (tulNagy(kicsi)) {
+        uzenet('msg', `A(z) "${f.name}" túl nagy (${meret(kicsi.size)}), a korlát 10 MB.`);
+        continue;
+      }
+      fajlok.push(kicsi);
+    }
+
+    e.target.value = '';
+    elonezetRajzol();
+  });
+
+  function elonezetRajzol() {
+    elonezet.innerHTML = fajlok.map((f, i) => `
+      <div class="kep-elem">
+        <img src="${URL.createObjectURL(f)}" alt="oldal ${i + 1}" />
+        <div class="kep-label">${i + 1}. oldal · ${meret(f.size)}</div>
+        <button class="kep-torol" data-i="${i}" type="button">✕</button>
+      </div>`).join('');
+    btnBead.disabled = fajlok.length === 0;
+  }
+
+  elonezet.addEventListener('click', (e) => {
+    const b = e.target.closest('.kep-torol');
+    if (!b) return;
+    fajlok.splice(Number(b.dataset.i), 1);
+    elonezetRajzol();
+  });
+
+  // ══════════════════════════════════════════
+  // BEADÁS
+  // A doc ID-t előre generáljuk, hogy a Storage-útvonal tartalmazhassa –
+  // a Storage-szabály ebből azonosítja a beadást.
+  // ══════════════════════════════════════════
+  btnBead.addEventListener('click', async () => {
+    uzenetTorles('msg');
+    if (fajlok.length === 0) return;
+
+    const vissza = gombVar(btnBead, 'Feltöltés...');
+    try {
+      const beadasRef = doc(collection(db, 'beadasok'));
+      const kepPaths = [];
+
+      for (let i = 0; i < fajlok.length; i++) {
+        btnBead.innerHTML =
+          `<span class="spinner inline"></span>${i + 1}/${fajlok.length} oldal...`;
+        const path = `beadasok/${user.uid}/${beadasRef.id}/${i + 1}_${fajlok[i].name}`;
+        await uploadBytes(storageRef(storage, path), fajlok[i]);
+        kepPaths.push(path);
+      }
+
+      await setDoc(beadasRef, {
+        feladat_id: feladatId,
+        osztaly_id: feladat.osztaly_id,
+        diak_id: user.uid,
+        diak_nev: profil.nev || user.email,
+        tanar_id: feladat.tanar_id,
+        kep_paths: kepPaths,
+        statusz: 'feltoltve',
+        atirat: null,
+        hiba: null,
+        letrehozva: serverTimestamp(),
+        frissitve: serverTimestamp()
+      });
+
+      // A Function triggere innentől magától fut; onSnapshot mutatja.
+      document.getElementById('feltoltes-panel').style.display = 'none';
+      allapotFigyel(beadasRef.id);
+    } catch (e) {
+      console.error(e);
+      uzenet('msg', 'A beadás nem sikerült: ' + hibaSzoveg(e));
+      vissza();
+    }
+  });
+</script>
+</body>
+</html>

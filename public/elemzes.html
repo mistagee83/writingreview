@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingReview – Osztályszintű elemzés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()">Kilépés</button>
+  </div>
+</div>
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main narrow">
+    <a class="vissza-link" href="feladatok.html">← Feladatok</a>
+
+    <div class="page-header">
+      <h1 id="cim">–</h1>
+      <p id="alcim">–</p>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <div id="tartalom">
+      <div class="empty-state bare"><div class="spinner"></div></div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { vedettOldal, esc, datum } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra } from './js/ui.js';
+  import {
+    db, functions, httpsCallable,
+    collection, doc, getDoc, getDocs, query, where
+  } from './js/firebase-config.js';
+
+  const { user, admin } = await vedettOldal('tanar');
+  oldalsav('feladatok.html', { admin });
+
+  const feladatElemzes = httpsCallable(functions, 'feladatElemzes');
+
+  const feladatId = new URLSearchParams(location.search).get('feladat');
+  const tartalom = document.getElementById('tartalom');
+
+  if (!feladatId) {
+    document.getElementById('cim').textContent = 'Hiányzó feladat';
+    tartalom.innerHTML =
+      `<div class="empty-state"><p>Nincs megadva, melyik feladatról van szó.
+       <a href="feladatok.html">Vissza a listához</a></p></div>`;
+    throw new Error('nincs feladat id');
+  }
+
+  // ══════════════════════════════════════════
+  // FELADAT + ÁLLAPOT
+  // ══════════════════════════════════════════
+  /** Végállapot hibával – hogy ne maradjon örökké pörgő karika. */
+  function elakadt(szoveg, hiba) {
+    if (hiba) console.error(hiba);
+    tartalom.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <p>${esc(szoveg)}</p>
+      <p class="halvany" style="margin-top:1rem;">
+        ${hiba ? esc(hiba.message || String(hiba)) : ''}
+      </p>
+      <p style="margin-top:1.5rem;"><a class="btn-sm" href="feladatok.html">← Vissza a feladatokhoz</a></p>
+    </div>`;
+  }
+
+  let fSnap;
+  try {
+    fSnap = await getDoc(doc(db, 'feladatok', feladatId));
+  } catch (e) {
+    elakadt('Nem sikerült betölteni a feladatot.', e);
+    throw e;
+  }
+  if (!fSnap.exists()) {
+    document.getElementById('cim').textContent = 'Nem található';
+    elakadt('Ez a feladat nem létezik, vagy nem a tiéd.');
+    throw new Error('nincs feladat');
+  }
+  const feladat = fSnap.data();
+  const r = feladat.rubrika || {};
+
+  document.getElementById('cim').textContent = feladat.cim;
+
+  // Hány beadás van, és mennyi van kiértékelve? Ebből tudja a tanár,
+  // érdemes-e egyáltalán elemzést kérni.
+  // A tanar_id szűrő NEM elhagyható: a Firestore list-szabálynál a
+  // query-nek bizonyítania kell a jogosultságot. Csak feladat_id-vel
+  // szűrve a szabály megtagadja, mert nem tudja garantálni, hogy minden
+  // találat ehhez a tanárhoz tartozik.
+  let bSnap;
+  try {
+    bSnap = await getDocs(query(
+      collection(db, 'beadasok'),
+      where('feladat_id', '==', feladatId),
+      where('tanar_id', '==', user.uid)
+    ));
+  } catch (e) {
+    elakadt('Nem sikerült betölteni a beadásokat. Ha épp most települt új index, próbáld újra pár perc múlva.', e);
+    throw e;
+  }
+  const kiertekelt = bSnap.docs.filter(
+    (d) => ['javitva', 'elkuldve'].includes(d.data().statusz)
+  ).length;
+
+  document.getElementById('alcim').textContent =
+    [r.nyelv || 'angol', r.tipus, r.szint,
+     `${bSnap.size} beadás`, `${kiertekelt} kiértékelve`]
+      .filter(Boolean).join(' · ');
+
+  // ══════════════════════════════════════════
+  // MEGJELENÍTÉS
+  // ══════════════════════════════════════════
+  const GYAKORISAG_OSZTALY = {
+    'általános': 'feltoltve',
+    'gyakori': 'javitva',
+    'szórványos': 'inaktiv'
+  };
+
+  function sav(szazalek) {
+    const sz = Math.max(0, Math.min(100, Number(szazalek) || 0));
+    const osztaly = sz < 50 ? 'baj' : (sz < 75 ? 'kozepes' : 'jo');
+    return `<div class="sav"><div class="sav-kitolt ${osztaly}" style="width:${sz}%"></div></div>`;
+  }
+
+  function rajzol(e) {
+    tartalom.innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Osztályátlag</div>
+          <div class="stat-value accent">${e.atlag_szazalek != null ? e.atlag_szazalek + '%' : '–'}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Kiértékelt dolgozat</div>
+          <div class="stat-value">${e.ertekelt_db}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Nehezen olvasható</div>
+          <div class="stat-value">${e.olvashatosag?.gyenge ?? 0}</div>
+        </div>
+      </div>
+
+      ${e.ertekelt_db < 3 ? `
+        <div class="msg error" style="display:block;">
+          Csak ${e.ertekelt_db} kiértékelt dolgozat – ez még nem osztályszintű kép.
+          Az elemzés elkészült, de óvatosan olvasd.
+        </div>` : ''}
+
+      <div class="panel">
+        <div class="panel-header"><h2>📊 Szempontonként</h2></div>
+        <div class="panel-body">
+          <p class="halvany">A legrosszabbul teljesített szemponttal kezdve.</p>
+          ${(e.szempontok || []).map((sz) => `
+            <div class="sav-sor">
+              <div class="sav-cimke">${esc(sz.kulcs)}</div>
+              ${sav(sz.szazalek)}
+              <div class="sav-ertek">${sz.atlag_pont}/${sz.max_pont} · ${sz.szazalek ?? '–'}%</div>
+            </div>`).join('') || '<p class="halvany">Nincs adat.</p>'}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h2>🧭 Összegzés</h2></div>
+        <div class="panel-body">
+          <div class="visszajelzes-szoveg">${esc(e.osszegzes).replace(/\n/g, '<br/>')}</div>
+        </div>
+      </div>
+
+      ${(e.tipushibak || []).length ? `
+      <div class="panel">
+        <div class="panel-header"><h2>🔁 Típushibák</h2></div>
+        <div class="panel-body">
+          <p class="halvany">
+            Jelentés szerint összevonva – a javító AI címkéi elcsúszhatnak,
+            ezért nem a címkék, hanem a tartalmuk alapján csoportosítva.
+          </p>
+          ${e.tipushibak.map((h) => `
+            <div class="elem-kartya">
+              <h4>
+                ${esc(h.cim)}
+                <span class="badge ${GYAKORISAG_OSZTALY[h.gyakorisag] || 'inaktiv'}">${esc(h.gyakorisag)}</span>
+                <span class="badge inaktiv">${esc(h.kategoria)}</span>
+              </h4>
+              <p>${esc(h.magyarazat)}</p>
+              ${(h.peldak || []).length ? `
+                <ul class="lista-pontok">${h.peldak.map((x) => `<li><em>${esc(x)}</em></li>`).join('')}</ul>` : ''}
+            </div>`).join('')}
+        </div>
+      </div>` : ''}
+
+      ${(e.gyakorlatok || []).length ? `
+      <div class="panel">
+        <div class="panel-header"><h2>🎯 Javasolt gyakorlatok</h2></div>
+        <div class="panel-body">
+          ${e.gyakorlatok.map((g) => `
+            <div class="elem-kartya">
+              <h4>${esc(g.cim)} <span class="badge inaktiv">${esc(g.idotartam_perc)} perc</span></h4>
+              <p class="halvany"><strong>Cél:</strong> ${esc(g.cel)}</p>
+              <p>${esc(g.leiras)}</p>
+            </div>`).join('')}
+        </div>
+      </div>` : ''}
+
+      ${e.generalo_prompt ? `
+      <div class="panel">
+        <div class="panel-header">
+          <h2>✨ Feladatgeneráló prompt</h2>
+          <button class="btn-sm" id="btn-prompt-masol">📋 Másolás</button>
+        </div>
+        <div class="panel-body">
+          <p class="halvany">
+            Bemásolhatod bármelyik AI-ba (ChatGPT, Gemini, Claude), és
+            gyakorlósort generál az osztály konkrét hibáira.
+          </p>
+          <pre class="atirat" id="generalo-prompt">${esc(e.generalo_prompt)}</pre>
+        </div>
+      </div>` : ''}
+
+      <div class="gomb-sor">
+        <button class="btn-sm" id="btn-ujra">🔄 Elemzés újrafuttatása</button>
+      </div>
+      <p class="halvany" style="margin-top:0.75rem;">
+        Készült: ${datum(e.generalva)}${e.model ? ` · ${esc(e.model)}` : ''}.
+        Új beadások után érdemes újrafuttatni.
+      </p>`;
+
+    const masol = document.getElementById('btn-prompt-masol');
+    if (masol) {
+      masol.addEventListener('click', () =>
+        vagolapra(document.getElementById('generalo-prompt').textContent, masol));
+    }
+    document.getElementById('btn-ujra').addEventListener('click', (ev) => keszit(ev.currentTarget));
+  }
+
+  function meghivo() {
+    tartalom.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <p>
+          Ehhez a feladathoz még nincs elemzés.<br/>
+          Az AI összevonja a típushibákat, összegzi az osztály teljesítményét,
+          gyakorlatokat javasol, és ad egy kész promptot feladatgeneráláshoz.
+        </p>
+        ${kiertekelt === 0
+          ? '<p class="halvany" style="margin-top:1rem;">Egyelőre nincs kiértékelt beadás – előbb javíts ki néhány dolgozatot.</p>'
+          : `<p style="margin-top:1.5rem;">
+               <button class="btn-primary" id="btn-keszit">✨ Elemzés készítése</button>
+             </p>
+             ${kiertekelt < 3
+               ? `<p class="halvany" style="margin-top:0.75rem;">Csak ${kiertekelt} kiértékelt dolgozat van – a kép még nem lesz osztályszintű.</p>`
+               : ''}`}
+      </div>`;
+
+    const btn = document.getElementById('btn-keszit');
+    if (btn) btn.addEventListener('click', (ev) => keszit(ev.currentTarget));
+  }
+
+  // ══════════════════════════════════════════
+  // GENERÁLÁS
+  // ══════════════════════════════════════════
+  async function keszit(gomb) {
+    uzenetTorles('msg');
+    const vissza = gombVar(gomb, 'Az AI dolgozik…');
+    try {
+      const { data } = await feladatElemzes({ feladatId });
+      rajzol(data);
+    } catch (e) {
+      uzenet('msg', hibaSzoveg(e));
+      vissza();
+    }
+  }
+
+  // ══════════════════════════════════════════
+  // MENTETT ELEMZÉS BETÖLTÉSE
+  // ══════════════════════════════════════════
+  try {
+    const eSnap = await getDoc(doc(db, 'feladatok', feladatId, 'elemzes', 'osszegzes'));
+    if (eSnap.exists()) rajzol(eSnap.data());
+    else meghivo();
+  } catch (e) {
+    console.error(e);
+    meghivo();
+  }
+</script>
+</body>
+</html>

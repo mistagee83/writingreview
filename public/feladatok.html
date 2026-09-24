@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingReview – Feladatok</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()">Kilépés</button>
+  </div>
+</div>
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main narrow">
+    <div class="page-header split">
+      <div>
+        <h1>Feladatok</h1>
+        <p>Töltsd fel a feladatlapot – az AI kitölti a rubrikát, te pedig jóváhagyod</p>
+      </div>
+      <button class="btn-primary" id="btn-panel">
+        <span id="panel-ikon">＋</span> Új feladat
+      </button>
+    </div>
+
+    <!-- FIGYELMEZTETÉS, HA NINCS OSZTÁLY -->
+    <div class="panel gated" id="nincs-osztaly-panel">
+      <div class="panel-body">
+        <p>Feladatot csak osztályhoz lehet létrehozni, és még nincs osztályod.
+          <a href="osztalyok.html">Hozz létre egyet →</a></p>
+      </div>
+    </div>
+
+    <!-- ÚJ FELADAT -->
+    <div class="panel" id="uj-panel" style="display:none;">
+      <div class="panel-header">
+        <h2 id="panel-cim">✏️ Új feladat</h2>
+        <button class="btn-sm" id="btn-bezar">✕ Bezár</button>
+      </div>
+      <div class="panel-body">
+
+        <div class="ket-hasab">
+          <div class="form-group">
+            <label for="f-osztaly">Osztály</label>
+            <select id="f-osztaly"></select>
+            <p class="halvany" id="osztaly-hint" style="display:none;margin-top:0.4rem;">
+              Meglévő feladat osztálya nem módosítható – a beadások hozzá tartoznak.
+              Másik osztálynak a listából add ki.
+            </p>
+          </div>
+          <div class="form-group">
+            <label for="f-hatarido">Határidő (nem kötelező)</label>
+            <input type="date" id="f-hatarido" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="f-cim">Feladat címe</label>
+          <input type="text" id="f-cim" placeholder="Pl. Essay writing – My hometown" maxlength="200" />
+        </div>
+
+        <div class="form-group">
+          <label>Feladatlap (kép vagy PDF)</label>
+          <div class="upload-zone" id="upload-zone">
+            <input type="file" id="f-fajl" accept="image/*,.pdf" />
+            <div class="upload-icon">📄</div>
+            <p><strong>Kattints ide</strong> vagy húzd ide a fájlt</p>
+            <p>JPG, PNG, PDF – max. 10MB</p>
+          </div>
+          <div class="upload-preview" id="upload-preview">
+            <span>✅</span><span id="upload-nev">–</span>
+          </div>
+          <p class="halvany" id="fajl-hint" style="display:none;margin-top:0.4rem;">
+            A meglévő feladatlap megmarad. Csak akkor tölts fel újat, ha cserélni akarod.
+          </p>
+        </div>
+
+        <!-- RUBRIKA -->
+        <div class="rubrika-blokk">
+          <div class="rubrika-fejlec">
+            <h3>Értékelési rubrika</h3>
+            <span id="rubrika-badge" class="prompt-badge" style="display:none;">✨ AI által kitöltve</span>
+          </div>
+          <p class="halvany">
+            Ebből épül a javító prompt a szerveren. A diák is látja – tudja,
+            mi alapján értékelik. A pontszám szabadon választható (20, 50, 100…).
+          </p>
+
+          <div class="sablon-sav">
+            <select id="sablon-valaszto" aria-label="Sablon betöltése">
+              <option value="">Sablon betöltése…</option>
+            </select>
+            <button class="btn-sm" id="btn-sablon-torol" title="A kiválasztott sablon törlése" disabled>🗑</button>
+            <button class="btn-sm" id="btn-sablon-ment">💾 Mentés sablonként</button>
+          </div>
+          <div class="msg" id="sablon-msg"></div>
+
+          <div class="rubrika-tolt" id="rubrika-tolt">
+            <div class="spinner"></div>
+            <span>Gemini elemzi a feladatlapot...</span>
+          </div>
+
+          <div class="harom-hasab">
+            <div class="form-group">
+              <label for="r-nyelv">A dolgozat nyelve</label>
+              <select id="r-nyelv">
+                <option value="angol" selected>angol</option>
+                <option value="német">német</option>
+                <option value="francia">francia</option>
+                <option value="spanyol">spanyol</option>
+                <option value="olasz">olasz</option>
+                <option value="orosz">orosz</option>
+                <option value="latin">latin</option>
+                <option value="magyar">magyar</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="r-tipus">Feladattípus</label>
+              <select id="r-tipus">
+                <option value="esszé">esszé</option>
+                <option value="levél">levél</option>
+                <option value="leírás">leírás</option>
+                <option value="elbeszélés">elbeszélés</option>
+                <option value="vélemény">vélemény</option>
+                <option value="egyéb">egyéb</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="r-szint">Célszint (CEFR)</label>
+              <select id="r-szint">
+                <option>A1</option><option>A2</option>
+                <option selected>B1</option><option>B2</option><option>C1</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="ket-hasab">
+            <div class="form-group">
+              <label for="r-min">Minimum szó</label>
+              <input type="number" id="r-min" min="0" max="2000" placeholder="120" />
+            </div>
+            <div class="form-group">
+              <label for="r-max">Maximum szó</label>
+              <input type="number" id="r-max" min="0" max="2000" placeholder="180" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>
+              Szempontok és pontszámok
+              <span id="suly-jelzo" class="suly-jelzo">összesen: 0 pont</span>
+            </label>
+            <div id="szempontok"></div>
+            <button class="btn-sm" id="btn-szempont">＋ Szempont</button>
+          </div>
+
+          <div class="form-group">
+            <label for="r-leiras">A feladat leírása (a diáknak és az AI-nak)</label>
+            <textarea id="r-leiras" rows="3" placeholder="Mit kell a diáknak megírnia?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="r-egyeb">Külön kérés az AI-nak (nem kötelező)</label>
+            <textarea id="r-egyeb" rows="2" placeholder="Pl. A múlt idő használatára figyelj külön."></textarea>
+          </div>
+        </div>
+
+        <div class="msg" id="form-msg"></div>
+
+        <div class="gomb-sor">
+          <button class="btn-primary" id="btn-mentes">💾 Feladat mentése</button>
+          <button class="btn-sm" id="btn-reset">Űrlap törlése</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTA -->
+    <div class="panel">
+      <div class="panel-header"><h2>📋 Feladatok</h2></div>
+      <div class="panel-body flush">
+        <div id="lista"><div class="empty-state bare"><p>Betöltés...</p></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { vedettOldal, esc, datum } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { atmeretez, tulNagy, meret } from './js/kep.js';
+  import {
+    db, storage, functions, httpsCallable,
+    collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
+    query, where, orderBy, onSnapshot, serverTimestamp, Timestamp,
+    storageRef, uploadBytes, getDownloadURL
+  } from './js/firebase-config.js';
+
+  // Az oldalsáv a hitelesítés UTÁN rendereljük: onnan tudjuk, admin-e a
+  // felhasználó, és csak akkor tesszük ki az admin menüpontot. (A sidebar
+  // a kapuzott UI-ban van, tehát addig nem is látszik.)
+  const { user, admin } = await vedettOldal('tanar');
+  oldalsav('feladatok.html', { admin });
+
+  const feladatlapElemzes = httpsCallable(functions, 'feladatlapElemzes');
+
+  let fajlPath = null;
+  // Szerkesztés/kiadás esetén a meglévő letöltési URL-t átvesszük, hogy
+  // ne kelljen újra lekérni egy változatlan fájlra.
+  let fajlUrl = null;
+  let osztalyNevek = {};
+
+  // ══════════════════════════════════════════
+  // OSZTÁLYOK BETÖLTÉSE
+  // ══════════════════════════════════════════
+  const osztalySelect = document.getElementById('f-osztaly');
+  const osztalySnap = await getDocs(query(
+    collection(db, 'osztalyok'),
+    where('tanar_id', '==', user.uid),
+    orderBy('letrehozva', 'desc')
+  ));
+
+  if (osztalySnap.empty) {
+    document.getElementById('nincs-osztaly-panel').classList.remove('gated');
+    document.getElementById('btn-panel').disabled = true;
+  } else {
+    osztalySelect.innerHTML = osztalySnap.docs.map((d) => {
+      osztalyNevek[d.id] = d.data().nev;
+      return `<option value="${esc(d.id)}">${esc(d.data().nev)}</option>`;
+    }).join('');
+  }
+
+  // ══════════════════════════════════════════
+  // PANEL
+  // ══════════════════════════════════════════
+  // A panel három módban működik, ugyanazzal az űrlappal:
+  //   'uj'          – üres űrlap, új dokumentum
+  //   'szerkesztes' – meglévő feladat módosítása (osztály nem váltható,
+  //                   mert a beadások ahhoz az osztályhoz tartoznak)
+  //   'kiadas'      – meglévő feladat kiadása MÁSIK osztálynak: minden
+  //                   adat átvéve, de új dokumentum jön létre
+  let mod = 'uj';
+  let szerkesztesId = null;
+  let nyitva = false;
+
+  // A lista dokumentumai, hogy szerkesztéskor ne kelljen újra lekérni
+  const feladatok = {};
+
+  const FELIRATOK = {
+    uj:          { cim: '✏️ Új feladat',                 mentes: '💾 Feladat mentése' },
+    szerkesztes: { cim: '✏️ Feladat szerkesztése',       mentes: '💾 Módosítások mentése' },
+    kiadas:      { cim: '📤 Kiadás másik osztálynak',    mentes: '📤 Kiadás' }
+  };
+
+  function panelZar() {
+    nyitva = false;
+    document.getElementById('uj-panel').style.display = 'none';
+    document.getElementById('panel-ikon').textContent = '＋';
+    mod = 'uj';
+    szerkesztesId = null;
+  }
+
+  function panelNyit(ujMod, id) {
+    mod = ujMod;
+    szerkesztesId = ujMod === 'szerkesztes' ? id : null;
+    nyitva = true;
+
+    document.getElementById('uj-panel').style.display = 'block';
+    document.getElementById('panel-ikon').textContent = '✕';
+    document.getElementById('panel-cim').textContent = FELIRATOK[mod].cim;
+    document.getElementById('btn-mentes').textContent = FELIRATOK[mod].mentes;
+
+    // Szerkesztéskor az osztály zárolt
+    const szerk = mod === 'szerkesztes';
+    osztalySelect.disabled = szerk;
+    document.getElementById('osztaly-hint').style.display = szerk ? 'block' : 'none';
+
+    // Meglévő feladatlap átvéve
+    const vanFajl = mod !== 'uj';
+    document.getElementById('fajl-hint').style.display = vanFajl ? 'block' : 'none';
+
+    uzenetTorles('form-msg');
+    document.getElementById('uj-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /**
+   * Dátum a <input type="date"> formátumára, HELYI időzóna szerint.
+   * A toISOString() UTC-t ad, ami egy 23:59-es határidőnél átcsúszhat
+   * a szomszédos napra.
+   */
+  function datumInputnak(d) {
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  }
+
+  /** Egy meglévő feladat adatainak betöltése az űrlapba. */
+  function feladatBetolt(id) {
+    const f = feladatok[id];
+    if (!f) return false;
+
+    // Tiszta lappal indulunk, különben a korábbi megnyitás maradékai
+    // (pl. szempontok) átszivárognak.
+    urlapTorles();
+
+    document.getElementById('f-cim').value = f.cim || '';
+    document.getElementById('f-hatarido').value = f.hatarido?.toDate
+      ? datumInputnak(f.hatarido.toDate())
+      : '';
+    if (osztalySelect.querySelector(`option[value="${f.osztaly_id}"]`)) {
+      osztalySelect.value = f.osztaly_id;
+    }
+
+    rubrikaKitolt(f.rubrika || {});
+    document.getElementById('r-leiras').value = f.rubrika?.feladat_leiras || '';
+
+    // A feladatlapot átvesszük – nem kell újra feltölteni
+    fajlPath = f.feladatlap?.path || null;
+    fajlUrl = f.feladatlap?.url || null;
+    if (fajlPath) {
+      document.getElementById('upload-nev').textContent =
+        fajlPath.split('/').pop().replace(/^\d+_/, '');
+      document.getElementById('upload-preview').classList.add('show');
+    }
+
+    document.getElementById('rubrika-badge').style.display = 'none';
+    return true;
+  }
+
+  document.getElementById('btn-panel').addEventListener('click', () => {
+    if (nyitva) { panelZar(); return; }
+    urlapTorles();
+    panelNyit('uj');
+  });
+  document.getElementById('btn-bezar').addEventListener('click', panelZar);
+
+  // ══════════════════════════════════════════
+  // SZEMPONTOK (dinamikus sorok)
+  // ══════════════════════════════════════════
+  const szempontokEl = document.getElementById('szempontok');
+
+  function szempontSor(kulcs = '', cim = '', suly = '') {
+    const sor = document.createElement('div');
+    sor.className = 'szempont-sor';
+    sor.innerHTML = `
+      <input type="text" class="sz-kulcs" placeholder="kulcs" value="${esc(kulcs)}" maxlength="30" />
+      <input type="text" class="sz-cim" placeholder="Megjelenő cím" value="${esc(cim)}" maxlength="80" />
+      <input type="number" class="sz-suly" placeholder="pont" min="0" max="1000" value="${esc(suly)}" />
+      <button class="btn-sm danger" type="button" data-torol>✕</button>`;
+    sor.querySelector('[data-torol]').addEventListener('click', () => {
+      sor.remove();
+      sulyFrissit();
+    });
+    sor.querySelector('.sz-suly').addEventListener('input', sulyFrissit);
+    szempontokEl.appendChild(sor);
+    return sor;
+  }
+
+  // A pontszám szabadon választható: az értékelés a szempontok összegéből
+  // számol max_pontszam-ot és százalékot, tehát 20, 50 vagy 100 is jó.
+  // Csak a nulla összeg értelmetlen.
+  function sulyFrissit() {
+    const osszeg = [...szempontokEl.querySelectorAll('.sz-suly')]
+      .reduce((s, i) => s + (Number(i.value) || 0), 0);
+    const jelzo = document.getElementById('suly-jelzo');
+    jelzo.textContent = `összesen: ${osszeg} pont`;
+    jelzo.className = 'suly-jelzo' + (osszeg > 0 ? ' ok' : ' figyelem');
+  }
+
+  document.getElementById('btn-szempont').addEventListener('click', () => {
+    szempontSor();
+    sulyFrissit();
+  });
+
+  function szempontokBeolvas() {
+    return [...szempontokEl.querySelectorAll('.szempont-sor')].map((sor) => ({
+      kulcs: sor.querySelector('.sz-kulcs').value.trim(),
+      cim: sor.querySelector('.sz-cim').value.trim(),
+      suly: Number(sor.querySelector('.sz-suly').value) || 0
+    })).filter((sz) => sz.kulcs && sz.suly > 0);
+  }
+
+  // Alapértelmezett rubrika, ha az AI nem fut le
+  function alapSzempontok() {
+    szempontokEl.innerHTML = '';
+    szempontSor('tartalom', 'Tartalom és feladatteljesítés', 30);
+    szempontSor('szerkezet', 'Szerkezet és kohézió', 20);
+    szempontSor('szokincs', 'Szókincs', 25);
+    szempontSor('nyelvtan', 'Nyelvhelyesség', 25);
+    sulyFrissit();
+  }
+  alapSzempontok();
+
+  // ══════════════════════════════════════════
+  // RUBRIKA-SABLONOK
+  //
+  // A sablon a rubrika ÚJRAHASZNOSÍTHATÓ részét tárolja: típus, szint,
+  // szószám, szempontok, AI-utasítás. A feladat leírását SZÁNDÉKOSAN nem –
+  // az mindig az adott feladatlaphoz tartozik.
+  // ══════════════════════════════════════════
+  const sablonValaszto = document.getElementById('sablon-valaszto');
+  let sablonok = [];
+
+  function rubrikaBeolvas() {
+    return {
+      nyelv: document.getElementById('r-nyelv').value,
+      tipus: document.getElementById('r-tipus').value,
+      szint: document.getElementById('r-szint').value,
+      min_szo: Number(document.getElementById('r-min').value) || null,
+      max_szo: Number(document.getElementById('r-max').value) || null,
+      szempontok: szempontokBeolvas(),
+      egyeb_utasitas: document.getElementById('r-egyeb').value.trim()
+    };
+  }
+
+  function rubrikaKitolt(r) {
+    // Régebbi feladatoknál/sablonoknál nincs nyelv – azok angolok
+    document.getElementById('r-nyelv').value = r.nyelv || 'angol';
+    if (r.tipus) document.getElementById('r-tipus').value = r.tipus;
+    if (r.szint) document.getElementById('r-szint').value = r.szint;
+    document.getElementById('r-min').value = r.min_szo || '';
+    document.getElementById('r-max').value = r.max_szo || '';
+    document.getElementById('r-egyeb').value = r.egyeb_utasitas || '';
+
+    if (Array.isArray(r.szempontok) && r.szempontok.length) {
+      szempontokEl.innerHTML = '';
+      r.szempontok.forEach((sz) => szempontSor(sz.kulcs, sz.cim, sz.suly));
+      sulyFrissit();
+    }
+  }
+
+  async function sablonokBetolt() {
+    try {
+      const snap = await getDocs(query(
+        collection(db, 'rubrikak'),
+        where('tanar_id', '==', user.uid),
+        orderBy('nev')
+      ));
+      sablonok = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+      sablonValaszto.innerHTML =
+        '<option value="">Sablon betöltése…</option>' +
+        sablonok.map((sb) => {
+          const pont = (sb.rubrika?.szempontok || [])
+            .reduce((a, sz) => a + (Number(sz.suly) || 0), 0);
+          return `<option value="${esc(sb.id)}">${esc(sb.nev)} (${pont} pont)</option>`;
+        }).join('');
+    } catch (e) {
+      console.error('Sablonok betöltése:', e);
+      uzenet('sablon-msg', 'A sablonok nem tölthetők be. Hiányzó index? Nézd meg a konzolt.');
+    }
+  }
+
+  sablonValaszto.addEventListener('change', () => {
+    const sb = sablonok.find((x) => x.id === sablonValaszto.value);
+    document.getElementById('btn-sablon-torol').disabled = !sb;
+    uzenetTorles('sablon-msg');
+    if (!sb) return;
+    rubrikaKitolt(sb.rubrika || {});
+    document.getElementById('rubrika-badge').style.display = 'none';
+    uzenet('sablon-msg', `"${sb.nev}" betöltve. Szabadon módosíthatod.`, 'success');
+  });
+
+  document.getElementById('btn-sablon-ment').addEventListener('click', async (e) => {
+    uzenetTorles('sablon-msg');
+    const rubrika = rubrikaBeolvas();
+
+    if (rubrika.szempontok.length === 0) {
+      uzenet('sablon-msg', 'Előbb állítsd össze a szempontokat.');
+      return;
+    }
+
+    const kivalasztott = sablonok.find((x) => x.id === sablonValaszto.value);
+    const alapNev = kivalasztott
+      ? kivalasztott.nev
+      : `${rubrika.tipus} ${rubrika.szint} – ${rubrika.szempontok.reduce((a, sz) => a + sz.suly, 0)} pont`;
+
+    const nev = (prompt('A sablon neve:', alapNev) || '').trim();
+    if (!nev) return;
+
+    const vissza = gombVar(e.currentTarget, 'Mentés...');
+    try {
+      const letezo = sablonok.find((x) => x.nev === nev);
+      if (letezo) {
+        if (!confirm(`Már van "${nev}" nevű sablon. Felülírod?`)) { vissza(); return; }
+        await updateDoc(doc(db, 'rubrikak', letezo.id), {
+          rubrika, frissitve: serverTimestamp()
+        });
+      } else {
+        await addDoc(collection(db, 'rubrikak'), {
+          nev, rubrika, tanar_id: user.uid, letrehozva: serverTimestamp()
+        });
+      }
+      await sablonokBetolt();
+      uzenet('sablon-msg', `"${nev}" elmentve.`, 'success');
+    } catch (err) {
+      uzenet('sablon-msg', 'Mentési hiba: ' + hibaSzoveg(err));
+    } finally {
+      vissza();
+    }
+  });
+
+  document.getElementById('btn-sablon-torol').addEventListener('click', async (e) => {
+    const sb = sablonok.find((x) => x.id === sablonValaszto.value);
+    if (!sb) return;
+    if (!confirm(`Törlöd a "${sb.nev}" sablont? A már létrehozott feladatokat nem érinti.`)) return;
+
+    const vissza = gombVar(e.currentTarget, '');
+    try {
+      await deleteDoc(doc(db, 'rubrikak', sb.id));
+      await sablonokBetolt();
+      sablonValaszto.value = '';
+      document.getElementById('btn-sablon-torol').disabled = true;
+      uzenet('sablon-msg', 'Sablon törölve.', 'success');
+    } catch (err) {
+      uzenet('sablon-msg', 'Törlési hiba: ' + hibaSzoveg(err));
+    } finally {
+      vissza();
+    }
+  });
+
+  sablonokBetolt();
+
+  // ══════════════════════════════════════════
+  // FÁJL → AI RUBRIKA JAVASLAT
+  // ══════════════════════════════════════════
+  document.getElementById('f-fajl').addEventListener('change', async (e) => {
+    const eredeti = e.target.files[0];
+    if (!eredeti) return;
+
+    uzenetTorles('form-msg');
+    const file = await atmeretez(eredeti);
+
+    if (tulNagy(file)) {
+      uzenet('form-msg', `A fájl túl nagy (${meret(file.size)}), a korlát 10 MB.`);
+      return;
+    }
+
+    document.getElementById('upload-nev').textContent =
+      `${file.name} (${meret(file.size)})`;
+    document.getElementById('upload-preview').classList.add('show');
+
+    const tolt = document.getElementById('rubrika-tolt');
+    tolt.classList.add('show');
+    document.getElementById('rubrika-badge').style.display = 'none';
+
+    try {
+      const path = `feladatlapok/${user.uid}/${Date.now()}_${file.name}`;
+      await uploadBytes(storageRef(storage, path), file);
+      fajlPath = path;
+      fajlUrl = null;   // új fájl – az URL-t újra le kell kérni
+
+      const { data } = await feladatlapElemzes({
+        feladatlapPath: path,
+        nyelv: document.getElementById('r-nyelv').value
+      });
+      const r = data.rubrika || {};
+
+      if (r.cim_javaslat && !document.getElementById('f-cim').value.trim()) {
+        document.getElementById('f-cim').value = r.cim_javaslat;
+      }
+      // Ha az AI más nyelvet látott a feladatlapon, azt követjük
+      const valasztottNyelv = document.getElementById('r-nyelv').value;
+      if (r.nyelv && r.nyelv !== valasztottNyelv) {
+        document.getElementById('r-nyelv').value = r.nyelv;
+        uzenet('form-msg',
+          `A feladatlap ${r.nyelv} nyelvűnek tűnik – átállítottam. ` +
+          `Ha nem jó, írd át kézzel.`, 'success');
+      }
+      if (r.tipus) document.getElementById('r-tipus').value = r.tipus;
+      if (r.szint) document.getElementById('r-szint').value = r.szint;
+      if (r.min_szo) document.getElementById('r-min').value = r.min_szo;
+      if (r.max_szo) document.getElementById('r-max').value = r.max_szo;
+      if (r.feladat_leiras) document.getElementById('r-leiras').value = r.feladat_leiras;
+
+      if (Array.isArray(r.szempontok) && r.szempontok.length) {
+        szempontokEl.innerHTML = '';
+        r.szempontok.forEach((sz) => szempontSor(sz.kulcs, sz.cim, sz.suly));
+        sulyFrissit();
+      }
+
+      document.getElementById('rubrika-badge').style.display = 'inline-flex';
+      if (data.suly_osszeg > 0 && data.suly_osszeg !== 100) {
+        uzenet('form-msg',
+          `Az AI ${data.suly_osszeg} pontos rubrikát javasolt. Ha más ` +
+          `pontszámmal dolgozol, írd át a szempontok pontjait.`, 'success');
+      }
+    } catch (err) {
+      uzenet('form-msg', 'A feladatlap elemzése nem sikerült: ' + hibaSzoveg(err) +
+        ' A rubrikát kézzel is kitöltheted.');
+    } finally {
+      tolt.classList.remove('show');
+    }
+  });
+
+  // ══════════════════════════════════════════
+  // MENTÉS
+  // ══════════════════════════════════════════
+  document.getElementById('btn-mentes').addEventListener('click', async (e) => {
+    uzenetTorles('form-msg');
+
+    const osztalyId = osztalySelect.value;
+    const cim = document.getElementById('f-cim').value.trim();
+    const szempontok = szempontokBeolvas();
+    const sulyOsszeg = szempontok.reduce((s, sz) => s + sz.suly, 0);
+
+    if (!osztalyId) { uzenet('form-msg', 'Válassz osztályt!'); return; }
+    if (!cim) { uzenet('form-msg', 'Add meg a feladat címét!'); return; }
+    if (!fajlPath) { uzenet('form-msg', 'Töltsd fel a feladatlapot!'); return; }
+    if (szempontok.length === 0) { uzenet('form-msg', 'Legalább egy szempont kell.'); return; }
+    if (sulyOsszeg <= 0) {
+      uzenet('form-msg', 'Adj pontot legalább egy szempontnak.');
+      return;
+    }
+
+    const hataridoStr = document.getElementById('f-hatarido').value;
+    const minSzo = Number(document.getElementById('r-min').value) || null;
+    const maxSzo = Number(document.getElementById('r-max').value) || null;
+
+    if (minSzo && maxSzo && minSzo > maxSzo) {
+      uzenet('form-msg', 'A minimum szószám nem lehet nagyobb a maximumnál.');
+      return;
+    }
+
+    const vissza = gombVar(e.target, 'Mentés...');
+    try {
+      // Változatlan fájlnál az URL már megvan; új feltöltésnél lekérjük
+      const url = fajlUrl || await getDownloadURL(storageRef(storage, fajlPath));
+
+      const rubrika = {
+        ...rubrikaBeolvas(),
+        // A feladat leírása nem része a sablonnak – itt adjuk hozzá
+        feladat_leiras: document.getElementById('r-leiras').value.trim()
+      };
+      const hatarido = hataridoStr
+        ? Timestamp.fromDate(new Date(hataridoStr + 'T23:59:59'))
+        : null;
+
+      if (mod === 'szerkesztes') {
+        // A szabály csak ezt a négy mezőt engedi módosítani – az
+        // osztaly_id és a tanar_id szándékosan nem változtatható.
+        await updateDoc(doc(db, 'feladatok', szerkesztesId), {
+          cim, hatarido, rubrika
+        });
+        uzenet('form-msg',
+          'Módosítások mentve. A korábbi értékeléseket ez nem írja át – ' +
+          'ha az új rubrikával akarod őket, a Javítási sorban futtasd újra.',
+          'success');
+      } else {
+        await addDoc(collection(db, 'feladatok'), {
+          osztaly_id: osztalyId,
+          tanar_id: user.uid,
+          cim,
+          hatarido,
+          aktiv: true,
+          rubrika,
+          feladatlap: { path: fajlPath, url },
+          letrehozva: serverTimestamp()
+        });
+        uzenet('form-msg',
+          mod === 'kiadas'
+            ? `Kiadva a(z) "${osztalyNevek[osztalyId]}" osztálynak.`
+            : 'Feladat mentve! A diákok már látják az osztályukban.',
+          'success');
+      }
+
+      urlapTorles();
+      panelZar();
+    } catch (err) {
+      uzenet('form-msg', 'Mentési hiba: ' + hibaSzoveg(err));
+    } finally {
+      vissza();
+    }
+  });
+
+  function urlapTorles() {
+    document.getElementById('f-cim').value = '';
+    document.getElementById('f-hatarido').value = '';
+    document.getElementById('f-fajl').value = '';
+    document.getElementById('r-leiras').value = '';
+    document.getElementById('r-egyeb').value = '';
+    document.getElementById('r-min').value = '';
+    document.getElementById('r-max').value = '';
+    document.getElementById('upload-preview').classList.remove('show');
+    document.getElementById('rubrika-badge').style.display = 'none';
+    document.getElementById('r-nyelv').value = 'angol';
+    fajlPath = null;
+    fajlUrl = null;
+    document.getElementById('fajl-hint').style.display = 'none';
+    document.getElementById('osztaly-hint').style.display = 'none';
+    osztalySelect.disabled = false;
+    alapSzempontok();
+    sablonValaszto.value = '';
+    document.getElementById('btn-sablon-torol').disabled = true;
+    uzenetTorles('sablon-msg');
+  }
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    urlapTorles();
+    uzenetTorles('form-msg');
+  });
+
+  // ══════════════════════════════════════════
+  // LISTA (realtime)
+  // ══════════════════════════════════════════
+  const lista = document.getElementById('lista');
+
+  onSnapshot(
+    query(
+      collection(db, 'feladatok'),
+      where('tanar_id', '==', user.uid),
+      orderBy('letrehozva', 'desc')
+    ),
+    (snap) => {
+      if (snap.empty) {
+        lista.innerHTML = `<div class="empty-state bare">
+          <div class="empty-icon">📭</div><p>Még nincs feladat.</p></div>`;
+        return;
+      }
+      lista.innerHTML = snap.docs.map((d) => {
+        const f = d.data();
+        feladatok[d.id] = f;   // szerkesztéshez / kiadáshoz
+        const r = f.rubrika || {};
+        return `
+          <div class="list-card">
+            <div>
+              <h3>${esc(f.cim)}</h3>
+              <div class="list-card-meta">
+                <span>🎓 ${esc(osztalyNevek[f.osztaly_id] || '–')}</span>
+                <span>${esc(r.nyelv || 'angol')} · ${esc(r.tipus || '–')} · ${esc(r.szint || '–')}</span>
+                ${f.hatarido ? `<span>⏰ ${datum(f.hatarido)}</span>` : ''}
+                <span class="badge ${f.aktiv ? 'aktiv' : 'inaktiv'}">
+                  ${f.aktiv ? '✅ Aktív' : '⏸ Zárt'}
+                </span>
+              </div>
+            </div>
+            <div class="list-card-actions">
+              <button class="btn-sm" data-akcio="elemzes" data-id="${esc(d.id)}" title="Osztályszintű elemzés">📊</button>
+              <button class="btn-sm" data-akcio="szerkeszt" data-id="${esc(d.id)}" title="Szerkesztés">✏️</button>
+              <button class="btn-sm" data-akcio="kiadas" data-id="${esc(d.id)}" title="Kiadás másik osztálynak">📤</button>
+              <button class="btn-sm" data-akcio="toggle" data-id="${esc(d.id)}" data-aktiv="${f.aktiv ? '1' : '0'}">
+                ${f.aktiv ? '⏸ Zárás' : '▶ Nyitás'}
+              </button>
+              <button class="btn-sm danger" data-akcio="torol" data-id="${esc(d.id)}" title="Törlés">🗑</button>
+            </div>
+          </div>`;
+      }).join('');
+    },
+    (e) => {
+      console.error(e);
+      lista.innerHTML = `<div class="empty-state bare"><p>Nem sikerült betölteni. Hiányzó index? Nézd meg a konzolt.</p></div>`;
+    }
+  );
+
+  lista.addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-akcio]');
+    if (!b) return;
+    const { akcio, id } = b.dataset;
+
+    if (akcio === 'elemzes') {
+      window.location.href = `elemzes.html?feladat=${id}`;
+      return;
+    }
+
+    if (akcio === 'szerkeszt' || akcio === 'kiadas') {
+      if (!feladatBetolt(id)) {
+        alert('A feladat adatai nem érhetők el. Töltsd újra az oldalt.');
+        return;
+      }
+      panelNyit(akcio === 'szerkeszt' ? 'szerkesztes' : 'kiadas', id);
+
+      if (akcio === 'kiadas') {
+        // Kiadásnál más osztályt kell választani, a határidő pedig
+        // jellemzően más – ezt ne vegye át csendben.
+        document.getElementById('f-hatarido').value = '';
+        uzenet('form-msg',
+          'Válassz osztályt és adj új határidőt. A feladatlap és a rubrika átvéve.',
+          'success');
+      }
+      return;
+    }
+
+    b.disabled = true;
+    try {
+      if (akcio === 'toggle') {
+        await updateDoc(doc(db, 'feladatok', id), { aktiv: b.dataset.aktiv !== '1' });
+      } else if (akcio === 'torol') {
+        if (!confirm('Törlöd ezt a feladatot? A beadások megmaradnak.')) {
+          b.disabled = false; return;
+        }
+        await deleteDoc(doc(db, 'feladatok', id));
+      }
+    } catch (err) {
+      b.disabled = false;
+      alert('Hiba: ' + err.message);
+    }
+  });
+</script>
+</body>
+</html>
