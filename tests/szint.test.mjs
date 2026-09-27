@@ -75,6 +75,20 @@ test("magyar szint nélkül is null – nem talál ki évfolyamot", () => {
   assert.equal(t.szintInfo({ nyelv: "magyar" }), null);
 });
 
+test("a RÉGI, CEFR-kényszer alatt mentett magyar szintet eldobja", () => {
+  // Ezek a feladatok már léteznek: a séma korábban kikényszerítette a
+  // CEFR-t magyar dolgozatra is. Címkézve "Évfolyam: B1" lett volna.
+  assert.equal(t.szintInfo({ nyelv: "magyar", szint: "B1" }), null);
+  assert.equal(t.szintInfo({ nyelv: "angol", szint: "9-10. évfolyam" }), null);
+});
+
+test("régi magyar feladat prompt nélküli mércét kap, nem 'Évfolyam: B1'-et", () => {
+  const p = t.ertekelesPrompt(feladat("magyar", "B1"), "Valami szöveg.");
+  assert.equal(/Évfolyam: B1/.test(p), false, "rossz skálán lévő szintet ír ki");
+  assert.match(p, /nem adott meg évfolyamot/);
+  assert.equal(/ne anyanyelvi szinthez/.test(p), false);
+});
+
 test("anyanyelvu(): a magyar az, a többi nem", () => {
   assert.equal(t.anyanyelvu({ nyelv: "magyar" }), true);
   for (const ny of t.NYELVEK.filter((n) => n !== "magyar")) {

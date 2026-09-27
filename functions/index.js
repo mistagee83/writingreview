@@ -314,9 +314,14 @@ function anyanyelvu(rubrika) {
  * @returns {{cimke: string, ertek: string, anyanyelv: boolean}|null}
  */
 function szintInfo(rubrika) {
-  const szint = String(rubrika?.szint || "").trim();
+  const nyelv = nyelve(rubrika);
+  // A tárolt értéket is a nyelv skálájához mérjük, nem csak felcímkézzük.
+  // Van olyan feladat, amit még CEFR-kényszer alatt mentettünk: egy
+  // magyar dolgozaton a "B1" ilyenkor "Évfolyam: B1"-ként jelent volna
+  // meg a promptban. Rossz mércénél jobb a semmi.
+  const szint = szintSzures(nyelv, rubrika?.szint);
   if (!szint) return null;
-  return anyanyelvu(rubrika)
+  return ANYANYELVEK.includes(nyelv)
     ? { cimke: "Évfolyam", ertek: szint, anyanyelv: true }
     : { cimke: "Célszint (CEFR)", ertek: szint, anyanyelv: false };
 }

@@ -20,7 +20,7 @@ jóváhagyás → osztályszintű elemzés.
 | Élő cím | https://writingreview-41e59.web.app |
 | Firebase projekt | `writingreview-41e59` (Firestore: `eur3`, functions: `europe-west1`) |
 | GitHub | https://github.com/mistagee83/writingreview (privát) |
-| Kód | ~8700 sor, 11 oldal, 11 Cloud Function, 145 teszt |
+| Kód | ~8700 sor, 11 oldal, 11 Cloud Function, 147 teszt |
 | Futtatókörnyezet | Node 24 (a 20-at 2026-10-30-án kikapcsolják) |
 | Modell | `gemini-3.8-flash` mind a négy AI-lépésben |
 
@@ -96,7 +96,7 @@ cserélődik.
 
 ### Ellenőrzés a váltás után
 
-A 145 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
+A 147 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 `fetch`-csel. **Ha SDK-ra váltunk, ezek a tesztek átírandók**, mert nem
 `fetch`-et stubolnak majd. Ez a váltás rejtett munkája.
 
@@ -108,7 +108,7 @@ A 145 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 |---|---|---|
 | 1 | **Agent Platform / EU** | ↑ holnapi téma |
 | 2 | **`storage.rules` tesztek** | átnézve, de **egy teszt sincs rá** – ez a legvalószínűbb rés |
-| 3 | **`firebase-functions` SDK** | `^5.0.0`, elavult; a frissítés törő változásokkal jár, de most van hozzá 145 teszt |
+| 3 | **`firebase-functions` SDK** | `^5.0.0`, elavult; a frissítés törő változásokkal jár, de most van hozzá 147 teszt |
 | 4 | **Haladásjelző** | külön modul: több feladat időben, javul-e az osztály. Egyeztetve későbbre. |
 | 5 | **Per-tanár Gemini-használat** | ha többen használják, hasznos lesz látni, ki mennyit fogyaszt |
 | 6 | **CORS lista** | hardcode-olt a `functions/index.js`-ben, új domainhez kézi felvétel |
