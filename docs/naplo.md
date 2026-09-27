@@ -20,7 +20,7 @@ jóváhagyás → osztályszintű elemzés.
 | Élő cím | https://writingreview-41e59.web.app |
 | Firebase projekt | `writingreview-41e59` (Firestore: `eur3`, functions: `europe-west1`) |
 | GitHub | https://github.com/mistagee83/writingreview (privát) |
-| Kód | ~10500 sor, 12 oldal, 11 Cloud Function, 194 teszt |
+| Kód | ~10800 sor, 12 oldal, 11 Cloud Function, 208 teszt |
 | Futtatókörnyezet | Node 24 (a 20-at 2026-10-30-án kikapcsolják) |
 | Modell | `gemini-3.8-flash` mind a négy AI-lépésben |
 
@@ -59,6 +59,19 @@ jóváhagyás → osztályszintű elemzés.
    a böngésző minden oldalbetöltésnél újraellenőrzi. Egy hibás változat
    visszahívásához tegyél ki egy olyan `sw.js`-t, ami csak
    `self.registration.unregister()`-t hív.
+
+10. **Fejléc-navigáció** – vissza gomb és a márkanév mint főoldal-link,
+    minden lapon (`fejlec.js`). Telefonon az oldalsáv 700px alatt rejtve
+    van, telepített appban pedig a böngésző vissza gombja sincs – ez
+    éles hibaként derült ki, a telefonon nem volt semmi navigáció.
+
+    **Nem `history.back()`**, hanem logikai szülő (`SZULO` térkép): a
+    history mélylinkről vagy telepített appból indulva nem oda visz,
+    ahova a tanár számít, legrosszabb esetben ki az appból. A hierarchia
+    tesztelt: minden kapuzott lap vagy kezdőlap, vagy van szülője.
+
+    Nyitott modálnál a gomb először a modált zárja (a lap saját bezáró
+    gombját nyomja meg, hogy a takarítás is lefusson).
 
 ---
 
@@ -121,7 +134,7 @@ cserélődik.
 
 ### Ellenőrzés a váltás után
 
-A 194 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
+A 208 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 `fetch`-csel. **Ha SDK-ra váltunk, ezek a tesztek átírandók**, mert nem
 `fetch`-et stubolnak majd. Ez a váltás rejtett munkája.
 
@@ -133,7 +146,7 @@ A 194 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 |---|---|---|
 | 1 | **Agent Platform / EU** | ↑ holnapi téma |
 | 2 | **`storage.rules` tesztek** | átnézve, de **egy teszt sincs rá** – ez a legvalószínűbb rés |
-| 3 | **`firebase-functions` SDK** | `^5.0.0`, elavult; a frissítés törő változásokkal jár, de most van hozzá 194 teszt |
+| 3 | **`firebase-functions` SDK** | `^5.0.0`, elavult; a frissítés törő változásokkal jár, de most van hozzá 208 teszt |
 | 4 | **Haladásjelző** | külön modul: több feladat időben, javul-e az osztály. Egyeztetve későbbre. |
 | 5 | **Per-tanár Gemini-használat** | ha többen használják, hasznos lesz látni, ki mennyit fogyaszt |
 | 6 | **CORS lista** | hardcode-olt a `functions/index.js`-ben, új domainhez kézi felvétel |
@@ -222,6 +235,21 @@ megoldja (már be van kapcsolva).
 mert a Pub/Sub és Eventarc szolgáltatás-identitások épp akkor jönnek létre, és
 a trigger megelőzi az IAM-jogok terjedését. **Változtatás nélkül, másodszorra
 kimegy.**
+
+**A topbar 375px-en HARMADSZOR is túlfolyt.** A vissza gomb 38px-et
+kért, és a Kilépés gombot kilökte a képből. Minden topbar-bővítésnél
+ugyanez a történet: **mérj, ne nézz rá.** A helyet a Kilépés feliratának
+elrejtése adta (ikon marad, az elérhető név megmarad). Most 14px a
+tartalék, mérve, a villanykörtével együtt.
+
+**A komment-alapú hamis pozitív harmadszor.** Egy forrás-ellenőrző teszt
+a KOMMENTBEN lévő `history.back()` említésre hasalt el, egy másik pedig
+egy kikommentezett sort érvényesnek fogadott el. Minden ilyen tesztnek
+komment nélküli kódon kell futnia (`kodCsak`).
+
+**Egy negatív kontroll a SAJÁT tesztemben talált hibát:** a „lánc rövid"
+teszt `while` ciklusa körnél végtelenségig futott, és a tesztfájl
+lefagyott megállás helyett. Minden bejárás legyen korlátos.
 
 **A PWA-ból minden CSENDBEN romlik el.** Ha egy ikon átnevezésre
 kerül, a telepítés egyszerűen nem ajánlódik fel – hibaüzenet nincs. Ha a

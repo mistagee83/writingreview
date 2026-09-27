@@ -125,6 +125,13 @@ export function vedettOldal(elvartSzerep, opciok = {}) {
 
       megjelenit(user, profil);
 
+      // Fejléc-navigáció: vissza gomb és a márkanév mint főoldal-link.
+      // Telefonon az oldalsáv rejtve van, telepített appban pedig a
+      // böngésző vissza gombja sincs – e nélkül nincs navigáció.
+      import("./fejlec.js")
+        .then((m) => m.fejlecBeallit({ szerep }))
+        .catch((e) => console.warn("A fejléc-navigáció nem indult el:", e));
+
       // A bemutató (villanykörte a topbaron, első belépéskor menü) egy
       // helyen kapcsolódik be, nem öt lapon külön. Dinamikus import:
       // ha bármi hibája van, az ne akadályozza meg a belépést.
