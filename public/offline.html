@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingReview – Nincs kapcsolat</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --ink:#0f0f0f; --paper:#f5f2ec; --card:#fff; --border:#e0dbd2;
+            --muted:#7a7670; --accent:#d4500a; }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+      background: var(--paper); color: var(--ink);
+      font-family: 'DM Sans', system-ui, sans-serif;
+    }
+    .box {
+      max-width: 27rem; width: 100%;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem 1.75rem;
+      text-align: center;
+    }
+    .jel { font-size: 2.5rem; line-height: 1; margin-bottom: 1rem; }
+    h1 {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 1.25rem; margin-bottom: 0.75rem;
+      /* A hosszú magyar összetett szavak 375px-en kifutnának */
+      overflow-wrap: anywhere;
+    }
+    p { font-size: 0.925rem; line-height: 1.6; color: var(--muted); }
+    p + p { margin-top: 0.75rem; }
+    button {
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      border: none; border-radius: 8px;
+      background: var(--accent); color: #fff;
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.08); }
+    @media (prefers-color-scheme: dark) {
+      body { background: #17150f; color: #f5f2ec; }
+      .box { background: #221f18; border-color: #3a352b; }
+      p { color: #a8a396; }
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="jel">📡</div>
+    <h1>Nincs kapcsolat</h1>
+    <p>
+      A WritingReview-hoz kapcsolat kell: a belépés, a dolgozatok
+      feltöltése és a javítás is a szerveren történik.
+    </p>
+    <p>
+      A már megnyitott oldalak és a beírt szöveg nem vesznek el –
+      kapcsolódás után folytathatod.
+    </p>
+    <button type="button" onclick="location.reload()">Újrapróbálom</button>
+  </div>
+
+  <script>
+    // Amint visszajön a hálózat, magától újratölt – így nem kell a
+    // gombot nyomkodni.
+    addEventListener("online", () => location.reload());
+  </script>
+</body>
+</html>

@@ -20,7 +20,7 @@ jóváhagyás → osztályszintű elemzés.
 | Élő cím | https://writingreview-41e59.web.app |
 | Firebase projekt | `writingreview-41e59` (Firestore: `eur3`, functions: `europe-west1`) |
 | GitHub | https://github.com/mistagee83/writingreview (privát) |
-| Kód | ~10000 sor, 11 oldal, 11 Cloud Function, 178 teszt |
+| Kód | ~10500 sor, 12 oldal, 11 Cloud Function, 194 teszt |
 | Futtatókörnyezet | Node 24 (a 20-at 2026-10-30-án kikapcsolják) |
 | Modell | `gemini-3.8-flash` mind a négy AI-lépésben |
 
@@ -44,6 +44,21 @@ jóváhagyás → osztályszintű elemzés.
    először NEM jelenik meg – akkor jön elő, amikor az admin tanárrá tette
    és ő újratölti a lapot (a guard.js ilyenkor irányítja a tanári
    kezdőlapra). A szabály a `tura-logika.js`-ben van, tesztelve.
+
+9. **Telepíthető alkalmazás (PWA)** – a belépő lapon telepítő sáv, a
+   telefon főképernyőjéről böngészősáv nélkül indul. Manifest + service
+   worker; az ikonokat `scripts/ikonok.mjs` generálja kódból.
+
+   **Amit a service worker NEM csinál:** offline beadás és
+   szinkronizálás. Az app hálózat nélkül nem tud működni (Auth,
+   Firestore, Storage, Gemini), ezért csak a hashelt CSS/JS jön
+   gyorsítótárból, a HTML mindig hálózatról – így egy új telepítés
+   azonnal kimegy. Offline egy magyarázó lap jön a néma hiba helyett.
+
+   **Visszavonás, ha kell:** a `/sw.js` `no-cache` fejléccel megy ki, és
+   a böngésző minden oldalbetöltésnél újraellenőrzi. Egy hibás változat
+   visszahívásához tegyél ki egy olyan `sw.js`-t, ami csak
+   `self.registration.unregister()`-t hív.
 
 ---
 
@@ -106,7 +121,7 @@ cserélődik.
 
 ### Ellenőrzés a váltás után
 
-A 178 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
+A 194 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 `fetch`-csel. **Ha SDK-ra váltunk, ezek a tesztek átírandók**, mert nem
 `fetch`-et stubolnak majd. Ez a váltás rejtett munkája.
 
@@ -118,7 +133,7 @@ A 178 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 |---|---|---|
 | 1 | **Agent Platform / EU** | ↑ holnapi téma |
 | 2 | **`storage.rules` tesztek** | átnézve, de **egy teszt sincs rá** – ez a legvalószínűbb rés |
-| 3 | **`firebase-functions` SDK** | `^5.0.0`, elavult; a frissítés törő változásokkal jár, de most van hozzá 178 teszt |
+| 3 | **`firebase-functions` SDK** | `^5.0.0`, elavult; a frissítés törő változásokkal jár, de most van hozzá 194 teszt |
 | 4 | **Haladásjelző** | külön modul: több feladat időben, javul-e az osztály. Egyeztetve későbbre. |
 | 5 | **Per-tanár Gemini-használat** | ha többen használják, hasznos lesz látni, ki mennyit fogyaszt |
 | 6 | **CORS lista** | hardcode-olt a `functions/index.js`-ben, új domainhez kézi felvétel |
@@ -207,6 +222,12 @@ megoldja (már be van kapcsolva).
 mert a Pub/Sub és Eventarc szolgáltatás-identitások épp akkor jönnek létre, és
 a trigger megelőzi az IAM-jogok terjedését. **Változtatás nélkül, másodszorra
 kimegy.**
+
+**A PWA-ból minden CSENDBEN romlik el.** Ha egy ikon átnevezésre
+kerül, a telepítés egyszerűen nem ajánlódik fel – hibaüzenet nincs. Ha a
+`sw.js` a hashelt könyvtárba kerülne, a böngésző nem találná, és soha nem
+frissülne. Ezért van rá 16 teszt (`tests/pwa.test.mjs`), ami a manifest
+ikonjainak **tényleges PNG-méretét** is ellenőrzi, nem csak a feliratot.
 
 **A build nem ismerte a dinamikus importot.** A `helyiImportok()` csak a
 `from "./x.js"` alakot kereste, az `import("./x.js")`-t nem. Így nem tudta,

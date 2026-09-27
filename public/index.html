@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WritingReview – Belépés</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
   <link rel="stylesheet" href="css/auth.css"/>
@@ -91,6 +98,28 @@
     </div>
 
     <div class="msg" id="msg"></div>
+
+    <!-- TELEPÍTÉS A TELEFONRA
+         A sáv rejtve indul, és a pwa.js nyitja ki, ha van mit
+         felkínálni. Telepített appból nem jelenik meg. -->
+    <div class="telepito" id="telepito" hidden>
+      <div class="telepito-fo">
+        <span class="telepito-ikon" aria-hidden="true">
+          <img src="icons/icon-192.png" alt="" width="34" height="34" />
+        </span>
+        <div>
+          <strong>Tedd ki a telefonod főképernyőjére</strong>
+          <span>Úgy nyílik, mint egy alkalmazás – böngésző sáv nélkül.</span>
+        </div>
+      </div>
+      <button class="btn-telepito" type="button" id="btn-telepito">📲 Telepítés</button>
+      <div class="telepito-tipp" id="telepito-tipp" hidden>
+        <p><strong>Androidon (Chrome):</strong> a jobb felső ⋮ menüben
+        „Alkalmazás telepítése" vagy „Hozzáadás a kezdőlaphoz".</p>
+        <p><strong>iPhone-on (Safari):</strong> alul a megosztás ikon
+        <span aria-hidden="true">⬆️</span>, majd „Főképernyőhöz adás".</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -104,6 +133,12 @@
     signInWithPopup,
     getRedirectResult
   } from './js/firebase-config.js';
+  import { swRegisztracio, telepitoSav } from './js/pwa.js';
+
+  // Telepíthető alkalmazás: a service worker bejegyzése és a telepítő
+  // sáv. Mindkettő hibatűrő – ha nem megy, a belépés attól működik.
+  swRegisztracio();
+  telepitoSav({ sav: 'telepito', gomb: 'btn-telepito', tipp: 'telepito-tipp' });
 
   // Egyszerre csak egy belépési folyamat futhat – megakadályozza, hogy
   // az onAuthStateChanged és a getRedirectResult kétszer irányítson át.

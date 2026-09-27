@@ -132,6 +132,12 @@ export function vedettOldal(elvartSzerep, opciok = {}) {
         .then((m) => m.turaBeallit({ szerep, user, profil }))
         .catch((e) => console.warn("A bemutató nem indult el:", e));
 
+      // A service worker a belépő lapon is bejegyződik, de aki telepített
+      // appból indul, az egyenesen ide érkezik – ilyenkor innen kell.
+      import("./pwa.js")
+        .then((m) => m.swRegisztracio())
+        .catch((e) => console.warn("A service worker nem indult el:", e));
+
       resolve({ user, profil, szerep, admin });
     });
   });
