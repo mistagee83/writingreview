@@ -21,10 +21,12 @@
 
 import { db, doc, updateDoc } from "./firebase-config.js";
 import { SZAKASZOK, LEPESEK, szakaszLepesei } from "./tura-lepesek.js";
+import { felnyiljon } from "./tura-logika.js";
 
 const KULCS_ALLAS = "wr_tura_allas";     // félbehagyott futás lapváltáskor
 const KULCS_KESZ = "wr_tura_kesz";       // ne nyíljon fel magától többé
 const KULCS_LATOTT = "wr_tura_latott";   // mely szakaszokat látta már
+const KULCS_NYITAS = "wr_tura_nyitasok"; // hányszor nyílt fel magától
 
 // A localStorage bármikor dobhat: privát ablak, letiltott tárolás.
 // A bemutató ilyenkor is működjön, csak ne emlékezzen.
@@ -79,6 +81,7 @@ export function turaBeallit({ szerep, user, profil }) {
   if (szerep !== "tanar") return;
 
   felhasznalo = user;
+
   latott = new Set([
     ...(Array.isArray(profil?.tura_latott) ? profil.tura_latott : []),
     ...(olvas(KULCS_LATOTT) || "").split(",").filter(Boolean)
@@ -99,8 +102,19 @@ export function turaBeallit({ szerep, user, profil }) {
   }
   if (allas) torol(KULCS_ALLAS);   // a tanár máshova navigált
 
-  const kesz = profil?.tura_kesz === true || olvas(KULCS_KESZ) === "1";
-  if (!kesz && oldal === "tanar.html") menuNyit();
+  const nyitasok = Number(olvas(KULCS_NYITAS)) || 0;
+  const nyilhat = felnyiljon({
+    oldal,
+    szerep,
+    elutasitotta: profil?.tura_kesz === true || olvas(KULCS_KESZ) === "1",
+    latottSzakasz: latott.size,
+    nyitasok
+  });
+
+  if (nyilhat) {
+    ir(KULCS_NYITAS, String(nyitasok + 1));
+    menuNyit();
+  }
 }
 
 function allasOlvas() {
@@ -336,7 +350,8 @@ function futasKezd() {
 
 async function lepesMutat(index) {
   const lepes = LEPESEK[index];
-  if (!lepes) return bezar(true);
+  // Hibaút: nincs ilyen lépés. Ez nem elutasítás, csak bezárás.
+  if (!lepes) return bezar();
 
   // A korábbi lépés takarítása (pl. becsukott demo modál)
   const elozoLepes = LEPESEK[futas.index];
@@ -472,9 +487,12 @@ async function profilIr(adat) {
 }
 
 /**
- * @param {boolean} [vegleg] true → ne nyíljon fel magától többé
+ * @param {boolean} [elutasitas] true → a tanár KIFEJEZETTEN azt mondta,
+ *   hogy nem kéri („Most nem, köszönöm", „Befejezem"). Ilyenkor többé
+ *   nem nyílik fel magától, más gépen sem. A sima becsukás (✕, Escape,
+ *   „Bezárom") nem ez: az csak most zárja be.
  */
-async function bezar(vegleg) {
+async function bezar(elutasitas) {
   const lepes = futas ? LEPESEK[futas.index] : null;
   if (lepes?.utana) {
     try { await lepes.utana(); } catch { /* takarítás */ }
@@ -490,10 +508,10 @@ async function bezar(vegleg) {
   }
   document.body.classList.remove("tura-fut");
 
-  // Bezárás után sem nyílik fel újra magától: aki egyszer becsukta, az
-  // döntött. A villanykörte viszont ott marad.
+  if (!elutasitas) return;
+
   ir(KULCS_KESZ, "1");
-  if (vegleg !== false) profilIr({ tura_kesz: true });
+  profilIr({ tura_kesz: true });
 }
 
 /** Minden bemutató-elem eltűnik, akármelyik lépés hozta létre. */

@@ -228,3 +228,77 @@ test("minden példaelem láthatóan példa", () => {
   // A tanár soha ne higgye valódi diák dolgozatának.
   assert.match(demoSzoveg, /BEMUTATÓ · nem valódi adat/);
 });
+
+// ══════════════════════════════════════════
+// FELNYÍLÁSI SZABÁLY
+//
+// Ha ez elromlik, két rossz vég van: vagy soha nem jelenik meg a
+// bemutató (senki nem tud róla), vagy minden oldalbetöltésnél az arcába
+// ugrik a tanárnak. Egyik sem dob hibát.
+// ══════════════════════════════════════════
+
+const { felnyiljon, MAX_NYITAS, AUTO_OLDAL } =
+  await import("../public/js/tura-logika.js");
+
+const alap = {
+  oldal: AUTO_OLDAL,
+  szerep: "tanar",
+  elutasitotta: false,
+  latottSzakasz: 0,
+  nyitasok: 0
+};
+
+test("új tanárnál felnyílik a kezdőlapon", () => {
+  assert.equal(felnyiljon(alap), true);
+});
+
+test("diáknál SOHA nem nyílik fel", () => {
+  // Minden új regisztráció diák – a tanári bemutató nekik értelmetlen,
+  // és a felület is más, amit mutatna.
+  assert.equal(felnyiljon({ ...alap, szerep: "diak" }), false);
+  assert.equal(felnyiljon({ ...alap, szerep: undefined }), false);
+});
+
+test("csak a tanári kezdőlapon nyílik fel, munka közben nem", () => {
+  for (const oldal of ["feladatok.html", "javitas.html", "osztalyok.html",
+                       "admin.html", "index.html", "elemzes.html"]) {
+    assert.equal(felnyiljon({ ...alap, oldal }), false, `${oldal}-en felnyílt`);
+  }
+});
+
+test("kifejezett elutasítás után nem nyílik fel", () => {
+  assert.equal(felnyiljon({ ...alap, elutasitotta: true }), false);
+});
+
+test("egy végignézett szakasz után nem nyílik fel", () => {
+  // Aki végigvitt egy szakaszt, tudja, hol a villanykörte.
+  assert.equal(felnyiljon({ ...alap, latottSzakasz: 1 }), false);
+});
+
+test("a véletlen becsukás NEM nyomja el örökre", () => {
+  // Enélkül egy félrenyomott Escape után soha többé nem jelenik meg.
+  for (let n = 0; n < MAX_NYITAS; n++) {
+    assert.equal(felnyiljon({ ...alap, nyitasok: n }), true, `${n}. nyitás`);
+  }
+});
+
+test("de nem is ugrik fel a végtelenségig", () => {
+  assert.equal(felnyiljon({ ...alap, nyitasok: MAX_NYITAS }), false);
+  assert.equal(felnyiljon({ ...alap, nyitasok: MAX_NYITAS + 5 }), false);
+});
+
+test("a motor ezt a szabályt használja, nem sajátot", () => {
+  const motor = readFileSync(new URL("js/tura.js", OLDAL_GYOKER), "utf8");
+  assert.match(motor, /import \{ felnyiljon \} from ["']\.\/tura-logika\.js["']/);
+  assert.match(motor, /felnyiljon\(\{/);
+});
+
+test("a sima becsukás nem jelent elutasítást", () => {
+  // A ✕, az Escape és a „Bezárom" csak most zárja be. Csak a menü
+  // „Most nem, köszönöm" / „Befejezem" gombja jelent végleges nemet.
+  const motor = readFileSync(new URL("js/tura.js", OLDAL_GYOKER), "utf8");
+  assert.match(motor, /kihagy\.addEventListener\("click", \(\) => bezar\(\)\)/);
+  assert.match(motor, /zar\.addEventListener\("click", \(\) => bezar\(\)\)/);
+  assert.match(motor, /Escape".*bezar\(\)/);
+  assert.match(motor, /akcio === "kesz"\) bezar\(true\)/);
+});
