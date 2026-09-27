@@ -136,11 +136,10 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="r-szint">Célszint (CEFR)</label>
-              <select id="r-szint">
-                <option>A1</option><option>A2</option>
-                <option selected>B1</option><option>B2</option><option>C1</option>
-              </select>
+              <!-- A címke és a lista is nyelvfüggő (lásd szintSkala()):
+                   idegen nyelvnél CEFR, magyarnál évfolyam. -->
+              <label for="r-szint" id="r-szint-cimke">Célszint (CEFR)</label>
+              <select id="r-szint"></select>
             </div>
           </div>
 
@@ -401,6 +400,104 @@
   alapSzempontok();
 
   // ══════════════════════════════════════════
+  // SZINT – A MÉRCE, AMIHEZ AZ AI ÉRTÉKEL
+  //
+  // A szint jelentése nyelvfüggő. Idegen nyelvnél a CEFR-szint a mérce,
+  // mert a diák nem anyanyelvi. Magyar dolgozatnál a CEFR-nek nincs
+  // értelme – ott az évfolyam mond valamit arról, mit lehet elvárni.
+  //
+  // Az üres választás ("nem releváns") NEM ugyanaz, mint egy semleges
+  // alapértelmezés: ilyenkor a prompt egyáltalán nem ír szintet, és
+  // külön megtiltja az AI-nak, hogy kitaláljon egyet.
+  //
+  // A listák tükrei a functions/index.js CEFR_SZINTEK / EVFOLYAMOK
+  // konstansainak. Ha itt bővítesz, ott is kell – különben a szerver
+  // eldobja az értéket (szintSzures).
+  // ══════════════════════════════════════════
+  const ANYANYELVEK = ['magyar'];
+  const SZINT_SKALAK = {
+    idegen: {
+      cimke: 'Célszint (CEFR)',
+      alap: 'B1',
+      ertekek: ['A1', 'A2', 'B1', 'B2', 'C1']
+    },
+    anyanyelv: {
+      cimke: 'Évfolyam',
+      alap: '',
+      ertekek: ['5-6. évfolyam', '7-8. évfolyam', '9-10. évfolyam',
+                '11-12. évfolyam', 'érettségi (közép)', 'érettségi (emelt)']
+    }
+  };
+
+  const szintEl = document.getElementById('r-szint');
+  const szintCimkeEl = document.getElementById('r-szint-cimke');
+
+  function szintKulcs(nyelv) {
+    return ANYANYELVEK.includes(nyelv) ? 'anyanyelv' : 'idegen';
+  }
+
+  function szintSkala(nyelv) {
+    return SZINT_SKALAK[szintKulcs(nyelv)];
+  }
+
+  // Skálánként megjegyezzük az utolsó választást. E nélkül egy téves
+  // nyelvváltás (angol → magyar → angol) csendben "nem releváns"-on
+  // hagyná a szintet: a tanár nem feltétlenül veszi észre, és a dolgozat
+  // mérce nélkül megy az AI-hoz.
+  const utolsoSzint = {
+    idegen: SZINT_SKALAK.idegen.alap,
+    anyanyelv: SZINT_SKALAK.anyanyelv.alap
+  };
+
+  /**
+   * A szint-lista újraépítése a nyelvhez.
+   *
+   * A második paraméter jelentése SZÁNDÉKOSAN háromértékű:
+   *   - elhagyva (undefined) → a skála alapértelmezése (üres űrlap)
+   *   - bármi más, null és '' is → PONTOSAN az, ha a skálán létezik,
+   *     különben "nem releváns"
+   *
+   * Ez azért lényeges, mert a mentett null valódi döntés ("nem
+   * releváns"), nem hiányzó adat: szerkesztéskor nem eshet vissza
+   * B1-re, mert akkor a mentés csendben visszaírná.
+   *
+   * @param {string} nyelv
+   * @param {string|null} [kivant]
+   */
+  function szintSkalaFrissit(nyelv, kivant) {
+    const skala = szintSkala(nyelv);
+    szintCimkeEl.textContent = skala.cimke;
+    szintEl.innerHTML =
+      '<option value="">nem releváns</option>' +
+      skala.ertekek.map((sz) => `<option value="${esc(sz)}">${esc(sz)}</option>`).join('');
+
+    if (kivant === undefined) {
+      szintEl.value = skala.alap;
+    } else {
+      const ertek = String(kivant ?? '').trim();
+      szintEl.value = skala.ertekek.includes(ertek) ? ertek : '';
+    }
+    utolsoSzint[szintKulcs(nyelv)] = szintEl.value;
+  }
+
+  const nyelvEl = document.getElementById('r-nyelv');
+  szintSkalaFrissit(nyelvEl.value);
+
+  // A kézi választást is meg kell jegyezni: ilyenkor nem fut le a
+  // szintSkalaFrissit, tehát máshonnan nem derülne ki.
+  szintEl.addEventListener('change', () => {
+    utolsoSzint[szintKulcs(nyelvEl.value)] = szintEl.value;
+  });
+
+  nyelvEl.addEventListener('change', (e) => {
+    // Ha az érték átvihető az új skálára (angol→német: a B1 érvényes),
+    // marad. Ha nem (angol→magyar), az adott skálán utoljára választott
+    // érték jön vissza – nem találunk ki újat, de nem is veszítünk el egyet.
+    const athozhato = szintSkala(e.target.value).ertekek.includes(szintEl.value);
+    szintSkalaFrissit(e.target.value, athozhato ? szintEl.value : utolsoSzint[szintKulcs(e.target.value)]);
+  });
+
+  // ══════════════════════════════════════════
   // RUBRIKA-SABLONOK
   //
   // A sablon a rubrika ÚJRAHASZNOSÍTHATÓ részét tárolja: típus, szint,
@@ -414,7 +511,9 @@
     return {
       nyelv: document.getElementById('r-nyelv').value,
       tipus: document.getElementById('r-tipus').value,
-      szint: document.getElementById('r-szint').value,
+      // "nem releváns" → null, nem üres string. A promptok a hiányzó
+      // szintet kezelik (nem írnak szintet); az üres string csak zaj.
+      szint: szintEl.value || null,
       min_szo: Number(document.getElementById('r-min').value) || null,
       max_szo: Number(document.getElementById('r-max').value) || null,
       szempontok: szempontokBeolvas(),
@@ -424,9 +523,14 @@
 
   function rubrikaKitolt(r) {
     // Régebbi feladatoknál/sablonoknál nincs nyelv – azok angolok
-    document.getElementById('r-nyelv').value = r.nyelv || 'angol';
+    const nyelv = r.nyelv || 'angol';
+    document.getElementById('r-nyelv').value = nyelv;
     if (r.tipus) document.getElementById('r-tipus').value = r.tipus;
-    if (r.szint) document.getElementById('r-szint').value = r.szint;
+    // A skálát ELŐBB kell felépíteni, mint a szintet beállítani: ha a
+    // mentett érték nincs a listában, a select csendben az elsőre ugrik.
+    // ?? null: a hiányzó szint itt NEM "használd az alapértelmezést",
+    // hanem "nincs mérce". Az undefined csak üres űrlapon jelent alapot.
+    szintSkalaFrissit(nyelv, r.szint ?? null);
     document.getElementById('r-min').value = r.min_szo || '';
     document.getElementById('r-max').value = r.max_szo || '';
     document.getElementById('r-egyeb').value = r.egyeb_utasitas || '';
@@ -482,7 +586,9 @@
     const kivalasztott = sablonok.find((x) => x.id === sablonValaszto.value);
     const alapNev = kivalasztott
       ? kivalasztott.nev
-      : `${rubrika.tipus} ${rubrika.szint} – ${rubrika.szempontok.reduce((a, sz) => a + sz.suly, 0)} pont`;
+      // A szint elhagyható ("nem releváns"), a névbe ne kerüljön "null"
+      : [rubrika.tipus, rubrika.szint].filter(Boolean).join(' ') +
+        ` – ${rubrika.szempontok.reduce((a, sz) => a + sz.suly, 0)} pont`;
 
     const nev = (prompt('A sablon neve:', alapNev) || '').trim();
     if (!nev) return;
@@ -577,7 +683,11 @@
           `Ha nem jó, írd át kézzel.`, 'success');
       }
       if (r.tipus) document.getElementById('r-tipus').value = r.tipus;
-      if (r.szint) document.getElementById('r-szint').value = r.szint;
+      // A nyelv változhatott, tehát a skála is: együtt kell állítani.
+      // A szerver már a visszaadott nyelv skálájára szűrte a szintet
+      // (szintSzures). A hiányzó érték itt azt jelenti: az AI nem tudta
+      // megállapítani – ilyenkor maradjon üres, ne B1.
+      szintSkalaFrissit(document.getElementById('r-nyelv').value, r.szint ?? null);
       if (r.min_szo) document.getElementById('r-min').value = r.min_szo;
       if (r.max_szo) document.getElementById('r-max').value = r.max_szo;
       if (r.feladat_leiras) document.getElementById('r-leiras').value = r.feladat_leiras;
@@ -693,6 +803,9 @@
     document.getElementById('upload-preview').classList.remove('show');
     document.getElementById('rubrika-badge').style.display = 'none';
     document.getElementById('r-nyelv').value = 'angol';
+    // A nyelv visszaállt angolra, tehát a szint-skálának is CEFR-re kell:
+    // e nélkül magyar feladat után évfolyam-lista maradna angol mellett.
+    szintSkalaFrissit('angol');
     fajlPath = null;
     fajlUrl = null;
     document.getElementById('fajl-hint').style.display = 'none';

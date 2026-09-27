@@ -284,39 +284,106 @@ function nyelve(rubrika) {
   return NYELVEK.includes(n) ? n : ALAP_NYELV;
 }
 
+// ── SZINT: A MÉRCE, AMIHEZ AZ AI ÉRTÉKEL ──
+//
+// A szint jelentése NYELVFÜGGŐ, és ez nem formalitás. Idegen nyelvnél a
+// CEFR-szint a mérce, mert a diák nem anyanyelvi. Anyanyelvi dolgozatnál
+// a CEFR-nek nincs értelme – ott az évfolyam az, ami mond valamit.
+//
+// Ha nincs megadva szint, akkor a promptban SEMMILYEN szintet nem szabad
+// említeni: az AI kitalál egyet, és ahhoz mér. Ez csendes pontatlanság,
+// nem hiba – csak teszt fogja meg.
+const ANYANYELVEK = ["magyar"];
+const CEFR_SZINTEK = ["A1", "A2", "B1", "B2", "C1"];
+const EVFOLYAMOK = [
+  "5-6. évfolyam", "7-8. évfolyam", "9-10. évfolyam", "11-12. évfolyam",
+  "érettségi (közép)", "érettségi (emelt)"
+];
+
+/** Anyanyelvi dolgozat-e: a szint évfolyam, nem CEFR. */
+function anyanyelvu(rubrika) {
+  return ANYANYELVEK.includes(nyelve(rubrika));
+}
+
+/**
+ * A szint promptba írható alakja – vagy null, ha nincs megadva.
+ *
+ * Egy helyen, mert három prompt használja (értékelés, elemzés, rubrika).
+ * Ha elcsúsznak, a rendszer továbbra is működik, csak rosszabbul pontoz.
+ *
+ * @returns {{cimke: string, ertek: string, anyanyelv: boolean}|null}
+ */
+function szintInfo(rubrika) {
+  const szint = String(rubrika?.szint || "").trim();
+  if (!szint) return null;
+  return anyanyelvu(rubrika)
+    ? { cimke: "Évfolyam", ertek: szint, anyanyelv: true }
+    : { cimke: "Célszint (CEFR)", ertek: szint, anyanyelv: false };
+}
+
+/**
+ * Az AI által javasolt szint szűrése a nyelv skálájára.
+ *
+ * A rubrika-javaslat sémáját a tanár nyelvválasztása alapján állítjuk
+ * össze, de az AI felülírhatja a nyelvet (ha a feladatlap másról szól).
+ * Ilyenkor a szint rossz skálán maradhat – pl. magyar feladatlapra "B1".
+ * Inkább NE adjunk szintet, mint rosszat: a tanár kitölti.
+ */
+function szintSzures(nyelv, szint) {
+  const s = String(szint || "").trim();
+  if (!s) return null;
+  const skala = ANYANYELVEK.includes(nyelv) ? EVFOLYAMOK : CEFR_SZINTEK;
+  return skala.includes(s) ? s : null;
+}
+
 const HIBA_KATEGORIAK = [
   "nyelvtan", "szokincs", "szerkezet", "tartalom", "helyesiras", "irasjelek"
 ];
 
-/** Feladatlap → rubrika javaslat. */
-const RUBRIKA_SCHEMA = {
-  type: "object",
-  properties: {
-    cim_javaslat: { type: "string" },
-    tipus: {
-      type: "string",
-      enum: ["esszé", "levél", "leírás", "elbeszélés", "vélemény", "egyéb"]
+/**
+ * Feladatlap → rubrika javaslat.
+ *
+ * Azért függvény és nem konstans, mert a szint skálája nyelvfüggő:
+ * idegen nyelvnél CEFR, anyanyelvnél évfolyam.
+ *
+ * A "szint" SZÁNDÉKOSAN nem kötelező mező. Kötelező enum mellett a
+ * strukturált kimenet arra kényszeríti a modellt, hogy válasszon egyet –
+ * még akkor is, ha a feladatlapból semmi nem utal szintre. Így minden
+ * magyar dolgozat kapott egy kitalált CEFR-szintet, és ahhoz mértünk.
+ */
+function rubrikaSchema(nyelv) {
+  return {
+    type: "object",
+    properties: {
+      cim_javaslat: { type: "string" },
+      tipus: {
+        type: "string",
+        enum: ["esszé", "levél", "leírás", "elbeszélés", "vélemény", "egyéb"]
+      },
+      nyelv: { type: "string", enum: NYELVEK },
+      szint: {
+        type: "string",
+        enum: ANYANYELVEK.includes(nyelv) ? EVFOLYAMOK : CEFR_SZINTEK
+      },
+      min_szo: { type: "integer" },
+      max_szo: { type: "integer" },
+      szempontok: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            kulcs: { type: "string" },
+            cim: { type: "string" },
+            suly: { type: "integer" }
+          },
+          required: ["kulcs", "cim", "suly"]
+        }
+      },
+      feladat_leiras: { type: "string" }
     },
-    nyelv: { type: "string", enum: NYELVEK },
-    szint: { type: "string", enum: ["A1", "A2", "B1", "B2", "C1"] },
-    min_szo: { type: "integer" },
-    max_szo: { type: "integer" },
-    szempontok: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          kulcs: { type: "string" },
-          cim: { type: "string" },
-          suly: { type: "integer" }
-        },
-        required: ["kulcs", "cim", "suly"]
-      }
-    },
-    feladat_leiras: { type: "string" }
-  },
-  required: ["cim_javaslat", "nyelv", "tipus", "szint", "szempontok", "feladat_leiras"]
-};
+    required: ["cim_javaslat", "nyelv", "tipus", "szempontok", "feladat_leiras"]
+  };
+}
 
 /** Kézírás → átirat. */
 const ATIRAT_SCHEMA = {
@@ -438,14 +505,30 @@ function ertekelesPrompt(feladat, atirat) {
 
   const nyelv = nyelve(r);
 
+  // A mérce a szinttől ÉS a nyelvtől függ. Ha nincs szint, a sort ki is
+  // hagyjuk – a "nincs megadva" felirat is arra bátorítaná az AI-t, hogy
+  // maga találjon ki egyet.
+  const szint = szintInfo(r);
+  const szintSor = szint ? `${szint.cimke}: ${szint.ertek}\n` : "";
+  const merce = szint
+    ? (szint.anyanyelv
+        ? `Ez ANYANYELVI dolgozat, a mérce: ${szint.ertek}. Ehhez mérj,
+   ne CEFR-szinthez – a diáknak ez az anyanyelve.`
+        : `A ${szint.ertek} szinthez mérj, ne anyanyelvi szinthez.`)
+    : (anyanyelvu(r)
+        ? `Ez ANYANYELVI dolgozat, és a tanár nem adott meg évfolyamot: a
+   feladatból és a szempontokból ítéld meg, mit lehet elvárni. Szintet
+   ne találj ki, és ne CEFR-skálán gondolkodj.`
+        : `A tanár nem adott meg célszintet: a feladatból és a
+   szempontokból ítéld meg, mit lehet elvárni. CEFR-szintet ne találj ki.`);
+
   return `Te egy tapasztalt ${nyelv}tanár vagy, aki magyar diákokat értékel.
 
 # A FELADAT
 Cím: ${feladat.cim}
 A dolgozat nyelve: ${nyelv}
 Típus: ${r.tipus || "nincs megadva"}
-Célszint (CEFR): ${r.szint || "nincs megadva"}
-Elvárt hossz: ${hosszElvaras}
+${szintSor}Elvárt hossz: ${hosszElvaras}
 ${r.feladat_leiras ? `\nA feladat leírása:\n${r.feladat_leiras}` : ""}
 ${r.egyeb_utasitas ? `\nA tanár külön kérése:\n${r.egyeb_utasitas}` : ""}
 
@@ -460,7 +543,7 @@ ${atirat}
 # UTASÍTÁSOK
 1. Minden szemponthoz adj pontszámot. A "max" mező pontosan a fent
    megadott maximum legyen, a "pont" pedig 0 és a maximum között.
-   A ${r.szint || "megadott"} szinthez mérj, ne anyanyelvi szinthez.
+   ${merce}
 2. A "hibak" tömbbe vedd fel a konkrét hibákat. Minden hibánál az
    "idezet" a diák SZÓ SZERINTI szövegrészlete legyen, a "javaslat" a
    helyes változat, a "magyarazat" pedig egy rövid magyar nyelvű indoklás.
@@ -479,13 +562,22 @@ ${atirat}
 }
 
 function rubrikaPrompt(nyelv) {
+  // Anyanyelvi feladatlapnál a CEFR értelmetlen: nem azt kérdezzük.
+  const szintKeres = ANYANYELVEK.includes(nyelv)
+    ? `- Melyik ÉVFOLYAMNAK szól a feladatlap? Ezt írd a "szint" mezőbe.
+  CEFR-szintet NE adj meg: a dolgozat anyanyelvi, ott nincs értelme.
+  Ha az évfolyam nem derül ki, HAGYD ÜRESEN a mezőt – ne tippelj.`
+    : `- Milyen CEFR-szintet céloz? Ha a feladatlapból nem derül ki,
+  HAGYD ÜRESEN a "szint" mezőt – ne találj ki szintet.`;
+
   return `Te egy tapasztalt ${nyelv}tanár vagy. A képen egy írásbeli
 feladatlap látható.
 
 Elemezd, és állítsd össze belőle az értékelési rubrikát:
 - Milyen NYELVEN szól a feladat? A tanár ${nyelv}-t jelölt meg, de ha a
   feladatlap alapján más nyelvről van szó, a "nyelv" mezőben azt add meg.
-- Milyen típusú írásbeli feladat ez, és milyen CEFR-szintet céloz?
+- Milyen típusú írásbeli feladat ez?
+${szintKeres}
 - Mekkora terjedelmet vár el? (Ha a feladatlap megadja, azt használd.)
 - Milyen szempontok szerint érdemes értékelni? Adj 3-5 szempontot,
   magyar címekkel. A pontszámokat úgy oszd el, hogy az összeg PONTOSAN
@@ -495,7 +587,9 @@ Elemezd, és állítsd össze belőle az értékelési rubrikát:
 - A "feladat_leiras" mezőbe foglald össze magyarul, mi a diák konkrét
   feladata a feladatlap szerint.
 
-Ha valamit nem lehet kiolvasni a feladatlapból, adj józan alapértelmezést.`;
+Ha valamit nem lehet kiolvasni a feladatlapból, adj józan
+alapértelmezést – KIVÉVE a szintet: azt inkább hagyd üresen.
+Egy kitalált szint rosszabb, mint a semmi, mert az értékelés ahhoz mér.`;
 }
 
 // ══════════════════════════════════════════════════════
@@ -641,8 +735,13 @@ exports.feladatlapElemzes = onCall(AI_OPCIOK, async (request) => {
     const { eredmeny: rubrika, modell } = await geminiHivas(
       'rubrika',
       [{ text: rubrikaPrompt(nyelvTipp) }, await fajlBase64(path)],
-      RUBRIKA_SCHEMA
+      rubrikaSchema(nyelvTipp)
     );
+
+    // A szintet a VISSZAADOTT nyelv skáláján ellenőrizzük: ha az AI más
+    // nyelvet látott a feladatlapon, mint amit a tanár jelölt, a szint
+    // rossz skálán maradt. Ilyenkor inkább üres.
+    rubrika.szint = szintSzures(nyelve(rubrika), rubrika.szint);
 
     // A súlyok összegét ellenőrizzük – az űrlap ezt jelzi a tanárnak.
     const sulyOsszeg = (rubrika.szempontok || []).reduce((s, sz) => s + (sz.suly || 0), 0);
@@ -884,9 +983,16 @@ exports._teszt = {
   atiratPrompt,
   ertekelesPrompt,
   rubrikaPrompt,
+  rubrikaSchema,
   nyelve,
+  anyanyelvu,
+  szintInfo,
+  szintSzures,
   NYELVEK,
   ALAP_NYELV,
+  ANYANYELVEK,
+  CEFR_SZINTEK,
+  EVFOLYAMOK,
   osztalyLetrehozasLogika,
   csatlakozasLogika,
   kodGeneralas,
@@ -1271,6 +1377,9 @@ function elemzesPrompt(feladat, agg) {
   const r = feladat.rubrika || {};
   const nyelv = nyelve(r);
 
+  const szint = szintInfo(r);
+  const szintSor = szint ? `${szint.cimke}: ${szint.ertek}\n` : "";
+
   const hibaLista = agg.hibaMinta
     .map((h) => `- [${h.kategoria}/${h.tipus}] "${h.idezet}" -> "${h.javaslat}"`)
     .join("\n");
@@ -1292,8 +1401,7 @@ kell segítened: mire érdemes órán visszatérni.
 Cím: ${feladat.cim}
 Nyelv: ${nyelv}
 Típus: ${r.tipus || "nincs megadva"}
-Célszint (CEFR): ${r.szint || "nincs megadva"}
-${r.feladat_leiras ? "Leírás: " + r.feladat_leiras : ""}
+${szintSor}${r.feladat_leiras ? "Leírás: " + r.feladat_leiras : ""}
 
 # OSZTÁLYSZINTŰ SZÁMOK
 Kiértékelt dolgozat: ${agg.ertekelt_db}
@@ -1328,8 +1436,8 @@ ${hibaLista || "- nincs adat"}
    Ne általánosság ("gyakoroljátok a múlt időt"), hanem eljárás.
 4. "generalo_prompt": egy KÉSZ, önmagában is használható prompt, amit a
    tanár bemásolhat egy AI-ba, hogy gyakorlósort generáljon az osztály
-   konkrét hibáira. Tartalmazza a nyelvet, a szintet, a célzott hibákat
-   és a kért feladattípusokat. Az instrukciót magyarul írd, de a generált
+   konkrét hibáira. Tartalmazza a nyelvet, ${szint ? "a szintet, " : ""}a célzott
+   hibákat és a kért feladattípusokat. Az instrukciót magyarul írd, de a generált
    feladatok nyelve ${nyelv} legyen.
 
 Ha 3-nál kevesebb kiértékelt dolgozat van, az "osszegzes" ELSŐ mondatában

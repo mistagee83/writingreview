@@ -1,6 +1,6 @@
 # WritingReview – állapot és következő lépés
 
-*Utolsó frissítés: 2026-09-24*
+*Utolsó frissítés: 2026-09-27*
 
 Ez a fájl azért van, hogy egy hét kihagyás után (vagy egy új munkamenetben)
 öt perc alatt vissza lehessen találni a fonalra. Az adatmodell részletei a
@@ -20,7 +20,7 @@ jóváhagyás → osztályszintű elemzés.
 | Élő cím | https://writingreview-41e59.web.app |
 | Firebase projekt | `writingreview-41e59` (Firestore: `eur3`, functions: `europe-west1`) |
 | GitHub | https://github.com/mistagee83/writingreview (privát) |
-| Kód | ~8600 sor, 11 oldal, 11 Cloud Function, 120 teszt |
+| Kód | ~8700 sor, 11 oldal, 11 Cloud Function, 145 teszt |
 | Futtatókörnyezet | Node 24 (a 20-at 2026-10-30-án kikapcsolják) |
 | Modell | `gemini-3.8-flash` mind a négy AI-lépésben |
 
@@ -96,7 +96,7 @@ cserélődik.
 
 ### Ellenőrzés a váltás után
 
-A 120 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
+A 145 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 `fetch`-csel. **Ha SDK-ra váltunk, ezek a tesztek átírandók**, mert nem
 `fetch`-et stubolnak majd. Ez a váltás rejtett munkája.
 
@@ -108,7 +108,7 @@ A 120 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 |---|---|---|
 | 1 | **Agent Platform / EU** | ↑ holnapi téma |
 | 2 | **`storage.rules` tesztek** | átnézve, de **egy teszt sincs rá** – ez a legvalószínűbb rés |
-| 3 | **`firebase-functions` SDK** | `^5.0.0`, elavult; a frissítés törő változásokkal jár, de most van hozzá 120 teszt |
+| 3 | **`firebase-functions` SDK** | `^5.0.0`, elavult; a frissítés törő változásokkal jár, de most van hozzá 145 teszt |
 | 4 | **Haladásjelző** | külön modul: több feladat időben, javul-e az osztály. Egyeztetve későbbre. |
 | 5 | **Per-tanár Gemini-használat** | ha többen használják, hasznos lesz látni, ki mennyit fogyaszt |
 | 6 | **CORS lista** | hardcode-olt a `functions/index.js`-ben, új domainhez kézi felvétel |
@@ -124,7 +124,8 @@ A 120 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
   következő lépés, nem funkció.**
 - **Storage szabályok** élesben (lásd maradék lista 2.)
 - **Más nyelv, mint az angol.** A nyelvkezelés megvan és tesztelt, de német
-  dolgozat még nem futott át rajta.
+  dolgozat még nem futott át rajta. **Magyar dolgozat sem** – a
+  szintkezelés (évfolyam CEFR helyett) tesztelt, de élesben nem járt.
 
 ---
 
@@ -195,6 +196,15 @@ megoldja (már be van kapcsolva).
 mert a Pub/Sub és Eventarc szolgáltatás-identitások épp akkor jönnek létre, és
 a trigger megelőzi az IAM-jogok terjedését. **Változtatás nélkül, másodszorra
 kimegy.**
+
+**A strukturált kimenet KÖTELEZŐ mezője kényszer.** A rubrika-séma
+kötelező `szint` mezője CEFR enum-mal arra kényszerítette a modellt, hogy
+magyar (anyanyelvi) feladatlapra is találjon ki egy CEFR-szintet – az
+értékelés pedig utána ahhoz mért, sőt külön utasítást kapott, hogy „ne
+anyanyelvi szinthez" mérjen. Ez nem hibázott, csak rosszabbul pontozott.
+Tanulság: ha egy mező **értelmesen hiányozhat**, ne legyen `required`, és
+a promptban se szerepeljen „nincs megadva" – a modell kitölti magának.
+Részletek: [adatmodell.md](adatmodell.md) → Szint.
 
 **A Gemini „high demand" hibája átmeneti.** A rendszer magától újrapróbál
 háromszor, és átírásnál/rubrikánál tartalék modellre vált. Az **értékelésnek

@@ -133,7 +133,7 @@ A csatlakozás és a kódgenerálás ezen keresztül tranzakciós, így nincs
 rubrika: {
   nyelv: 'angol',            // a dolgozat nyelve, lásd lentebb
   tipus: 'esszé',            // esszé | levél | leírás | elbeszélés | vélemény
-  szint: 'B1',               // CEFR
+  szint: 'B1',               // nyelvfüggő skála, null is lehet – lásd lentebb
   min_szo: 120,
   max_szo: 180,
   szempontok: [              // a pontszám szabadon választható (20/50/100…)
@@ -172,6 +172,41 @@ A hibacímkék (`tipus`) a nyelv fogalmaival készülnek: angolnál
 A bővítés egyetlen megkötése: a prompt `${nyelv}tanár` alakban fűzi
 össze a szót, tehát csak olyan nyelvnév adható a `NYELVEK` listához,
 ami ezzel helyes magyar szót ad.
+
+#### Szint – a mérce, amihez az AI értékel
+
+A `szint` **jelentése nyelvfüggő**, és ez nem formalitás: ez a mérce,
+amihez az AI a pontokat adja.
+
+| nyelv | skála | értékek |
+|---|---|---|
+| idegen nyelv | CEFR | `A1` `A2` `B1` `B2` `C1` |
+| `magyar` (anyanyelv) | évfolyam | `5-6. évfolyam` … `11-12. évfolyam`, `érettségi (közép)`, `érettségi (emelt)` |
+| bármelyik | nincs mérce | `null` – az űrlapon „nem releváns" |
+
+Anyanyelvi dolgozatnál a CEFR-nek nincs értelme: a diák nem B1-en beszél
+magyarul, hanem anyanyelvi szinten. Ott az évfolyam az, ami megmondja,
+mit lehet elvárni.
+
+**A `null` valódi döntés, nem hiányzó adat.** Ilyenkor a prompt
+egyáltalán nem ír szintet, és külön megtiltja az AI-nak, hogy kitaláljon
+egyet – mert ha a promptban akár „nincs megadva" szerepel, a modell
+kitölti magának, és ahhoz mér.
+
+Két helyen dől el, hogy nem csúszik el:
+
+- **`rubrikaSchema(nyelv)`** (functions) – a séma enumja a nyelv
+  skálájából épül, és a `szint` **nem kötelező** mező. Korábban kötelező
+  CEFR enum volt, tehát a strukturált kimenet arra kényszerítette a
+  modellt, hogy magyar feladatlapra is találjon ki egy CEFR-szintet.
+- **`szintSzures(nyelv, szint)`** – a feladatlap-elemzés válaszát a
+  *visszaadott* nyelv skáláján ellenőrzi. Ha az AI más nyelvet látott,
+  mint amit a tanár jelölt, a szint rossz skálán maradt volna.
+
+A kliens (`feladatok.html`) a nyelvválasztáshoz építi újra a listát és a
+címkét. A két lista **duplikált**, ezért van rá drift-teszt
+(`tests/szint.test.mjs`): ha elcsúsznak, a tanár olyan értéket
+választana, amit a szerver csendben eldob.
 
 ### `feladatok/{feladatId}/elemzes/osszegzes`
 
