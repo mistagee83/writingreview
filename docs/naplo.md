@@ -113,6 +113,7 @@ A 147 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 | 5 | **Per-tanár Gemini-használat** | ha többen használják, hasznos lesz látni, ki mennyit fogyaszt |
 | 6 | **CORS lista** | hardcode-olt a `functions/index.js`-ben, új domainhez kézi felvétel |
 | 7 | **Osztálynév elavulása** | átnevezéskor a diák `osztalyaim` tükrében marad a régi név (dokumentálva) |
+| 8 | **Új regisztráció láthatósága** | **nincs semmilyen értesítés** – se e-mail, se push. Az admin lista név szerint rendez, és a regisztráció dátumát meg sem jeleníti, pedig a backend visszaadja (`letrehozva`, `utolso_belepes`). Nem a regisztrációról érdemes értesíteni (a diákok is regisztrálnak), hanem a **tanári jog kéréséről**: ilyen jelzés ma nincs, a kollégának szólnia kell. |
 
 ---
 
