@@ -66,7 +66,16 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['nev', 'email', 'szerep', 'letrehozva']);
 
       // A nevét átírhatja, a szerepét és az emailjét nem.
-      allow update: if sajat(uid) && csakEzekValtoznak(['nev']);
+      // A tura_* mezők a beépített bemutató állapotát tartják (látott
+      // szakaszok, felnyíljon-e magától) – a felhasználó sajátja, de
+      // típusban kötött, hogy ne lehessen rajta adatot tárolni.
+      allow update: if sajat(uid)
+        && csakEzekValtoznak(['nev', 'tura_kesz', 'tura_latott'])
+        && (!('tura_kesz' in request.resource.data)
+            || request.resource.data.tura_kesz is bool)
+        && (!('tura_latott' in request.resource.data)
+            || (request.resource.data.tura_latott is list
+                && request.resource.data.tura_latott.size() <= 20));
 
       allow delete: if false;
 

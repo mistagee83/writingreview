@@ -20,7 +20,7 @@ jóváhagyás → osztályszintű elemzés.
 | Élő cím | https://writingreview-41e59.web.app |
 | Firebase projekt | `writingreview-41e59` (Firestore: `eur3`, functions: `europe-west1`) |
 | GitHub | https://github.com/mistagee83/writingreview (privát) |
-| Kód | ~8700 sor, 11 oldal, 11 Cloud Function, 147 teszt |
+| Kód | ~9900 sor, 11 oldal, 11 Cloud Function, 169 teszt |
 | Futtatókörnyezet | Node 24 (a 20-at 2026-10-30-án kikapcsolják) |
 | Modell | `gemini-3.8-flash` mind a négy AI-lépésben |
 
@@ -34,6 +34,10 @@ jóváhagyás → osztályszintű elemzés.
 5. **Javítási sor** – átirat, AI értékelés, tanári szerkesztés és elküldés
 6. **Osztályszintű elemzés** – típushibák, javasolt gyakorlatok, feladatgeneráló prompt
 7. **Szerepkezelés** (admin) – tanárok kinevezése webfelületről
+8. **Beépített bemutató** – első belépéskor menü, utána a topbar
+   villanykörtéjével. Négy szakasz (osztály, feladat, javítás, elemzés),
+   22 lépés, reflektorfénnyel a valódi felületen. A javítás és az elemzés
+   példaadatot mutat, mert új tanárnál még nincs beadás.
 
 ---
 
@@ -96,7 +100,7 @@ cserélődik.
 
 ### Ellenőrzés a váltás után
 
-A 147 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
+A 169 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 `fetch`-csel. **Ha SDK-ra váltunk, ezek a tesztek átírandók**, mert nem
 `fetch`-et stubolnak majd. Ez a váltás rejtett munkája.
 
@@ -108,7 +112,7 @@ A 147 teszt közül a Gemini-részt a `tests/gemini.test.mjs` fedi, kicserélt
 |---|---|---|
 | 1 | **Agent Platform / EU** | ↑ holnapi téma |
 | 2 | **`storage.rules` tesztek** | átnézve, de **egy teszt sincs rá** – ez a legvalószínűbb rés |
-| 3 | **`firebase-functions` SDK** | `^5.0.0`, elavult; a frissítés törő változásokkal jár, de most van hozzá 147 teszt |
+| 3 | **`firebase-functions` SDK** | `^5.0.0`, elavult; a frissítés törő változásokkal jár, de most van hozzá 169 teszt |
 | 4 | **Haladásjelző** | külön modul: több feladat időben, javul-e az osztály. Egyeztetve későbbre. |
 | 5 | **Per-tanár Gemini-használat** | ha többen használják, hasznos lesz látni, ki mennyit fogyaszt |
 | 6 | **CORS lista** | hardcode-olt a `functions/index.js`-ben, új domainhez kézi felvétel |
@@ -197,6 +201,19 @@ megoldja (már be van kapcsolva).
 mert a Pub/Sub és Eventarc szolgáltatás-identitások épp akkor jönnek létre, és
 a trigger megelőzi az IAM-jogok terjedését. **Változtatás nélkül, másodszorra
 kimegy.**
+
+**A build nem ismerte a dinamikus importot.** A `helyiImportok()` csak a
+`from "./x.js"` alakot kereste, az `import("./x.js")`-t nem. Így nem tudta,
+hogy a `guard.js` a `tura.js`-től függ, előbb hashelte, és a hivatkozás
+hash nélkül maradt – a `dist`-ben 404. A build saját ellenőrzése fogta meg
+(„Átíratlan hivatkozások maradtak"), nem éles hiba lett belőle. **Ez a
+lépés a deploy előtt magától lefut, ne kapcsold ki.**
+
+**A topbar 375px-en megint túlfolyt.** A bemutató villanykörtéje 43px-et
+kért, és a Kilépés gomb 32px-et kicsúszott a képből (a topbar korábban
+8px tartalékkal fért el). Mérve javítva: szűkebb szegély, kisebb rések,
+kisebb márkanév 500px alatt – most 14px a tartalék. **Bármi új a
+topbaron: 375px-en meg kell mérni, nem ránézni.**
 
 **A strukturált kimenet KÖTELEZŐ mezője kényszer.** A rubrika-séma
 kötelező `szint` mezője CEFR enum-mal arra kényszerítette a modellt, hogy

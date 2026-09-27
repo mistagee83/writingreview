@@ -948,3 +948,264 @@ details summary {
   .sav-sor { grid-template-columns: 1fr; gap: 0.25rem; }
   .sav-ertek { text-align: left; }
 }
+
+/* ══════════════════════════════════════════════════════
+   BEMUTATÓ (tura.js)
+
+   Reflektorfény négy sávval, nem kivágott maszkkal: a sávok elnyelik a
+   kattintásokat, a cél viszont kattintható marad. A z-index 2000 fölött
+   van, mert a lapon már van 999-es és egy 500-as modál – a bemutatónak
+   azok fölé kell kerülnie, hogy a modál tartalmát is ki tudja emelni.
+   ══════════════════════════════════════════════════════ */
+
+/* ── villanykörte a topbaron ── */
+.tura-korte {
+  flex-shrink: 0;            /* a topbar 375px-en is elfért – ne rontsuk el */
+  padding: 0.35rem 0.6rem;
+  border: 1.5px solid #444;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.tura-korte:hover { border-color: #777; background: #ffffff14; }
+.tura-korte:focus-visible { outline: 2px solid var(--accent-on-dark); outline-offset: 2px; }
+
+/* A villanykörte 43px-et kér a topbaron, és 375px-en ettől a Kilépés
+   gomb kicsúszott a képből (mérve: 328–407, a képernyő 375). A topbar
+   korábban 8px tartalékkal fért el, tehát helyet kell csinálni:
+   szűkebb szegély, kisebb rések, kisebb körte. */
+@media (max-width: 500px) {
+  .topbar { padding: 0 0.85rem; }
+  .topbar-right { gap: 0.55rem; }
+  .tura-korte { padding: 0.3rem 0.45rem; font-size: 0.95rem; }
+  /* A márkanév a legnagyobb tétel a sorban (216px), és nem zsugorodik.
+     Enélkül a Kilépés gomb 5px-et még kicsúszik 375px-en. */
+  .brand { font-size: 1.05rem; }
+}
+
+/* ── a reflektor ── */
+.tura-gyoker { display: none; }
+.tura-gyoker.lathato { display: block; }
+
+.tura-sav {
+  position: fixed;
+  background: #0f0f0fa8;
+  z-index: 2000;
+}
+.tura-gyoker.nincs-cel .tura-sav {
+  inset: 0;                  /* cél nélkül teljes elhalványítás */
+  width: auto; height: auto;
+}
+
+.tura-gyuru {
+  position: fixed;
+  display: none;
+  z-index: 2001;
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  box-shadow: 0 0 0 3px #d4500a33;
+  pointer-events: none;      /* a cél kattintható marad */
+}
+
+/* ── a buborék ── */
+.tura-bubi {
+  position: fixed;
+  z-index: 2002;
+  width: min(360px, calc(100vw - 24px));
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 44px #0f0f0f40;
+  padding: 1rem 1.15rem 0.9rem;
+}
+.tura-bubi:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.tura-gyoker.nincs-cel .tura-bubi {
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+}
+.tura-bubi.menu { width: min(460px, calc(100vw - 24px)); }
+
+/* Telefonon alsó lapként ül: 380px-en nincs hely a cél mellett */
+.tura-bubi.lap {
+  left: 12px; right: 12px; bottom: 12px; top: auto;
+  width: auto;
+  max-height: 62vh;
+  overflow-y: auto;
+}
+
+.tura-bubi.beugrik { animation: tura-be 0.18s ease-out; }
+@keyframes tura-be { from { opacity: 0; transform: translateY(6px); } }
+.tura-gyoker.nincs-cel .tura-bubi.beugrik { animation: none; }
+
+.tura-fej {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+.tura-szamlalo {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tura-zar {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.15rem 0.3rem;
+  border-radius: 5px;
+}
+.tura-zar:hover { background: var(--paper); color: var(--ink); }
+
+.tura-bubi h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-wrap: balance;
+  margin-bottom: 0.5rem;
+}
+.tura-torzs { font-size: 0.875rem; line-height: 1.55; color: var(--ink); }
+.tura-torzs p { margin-bottom: 0.55rem; }
+.tura-torzs p:last-child { margin-bottom: 0; }
+.tura-torzs em { color: var(--muted); font-style: italic; }
+
+.tura-labs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+/* A hidden attribútumot a display:flex felülírná – a menü módban
+   az alsó navigációnak el kell tűnnie. */
+.tura-labs[hidden] { display: none; }
+.tura-nav { display: flex; gap: 0.5rem; flex-shrink: 0; }
+.tura-kihagy {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.3rem 0;
+  text-decoration: underline;
+}
+.tura-kihagy:hover { color: var(--ink); }
+.tura-elozo, .tura-kovetkezo {
+  padding: 0.45rem 0.85rem;
+  border-radius: 7px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.tura-elozo { border: 1.5px solid var(--border); background: var(--card); color: var(--ink); }
+.tura-elozo:hover { border-color: var(--muted); }
+.tura-kovetkezo { border: none; background: var(--accent); color: #fff; }
+.tura-kovetkezo:hover { filter: brightness(1.08); }
+
+/* ── a menü ── */
+.tura-bevezeto { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.9rem; }
+.tura-szakaszok { display: grid; gap: 0.5rem; }
+.tura-szakasz {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.7rem 0.8rem;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.15s, background 0.15s;
+}
+.tura-szakasz:hover { border-color: var(--accent); background: var(--accent-light); }
+.tura-szakasz.kesz { background: var(--paper); }
+.tura-szakasz-ikon { font-size: 1.15rem; line-height: 1.3; flex-shrink: 0; }
+.tura-szakasz-fo { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.tura-szakasz-cim { font-size: 0.9rem; font-weight: 500; color: var(--ink); }
+.tura-pipa { color: var(--ok); font-weight: 700; }
+.tura-szakasz-kimenet { font-size: 0.8rem; line-height: 1.45; color: var(--ink); }
+.tura-szakasz-meta {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.tura-menu-labs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+.tura-teljes {
+  padding: 0.6rem 0.9rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-wrap: balance;
+}
+.tura-teljes:hover { filter: brightness(1.08); }
+.tura-menu-zar {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.35rem;
+  text-decoration: underline;
+}
+.tura-menu-zar:hover { color: var(--ink); }
+
+/* ── példaadat jelzése ──
+   Minden bemutató-elem láthatóan példa: a tanár soha ne higgye egy
+   valódi diák dolgozatának. */
+.badge.tura-jelzo {
+  background: var(--warn-light);
+  color: var(--warn);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+.tura-demo.panel { border-color: var(--warn); }
+/* A példa átirat és prompt görgethető: e nélkül a szekció magasabb
+   lenne a képernyőnél, és a buborék nem tudna elférni mellette. */
+.tura-demo pre.atirat { max-height: 200px; overflow-y: auto; }
+/* Csak a valóban hosszú részek görgethetők. Beágyazott görgetést
+   (görgethető szekció a görgethető lapon) szándékosan NEM csinálunk:
+   attól a scrollIntoView kiszámíthatatlanul viselkedik, és a reflektor
+   rossz helyre kerül. */
+.tura-demo .hiba-lista { max-height: 170px; overflow-y: auto; }
+/* A bemutató szekciói görgethetők és korlátozott magasak. Ez nem
+   kozmetika: a reflektor buborékának a kiemelés MELLETT kell elférnie,
+   különben eltakarja azt, amire mutat. Egy 620px magas ablakban ez
+   kb. 300px-es felső korlátot jelent a kiemelt elemre. */
+.tura-demo .m-szekcio { max-height: 290px; overflow-y: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tura-bubi.beugrik { animation: none; }
+  .tura-korte, .tura-szakasz { transition: none; }
+}

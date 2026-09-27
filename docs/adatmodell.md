@@ -60,11 +60,19 @@ valósítja meg – ha itt változik valami, ott is változnia kell.
 | `email` | string | |
 | `szerep` | `'tanar' \| 'diak'` | **tükör** – a valódi jogosultság a token-claim |
 | `letrehozva` | timestamp | |
+| `tura_kesz` | bool | a beépített bemutató ne nyíljon fel magától |
+| `tura_latott` | array | mely bemutató-szakaszokat látta már (max 20) |
 
 - **olvasás:** csak saját. A tanár *nem* innen tudja meg a diákok nevét –
   az a `tagok` dokumentumokban denormalizáltan szerepel.
 - **írás:** saját, de a `szerep` és `email` nem módosítható. Létrehozáskor
   a `szerep` kötelezően `'diak'`.
+
+A `tura_*` mezők azért a profilban vannak és nem csak localStorage-ban,
+hogy a bemutató **másik gépen se** nyíljon fel újra. A szabály típusban
+kötött (`bool`, illetve legfeljebb 20 elemű lista), hogy a mező ne
+legyen szabad tárhely a felhasználó számára. A localStorage a tartalék:
+ha az írás nem megy (offline), a bemutató attól még működik.
 
 ### `felhasznalok/{uid}/osztalyaim/{osztalyId}`
 

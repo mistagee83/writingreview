@@ -124,6 +124,14 @@ export function vedettOldal(elvartSzerep, opciok = {}) {
       }
 
       megjelenit(user, profil);
+
+      // A bemutató (villanykörte a topbaron, első belépéskor menü) egy
+      // helyen kapcsolódik be, nem öt lapon külön. Dinamikus import:
+      // ha bármi hibája van, az ne akadályozza meg a belépést.
+      import("./tura.js")
+        .then((m) => m.turaBeallit({ szerep, user, profil }))
+        .catch((e) => console.warn("A bemutató nem indult el:", e));
+
       resolve({ user, profil, szerep, admin });
     });
   });

@@ -123,6 +123,49 @@ test("a diák NEM írhatja át a saját email címét", async () => {
   );
 });
 
+// ── A BEMUTATÓ ÁLLAPOTA ──
+// A saját profiljában tárolja, hogy látta-e már a bemutatót. Enélkül
+// minden gépen újra felnyílna, de a mező NEM lehet szabad tárhely.
+
+test("a felhasználó elmentheti, hogy látta a bemutatót", async () => {
+  await assertSucceeds(
+    updateDoc(doc(diak(), "felhasznalok", DIAK), { tura_kesz: true })
+  );
+});
+
+test("a látott szakaszok listája menthető", async () => {
+  await assertSucceeds(
+    updateDoc(doc(diak(), "felhasznalok", DIAK), {
+      tura_latott: ["osztalyok", "feladatok"]
+    })
+  );
+});
+
+test("a bemutató mezője nem lehet akármilyen típusú", async () => {
+  await assertFails(
+    updateDoc(doc(diak(), "felhasznalok", DIAK), { tura_kesz: "igen" })
+  );
+  await assertFails(
+    updateDoc(doc(diak(), "felhasznalok", DIAK), { tura_latott: "osztalyok" })
+  );
+});
+
+test("a bemutató mezője nem használható korlátlan tárolásra", async () => {
+  await assertFails(
+    updateDoc(doc(diak(), "felhasznalok", DIAK), {
+      tura_latott: Array.from({ length: 21 }, (_, i) => `x${i}`)
+    })
+  );
+});
+
+test("a bemutató mezője mellé NEM csúsztatható be a szerep", async () => {
+  await assertFails(
+    updateDoc(doc(diak(), "felhasznalok", DIAK), {
+      tura_kesz: true, szerep: "tanar"
+    })
+  );
+});
+
 test("a diák NEM olvashatja más felhasználó profilját", async () => {
   await assertFails(getDoc(doc(diak(), "felhasznalok", TANAR)));
 });

@@ -68,13 +68,27 @@ function kodCsak(tartalom) {
     .replace(/^\s*\/\/.*$/gm, "");
 }
 
-/** Egy JS fájl helyi (relatív) importjai, dist-relatív útvonalként. */
+/**
+ * Egy JS fájl helyi (relatív) importjai, dist-relatív útvonalként.
+ *
+ * A DINAMIKUS importot is fel kell ismerni (`import("./tura.js")`),
+ * nem csak a statikus `from "./x.js"` alakot. A sorrend ezen múlik: ha
+ * a build nem tudja, hogy A függ B-től, akkor A-t hashelheti előbb, és
+ * a benne lévő hivatkozás hash nélkül marad – a dist-ben 404.
+ * A guard.js → tura.js pont ilyen volt.
+ */
 function helyiImportok(distUtvonal, tartalom) {
   const kod = kodCsak(tartalom);
   const dir = dirname(distUtvonal);
   const ki = new Set();
-  for (const m of kod.matchAll(/from\s*['"](\.[^'"]+)['"]/g)) {
-    ki.add(join(dir, m[1]).replace(/\\/g, "/"));
+  const mintak = [
+    /from\s*['"](\.[^'"]+)['"]/g,
+    /\bimport\s*\(\s*['"](\.[^'"]+)['"]\s*\)/g
+  ];
+  for (const minta of mintak) {
+    for (const m of kod.matchAll(minta)) {
+      ki.add(join(dir, m[1]).replace(/\\/g, "/"));
+    }
   }
   return [...ki];
 }
