@@ -744,3 +744,121 @@ test("a részpont-szabály miatti 0 pont nem 'rossz helyen'", () => {
   assert.equal(e2.pont, 0);
   assert.ok(!e2.rossz_helyen, "a részben jó 0-t ér a szabály miatt, nem a sorrend miatt");
 });
+
+// ══════════════════════════════════════════
+// OSZTÁLYSZINTŰ ELEMZÉS (kifejtosAggregalas)
+// A tanár ebből dönti el, mit vegyen újra órán – egy elszámolt arány
+// hibátlan kinézetű, mégis hamis képet ad.
+// ══════════════════════════════════════════
+
+/** Egy diák eredménye a tanári jóváhagyás formájában. */
+const diakEredmeny = (felulirasok = []) =>
+  sz.kifejtosTanariEredmeny(kulcsMinta(), aiMinta(), felulirasok);
+
+test("elemzés: kérdésenkénti átlag, a legrosszabb kérdés elöl", () => {
+  const r = sz.kifejtosAggregalas(kulcsMinta(), [
+    diakEredmeny(),
+    diakEredmeny([{ sorszam: "2", elemek: [{ id: "e4", statusz: "megvan" }] }])
+  ]);
+  assert.deepEqual(r.kerdesek.map((k) => [k.sorszam, k.szazalek]), [["3", 20], ["2", 90], ["1", 100]]);
+  const k2 = r.kerdesek.find((k) => k.sorszam === "2");
+  assert.equal(k2.atlag_pont, 4.5);
+  assert.equal(k2.ertekelt_db, 2);
+});
+
+test("elemzés: elemenként hány diáknál hiányzott (a téves is hiány)", () => {
+  const r = sz.kifejtosAggregalas(kulcsMinta(), [
+    diakEredmeny(),
+    diakEredmeny([{ sorszam: "3", elemek: [{ id: "e4", statusz: "teves" }] }]),
+    diakEredmeny([{ sorszam: "3", elemek: [{ id: "e4", statusz: "megvan" }] }])
+  ]);
+  const e4 = r.kerdesek.find((k) => k.sorszam === "3").elemek.find((e) => e.id === "e4");
+  assert.equal(e4.allitas, "Megrendelés");
+  assert.deepEqual([e4.db, e4.hianyzik, e4.teves, e4.megvan], [3, 1, 1, 1]);
+  assert.equal(e4.hiany_szazalek, 67);
+});
+
+test("elemzés: a legtöbbször kihagyott elemek listája, a leggyakoribbal kezdve", () => {
+  const r = sz.kifejtosAggregalas(kulcsMinta(), [diakEredmeny(), diakEredmeny()]);
+  // A mintában mindkét diáknál hiányzik a 2/e4, 2/e6 és a 3/e4
+  assert.deepEqual(r.kihagyott.map((e) => `${e.sorszam}/${e.id}`).sort(), ["2/e4", "2/e6", "3/e4"]);
+  assert.ok(r.kihagyott.every((e) => e.hiany_szazalek === 100));
+  // ami mindenkinél megvolt, nem kerül a listára
+  assert.ok(!r.kihagyott.some((e) => e.sorszam === "1"));
+});
+
+test("elemzés: az egyéni kihagyás (25% alatt) nem kerül a 'legtöbben kihagyták' listára", () => {
+  const jo = () => diakEredmeny([
+    { sorszam: "2", elemek: [{ id: "e4", statusz: "megvan" }, { id: "e6", statusz: "megvan" }] },
+    { sorszam: "3", elemek: [{ id: "e4", statusz: "megvan" }] }
+  ]);
+  // 5 diákból csak 1 hagyta ki a 3/e4-et → 20%
+  const r = sz.kifejtosAggregalas(kulcsMinta(), [jo(), jo(), jo(), jo(),
+    diakEredmeny([{ sorszam: "2", elemek: [{ id: "e4", statusz: "megvan" }, { id: "e6", statusz: "megvan" }] }])]);
+  assert.ok(!r.kihagyott.some((e) => e.sorszam === "3" && e.id === "e4"));
+  // a kérdésenkénti részletezésben viszont ott van
+  const e4 = r.kerdesek.find((k) => k.sorszam === "3").elemek.find((x) => x.id === "e4");
+  assert.equal(e4.hiany_szazalek, 20);
+});
+
+test("elemzés: a sorrend miatt elveszett lépés külön számolódik", () => {
+  const r = sz.kifejtosAggregalas(kulcsMinta(), [diakEredmeny()]);
+  const e3 = r.kerdesek.find((k) => k.sorszam === "3").elemek.find((e) => e.id === "e3");
+  assert.equal(e3.megvan, 1);
+  assert.equal(e3.rossz_helyen, 1);
+  assert.equal(e3.hiany_szazalek, 0, "leírta, tehát nem hiányzott – csak rossz helyen volt");
+});
+
+test("elemzés: választós kérdésnél egy ág elemeit csak az számolja, aki azt választotta", () => {
+  const kulcs = sz.kulcsEllenorzes({ kerdesek: [{
+    sorszam: "1", tipus: "valasztos", max_pont: 2,
+    agak: [
+      { id: "a1", cim: "Termék", elemek: [e("a1e1", "minőség"), e("a1e2", "csomagolás")] },
+      { id: "a2", cim: "Ár", elemek: [e("a2e1", "árképzés"), e("a2e2", "kedvezmény")] }
+    ]
+  }] });
+  const diak = (ag, statuszok) => ({ kerdesek: [{
+    sorszam: "1", pont: 1, max: 2,
+    elemek: Object.entries(statuszok).map(([id, statusz]) => ({ id, statusz }))
+  }] });
+  const r = sz.kifejtosAggregalas(kulcs, [
+    diak("a1", { a1e1: "megvan", a1e2: "hianyzik" }),
+    diak("a1", { a1e1: "megvan", a1e2: "megvan" }),
+    diak("a2", { a2e1: "hianyzik", a2e2: "megvan" })
+  ]);
+  const elemek = new Map(r.kerdesek[0].elemek.map((x) => [x.id, x]));
+  assert.equal(elemek.get("a1e2").db, 2);
+  assert.equal(elemek.get("a1e2").hiany_szazalek, 50);
+  assert.equal(elemek.get("a2e1").db, 1);
+  assert.equal(elemek.get("a2e1").ag, "Ár");
+});
+
+test("elemzés: ismeretlen elemazonosító és státusz nem torzítja a számokat", () => {
+  const r = sz.kifejtosAggregalas(kulcsMinta(), [{ kerdesek: [{
+    sorszam: "1", pont: 1, max: 3,
+    elemek: [{ id: "e1", statusz: "megvan" }, { id: "kitalalt", statusz: "megvan" }, { id: "e2", statusz: "szuper" }]
+  }] }]);
+  const k1 = r.kerdesek.find((k) => k.sorszam === "1");
+  assert.equal(k1.elemek.find((x) => x.id === "e1").db, 1);
+  assert.equal(k1.elemek.find((x) => x.id === "e2").db, 0);
+  assert.equal(k1.elemek.find((x) => x.id === "e2").hiany_szazalek, null);
+});
+
+test("elemzés prompt: a kihagyott elemek és a hibák benne, nyelvtanár nincs", () => {
+  const kf = sz.kifejtosAggregalas(kulcsMinta(), [diakEredmeny(), diakEredmeny()]);
+  const p = sz.kifejtosElemzesPrompt(
+    { cim: "Beszerzés", rubrika: { mod: "kifejtos", tantargy: "kereskedelem" } },
+    { ertekelt_db: 2, atlag_szazalek: 62 }, kf,
+    [{ kategoria: "sorrend", kerdes: "3", idezet: "Számlák kiegyenlítése", javaslat: "a végére" }]
+  );
+  assert.match(p, /tantárgy: kereskedelem/);
+  assert.match(p, /"Megrendelés": 2 diáknál hiányzik \(2 diákból\)/);
+  assert.match(p, /\[sorrend\] 3\. kérdés: "Számlák kiegyenlítése"/);
+  assert.match(p, /3-nál kevesebb/);
+  assert.doesNotMatch(p, /nyelvtanár|CEFR|nyelvtani/);
+});
+
+test("elemzés séma: a kifejtős hibakategóriák, nem a nyelviek", () => {
+  const enumok = sz.KIFEJTOS_ELEMZES_SCHEMA.properties.tipushibak.items.properties.kategoria.enum;
+  assert.deepEqual(enumok, sz.KIFEJTOS_HIBA_KATEGORIAK);
+});

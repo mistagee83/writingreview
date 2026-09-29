@@ -1649,15 +1649,30 @@ exports.feladatElemzes = onCall(
       .where("feladat_id", "==", feladatId)
       .get();
 
+    const kifejtosMod = kifejtos.feladatMod(feladat.rubrika) === "kifejtos";
+
     const ertekelesek = [];
     for (const d of beadasok.docs) {
       const ai = await d.ref.collection("ertekeles").doc("ai").get();
       if (!ai.exists) continue;
-      ertekelesek.push({
+      const ert = {
         ...ai.data(),
         diak_id: d.data().diak_id,
         olvashatosag: d.data().atirat_olvashatosag || null
-      });
+      };
+      // Kifejtősnél az számít, amit a diák ténylegesen kapott: ha a tanár
+      // már jóváhagyta (és közben felülírt elemeket), az ő döntése. A
+      // tartalmi hibák listája csak az AI-értékelésben van, az marad.
+      if (kifejtosMod && d.data().statusz === "elkuldve") {
+        const tanari = await d.ref.collection("ertekeles").doc("tanari").get();
+        if (tanari.exists && Array.isArray(tanari.data().kerdesek)) {
+          const t = tanari.data();
+          Object.assign(ert, {
+            kerdesek: t.kerdesek, szempontok: t.szempontok, szazalek: t.szazalek
+          });
+        }
+      }
+      ertekelesek.push(ert);
     }
 
     if (ertekelesek.length === 0) {
@@ -1669,10 +1684,31 @@ exports.feladatElemzes = onCall(
 
     const agg = elemzesAggregalas(ertekelesek);
 
+    // Kifejtős dolgozat: kérdés- és elemstatisztika (kód), és más prompt –
+    // nem nyelvtani típushibák, hanem hiányzó tartalmak.
+    let kf = null;
+    let prompt = null;
+    let schema = ELEMZES_SCHEMA;
+    if (kifejtosMod) {
+      const kulcsSnap = await feladatSnap.ref.collection("kulcs").doc("aktualis").get();
+      if (!kulcsSnap.exists) {
+        throw new HttpsError("failed-precondition", "A feladat megoldókulcsa nem található.");
+      }
+      let kulcs;
+      try {
+        kulcs = kifejtos.kulcsEllenorzes(kulcsSnap.data());
+      } catch (e) {
+        throw new HttpsError("failed-precondition", e.message);
+      }
+      kf = kifejtos.kifejtosAggregalas(kulcs, ertekelesek);
+      prompt = kifejtos.kifejtosElemzesPrompt(feladat, agg, kf, ertekelesek.flatMap((e) => e.hibak || []));
+      schema = kifejtos.KIFEJTOS_ELEMZES_SCHEMA;
+    }
+
     const { eredmeny, modell } = await geminiHivas(
       "elemzes",
-      [{ text: elemzesPrompt(feladat, agg) }],
-      ELEMZES_SCHEMA
+      [{ text: prompt || elemzesPrompt(feladat, agg) }],
+      schema
     );
 
     // A hibaMinta nem kell a kliensnek: nagy, és a példák a tipushibakban
@@ -1682,6 +1718,7 @@ exports.feladatElemzes = onCall(
     const dokumentum = {
       beadas_db: beadasok.size,
       ...mentendoAgg,
+      ...(kf ? { mod: "kifejtos", kerdesek: kf.kerdesek, kihagyott: kf.kihagyott } : {}),
       osszegzes: eredmeny.osszegzes || "",
       tipushibak: eredmeny.tipushibak || [],
       gyakorlatok: eredmeny.gyakorlatok || [],

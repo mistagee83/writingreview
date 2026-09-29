@@ -689,6 +689,199 @@ function kifejtosTanariEredmeny(kulcs, ai, modositasok, opciok = {}) {
 }
 
 // ══════════════════════════════════════════════════════
+// OSZTÁLYSZINTŰ ELEMZÉS (4. fázis)
+// A számokat a kód számolja – a modell csak értelmez.
+// ══════════════════════════════════════════════════════
+
+/** A "legtöbben kihagyták" listába ennyi elem kerül legfeljebb. */
+const KIHAGYOTT_MAX = 10;
+
+/**
+ * Ennél ritkább hiány nem kerül a listára: 5 diákból 1 kihagyás egyéni
+ * hiba, nem az osztály hiánya – csak zaj lenne a tanárnak.
+ */
+const KIHAGYOTT_MIN_SZAZALEK = 25;
+
+/**
+ * Kérdésenkénti és elemenkénti összesítés egy feladat értékeléseiből.
+ *
+ * Minden értékelésnél az számít, amit a DIÁK kapott: ha a tanár már
+ * jóváhagyta, a tanári dokumentum kérdései (a felülírásokkal), különben
+ * az AI-é. Ezt a hívó dönti el – itt csak `kerdesek` kell.
+ *
+ * Választós kérdésnél egy ág elemeit csak az számolja, aki azt választotta:
+ * a `db` mindig azt mondja meg, hány diáknál volt egyáltalán értelme az
+ * elemnek.
+ *
+ * @param {object} kulcs kulcsEllenorzes() kimenete
+ * @param {Array<{kerdesek: Array<{sorszam, pont, max, elemek: {id, statusz, rossz_helyen?}[]}>}>} ertekelesek
+ */
+function kifejtosAggregalas(kulcs, ertekelesek) {
+  const kerdesek = kulcs.kerdesek.map((kk) => {
+    const elemek = [...kk.elemek, ...(kk.agak || []).flatMap((a) => a.elemek)];
+    const agCim = new Map((kk.agak || []).flatMap((a) => a.elemek.map((e) => [e.id, a.cim])));
+    const szamlalo = new Map(elemek.map((e) => [e.id, {
+      id: e.id, allitas: e.allitas, ag: agCim.get(e.id) || null,
+      db: 0, megvan: 0, reszben: 0, hianyzik: 0, teves: 0, rossz_helyen: 0
+    }]));
+
+    let pont = 0, max = 0, db = 0;
+    for (const ert of ertekelesek) {
+      const k = (ert.kerdesek || []).find((x) => String(x.sorszam) === kk.sorszam);
+      if (!k) continue;
+      db++;
+      pont += Number(k.pont) || 0;
+      max += Number(k.max) || 0;
+      for (const e of k.elemek || []) {
+        const s = szamlalo.get(e.id);
+        if (!s || !ELEM_STATUSZOK.includes(e.statusz)) continue;
+        s.db++;
+        s[e.statusz]++;
+        if (e.rossz_helyen) s.rossz_helyen++;
+      }
+    }
+
+    return {
+      sorszam: kk.sorszam,
+      szoveg: kk.szoveg,
+      ertekelt_db: db,
+      atlag_pont: db ? Math.round((pont / db) * 10) / 10 : null,
+      max_pont: kk.max_pont,
+      szazalek: max > 0 ? Math.round((pont / max) * 100) : null,
+      elemek: [...szamlalo.values()].map((s) => ({
+        ...s,
+        // A téves is hiány: a diák nem tudta a helyeset.
+        hiany_szazalek: s.db ? Math.round(((s.hianyzik + s.teves) / s.db) * 100) : null
+      }))
+    };
+  });
+
+  const kihagyott = kerdesek
+    .flatMap((k) => k.elemek
+      .filter((e) => e.db > 0 && e.hianyzik + e.teves > 0 && e.hiany_szazalek >= KIHAGYOTT_MIN_SZAZALEK)
+      .map((e) => ({ sorszam: k.sorszam, ...e })))
+    .sort((a, b) => (b.hiany_szazalek - a.hiany_szazalek) || (b.teves - a.teves))
+    .slice(0, KIHAGYOTT_MAX);
+
+  return {
+    // A legrosszabbul sikerült kérdés elöl – ez a tanár első kérdése
+    kerdesek: [...kerdesek].sort((a, b) => (a.szazalek ?? 101) - (b.szazalek ?? 101)),
+    kihagyott
+  };
+}
+
+const KIFEJTOS_ELEMZES_SCHEMA = {
+  type: "object",
+  properties: {
+    osszegzes: { type: "string" },
+    tipushibak: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          cim: { type: "string" },
+          kategoria: { type: "string", enum: KIFEJTOS_HIBA_KATEGORIAK },
+          gyakorisag: { type: "string", enum: ["általános", "gyakori", "szórványos"] },
+          magyarazat: { type: "string" },
+          peldak: { type: "array", items: { type: "string" } }
+        },
+        required: ["cim", "kategoria", "gyakorisag", "magyarazat", "peldak"]
+      }
+    },
+    gyakorlatok: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          cim: { type: "string" },
+          cel: { type: "string" },
+          leiras: { type: "string" },
+          idotartam_perc: { type: "integer" }
+        },
+        required: ["cim", "cel", "leiras", "idotartam_perc"]
+      }
+    },
+    generalo_prompt: { type: "string" }
+  },
+  required: ["osszegzes", "tipushibak", "gyakorlatok", "generalo_prompt"]
+};
+
+/** Legfeljebb ennyi konkrét hiba megy a modellhez – token-költség miatt. */
+const ELEMZES_HIBA_MAX = 150;
+
+/**
+ * Az osztályszintű elemzés promptja kifejtős dolgozatra. A nyelvi
+ * változattal (index.js → elemzesPrompt) szemben itt nincsenek nyelvtani
+ * címkék: a kérdés az, mely TARTALMAK nem ültek.
+ *
+ * @param {object} feladat a feladat dokumentum
+ * @param {{ertekelt_db, atlag_szazalek}} alap az általános számok
+ * @param {ReturnType<typeof kifejtosAggregalas>} kf a kérdés- és elemstatisztika
+ * @param {Array<{kategoria, kerdes, idezet, javaslat}>} hibak az AI által talált tartalmi hibák
+ */
+function kifejtosElemzesPrompt(feladat, alap, kf, hibak) {
+  const tantargy = tantargya(feladat.rubrika);
+
+  const kerdesLista = kf.kerdesek
+    .map((k) => `- ${k.sorszam}. kérdés${k.szoveg ? ` (${k.szoveg})` : ""}: ` +
+      `${k.atlag_pont ?? "–"}/${k.max_pont} pont átlagosan, ${k.szazalek ?? "–"}%`)
+    .join("\n");
+
+  const kihagyottLista = kf.kihagyott
+    .map((e) => `- ${e.sorszam}. kérdés – "${e.allitas}"${e.ag ? ` (${e.ag})` : ""}: ` +
+      `${e.hianyzik} diáknál hiányzik${e.teves ? `, ${e.teves} diáknál téves` : ""} (${e.db} diákból)`)
+    .join("\n");
+
+  const hibaLista = hibak.slice(0, ELEMZES_HIBA_MAX)
+    .map((h) => `- [${h.kategoria}] ${h.kerdes ? `${h.kerdes}. kérdés: ` : ""}"${h.idezet}"` +
+      `${h.javaslat ? ` → "${h.javaslat}"` : ""}`)
+    .join("\n");
+
+  return `${persona(tantargy)} Egy osztály kifejtős dolgozatának összesített
+eredményét kapod, és a tanárnak kell segítened: mit érdemes órán újra venni.
+
+# A FELADAT
+Cím: ${feladat.cim || "nincs megadva"}
+${tantargy ? `Tantárgy: ${tantargy}\n` : ""}
+# OSZTÁLYSZINTŰ SZÁMOK
+Kiértékelt dolgozat: ${alap.ertekelt_db}
+Osztályátlag: ${alap.atlag_szazalek != null ? alap.atlag_szazalek + "%" : "nincs adat"}
+
+Kérdésenként (a legrosszabb elöl):
+${kerdesLista || "- nincs adat"}
+
+# AMIT A LEGTÖBBEN KIHAGYTAK VAGY ELRONTOTTAK
+Ezt a rendszer számolta a megoldókulcs elemeiből – pontos, ne kérdőjelezd meg.
+${kihagyottLista || "- nincs ilyen: minden elem a diákok többségénél megvolt"}
+
+# TARTALMI HIBÁK (minta, a javító AI jelölte)
+${hibaLista || "- nincs adat"}
+
+# UTASÍTÁSOK
+1. "osszegzes": 2-3 bekezdés a tanárnak, magyarul. Mi ült jól, és mely
+   fogalmak, tananyagrészek hiányoznak rendszerszinten? Keress mintát: egy
+   egész témakör hiányzik, vagy csak a szakszóhasználat pontatlan, vagy
+   egy tipikus tévhit terjed? Ne ismételd a számokat – ÉRTELMEZD őket.
+2. "tipushibak": a közös tartalmi hiányok és tévedések, a JELENTÉS szerint
+   összevonva, a legfontosabbal kezdve, legfeljebb 6. A "cim" magyarul,
+   közérthetően (pl. "A beszerzés szakaszainak sorrendje"). A "peldak" a
+   fenti hibákból vett SZÓ SZERINTI diákidézetek – ha egy hiányhoz nincs
+   idézet, a hiányzó elemet nevezd meg.
+   A "gyakorisag": "általános" ha a diákok többségét érinti, "gyakori" ha
+   jelentős részét, "szórványos" ha csak néhányat.
+3. "gyakorlatok": 3-5 konkrét, órán használható ismétlő tevékenység a
+   legnagyobb hiányokra. A "leiras" legyen annyira konkrét, hogy a tanár
+   holnap be tudja vinni: mit csinálnak a diákok, milyen formában, mennyi ideig.
+4. "generalo_prompt": egy KÉSZ, önmagában is használható prompt, amit a
+   tanár bemásolhat egy AI-ba, hogy ismétlő feladatsort generáljon pontosan
+   ezekre a hiányokra. Tartalmazza a tantárgyat, a hiányzó fogalmakat és
+   tévhiteket, és kérjen rövid kifejtős kérdéseket megoldókulccsal.
+
+Ha 3-nál kevesebb kiértékelt dolgozat van, az "osszegzes" ELSŐ mondatában
+jelezd, hogy ez még nem osztályszintű kép.`;
+}
+
+// ══════════════════════════════════════════════════════
 // JSON SÉMÁK
 // ══════════════════════════════════════════════════════
 
@@ -1185,6 +1378,9 @@ module.exports = {
   elemEllenorzes,
   kifejtosErtekelesOsszeallitas,
   kifejtosTanariEredmeny,
+  kifejtosAggregalas,
+  kifejtosElemzesPrompt,
+  KIFEJTOS_ELEMZES_SCHEMA,
   kifejtosAtiratPrompt,
   kifejtosErtekelesPrompt,
   kulcsKeszitesPrompt,

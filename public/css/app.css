@@ -1557,5 +1557,28 @@ button.elem-jel.atnez:hover { outline: 1.5px solid var(--warn); }
 .vk-idezet { color: var(--muted); font-size: 0.85rem; font-style: italic; }
 .vk-pont { color: var(--muted); font-variant-numeric: tabular-nums; }
 
+/* ── Kifejtős: osztályszintű elemzés (elemzes.html) ── */
+/* A kulcselemek szövege hosszabb, mint egy szempontnév: szélesebb címke. */
+.kerdes-reszlet .sav-sor, .kerdes-elemek .sav-sor, #tartalom .panel:has(.kerdes-reszlet) + .panel .sav-sor {
+  grid-template-columns: minmax(0, 1.4fr) 1fr 150px;
+}
+.kerdes-reszlet { border-bottom: 1px solid var(--border); padding: 0.3rem 0; }
+.kerdes-reszlet:last-child { border-bottom: none; }
+.kerdes-reszlet > summary { list-style: none; color: var(--ink); font-weight: 400; }
+.kerdes-reszlet > summary::-webkit-details-marker { display: none; }
+.kerdes-reszlet > summary .sav-cimke::before { content: '▸ '; color: var(--muted); }
+.kerdes-reszlet[open] > summary .sav-cimke::before { content: '▾ '; }
+.kerdes-elemek { padding: 0.4rem 0 0.6rem 1.2rem; }
+.kerdes-elemek .sav-cimke { font-weight: 400; }
+.elem-reszlet { margin: -0.3rem 0 0.4rem; font-size: 0.75rem; }
+
+@media (max-width: 600px) {
+  .kerdes-reszlet .sav-sor, .kerdes-elemek .sav-sor, #tartalom .panel:has(.kerdes-reszlet) + .panel .sav-sor {
+    grid-template-columns: 1fr 110px;
+  }
+  .kerdes-reszlet .sav-cimke, .kerdes-elemek .sav-cimke,
+  #tartalom .panel:has(.kerdes-reszlet) + .panel .sav-cimke { grid-column: 1 / -1; }
+}
+
 /* ── Fotózási tipp (beadas.html) ── */
 .foto-tipp { list-style: none; padding: 0; margin: 0.6rem 0 1rem; display: grid; gap: 0.3rem; font-size: 0.85rem; }

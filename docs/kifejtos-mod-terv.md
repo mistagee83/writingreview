@@ -1,10 +1,10 @@
 # WritingReview – kifejtős kérdéseket tartalmazó dolgozat (terv)
 
-Állapot: **az 1–3. fázis kész, 2026-09-29.** A tanár létrehozhat kifejtős
+Állapot: **mind a 4 fázis kész, 2026-09-29.** A tanár létrehozhat kifejtős
 dolgozatot (feladatlap + tananyag → kulcs → mentés), a beadások javítása
 lefut, a javító nézetben kérdésenként, elemenként ellenőrizhet és
-felülírhat, a diák pedig kérdésenkénti visszajelzést kap. Hátra van: az
-elemenkénti hiányarány az osztályszintű elemzésben (4. fázis).
+felülírhat, a diák kérdésenkénti visszajelzést kap, és az osztályszintű
+elemzés megmutatja, mely kulcselemeket hagyták ki a legtöbben.
 
 Készült 2026-09-28-án „szakmai dolgozat mód” néven, egy valódi mintacsomag
 (3 szkennelt oldal: kereskedelem, marketing, pénztörténet) és két
@@ -371,9 +371,21 @@ szélek is; a hátoldalt is le kell fotózni, ha oda folytatódik a válasz.
 írt, ½ amit részben, ✕ ami hiányzott vagy téves – **„Helyesen: …”** mellette,
 és „Te: …” a saját szavaival; ↕ ha jó, de nem a helyén.
 
-**`elemzes.html`**: most a `szempontok` kompatibilitási mezőn át
-kérdésenkénti átlag. Később: **elemenkénti hiányarány** („az osztály 70%-a
-kihagyta a megrendelést”).
+**`elemzes.html`** – kifejtős dolgozatnál:
+- **Kérdésenként**: átlag, a legrosszabbul sikerült kérdéssel kezdve;
+  lenyitva elemenként, hány diáknál hiányzott (és hányan írták tévesen,
+  részben, rossz helyen);
+- **Amit a legtöbben kihagytak**: a kulcselemek a leggyakrabban hiányzóval
+  kezdve, legfeljebb 10 – de csak a diákok legalább negyedénél hiányzó
+  (ennél ritkább egyéni hiba, nem az osztályé). A téves is hiánynak számít;
+- **Közös hiányok és tévedések**, ismétlő gyakorlatok, generáló prompt – ezt
+  az AI adja, egy kifejtős változatú prompttal (nem nyelvtani típushibák,
+  hanem hiányzó tartalmak).
+
+A számokat a **kód** számolja (`kifejtosAggregalas`). Diákonként az számít,
+amit a diák kapott: ha a tanár már jóváhagyta, az ő (felülírt) döntései,
+különben az AI-é. Az eredmény a `feladatok/{id}/elemzes/osszegzes`
+dokumentumba kerül (`mod: 'kifejtos'`, `kerdesek`, `kihagyott`).
 
 ---
 
@@ -398,7 +410,8 @@ kihagyta a megrendelést”).
 3. **Javítás és visszajelzés** – ✅ 2026-09-29: kérdésenkénti javító nézet,
    felülírás, élő pont és jegyjavaslat; a helyes válaszok a diák
    visszajelzésében; fotózási tanács.
-4. **Elemzés**: elemenkénti hiányarány az osztályszintű elemzésben.
+4. **Elemzés** – ✅ 2026-09-29: kérdésenkénti átlag, elemenkénti
+   hiányarány, „amit a legtöbben kihagytak” lista, kifejtős elemzés-prompt.
 
 A mintadokumentumok **nem kerülnek a repóba** (`tests/dolgozatok/` a
 `.gitignore`-ban); a regressziós teszt csak az anonim átirat szövegét és a

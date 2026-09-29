@@ -124,8 +124,10 @@
     (d) => ['javitva', 'elkuldve'].includes(d.data().statusz)
   ).length;
 
+  const kifejtosMod = r.mod === 'kifejtos';
+
   document.getElementById('alcim').textContent =
-    [r.nyelv || 'angol', r.tipus, r.szint,
+    [...(kifejtosMod ? [r.tantargy || 'kifejtős dolgozat'] : [r.nyelv || 'angol', r.tipus, r.szint]),
      `${bSnap.size} beadás`, `${kiertekelt} kiértékelve`]
       .filter(Boolean).join(' · ');
 
@@ -142,6 +144,73 @@
     const sz = Math.max(0, Math.min(100, Number(szazalek) || 0));
     const osztaly = sz < 50 ? 'baj' : (sz < 75 ? 'kozepes' : 'jo');
     return `<div class="sav"><div class="sav-kitolt ${osztaly}" style="width:${sz}%"></div></div>`;
+  }
+
+  // ── KIFEJTŐS DOLGOZAT ──
+  // A számokat (kérdésenkénti átlag, elemenkénti hiányarány) a kód
+  // számolta, nem az AI. Az elemeknél a sáv a HIÁNY aránya, mindig
+  // pirossal – ugyanazt mutatja, amit a mellette álló szám.
+  function hianySav(szazalek) {
+    const sz = Math.max(0, Math.min(100, Number(szazalek) || 0));
+    return `<div class="sav"><div class="sav-kitolt baj" style="width:${sz}%"></div></div>`;
+  }
+  const KATEGORIA_CIMKE = {
+    hianyzo_elem: 'hiányzó elem', tartalmi_tevedes: 'tartalmi tévedés',
+    pontatlan_fogalom: 'pontatlan fogalom', sorrend: 'sorrend', hianyos_kifejtes: 'hiányos kifejtés'
+  };
+
+  function elemSor(el) {
+    const hiany = el.hiany_szazalek ?? 0;
+    const reszletek = [
+      el.hianyzik ? `${el.hianyzik} kihagyta` : null,
+      el.teves ? `${el.teves} tévesen írta` : null,
+      el.reszben ? `${el.reszben} részben` : null,
+      el.rossz_helyen ? `${el.rossz_helyen} rossz helyen` : null
+    ].filter(Boolean).join(', ');
+    return `
+      <div class="sav-sor">
+        <div class="sav-cimke">${esc(el.allitas)}${el.ag ? ` <span class="halvany">(${esc(el.ag)})</span>` : ''}</div>
+        ${hianySav(hiany)}
+        <div class="sav-ertek">${el.db ? `${el.hianyzik + el.teves}/${el.db} diáknál hiányzik` : 'senki nem választotta'}</div>
+      </div>
+      ${reszletek ? `<p class="halvany elem-reszlet">${esc(reszletek)}</p>` : ''}`;
+  }
+
+  function kifejtosPanelek(e) {
+    return `
+      <div class="panel">
+        <div class="panel-header"><h2>📊 Kérdésenként</h2></div>
+        <div class="panel-body">
+          <p class="halvany">A legrosszabbul sikerült kérdéssel kezdve. Nyisd le, hogy lásd, melyik elem hiányzott.</p>
+          ${(e.kerdesek || []).map((k) => `
+            <details class="kerdes-reszlet">
+              <summary>
+                <div class="sav-sor">
+                  <div class="sav-cimke"><strong>${esc(k.sorszam)}.</strong> ${esc(k.szoveg || '')}</div>
+                  ${sav(k.szazalek)}
+                  <div class="sav-ertek">${k.atlag_pont ?? '–'}/${k.max_pont} · ${k.szazalek ?? '–'}%</div>
+                </div>
+              </summary>
+              <div class="kerdes-elemek">${(k.elemek || []).map(elemSor).join('')}</div>
+            </details>`).join('') || '<p class="halvany">Nincs adat.</p>'}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h2>🕳️ Amit a legtöbben kihagytak</h2></div>
+        <div class="panel-body">
+          ${(e.kihagyott || []).length ? `
+            <p class="halvany">A megoldókulcs elemei, a leggyakrabban hiányzóval kezdve – a tévesen leírt is
+              hiánynak számít. Ami a diákok negyedénél ritkábban hiányzott, azt a kérdéseknél lenyitva látod.</p>
+            ${e.kihagyott.map((el) => `
+              <div class="sav-sor">
+                <div class="sav-cimke"><span class="badge inaktiv">${esc(el.sorszam)}.</span> ${esc(el.allitas)}</div>
+                ${hianySav(el.hiany_szazalek)}
+                <div class="sav-ertek">${el.hianyzik + el.teves}/${el.db} · ${el.hiany_szazalek}%</div>
+              </div>`).join('')}`
+            : '<p class="halvany">Nincs olyan elem, amit a diákok legalább negyede kihagyott volna. 🎉</p>'}
+        </div>
+      </div>`;
   }
 
   function rajzol(e) {
@@ -167,6 +236,7 @@
           Az elemzés elkészült, de óvatosan olvasd.
         </div>` : ''}
 
+      ${e.mod === 'kifejtos' ? kifejtosPanelek(e) : `
       <div class="panel">
         <div class="panel-header"><h2>📊 Szempontonként</h2></div>
         <div class="panel-body">
@@ -178,7 +248,7 @@
               <div class="sav-ertek">${sz.atlag_pont}/${sz.max_pont} · ${sz.szazalek ?? '–'}%</div>
             </div>`).join('') || '<p class="halvany">Nincs adat.</p>'}
         </div>
-      </div>
+      </div>`}
 
       <div class="panel">
         <div class="panel-header"><h2>🧭 Összegzés</h2></div>
@@ -189,18 +259,19 @@
 
       ${(e.tipushibak || []).length ? `
       <div class="panel">
-        <div class="panel-header"><h2>🔁 Típushibák</h2></div>
+        <div class="panel-header"><h2>${e.mod === 'kifejtos' ? '🔁 Közös hiányok és tévedések' : '🔁 Típushibák'}</h2></div>
         <div class="panel-body">
           <p class="halvany">
-            Jelentés szerint összevonva – a javító AI címkéi elcsúszhatnak,
-            ezért nem a címkék, hanem a tartalmuk alapján csoportosítva.
+            ${e.mod === 'kifejtos'
+              ? 'Az AI értelmezése: jelentés szerint összevonva, a legfontosabbal kezdve.'
+              : 'Jelentés szerint összevonva – a javító AI címkéi elcsúszhatnak, ezért nem a címkék, hanem a tartalmuk alapján csoportosítva.'}
           </p>
           ${e.tipushibak.map((h) => `
             <div class="elem-kartya">
               <h4>
                 ${esc(h.cim)}
                 <span class="badge ${GYAKORISAG_OSZTALY[h.gyakorisag] || 'inaktiv'}">${esc(h.gyakorisag)}</span>
-                <span class="badge inaktiv">${esc(h.kategoria)}</span>
+                <span class="badge inaktiv">${esc(KATEGORIA_CIMKE[h.kategoria] || h.kategoria)}</span>
               </h4>
               <p>${esc(h.magyarazat)}</p>
               ${(h.peldak || []).length ? `
@@ -259,8 +330,12 @@
         <div class="empty-icon">📊</div>
         <p>
           Ehhez a feladathoz még nincs elemzés.<br/>
-          Az AI összevonja a típushibákat, összegzi az osztály teljesítményét,
-          gyakorlatokat javasol, és ad egy kész promptot feladatgeneráláshoz.
+          ${kifejtosMod
+            ? `Megmutatja, melyik kérdés és a kulcs mely elemei hiányoztak a legtöbbeknél,
+               az AI összevonja a közös hiányokat, ismétlő gyakorlatokat javasol, és ad
+               egy kész promptot ismétlő feladatsor generálásához.`
+            : `Az AI összevonja a típushibákat, összegzi az osztály teljesítményét,
+               gyakorlatokat javasol, és ad egy kész promptot feladatgeneráláshoz.`}
         </p>
         ${kiertekelt === 0
           ? '<p class="halvany" style="margin-top:1rem;">Egyelőre nincs kiértékelt beadás – előbb javíts ki néhány dolgozatot.</p>'
