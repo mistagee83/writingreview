@@ -267,8 +267,11 @@ A szakmai mód (`rubrika.mod: 'szakmai'`) adatai – a teljes leírás a
 - **`kulcs/aktualis`** – a megoldókulcs. **Csak a feladat tanára** olvassa és
   írja: a feladatot a diák olvashatja, a kulcs viszont maga a megoldás.
 - **`tananyagok/{id}`** – a tanár tananyagtára. A tulajdonos és a
-  `megosztva` listán lévő tanárok olvassák. Létrehozni csak Function tud; a
-  kliens csak a `cim`-et írhatja át.
+  `megosztva` listán lévő tanárok olvassák. Létrehozni csak Function tud
+  (`tananyagFeldolgozas`, a kivonattal együtt); a kliens csak a `cim`-et
+  írhatja át.
+- A feladat és a kulcsa **egy batch-ben** mentődik; a kulcs szabálya ezért
+  `getAfter()`-rel nézi a feladat tanárát.
 
 ### `rubrikak/{sablonId}`
 

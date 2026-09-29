@@ -866,8 +866,11 @@ const KIVONAT_MAX_KAR = 400000;
  * A feladathoz választott tananyagok kivonata, címmel elválasztva.
  * Hiányzó vagy még fel nem dolgozott tananyag nem hiba: a kulcs a tanár
  * által jóváhagyott, a tananyag csak a téves állítások megítéléséhez kell.
+ *
+ * Csak az kerül be, amit a tanár olvashat (saját vagy vele megosztott) –
+ * az admin SDK a szabályokat megkerüli, ezért itt kell szűrni.
  */
-async function tananyagKivonat(firestore, tananyagIds) {
+async function tananyagKivonat(firestore, tananyagIds, uid) {
   const idk = (Array.isArray(tananyagIds) ? tananyagIds : [])
     .filter((id) => typeof id === "string" && id).slice(0, 10);
   if (idk.length === 0) return null;
@@ -876,7 +879,7 @@ async function tananyagKivonat(firestore, tananyagIds) {
     idk.map((id) => firestore.collection("tananyagok").doc(id).get())
   );
   const reszek = snapok
-    .filter((s) => s.exists && s.data().kivonat)
+    .filter((s) => s.exists && s.data().kivonat && szakmai.tananyagOlvashato(s.data(), uid))
     .map((s) => `## ${s.data().cim || "Tananyag"}\n${s.data().kivonat}`);
   if (reszek.length === 0) return null;
   return reszek.join("\n\n").slice(0, KIVONAT_MAX_KAR);
@@ -927,7 +930,7 @@ async function feldolgozSzakmai(firestore, beadasRef, feladatRef, feladat, kepPa
 
   // ── 2. lépés: értékelés – az AI státuszt ad, a pontot a kód ──
   const valaszok = szakmai.valaszSzovegek(atiras);
-  const kivonat = await tananyagKivonat(firestore, feladat.tananyag_ids);
+  const kivonat = await tananyagKivonat(firestore, feladat.tananyag_ids, feladat.tanar_id);
   const { eredmeny: ai, modell: ertekelesModell } = await geminiHivas(
     "ertekeles",
     [{ text: szakmai.szakmaiErtekelesPrompt(feladat, kulcs, valaszok, kivonat) }],
@@ -1170,6 +1173,7 @@ exports._teszt = {
   rubrikaSchema,
   pontTablazat,
   tananyagKivonat,
+  probaValaszok,
   nyelve,
   anyanyelvu,
   szintInfo,
@@ -1703,5 +1707,207 @@ exports.feladatElemzes = onCall(
     });
 
     return dokumentum;
+  }
+);
+
+// ══════════════════════════════════════════════════════
+// 11. SZAKMAI DOLGOZAT: TANANYAG, KULCS, PRÓBAJAVÍTÁS
+// Terv: docs/szakmai-mod-terv.md → 2. fázis
+// ══════════════════════════════════════════════════════
+
+const TANANYAG_FAJL_MAX = 5;
+
+// A Gemini inline kérése kb. 20 MB-ig megy át; a base64 ~33%-kal nagyobb.
+// Ennél nagyobb anyagot a tanár több tananyagra bontson.
+const TANANYAG_OSSZMERET_MAX = 14 * 1024 * 1024;
+
+/**
+ * Tananyag feltöltése után: a fájlokból EGYSZER szöveg (kivonat) lesz,
+ * és ezzel jön létre a tananyag dokumentum. A kliens nem hozhat létre
+ * tananyagot – a kivonat nélküli tananyag használhatatlan lenne.
+ */
+exports.tananyagFeldolgozas = onCall(
+  { ...AI_OPCIOK, timeoutSeconds: 540, memory: "1GiB" },
+  async (request) => {
+    const uid = tanar(request);
+    const { cim, tantargy, fajlok } = request.data || {};
+
+    if (!Array.isArray(fajlok) || fajlok.length === 0) {
+      throw new HttpsError("invalid-argument", "Tölts fel legalább egy fájlt.");
+    }
+    if (fajlok.length > TANANYAG_FAJL_MAX) {
+      throw new HttpsError("invalid-argument", `Egy tananyag legfeljebb ${TANANYAG_FAJL_MAX} fájlból állhat.`);
+    }
+    for (const f of fajlok) {
+      if (typeof f?.path !== "string" || !f.path.startsWith(`tananyagok/${uid}/`)) {
+        throw new HttpsError("permission-denied", "Ez nem a te feltöltésed.");
+      }
+    }
+
+    const bucket = getStorage().bucket();
+    const metak = await Promise.all(fajlok.map((f) => bucket.file(f.path).getMetadata().then(([m]) => m)));
+    const osszmeret = metak.reduce((s, m) => s + Number(m.size || 0), 0);
+    if (osszmeret > TANANYAG_OSSZMERET_MAX) {
+      throw new HttpsError("invalid-argument",
+        "A fájlok együtt túl nagyok (legfeljebb 14 MB). Bontsd több tananyagra.");
+    }
+
+    try {
+      const { eredmeny, modell } = await geminiHivas(
+        "rubrika",
+        [{ text: szakmai.tananyagPrompt() }, ...(await Promise.all(fajlok.map((f) => fajlBase64(f.path))))],
+        szakmai.TANANYAG_SCHEMA
+      );
+
+      const kivonat = String(eredmeny.kivonat || "").trim();
+      if (!kivonat) throw new Error("Az AI nem tudott szöveget kinyerni a fájlokból.");
+
+      const dokumentum = {
+        tanar_id: uid,
+        megosztva: [],
+        cim: String(cim || "").trim().slice(0, 200) || String(eredmeny.cim_javaslat || "").trim().slice(0, 200) || "Tananyag",
+        tantargy: String(tantargy || "").trim().slice(0, 60),
+        fajlok: fajlok.map((f, i) => ({
+          path: f.path,
+          mime: metak[i].contentType || "application/octet-stream",
+          nev: String(f.nev || f.path.split("/").pop()).slice(0, 200)
+        })),
+        kivonat,
+        kivonat_tokenek: szakmai.tokenBecsles(kivonat),
+        model: modell,
+        letrehozva: FieldValue.serverTimestamp()
+      };
+      const ref = await db().collection("tananyagok").add(dokumentum);
+
+      logger.info("Tananyag feldolgozva", { uid, tananyagId: ref.id, tokenek: dokumentum.kivonat_tokenek });
+      return {
+        id: ref.id,
+        cim: dokumentum.cim,
+        tantargy: dokumentum.tantargy,
+        kivonat,
+        kivonat_tokenek: dokumentum.kivonat_tokenek
+      };
+    } catch (e) {
+      logger.error("tananyagFeldolgozas hiba", { uid, hiba: e.message });
+      throw new HttpsError("internal", e.message);
+    }
+  }
+);
+
+/**
+ * Feladatlap (+ tananyag) → kulcsvázlat. NEM ment semmit: a tanár az
+ * űrlapon nézi át, és a feladattal együtt menti.
+ */
+exports.kulcsKeszites = onCall(
+  { ...AI_OPCIOK, timeoutSeconds: 540 },
+  async (request) => {
+    const uid = tanar(request);
+    const { feladatlapPath, tananyagIds, tantargy } = request.data || {};
+
+    if (!feladatlapPath) {
+      throw new HttpsError("invalid-argument", "A kulcshoz feladatlap kell – töltsd fel előbb.");
+    }
+    if (!feladatlapPath.startsWith(`feladatlapok/${uid}/`)) {
+      throw new HttpsError("permission-denied", "Ez nem a te feltöltésed.");
+    }
+
+    const firestore = db();
+    const kivonat = await tananyagKivonat(firestore, tananyagIds, uid);
+    const tantargyTisztitva = String(tantargy || "").trim().slice(0, 60) || null;
+
+    let eredmeny, modell;
+    try {
+      ({ eredmeny, modell } = await geminiHivas(
+        "rubrika",
+        [{ text: szakmai.kulcsKeszitesPrompt(tantargyTisztitva, kivonat) }, await fajlBase64(feladatlapPath)],
+        szakmai.KULCS_JAVASLAT_SCHEMA
+      ));
+    } catch (e) {
+      logger.error("kulcsKeszites hiba", { uid, hiba: e.message });
+      throw new HttpsError("internal", e.message);
+    }
+
+    let tiszta;
+    try {
+      tiszta = szakmai.kulcsJavaslatTisztitas(eredmeny, Boolean(kivonat));
+    } catch (e) {
+      throw new HttpsError("failed-precondition", e.message);
+    }
+
+    return {
+      kulcs: { ...tiszta.kulcs, szoszedet: szakmai.szoszedetGyujtes(tiszta.kulcs) },
+      kihagyott: tiszta.kihagyott,
+      cim_javaslat: String(eredmeny.cim_javaslat || "").trim(),
+      feladat_leiras: String(eredmeny.feladat_leiras || "").trim(),
+      tantargy: String(eredmeny.tantargy || "").trim(),
+      van_tananyag: Boolean(kivonat),
+      model: modell
+    };
+  }
+);
+
+/** Próbajavításnál a begépelt válaszok kérdésenként legfeljebb ennyi karakter. */
+const PROBA_VALASZ_MAX = 5000;
+
+/**
+ * A próbajavítás válaszai: { "1": "...", "2": "..." } → Map, csak a
+ * kulcsban szereplő kérdésekre, levágva.
+ */
+function probaValaszok(nyers, kulcs) {
+  const m = new Map();
+  if (!nyers || typeof nyers !== "object") return m;
+  for (const k of kulcs.kerdesek) {
+    const v = String(nyers[k.sorszam] ?? "").trim().slice(0, PROBA_VALASZ_MAX);
+    if (v) m.set(k.sorszam, v);
+  }
+  return m;
+}
+
+/**
+ * Próbajavítás: a tanár begépel egy mintaválaszt, és megnézi, hogyan
+ * pontoz a MÉG EL NEM MENTETT kulcs. Semmit nem ír az adatbázisba.
+ *
+ * Ugyanaz az értékelő lépés fut, mint éles beadásnál – csak az átírás
+ * marad ki, mert a válasz már szöveg.
+ */
+exports.probaErtekeles = onCall(
+  { ...AI_OPCIOK, timeoutSeconds: 300 },
+  async (request) => {
+    const uid = tanar(request);
+    const { kulcs: nyersKulcs, valaszok: nyersValaszok, cim, tantargy, tananyagIds, ponthatarok } =
+      request.data || {};
+
+    let kulcs;
+    try {
+      kulcs = szakmai.kulcsEllenorzes(nyersKulcs);
+    } catch (e) {
+      throw new HttpsError("invalid-argument", e.message);
+    }
+
+    const valaszok = probaValaszok(nyersValaszok, kulcs);
+    if (valaszok.size === 0) {
+      throw new HttpsError("invalid-argument", "Írj be legalább egy kérdésre mintaválaszt.");
+    }
+
+    const firestore = db();
+    const kivonat = await tananyagKivonat(firestore, tananyagIds, uid);
+    const feladat = {
+      cim: String(cim || "").slice(0, 200),
+      rubrika: { mod: "szakmai", tantargy: String(tantargy || "").slice(0, 60) }
+    };
+
+    try {
+      const { eredmeny: ai, modell } = await geminiHivas(
+        "ertekeles",
+        [{ text: szakmai.szakmaiErtekelesPrompt(feladat, kulcs, valaszok, kivonat) }],
+        szakmai.SZAKMAI_ERTEKELES_SCHEMA
+      );
+      const ertekeles = szakmai.szakmaiErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok);
+      logger.info("Próbajavítás", { uid, pont: ertekeles.osszpontszam, max: ertekeles.max_pontszam });
+      return { ...ertekeles, model: modell };
+    } catch (e) {
+      logger.error("probaErtekeles hiba", { uid, hiba: e.message });
+      throw new HttpsError("internal", e.message);
+    }
   }
 );

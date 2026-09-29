@@ -514,3 +514,134 @@ test("mód: a hiányzó érték az íráskészség (a régi feladatok változatl
   assert.equal(sz.feladatMod({ mod: "szakmai" }), "szakmai");
   assert.equal(sz.feladatMod({ mod: "valami" }), "iras");
 });
+
+// ══════════════════════════════════════════
+// 2. FÁZIS: KULCSJAVASLAT, TANANYAG, PRÓBAJAVÍTÁS
+// ══════════════════════════════════════════
+
+const JAVASLAT = {
+  cim_javaslat: "Beszerzés",
+  feladat_leiras: "…",
+  kerdesek: [
+    {
+      sorszam: "1.", szoveg: "Sorold fel…", tipus: "zart_felsorolas", max_pont: 0,
+      elemek: [
+        { allitas: "Beszerzés", pont: 1, forras: "tananyag", ellenorizendo: false },
+        { allitas: "  ", pont: 1, forras: "tananyag", ellenorizendo: false },
+        { allitas: "Értékesítés", pont: -3, forras: "altalanos", ellenorizendo: true, elfogadhato: [" eladás ", ""] }
+      ]
+    },
+    { sorszam: "1", szoveg: "Ismétlődő sorszám", tipus: "ismeretlen", max_pont: 2,
+      elemek: [{ allitas: "x", pont: 2, forras: "altalanos", ellenorizendo: false }] },
+    { sorszam: "3", szoveg: "Üres", tipus: "sorrend", max_pont: 5, elemek: [] },
+    {
+      sorszam: "4", szoveg: "Fejts ki egy P-t", tipus: "valasztos", max_pont: 3,
+      agak: [
+        { cim: "Termék", elemek: [{ allitas: "a", pont: 1, forras: "tananyag", ellenorizendo: false }] },
+        { cim: "", elemek: [] }
+      ]
+    }
+  ]
+};
+
+test("kulcsjavaslat: a mi azonosítóink, üres elem ki, rossz pont 1, alapbeállítás", () => {
+  const { kulcs, kihagyott } = sz.kulcsJavaslatTisztitas(JAVASLAT, true);
+  const k1 = kulcs.kerdesek[0];
+  assert.equal(k1.sorszam, "1", "a sorszám végi pont lemarad");
+  assert.deepEqual(k1.elemek.map((e) => [e.id, e.allitas, e.pont]), [["e1", "Beszerzés", 1], ["e2", "Értékesítés", 1]]);
+  assert.deepEqual(k1.elemek[1].elfogadhato, ["eladás"]);
+  assert.equal(k1.max_pont, 2, "hiányzó max pont = az elemek összege");
+  assert.deepEqual(k1.beallitas, sz.ALAP_BEALLITAS);
+  assert.equal(k1.elemek[1].ellenorizendo, true);
+  assert.equal(k1.elemek[0].forras, "tananyag");
+  assert.deepEqual(kihagyott, ["3"], "az elem nélküli kérdést jelzi");
+});
+
+test("kulcsjavaslat: ismétlődő sorszám és ismeretlen típus javítva", () => {
+  const { kulcs } = sz.kulcsJavaslatTisztitas(JAVASLAT, true);
+  assert.equal(kulcs.kerdesek[1].sorszam, "1*");
+  assert.equal(kulcs.kerdesek[1].tipus, "magyarazat");
+});
+
+test("kulcsjavaslat: választós kérdésnél az üres ág kimarad", () => {
+  const { kulcs } = sz.kulcsJavaslatTisztitas(JAVASLAT, true);
+  const k4 = kulcs.kerdesek.find((k) => k.sorszam === "4");
+  assert.deepEqual(k4.agak.map((a) => [a.id, a.cim, a.elemek[0].id]), [["a1", "Termék", "a1e1"]]);
+});
+
+test("kulcsjavaslat: tananyag nélkül minden elem 'altalanos', bármit mond a modell", () => {
+  const { kulcs } = sz.kulcsJavaslatTisztitas(JAVASLAT, false);
+  const forrasok = kulcs.kerdesek.flatMap((k) => [...k.elemek, ...(k.agak || []).flatMap((a) => a.elemek)])
+    .map((e) => e.forras);
+  assert.ok(forrasok.every((f) => f === "altalanos"));
+});
+
+test("kulcsjavaslat: használható kérdés nélkül olvasható hiba", () => {
+  assert.throws(() => sz.kulcsJavaslatTisztitas({ kerdesek: [] }, true), /egyetlen használható kérdést/);
+  assert.throws(() => sz.kulcsJavaslatTisztitas(null, true), /egyetlen használható kérdést/);
+});
+
+test("a kulcsjavaslat sémája NEM kér beállítást (sorrend, szigor) – az a tanáré", () => {
+  const kerdesMezok = Object.keys(sz.KULCS_JAVASLAT_SCHEMA.properties.kerdesek.items.properties);
+  assert.ok(!kerdesMezok.includes("beallitas"), kerdesMezok.join(", "));
+  assert.doesNotMatch(JSON.stringify(sz.KULCS_JAVASLAT_SCHEMA), /szakszo|reszpont|kulcson_kivul/);
+});
+
+test("kulcskészítő prompt: tananyaggal ahhoz igazodik, nélküle 'altalanos'", () => {
+  const vele = sz.kulcsKeszitesPrompt("kereskedelem", "A beszerzés szakaszai: …");
+  assert.match(vele, /# A TANANYAG/);
+  assert.match(vele, /tantárgy: kereskedelem/);
+  const nelkule = sz.kulcsKeszitesPrompt(null, null);
+  assert.doesNotMatch(nelkule, /# A TANANYAG/);
+  assert.match(nelkule, /Tananyag NINCS megadva/);
+  assert.match(nelkule, /Te egy tapasztalt szakmai tanár vagy\./);
+});
+
+test("tananyag: a tulajdonos és a megosztott kolléga olvashatja, más nem", () => {
+  const t = { tanar_id: "a", megosztva: ["b"] };
+  assert.ok(sz.tananyagOlvashato(t, "a"));
+  assert.ok(sz.tananyagOlvashato(t, "b"));
+  assert.equal(sz.tananyagOlvashato(t, "c"), false);
+  assert.equal(sz.tananyagOlvashato({ tanar_id: "a" }, "b"), false);
+  assert.equal(sz.tananyagOlvashato(t, undefined), false);
+});
+
+test("tokenbecslés: ~4 karakter / token", () => {
+  assert.equal(sz.tokenBecsles("x".repeat(60000 * 4)), sz.KIVONAT_FIGYELMEZTETES_TOKEN);
+  assert.equal(sz.tokenBecsles(null), 0);
+});
+
+test("próbajavítás: csak a kulcs kérdései, üres válasz nélkül, levágva", () => {
+  const t = require("./index.js")._teszt;
+  const kulcs = sz.kulcsEllenorzes(MINTA_KULCS);
+  const m = t.probaValaszok({ 1: " Beszerzés ", 2: "", 99: "idegen", 3: "x".repeat(9000) }, kulcs);
+  assert.deepEqual([...m.keys()], ["1", "3"]);
+  assert.equal(m.get("1"), "Beszerzés");
+  assert.equal(m.get("3").length, 5000);
+  assert.equal(t.probaValaszok(null, kulcs).size, 0);
+});
+
+// ══════════════════════════════════════════
+// A BÖNGÉSZŐS PÉLDÁNY (public/js/szakmai.js)
+// A kliens ugyanazzal validál és számol, mint a szerver – ha a generált
+// fájl elavult, a tanár mást látna, mint amit a javítás ad.
+// ══════════════════════════════════════════
+
+test("a public/js/szakmai.js friss (node scripts/szakmai-kliens.mjs)", async () => {
+  const { kliensKod, FORRAS, CEL } = await import("../scripts/szakmai-kliens.mjs");
+  const { readFileSync } = await import("node:fs");
+  const vart = kliensKod(readFileSync(FORRAS, "utf8"));
+  const van = readFileSync(CEL, "utf8").replace(/\r\n/g, "\n");
+  assert.equal(van, vart,
+    "Elavult a public/js/szakmai.js – futtasd: node scripts/szakmai-kliens.mjs");
+});
+
+test("a böngészős példány ugyanazt pontozza: a minta 8/13 → 3-as", async () => {
+  const kliens = await import("../public/js/szakmai.js");
+  assert.deepEqual(Object.keys(kliens).sort(), Object.keys(sz).sort(), "ugyanazok az exportok");
+  const r = kliens.szakmaiErtekelesOsszeallitas(
+    kliens.kulcsEllenorzes(MINTA_KULCS), MINTA_AI, kliens.valaszSzovegek(MINTA_ATIRAS)
+  );
+  assert.equal(r.osszpontszam, 8);
+  assert.equal(r.javasolt_jegy, 3);
+});

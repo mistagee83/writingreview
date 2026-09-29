@@ -116,7 +116,9 @@
   const r = feladat.rubrika || {};
   document.getElementById('cim').textContent = feladat.cim;
   document.getElementById('alcim').textContent =
-    [r.nyelv, r.tipus, r.szint, r.min_szo && r.max_szo ? `${r.min_szo}–${r.max_szo} szó` : null,
+    [...(r.mod === 'szakmai'
+          ? [r.tantargy || 'szakmai dolgozat']
+          : [r.nyelv, r.tipus, r.szint, r.min_szo && r.max_szo ? `${r.min_szo}–${r.max_szo} szó` : null]),
      feladat.hatarido ? `határidő: ${datum(feladat.hatarido)}` : null]
       .filter(Boolean).join(' · ');
 
@@ -128,6 +130,12 @@
         <thead><tr><th>Szempont</th><th>Pont</th></tr></thead>
         <tbody>${r.szempontok.map((sz) =>
           `<tr><td>${esc(sz.cim || sz.kulcs)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
+      </table>` : ''}
+    ${(r.kerdesek || []).length ? `
+      <table class="tabla" style="margin-top:1rem;">
+        <thead><tr><th>Kérdés</th><th>Pont</th></tr></thead>
+        <tbody>${r.kerdesek.map((k) =>
+          `<tr><td>${esc(k.sorszam)}.</td><td>${esc(k.max_pont)}</td></tr>`).join('')}</tbody>
       </table>` : ''}
     ${feladat.feladatlap?.url
       ? `<p style="margin-top:1rem;"><a class="btn-sm" href="${esc(feladat.feladatlap.url)}" target="_blank" rel="noopener">📄 Feladatlap megnyitása</a></p>`

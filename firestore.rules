@@ -163,9 +163,19 @@ service cloud.firestore {
       // A belső szerkezetet a Function ellenőrzi (kulcsEllenorzes)
       // minden használat előtt.
       match /kulcs/{docId} {
-        allow read, write: if tanar()
+        allow read, delete: if tanar()
           && get(/databases/$(database)/documents/feladatok/$(feladatId))
                .data.tanar_id == request.auth.uid;
+
+        // getAfter: az új feladat és a kulcsa EGY batch-ben jön létre –
+        // különben lenne egy pillanat, amikor a diák már beadhat, de a
+        // javításhoz még nincs kulcs. A get() a batch előtti állapotot
+        // látná, amikor a feladat még nem létezik.
+        allow create, update: if tanar()
+          && getAfter(/databases/$(database)/documents/feladatok/$(feladatId))
+               .data.tanar_id == request.auth.uid
+          && request.resource.data.kerdesek is list
+          && request.resource.data.kerdesek.size() > 0;
       }
 
       // ── OSZTÁLYSZINTŰ ELEMZÉS ──

@@ -1,8 +1,10 @@
 # WritingReview – szakmai dolgozat mód (terv)
 
-Állapot: **az 1. fázis (mag) kész, 2026-09-29; nincs még telepítve.** A
-tanári felület (2. fázis) nélkül szakmai feladat még nem hozható létre, így
-élesben semmi nem változik. Készült 2026-09-28-án, egy valódi
+Állapot: **az 1. és a 2. fázis kész, 2026-09-29; nincs még telepítve.** A
+tanár már létrehozhat szakmai feladatot (tananyag, kulcsvázlat, átnézés,
+próbajavítás), és a beadások javítása lefut. A javító nézet és a diák
+visszajelzése (3. fázis) még a régi, szempontos formában mutatja az
+eredményt. Készült 2026-09-28-án, egy valódi
 mintacsomag (3 szkennelt oldal: kereskedelem, marketing, pénztörténet) és
 két próbafuttatás alapján – lásd [A próbák eredménye](#a-próbák-eredménye).
 
@@ -11,6 +13,12 @@ Hol van a kód:
   idézet-ellenőrzés, kulcsellenőrzés, jegyjavaslat);
 - `functions/index.js` – `feldolgozSzakmai()`, `tananyagKivonat()`, az
   elágazás a `feldolgozBeadas()`-ban;
+- `functions/index.js` – a `tananyagFeldolgozas`, `kulcsKeszites`,
+  `probaErtekeles` callable-ök (11. szakasz);
+- `public/js/szakmai.js` – a pontozó modul **generált** böngészős példánya
+  (`node scripts/szakmai-kliens.mjs`, a build is lefuttatja; drift-teszt
+  ellenőrzi). Kézzel nem szerkesztendő;
+- `public/js/szakmai-urlap.js` – a feladat-űrlap szakmai része;
 - `tests/szakmai.test.mjs` – benne a minta regressziós esete (8/13 → 3-as).
 
 ## Cél
@@ -427,7 +435,7 @@ legértékesebb visszajelzés a tanárnak.
      mintából:** `pozicio` módban a 3. kérdés 1 pont, összesen 8/13 → 3-as;
    - szakmai átírás és értékelés prompt + séma;
    - szabályok + szabálytesztek.
-2. **Tananyag és kulcs**: `tananyagFeldolgozas`, `kulcsKeszites`,
+2. **Tananyag és kulcs** – ✅ kész, 2026-09-29: `tananyagFeldolgozas`, `kulcsKeszites`,
    `probaErtekeles` callable-ök; tananyagtár; a `feladatok.html` szakmai
    űrlapja.
 3. **Javítás és visszajelzés**: kérdésenkénti javító nézet, felülírás,
@@ -472,6 +480,19 @@ használja.
 | Jegyjavaslat: kerekített százalékból? | **Nem**, a pontos arányból: 54,6% nem ér 3-ast 55%-os határnál. |
 | Ki hozza létre a tananyag-dokumentumot? | **Csak Function** (a kivonattal együtt, 2. fázis). A kliens csak a címet írhatja át. |
 | Ki írhatja a kulcsot? | A feladat tanára kliensről is – a Function minden használat előtt `kulcsEllenorzes()`-sel ellenőrzi. |
+
+### A 2. fázisban hozott részletdöntések (2026-09-29)
+
+| kérdés | döntés |
+|---|---|
+| Hogyan kerül a kulcs mentésre? | A feladattal **egy batch-ben**, kliensről. Új feladatnál a szabály `getAfter()`-rel nézi a feladat tanárát – különben lenne egy pillanat, amikor a diák már beadhat, de nincs kulcs. |
+| Honnan tudja a kliens, hogy a kulcs érvényes? | Ugyanazzal a `kulcsEllenorzes()`-sel validál, mint a szerver: a `public/js/szakmai.js` a `functions/szakmai.js`-ből **generált** példány. Két kézzel írt változat elcsúszna. |
+| Mikor kér kulcsvázlatot az űrlap? | **Csak gombnyomásra**, a tananyag kiválasztása után – a feladatlap feltöltése szakmai módban nem indít AI-t, mert a kulcs a tananyagtól függ. |
+| Mekkora lehet egy tananyag? | Legfeljebb 5 fájl, együtt **14 MB** (a Gemini inline kérése ~20 MB, base64-gyel). Nagyobb anyagot több tananyagra kell bontani. |
+| Ki használhatja a tananyagot a promptban? | Csak a tulajdonos és akivel megosztotta: a Function ezt **kódban** ellenőrzi (`tananyagOlvashato`), mert az admin SDK a szabályokat megkerüli. E nélkül egy idegen tananyag-azonosító a feladatba írva kiszivárogtatná a kivonatot. |
+| A tanár által kézzel felvett elem forrása? | `tanar` – így nem kap „általános tudás” jelzést. |
+| Változtatható-e a feladat fajtája mentés után? | **Nem**: a beadások javítása ahhoz igazodik. Kiadáskor is a forrás fajtája marad. |
+| Honnan jön a ponthatárok alapértéke? | Egyelőre a `ALAP_PONTHATAROK` (40/55/70/85). A tanári profilban tárolt saját alapérték **még nincs** – a profil szabálya most csak a nevet engedi írni. |
 
 ---
 

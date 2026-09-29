@@ -24,6 +24,7 @@ import {
 } from "node:fs";
 import { join, dirname, basename, extname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { generalas } from "./szakmai-kliens.mjs";
 
 const GYOKER = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(GYOKER, "public");
@@ -105,6 +106,13 @@ function hivatkozasAtir(tartalom, regi, uj, aktualisFajl) {
   }
   return ki;
 }
+
+// ══════════════════════════════════════════
+// 0. GENERÁLT FORRÁSOK
+// A szakmai pontozó böngészős példánya a functions/szakmai.js-ből
+// készül – deploy előtt mindig frissen, hogy ne mehessen ki elavult.
+// ══════════════════════════════════════════
+generalas();
 
 // ══════════════════════════════════════════
 // 1. TISZTA DIST

@@ -16,7 +16,7 @@ import {
 } from "@firebase/rules-unit-testing";
 import {
   doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, query, where, getDocs
+  collection, query, where, getDocs, writeBatch
 } from "firebase/firestore";
 
 const TANAR = "tanar-uid";
@@ -468,6 +468,27 @@ test("idegen tanár NEM olvashatja és NEM írhatja a kulcsot", async () => {
   await kulcsotLetrehoz();
   await assertFails(getDoc(doc(tanar2(), "feladatok", FELADAT, "kulcs", "aktualis")));
   await assertFails(setDoc(doc(tanar2(), "feladatok", FELADAT, "kulcs", "aktualis"), KULCS));
+});
+
+test("új feladat és a kulcsa EGY batch-ben menthető (a diák nem kaphat kulcs nélküli feladatot)", async () => {
+  const db = tanar();
+  const b = writeBatch(db);
+  const ref = doc(collection(db, "feladatok"));
+  b.set(ref, {
+    osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Beszerzés", aktiv: true,
+    rubrika: { mod: "szakmai", kerdesek: [{ sorszam: "1", max_pont: 1 }] }, letrehozva: new Date()
+  });
+  b.set(doc(db, "feladatok", ref.id, "kulcs", "aktualis"), KULCS);
+  await assertSucceeds(b.commit());
+});
+
+test("nem létező feladathoz nem írható kulcs", async () => {
+  await assertFails(setDoc(doc(tanar(), "feladatok", "nincs-ilyen", "kulcs", "aktualis"), KULCS));
+});
+
+test("üres kulcs nem menthető", async () => {
+  await assertFails(setDoc(doc(tanar(), "feladatok", FELADAT, "kulcs", "aktualis"), { kerdesek: [] }));
+  await assertFails(setDoc(doc(tanar(), "feladatok", FELADAT, "kulcs", "aktualis"), { valami: 1 }));
 });
 
 test("a feladat tananyag-listája szerkeszthető", async () => {

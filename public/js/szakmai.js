@@ -1,4 +1,10 @@
 // ══════════════════════════════════════════════════════
+// GENERÁLT FÁJL – NE SZERKESZD KÉZZEL.
+// Forrás: functions/szakmai.js
+// Újragenerálás: node scripts/szakmai-kliens.mjs (a build is lefuttatja)
+// ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
 // WritingReview – szakmai dolgozat mód
 // Terv: docs/szakmai-mod-terv.md
 //
@@ -1080,7 +1086,7 @@ function kulcsJavaslatTisztitas(nyers, vanTananyag) {
   return { kulcs: kulcsEllenorzes({ kerdesek }), kihagyott };
 }
 
-module.exports = {
+export {
   KERDES_TIPUSOK,
   ELEM_STATUSZOK,
   SORREND_MODOK,
