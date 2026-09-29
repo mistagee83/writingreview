@@ -93,6 +93,38 @@
     return feladatCache[feladatId];
   }
 
+  // Az elküldött beadások pontszáma és jegye az ertekeles/ai és
+  // ertekeles/tanari alkollekcióban van, nem a beadás dokumentumában.
+  // A kulcsban a frissítés ideje is benne van: újraküldéskor (más jegy)
+  // a beadás frissitve mezője változik, így nem marad régi érték.
+  const eredmenyCache = {};
+
+  async function eredmeny(beadasId, b) {
+    const kulcs = `${beadasId}:${b.frissitve?.toMillis?.() ?? ''}`;
+    if (!eredmenyCache[kulcs]) {
+      eredmenyCache[kulcs] = Promise.all([
+        getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'ai')),
+        getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'tanari'))
+      ]).then(([ai, tanari]) => ({
+        ai: ai.exists() ? ai.data() : null,
+        tanari: tanari.exists() ? tanari.data() : null
+      })).catch(() => null);
+    }
+    return eredmenyCache[kulcs];
+  }
+
+  function eredmenyBadge(e) {
+    if (!e) return '';
+    const { ai, tanari } = e;
+    const reszek = [];
+    if (ai?.max_pontszam) {
+      reszek.push(`<span class="badge javitva">📊 ${esc(ai.osszpontszam)}/${esc(ai.max_pontszam)} pont` +
+        `${ai.szazalek != null ? ` · ${esc(ai.szazalek)}%` : ''}</span>`);
+    }
+    if (tanari?.jegy) reszek.push(`<span class="badge aktiv">Jegy: ${esc(tanari.jegy)}</span>`);
+    return reszek.join('');
+  }
+
   // ══════════════════════════════════════════
   // LISTA
   // ══════════════════════════════════════════
@@ -115,7 +147,10 @@
 
       const kartyak = await Promise.all(snap.docs.map(async (d) => {
         const b = d.data();
-        const f = await feladatCim(b.feladat_id);
+        const [f, e] = await Promise.all([
+          feladatCim(b.feladat_id),
+          b.statusz === 'elkuldve' ? eredmeny(d.id, b) : null
+        ]);
         return `
           <div class="list-card">
             <div>
@@ -124,6 +159,7 @@
                 <span>${esc(f?.cim || 'törölt feladat')}</span>
                 <span>${datum(b.letrehozva)}</span>
                 ${statuszBadge(b.statusz)}
+                ${eredmenyBadge(e)}
                 ${b.atirat_olvashatosag === 'gyenge'
                   ? '<span class="badge inaktiv">✍️ nehezen olvasható</span>' : ''}
               </div>
