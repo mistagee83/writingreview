@@ -35,7 +35,6 @@ export const SZAKASZOK = [
     id: "osztalyok",
     ikon: "🎓",
     cim: "Osztály és kód",
-    perc: 2,
     kimenet: "A végén lesz egy osztálykódod, amit elküldhetsz a diákjaidnak.",
     zaro: "Ha van osztályod és kódod, a diákok már be tudnak lépni. " +
           "A következő szakasz arról szól, hogy legyen mit beadniuk."
@@ -44,7 +43,6 @@ export const SZAKASZOK = [
     id: "feladatok",
     ikon: "📋",
     cim: "Feladat kiadása",
-    perc: 3,
     kimenet: "A végén lesz egy kiadott feladatod értékelési rubrikával, amit a diákok látnak.",
     zaro: "A feladat kiadva. Amikor beérkeznek a dolgozatok, a Javítási " +
           "soron dolgozod fel őket – az a következő szakasz."
@@ -53,7 +51,6 @@ export const SZAKASZOK = [
     id: "javitas",
     ikon: "✏️",
     cim: "Javítás és visszajelzés",
-    perc: 3,
     kimenet: "Látni fogod, hogyan ellenőrzöd az AI pontozását, és pontosan mit kap meg a diák.",
     zaro: "Ezzel egy dolgozat kész. Az utolsó szakasz azt mutatja, mit " +
           "lehet kihozni az EGÉSZ osztály beadásaiból egyszerre."
@@ -62,7 +59,6 @@ export const SZAKASZOK = [
     id: "elemzes",
     ikon: "📊",
     cim: "Osztályszintű elemzés",
-    perc: 3,
     kimenet: "A végén egy kimásolható promptot kapsz, amivel gyakorlósort generálhatsz az osztály saját hibáira.",
     zaro: "Ezzel körbejártuk a rendszert. A villanykörtével bármikor " +
           "visszatérhetsz egy szakaszra."

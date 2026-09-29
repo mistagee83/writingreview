@@ -20,6 +20,16 @@ import { readFileSync, existsSync } from "node:fs";
 
 const OLDAL_GYOKER = new URL("../public/", import.meta.url);
 
+/**
+ * Kód kommentek nélkül – a magyarázó kommentekben szerepelnek a tiltott
+ * alakok, a szöveges keresés pedig ettől hamis pozitívot adna.
+ */
+function kodCsak(szoveg) {
+  return szoveg
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+}
+
 function oldalSzoveg(oldal) {
   return readFileSync(new URL(oldal, OLDAL_GYOKER), "utf8");
 }
@@ -91,8 +101,37 @@ test("minden szakasznak van kimenete és záró szövege", () => {
     assert.ok(sz.kimenet?.length > 20, `${sz.id}: nincs érdemi kimenet`);
     assert.ok(sz.zaro?.length > 20, `${sz.id}: nincs záró szöveg`);
     assert.ok(sz.ikon && sz.cim, `${sz.id}: hiányzó ikon vagy cím`);
-    assert.ok(Number.isFinite(sz.perc) && sz.perc > 0, `${sz.id}: rossz perc`);
   }
+});
+
+// ══════════════════════════════════════════
+// NINCS IDŐBECSLÉS
+//
+// A menü korábban „~2 perc", „~11 perc" feliratokat mutatott. Ezek nem
+// mért számok voltak, hanem az én tippjeim, összeadva – és nem is
+// igazak: aki minden lépésnél olvas és kipróbál valamit, sokkal
+// többet szán rá. A lépésszám viszont igaz és mérhető, az marad.
+// ══════════════════════════════════════════
+
+test("a szakaszoknak nincs időbecslés-mezője", () => {
+  for (const sz of SZAKASZOK) {
+    assert.equal("perc" in sz, false, `${sz.id}: van perc mező – nem mért adat`);
+  }
+});
+
+test("a menü nem ír ki időt, csak lépésszámot", () => {
+  const motor = kodCsak(readFileSync(new URL("js/tura.js", OLDAL_GYOKER), "utf8"));
+
+  // Se időre hivatkozó változó, se felirat
+  assert.equal(/\bperc\b|osszPerc|\.perc\b/.test(motor), false,
+    "a tura.js még időt ír ki");
+
+  // A lépésszám viszont megmarad a kártyán: az igaz, és abból tudja a
+  // tanár, mekkora falatot vállal
+  assert.match(motor, /\$\{db\} lépés<\/span>/, "a kártyáról eltűnt a lépésszám");
+
+  // A nagy gomb szám nélkül
+  assert.match(motor, /Mind a négy, sorban\s*\n/, "a nagy gomb felirata megváltozott");
 });
 
 test("minden lépésnek van címe és szövege", () => {

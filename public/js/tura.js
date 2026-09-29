@@ -271,9 +271,6 @@ function menuNyit() {
   v.szamlalo.textContent = "Bemutató";
   v.cim.textContent = "Mit szeretnél megnézni?";
 
-  const osszLepes = LEPESEK.length;
-  const osszPerc = SZAKASZOK.reduce((s, sz) => s + sz.perc, 0);
-
   v.torzs.innerHTML = `
     <p class="tura-bevezeto">
       Négy szakasz, egymástól függetlenül is végignézhető. Mindegyik a
@@ -292,14 +289,14 @@ function menuNyit() {
               ${esc(sz.cim)}${kesz ? ' <span class="tura-pipa" title="Már megnézted">✓</span>' : ""}
             </span>
             <span class="tura-szakasz-kimenet">${esc(sz.kimenet)}</span>
-            <span class="tura-szakasz-meta">${db} lépés · ~${sz.perc} perc</span>
+            <span class="tura-szakasz-meta">${db} lépés</span>
           </span>
         </button>`;
       }).join("")}
     </div>
     <div class="tura-menu-labs">
       <button class="tura-teljes" type="button" data-akcio="teljes">
-        Mind a négy, sorban (${osszLepes} lépés · ~${osszPerc} perc)
+        Mind a négy, sorban
       </button>
       <button class="tura-menu-zar" type="button" data-akcio="kesz">
         Most nem, köszönöm
