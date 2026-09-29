@@ -1,16 +1,10 @@
 // ══════════════════════════════════════════════════════
-// GENERÁLT FÁJL – NE SZERKESZD KÉZZEL.
-// Forrás: functions/szakmai.js
-// Újragenerálás: node scripts/szakmai-kliens.mjs (a build is lefuttatja)
-// ══════════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════════
-// WritingReview – szakmai dolgozat mód
-// Terv: docs/szakmai-mod-terv.md
+// WritingReview – kifejtős kérdéseket tartalmazó dolgozat
+// Terv: docs/kifejtos-mod-terv.md
 //
 // Ebben a fájlban CSAK tiszta függvények, sémák és promptok vannak –
 // Firestore és hálózat nélkül, hogy minden unit-tesztelhető legyen
-// (tests/szakmai.test.mjs). A Firestore-oldali folyamat az index.js-ben.
+// (tests/kifejtos.test.mjs). A Firestore-oldali folyamat az index.js-ben.
 //
 // A munkamegosztás:
 //  - az AI elemenként CSAK státuszt ad (megvan / reszben / hianyzik /
@@ -28,23 +22,27 @@ const SORREND_MODOK = ["nem_szamit", "relativ", "pozicio"];
 const SZAKSZO_MODOK = ["lenyeg", "pontos"];
 const KULCSON_KIVUL_MODOK = ["elfogad", "tanar_dont"];
 
-// Helyesírásért SZÁNDÉKOSAN nincs kategória: szakmai dolgozatnál nem
-// vonunk le érte, és ha lenne rá kategória, az AI töltené.
-const SZAKMAI_HIBA_KATEGORIAK = [
-  "hianyzo_elem", "szakmai_tevedes", "pontatlan_fogalom", "sorrend", "hianyos_kifejtes"
+// Helyesírásért SZÁNDÉKOSAN nincs kategória: kifejtős dolgozatnál a
+// tartalmat mérjük, és ha lenne rá kategória, az AI töltené.
+const KIFEJTOS_HIBA_KATEGORIAK = [
+  "hianyzo_elem", "tartalmi_tevedes", "pontatlan_fogalom", "sorrend", "hianyos_kifejtes"
 ];
 
 // Ezeket a felület tölti elő, a tanár választ. Az AI-t SZÁNDÉKOSAN nem
 // kérdezzük róluk: ha javasolna, a tanár hajlamos lenne átnézés nélkül
 // jóváhagyni – és a próbán épp a sorrend szigorán csúszott el a pontozás.
+//
+// Az alapérték számít: a beállítások a felületen össze vannak csukva, a
+// legtöbb tanár nem nyitja le. Sorrendnél a "relativ" a méltányos középút:
+// aki felcserél két lépést, csak azokért veszít, nem az egész kérdésért.
 const ALAP_BEALLITAS = {
-  sorrend: "nem_szamit",
+  sorrend: "relativ",
   szakszo: "lenyeg",
   reszpont: 0.5,
   kulcson_kivul: "elfogad"
 };
 
-// %-ban, "legalább ennyi kell a jegyhez". A tanári profil felülírhatja.
+// %-ban, "legalább ennyi kell a jegyhez". Feladatonként átírható.
 const ALAP_PONTHATAROK = { 2: 40, 3: 55, 4: 70, 5: 85 };
 
 // Nyílt felsorolásnál egy elfogadott, kulcson kívüli tétel ennyit ér.
@@ -54,9 +52,9 @@ const KERDES_MAX = 50;
 const ELEM_MAX = 60;
 const SZOSZEDET_MAX = 300;
 
-/** Mód: a hiányzó érték a régi (íráskészség) mód. */
+/** Mód: a hiányzó érték a régi (fogalmazás / íráskészség) mód. */
 function feladatMod(rubrika) {
-  return rubrika?.mod === "szakmai" ? "szakmai" : "iras";
+  return rubrika?.mod === "kifejtos" ? "kifejtos" : "iras";
 }
 
 /** Fél pontok miatti lebegőpontos zaj ellen. */
@@ -425,7 +423,7 @@ function valaszSzovegek(atiras) {
 
 /**
  * Összefűzött átirat – a mostani felület (javítás, visszajelzés) egyetlen
- * szövegként mutatja, és ez szakmai módban is így maradhat.
+ * szövegként mutatja, és ez kifejtős módban is így maradhat.
  */
 function atiratOsszefuzes(atiras) {
   const sorok = [];
@@ -470,14 +468,14 @@ function elemEllenorzes(kulcsElem, aiElem, valasz) {
 }
 
 /**
- * A teljes szakmai értékelés az AI válaszából.
+ * A teljes kifejtős értékelés az AI válaszából.
  *
  * @param {object} kulcs kulcsEllenorzes() kimenete
- * @param {object} ai az értékelő modell válasza (SZAKMAI_ERTEKELES_SCHEMA)
+ * @param {object} ai az értékelő modell válasza (KIFEJTOS_ERTEKELES_SCHEMA)
  * @param {Map<string,string>} valaszok valaszSzovegek() kimenete
  * @param {object} [ponthatarok]
  */
-function szakmaiErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
+function kifejtosErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
   const aiKerdesek = new Map(
     (ai?.kerdesek || []).map((k) => [String(k.sorszam ?? "").trim(), k])
   );
@@ -512,10 +510,10 @@ function szakmaiErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
       .map((t) => {
         const idezet = String(t.idezet ?? "").trim();
         const idezetOk = idezetEllenorzes(idezet, valasz);
-        const helyes = t.szakmailag_helyes === true && idezetOk;
+        const helyes = t.tartalmilag_helyes === true && idezetOk;
         return {
           idezet,
-          szakmailag_helyes: t.szakmailag_helyes === true,
+          tartalmilag_helyes: t.tartalmilag_helyes === true,
           megjegyzes: String(t.megjegyzes ?? "").trim(),
           idezet_ok: idezetOk,
           // null = a tanár dönt; a javító nézetben ez függő tétel.
@@ -544,7 +542,7 @@ function szakmaiErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
   // A hibákat az AI adja; a 'tipus' a meglévő osztályszintű elemzés
   // (elemzesAggregalas) miatt kell, ott a kategória a címke.
   const hibak = (ai?.hibak || [])
-    .filter((h) => SZAKMAI_HIBA_KATEGORIAK.includes(h.kategoria))
+    .filter((h) => KIFEJTOS_HIBA_KATEGORIAK.includes(h.kategoria))
     .map((h) => ({
       kategoria: h.kategoria,
       tipus: h.kategoria,
@@ -555,7 +553,7 @@ function szakmaiErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
     }));
 
   return {
-    mod: "szakmai",
+    mod: "kifejtos",
     kerdesek,
     // KOMPATIBILITÁS: a kérdésekből képzett szempontok, hogy a
     // pontozási táblázat és az osztályszintű elemzés változatlanul működjön.
@@ -581,7 +579,7 @@ function szakmaiErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
 // ══════════════════════════════════════════════════════
 
 /** Kézírás → kérdésenkénti válaszok. */
-const SZAKMAI_ATIRAT_SCHEMA = {
+const KIFEJTOS_ATIRAT_SCHEMA = {
   type: "object",
   properties: {
     valaszok: {
@@ -628,7 +626,7 @@ const SZAKMAI_ATIRAT_SCHEMA = {
  * Válaszok + kulcs → elemstátuszok. PONT MEZŐ SZÁNDÉKOSAN NINCS: ha lenne,
  * a modell kitöltené, és kísértés lenne használni.
  */
-const SZAKMAI_ERTEKELES_SCHEMA = {
+const KIFEJTOS_ERTEKELES_SCHEMA = {
   type: "object",
   properties: {
     kerdesek: {
@@ -657,10 +655,10 @@ const SZAKMAI_ERTEKELES_SCHEMA = {
               type: "object",
               properties: {
                 idezet: { type: "string" },
-                szakmailag_helyes: { type: "boolean" },
+                tartalmilag_helyes: { type: "boolean" },
                 megjegyzes: { type: "string" }
               },
-              required: ["idezet", "szakmailag_helyes", "megjegyzes"]
+              required: ["idezet", "tartalmilag_helyes", "megjegyzes"]
             }
           },
           visszajelzes: { type: "string" }
@@ -673,7 +671,7 @@ const SZAKMAI_ERTEKELES_SCHEMA = {
       items: {
         type: "object",
         properties: {
-          kategoria: { type: "string", enum: SZAKMAI_HIBA_KATEGORIAK },
+          kategoria: { type: "string", enum: KIFEJTOS_HIBA_KATEGORIAK },
           kerdes: { type: "string" },
           idezet: { type: "string" },
           javaslat: { type: "string" },
@@ -696,12 +694,19 @@ function tantargya(rubrika) {
   return t || null;
 }
 
+/** "Te egy tapasztalt tanár vagy." – tantárggyal, ha van. */
+function persona(tantargy) {
+  return tantargy
+    ? `Te egy tapasztalt tanár vagy, a tantárgy: ${tantargy}.`
+    : "Te egy tapasztalt tanár vagy.";
+}
+
 /**
- * Átírás, szakmai változat. A próbán ez bizonyult a legjobbnak (C):
+ * Átírás, kifejtős változat. A próbán ez bizonyult a legjobbnak (C):
  * kérdésenkénti kimenet, tanári jelölések kiszűrve, szószedettel – a
  * csali szakszavak egyszer sem kerültek be az átiratba.
  */
-function szakmaiAtiratPrompt(kulcs, szoszedet) {
+function kifejtosAtiratPrompt(kulcs, szoszedet) {
   const kerdesLista = kulcs.kerdesek
     .map((k) => `- ${k.sorszam}.${k.szoveg ? ` ${k.szoveg}` : ""}${k.tipus === "tablazat" ? " (TÁBLÁZAT)" : ""}`)
     .join("\n");
@@ -709,7 +714,7 @@ function szakmaiAtiratPrompt(kulcs, szoszedet) {
   const szoszedetResz = szoszedet.length
     ? `
 # SZÓSZEDET – CSAK OLVASÁSI SEGÍTSÉG
-Ezek a szakszavak előfordulhatnak a dolgozatban. Ha egy nehezen olvasható
+Ezek a kifejezések előfordulhatnak a dolgozatban. Ha egy nehezen olvasható
 szó ezek egyikének látszik, így írd. FIGYELEM: ez NEM megoldókulcs. Soha
 ne írj be olyan szót, ami nincs a lapon, és ne egészítsd ki a diák
 válaszát – attól, hogy egy szó a listán van, a diák nem feltétlenül írta le.
@@ -717,7 +722,7 @@ ${szoszedet.map((s) => `- ${s}`).join("\n")}
 `
     : "";
 
-  return `Te egy pontos átíró vagy. A képeken egy diák kézzel írt szakmai
+  return `Te egy pontos átíró vagy. A képeken egy diák kézzel írt
 dolgozata látható (egy nyomtatott feladatlap, a diák válaszaival).
 
 # A KÉRDÉSEK
@@ -768,7 +773,7 @@ ${k.agak.map((a) => `  Ág [${a.id}] ${a.cim}:\n${a.elemek.map(elemSor).join("\n
     extra.push("SORREND: minden megtalált elemnél add meg a \"pozicio\" mezőben, hányadikként írta a diák (1-től számozva, a diák összes felsorolt tételét számolva).");
   }
   if (k.tipus === "nyilt_felsorolas") {
-    extra.push("NYÍLT FELSOROLÁS: ami a diák válaszában szakmailag helyes, de egyik elemnek sem felel meg, azt a \"kulcson_kivul\" tömbbe vedd fel.");
+    extra.push("NYÍLT FELSOROLÁS: ami a diák válaszában tartalmilag helyes, de egyik elemnek sem felel meg, azt a \"kulcson_kivul\" tömbbe vedd fel.");
   }
   if (k.tipus === "tablazat") {
     extra.push("TÁBLÁZAT: az elemek a cellák. Az idézet a diák adott cellába írt szövege legyen.");
@@ -778,42 +783,29 @@ ${k.agak.map((a) => `  Ág [${a.id}] ${a.cim}:\n${a.elemek.map(elemSor).join("\n
 }
 
 /**
- * Értékelés, szakmai változat. A modell elemenként státuszt, idézetet és
+ * Értékelés, kifejtős változat. A modell elemenként státuszt, idézetet és
  * pozíciót ad – pontot NEM: azt a kód számolja a tanár beállításai szerint.
+ *
+ * A tananyag SZÁNDÉKOSAN nincs benne: a kulcs a tananyagból készült, és a
+ * tanár jóváhagyta. A kulcson kívüli válaszokat az AI a saját tudása
+ * alapján ítéli meg – azokat is a tanár hagyja jóvá. Így minden javítás
+ * olcsóbb és gyorsabb, és a feladatnak nem kell a tananyagot tárolnia.
  *
  * @param {object} feladat a feladat dokumentum (cim, rubrika)
  * @param {object} kulcs kulcsEllenorzes() kimenete
  * @param {Map<string,string>} valaszok valaszSzovegek() kimenete
- * @param {string|null} kivonat a tananyag szövege, ha van
  */
-function szakmaiErtekelesPrompt(feladat, kulcs, valaszok, kivonat) {
-  const tantargy = tantargya(feladat.rubrika);
-  const persona = tantargy
-    ? `Te egy tapasztalt szakmai tanár vagy, a tantárgy: ${tantargy}.`
-    : "Te egy tapasztalt szakmai tanár vagy.";
-
+function kifejtosErtekelesPrompt(feladat, kulcs, valaszok) {
   const valaszResz = kulcs.kerdesek
     .map((k) => `## ${k.sorszam}. kérdés\n"""\n${valaszok.get(k.sorszam) || "(nincs válasz)"}\n"""`)
     .join("\n\n");
 
-  const tananyagResz = kivonat
-    ? `
-# A TANANYAG
-Ebből tanultak a diákok. Ehhez mérd, mi számít szakmailag helyesnek –
-a téves állításokat és a kulcson kívüli tételeket is ez alapján ítéld meg,
-ne a saját általános tudásod alapján.
-"""
-${kivonat}
-"""
-`
-    : "";
-
-  return `${persona} Magyar szakképzős diák dolgozatát javítod,
+  return `${persona(tantargya(feladat.rubrika))} Egy diák dolgozatát javítod,
 a tanár által jóváhagyott megoldókulcs alapján.
 
 # A FELADAT
 Cím: ${feladat.cim || "nincs megadva"}
-${tananyagResz}
+
 # A MEGOLDÓKULCS
 ${kulcs.kerdesek.map(kerdesLeiras).join("\n\n")}
 
@@ -825,17 +817,17 @@ ${valaszResz}
    - "megvan": a diák leírta (a szakszó-szabály szerint);
    - "reszben": részben, pontatlanul, vagy kétnyelvű kérdésnél csak az egyik nyelven;
    - "hianyzik": nem írta le;
-   - "teves": az elemhez tartozó állítása szakmailag téves.
+   - "teves": az elemhez tartozó állítása tartalmilag téves.
 2. A "megvan", "reszben" és "teves" elemeknél az "idezet" a diák
    válaszának SZÓ SZERINTI részlete legyen, abból a kérdésből, amelyikhez
    az elem tartozik. Ne javítsd, ne fogalmazd át – a rendszer visszakeresi,
    és ha nem találja, az elem nem ér pontot.
 3. PONTOT NE ADJ: csak státuszt, idézetet és (sorrendnél) pozíciót. A
    pontozást a rendszer végzi a tanár szabályai szerint.
-4. A helyesírási hibák NEM számítanak: "megvan" az elem, ha a szakszó
+4. A helyesírási hibák NEM számítanak: "megvan" az elem, ha a tartalom
    felismerhető. Az átiratban [?] jelöli az olvashatatlan részt, [...] a
    levágott részt – ezekért ne büntess.
-5. A "hibak" tömbbe a szakmai hibákat vedd fel (tévedés, pontatlan
+5. A "hibak" tömbbe a tartalmi hibákat vedd fel (tévedés, pontatlan
    fogalom, hiányzó elem, rossz sorrend, hiányos kifejtés). Helyesírást ne.
 6. Kérdésenként a "visszajelzes" 1-2 mondat a tanárnak, magyarul.
 7. A "diak_szoveg" a diáknak szóló visszajelzés MAGYARUL: barátságos,
@@ -844,59 +836,15 @@ ${valaszResz}
 }
 
 // ══════════════════════════════════════════════════════
-// TANANYAG ÉS KULCSKÉSZÍTÉS (2. fázis)
+// KULCSKÉSZÍTÉS
+// Feladatlap + (nem kötelező) tananyag → kulcsvázlat, EGY hívásban.
+// A tananyag fájljai közvetlenül mennek a modellhez; nincs külön
+// feldolgozási lépés és nincs tananyagtár.
 // ══════════════════════════════════════════════════════
 
-// Egy 20 oldalas jegyzet ≈ 15 000 token. E fölött a felület figyelmeztet:
-// minden beadás értékelésénél bekerül a promptba.
-const KIVONAT_FIGYELMEZTETES_TOKEN = 60000;
-
-/** Durva tokenbecslés magyar szövegre (≈ 4 karakter / token). */
-function tokenBecsles(szoveg) {
-  return Math.ceil(String(szoveg ?? "").length / 4);
-}
-
-/**
- * Olvashatja-e a tanár a tananyagot: a tulajdonos és a vele megosztott
- * kollégák. A Function admin SDK-val olvas, tehát a szabály nem véd –
- * ezt a kódnak kell ellenőriznie, különben egy idegen tananyag-azonosító
- * a feladatba írva átszivárogtatná a kivonatot a promptokon át.
- */
-function tananyagOlvashato(adat, uid) {
-  if (!adat || !uid) return false;
-  return adat.tanar_id === uid
-    || (Array.isArray(adat.megosztva) && adat.megosztva.includes(uid));
-}
-
-const TANANYAG_SCHEMA = {
-  type: "object",
-  properties: {
-    cim_javaslat: { type: "string" },
-    kivonat: { type: "string" }
-  },
-  required: ["cim_javaslat", "kivonat"]
-};
-
-/**
- * A tananyag szöveggé alakítása – EGYSZER, feltöltéskor. Utána minden
- * lépés ezt a szöveget használja, és a tanár is megnézheti, mit "látott"
- * az AI.
- */
-function tananyagPrompt() {
-  return `A csatolt fájlok egy szakképzős tantárgy tananyagát tartalmazzák
-(tankönyvoldalak, jegyzet vagy prezentáció). Alakítsd át a teljes
-tartalmat jól tagolt, egyszerű szöveggé.
-
-- Maradj HŰ a forráshoz: ne foglald össze, ne hagyj ki fogalmat,
-  felsorolást vagy szakaszt, és ne tegyél hozzá semmit a saját tudásodból.
-- A definíciókat, felsorolásokat, folyamatok lépéseit és a lépések
-  SORRENDJÉT pontosan őrizd meg – ezekből készül majd a dolgozat
-  megoldókulcsa.
-- Használj címsorokat (#, ##) és felsorolásjeleket (-). A táblázatokat
-  soronként írd le: "sor – oszlop: érték".
-- Az oldalszámokat, fejléceket, díszítő elemeket hagyd el.
-- A "cim_javaslat" rövid, beszédes cím legyen (pl. "Beszerzés – 10. évf. jegyzet").`;
-}
+const NEM_FELADATLAP_UZENET =
+  "A feltöltött feladatlapon nem találtam kérdéseket – tananyagnak vagy jegyzetnek tűnik. " +
+  "A Feladatlap helyére a kinyomtatott dolgozat kerül (a kérdésekkel), a tananyag alatta, a saját helyére.";
 
 // ── A kulcsjavaslat sémája ──
 // A beállításokat (sorrend, szigor) SZÁNDÉKOSAN nem kérjük: azokat a
@@ -917,6 +865,9 @@ const JAVASLAT_ELEM = {
 const KULCS_JAVASLAT_SCHEMA = {
   type: "object",
   properties: {
+    // Az első kérdés: van-e egyáltalán feladatlap. E nélkül a modell egy
+    // jegyzetből is gyárt kérdéseket – ez történt a próbán.
+    nem_feladatlap: { type: "boolean" },
     cim_javaslat: { type: "string" },
     tantargy: { type: "string" },
     feladat_leiras: { type: "string" },
@@ -947,64 +898,66 @@ const KULCS_JAVASLAT_SCHEMA = {
       }
     }
   },
-  required: ["cim_javaslat", "feladat_leiras", "kerdesek"]
+  required: ["nem_feladatlap", "cim_javaslat", "feladat_leiras", "kerdesek"]
 };
 
 /**
- * Feladatlap (+ tananyag) → kulcsvázlat.
+ * A kulcskészítés utasítása. A fájlok utána jönnek, felcímkézve:
+ * "=== FELADATLAP ===", majd (ha van) "=== TANANYAG ===".
  *
  * @param {string|null} tantargy a tanár által megadott tantárgy
- * @param {string|null} kivonat a kiválasztott tananyagok szövege
+ * @param {boolean} vanTananyag csatoltunk-e tananyagot
  */
-function kulcsKeszitesPrompt(tantargy, kivonat) {
-  const persona = tantargy
-    ? `Te egy tapasztalt szakmai tanár vagy, a tantárgy: ${tantargy}.`
-    : "Te egy tapasztalt szakmai tanár vagy.";
-
-  const tananyagResz = kivonat
+function kulcsKeszitesPrompt(tantargy, vanTananyag) {
+  const tananyagResz = vanTananyag
     ? `
 # A TANANYAG
-Ebből tanultak a diákok. A kulcs ELSŐSORBAN ehhez igazodjon: ha a
-tananyag egy fogalmat, felsorolást vagy folyamatot adott formában tanít
-(pl. hány szakasza van, mi a sorrendjük, mi a pontos szakkifejezés), a
-kulcs pontosan azt kérje. Az ilyen elemnél a "forras" legyen "tananyag".
-"""
-${kivonat}
-"""
+A "=== TANANYAG ===" után csatolt fájlokból tanultak a diákok. A kulcs
+ELSŐSORBAN ehhez igazodjon: ha a tananyag egy fogalmat, felsorolást vagy
+folyamatot adott formában tanít (hány eleme van, mi a sorrendje, mi a
+pontos kifejezés), a kulcs pontosan azt kérje, a tananyag szóhasználatával.
+Az ilyen elemnél a "forras" legyen "tananyag"; ami nincs benne a
+tananyagban, annál "altalanos".
 `
     : `
-Tananyag NINCS megadva: a kulcsot a saját szakmai tudásodból állítod
-össze, ezért minden elemnél a "forras" legyen "altalanos".
+Tananyag NINCS csatolva: a kulcsot a saját tudásodból állítod össze,
+ezért minden elemnél a "forras" legyen "altalanos".
 `;
 
-  return `${persona} A képen egy szakképzős dolgozat nyomtatott
-feladatlapja látható. Állítsd össze belőle a MEGOLDÓKULCS vázlatát, amit
-a tanár átnéz és jóváhagy.
+  return `${persona(tantargy)} A "=== FELADATLAP ===" után egy dolgozat
+nyomtatott feladatlapja következik. Állítsd össze belőle a MEGOLDÓKULCS
+vázlatát, amit a tanár átnéz és jóváhagy.
+
+# ELŐSZÖR: FELADATLAP-E?
+Ha a feladatlapként csatolt fájlon NINCSENEK a diáknak szóló kérdések
+vagy feladatok (pl. tankönyvoldal, jegyzet, prezentáció), a
+"nem_feladatlap" legyen true, a "kerdesek" tömb pedig üres. Ilyenkor NE
+találj ki kérdéseket. Egyébként a "nem_feladatlap" false.
 ${tananyagResz}
 # KÉRDÉSENKÉNT
 - "sorszam": a kérdés sorszáma, ahogy a lapon áll (pl. "1", "2a").
 - "szoveg": a kérdés szövege, szó szerint.
 - "tipus":
-  - "zart_felsorolas": adott elemeket kell felsorolni (pl. a 4P);
+  - "zart_felsorolas": adott elemeket kell felsorolni;
   - "nyilt_felsorolas": "legalább N" tételt kell írni egy bővebb körből –
     adj MINDEN elfogadható elemet, a "max_pont" pedig a kért darabszám;
   - "sorrend": egy folyamat lépései – az elemeket a HELYES SORRENDBEN add;
   - "tablazat": kitöltendő táblázat – cellánként egy elem, az "allitas"
     alakja: "sor – oszlop: helyes érték";
   - "magyarazat": rövid kifejtés – az elemek a pontot érő kulcsgondolatok;
-  - "valasztos": a diák választ (pl. "Fejts ki egy P-t") – az "agak"
-    tömbbe lehetőségenként külön elemlistát adj.
+  - "valasztos": a diák választ (pl. "Fejts ki egyet a három közül") – az
+    "agak" tömbbe lehetőségenként külön elemlistát adj.
 - "max_pont": ha a lapon szerepel a pontszám, AZT add meg. Ha nem, az
   elemek pontjainak összege (nyílt felsorolásnál a kért darabszám).
 - Elemenként:
   - "allitas": röviden, ahogy egy jó diákválaszban szerepelne;
   - "pont": általában 1 – ha a lap pontszáma mást indokol, oszd el;
   - "elfogadhato": a szinonimák, más elfogadható megfogalmazások;
-  - "ellenorizendo": true, ha nem vagy biztos benne, vagy ha a
-    tananyagok/tankönyvek jellemzően eltérnek ebben (pl. a szakaszok
-    száma, elnevezése).
-- "megjegyzes": ha a kérdésnél valami tankönyvenként eltérhet, vagy a
-  tanárnak döntenie kell, írd le egy mondatban. Különben hagyd üresen.
+  - "ellenorizendo": true, ha nem vagy biztos benne, vagy ha a tananyag
+    nem egyértelmű ebben.
+- "megjegyzes": ha a kérdésnél valami nem egyértelmű, vagy a tanárnak
+  döntenie kell (pl. a tananyag ellentmond önmagának), írd le egy
+  mondatban. Különben hagyd üresen.
 
 A pontozás szabályairól (számít-e a sorrend, mennyire szigorú a
 szakszóhasználat) NE írj – azokat a tanár állítja be.
@@ -1022,8 +975,11 @@ dolgozat. A "cim_javaslat" rövid cím, a "tantargy" a tantárgy neve.`;
  * jelzi – a tanár kézzel pótolja.
  *
  * @returns {{kulcs: object, kihagyott: string[]}}
+ * @throws {Error} ha a feladatlap nem feladatlap, vagy nincs használható kérdés
  */
 function kulcsJavaslatTisztitas(nyers, vanTananyag) {
+  if (nyers?.nem_feladatlap === true) throw new Error(NEM_FELADATLAP_UZENET);
+
   const szoveg = (x) => String(x ?? "").trim();
   const elemTisztitas = (lista, elotag) => (Array.isArray(lista) ? lista : [])
     .map((e) => ({
@@ -1086,18 +1042,20 @@ function kulcsJavaslatTisztitas(nyers, vanTananyag) {
   return { kulcs: kulcsEllenorzes({ kerdesek }), kihagyott };
 }
 
-export {
+module.exports = {
   KERDES_TIPUSOK,
   ELEM_STATUSZOK,
   SORREND_MODOK,
   SZAKSZO_MODOK,
   KULCSON_KIVUL_MODOK,
-  SZAKMAI_HIBA_KATEGORIAK,
+  KIFEJTOS_HIBA_KATEGORIAK,
   ALAP_BEALLITAS,
   ALAP_PONTHATAROK,
   KULCSON_KIVULI_TETEL_PONT,
-  SZAKMAI_ATIRAT_SCHEMA,
-  SZAKMAI_ERTEKELES_SCHEMA,
+  KIFEJTOS_ATIRAT_SCHEMA,
+  KIFEJTOS_ERTEKELES_SCHEMA,
+  KULCS_JAVASLAT_SCHEMA,
+  NEM_FELADATLAP_UZENET,
   feladatMod,
   szavak,
   szoEgyezik,
@@ -1111,15 +1069,9 @@ export {
   valaszSzovegek,
   atiratOsszefuzes,
   elemEllenorzes,
-  szakmaiErtekelesOsszeallitas,
-  szakmaiAtiratPrompt,
-  szakmaiErtekelesPrompt,
-  KIVONAT_FIGYELMEZTETES_TOKEN,
-  TANANYAG_SCHEMA,
-  KULCS_JAVASLAT_SCHEMA,
-  tokenBecsles,
-  tananyagOlvashato,
-  tananyagPrompt,
+  kifejtosErtekelesOsszeallitas,
+  kifejtosAtiratPrompt,
+  kifejtosErtekelesPrompt,
   kulcsKeszitesPrompt,
   kulcsJavaslatTisztitas
 };

@@ -259,17 +259,15 @@ beadások után a tanár kézzel futtatja újra.
 *Későbbre:* több feladatot átfogó **haladásjelző** (javul-e az osztály
 időben). Külön modul, más query, más megjelenítés.
 
-### Szakmai dolgozat: `feladatok/{feladatId}/kulcs/aktualis`, `tananyagok/{tananyagId}`
+### Kifejtős dolgozat: `feladatok/{feladatId}/kulcs/aktualis`
 
-A szakmai mód (`rubrika.mod: 'szakmai'`) adatai – a teljes leírás a
-[szakmai-mod-terv.md](szakmai-mod-terv.md)-ben. Röviden:
+A kifejtős mód (`rubrika.mod: 'kifejtos'`) megoldókulcsa – a teljes leírás a
+[kifejtos-mod-terv.md](kifejtos-mod-terv.md)-ben. Röviden:
 
-- **`kulcs/aktualis`** – a megoldókulcs. **Csak a feladat tanára** olvassa és
-  írja: a feladatot a diák olvashatja, a kulcs viszont maga a megoldás.
-- **`tananyagok/{id}`** – a tanár tananyagtára. A tulajdonos és a
-  `megosztva` listán lévő tanárok olvassák. Létrehozni csak Function tud
-  (`tananyagFeldolgozas`, a kivonattal együtt); a kliens csak a `cim`-et
-  írhatja át.
+- **Csak a feladat tanára** olvassa és írja: a feladatot a diák olvashatja,
+  a kulcs viszont maga a megoldás.
+- A kulcshoz feltöltött **tananyag** (a fájlok útvonala) is itt van, nem a
+  feladatban. Tananyagtár nincs.
 - A feladat és a kulcsa **egy batch-ben** mentődik; a kulcs szabálya ezért
   `getAfter()`-rel nézi a feladat tanárát.
 
@@ -391,7 +389,7 @@ oldala a rubrika maximumait mutatja, ahogy korábban.
 ```
 feladatlapok/{tanarUid}/{fajl}          – feladatlap kép/PDF
 beadasok/{diakUid}/{beadasId}/{fajl}    – dolgozatfotók
-tananyagok/{tanarUid}/{fajl}            – tananyag PDF/kép (szakmai mód), csak a tulajdonos
+tananyagok/{tanarUid}/{fajl}            – a kulcshoz feltöltött tananyag (kifejtős mód), csak a tulajdonos
 ```
 
 - A feladatlapot a diák a dokumentumban tárolt tokenes letöltési URL-lel

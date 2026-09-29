@@ -20,7 +20,7 @@ jóváhagyás → osztályszintű elemzés.
 | Élő cím | https://writingreview-41e59.web.app |
 | Firebase projekt | `writingreview-41e59` (Firestore: `eur3`, functions: `europe-west1`) |
 | GitHub | https://github.com/mistagee83/writingreview (privát) |
-| Kód | ~10800 sor, 12 oldal, 14 Cloud Function, 297 teszt |
+| Kód | ~10800 sor, 12 oldal, 12 Cloud Function, 286 teszt |
 | Futtatókörnyezet | Node 24 (a 20-at 2026-10-30-án kikapcsolják) |
 | Modell | `gemini-3.8-flash` mind a négy AI-lépésben |
 
@@ -73,17 +73,23 @@ jóváhagyás → osztályszintű elemzés.
     Nyitott modálnál a gomb először a modált zárja (a lap saját bezáró
     gombját nyomja meg, hogy a takarítás is lefusson).
 
-### Folyamatban: szakmai dolgozat mód
+### Folyamatban: kifejtős kérdéseket tartalmazó dolgozat
 
-Terv és állapot: [szakmai-mod-terv.md](szakmai-mod-terv.md). Az 1. fázis
-(pontozó mag, szakmai átírás és értékelés, szabályok) és a 2. fázis
-(tananyagtár, kulcsvázlat, kulcsszerkesztő, próbajavítás) kész. A javító
-nézet és a diák visszajelzése még a régi, szempontos formában mutatja az
-eredményt (3. fázis). A meglévő íráskészség-útvonal érintetlen: a
-`rubrika.mod` hiánya = `iras`.
+Terv és állapot: [kifejtos-mod-terv.md](kifejtos-mod-terv.md). A feladat
+fajtája: **Fogalmazás** (a régi útvonal, `iras`) vagy **Kifejtős kérdések**
+(`kifejtos` – több rövid kérdés, megoldókulcs szerint, bármilyen tárgyból).
+Az 1. fázis (pontozó mag, átírás, értékelés, szabályok) és a 2. fázis
+(feladatlap + tananyag → egy gombbal kulcs → mentés) kész. A javító nézet
+és a diák visszajelzése még a régi, szempontos formában mutatja az
+eredményt (3. fázis). A fogalmazás-útvonal érintetlen: a `rubrika.mod`
+hiánya = `iras`.
 
-**A `public/js/szakmai.js` generált fájl** – a `functions/szakmai.js`-ből
-készül (`node scripts/szakmai-kliens.mjs`). Ha a functions oldalon a
+A 2. fázis első változata (tananyagtár, próbajavítás, „szakmai” név) túl
+bonyolult lett – 2026-09-29-én egyszerűsítve, a terv „Irányváltás” része
+szerint. **Ami mellé kézikönyv kell, az bukó.**
+
+**A `public/js/kifejtos.js` generált fájl** – a `functions/kifejtos.js`-ből
+készül (`node scripts/kifejtos-kliens.mjs`). Ha a functions oldalon a
 pontozáson változtatsz, generáld újra, különben a drift-teszt elbukik.
 
 ---

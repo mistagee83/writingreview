@@ -80,9 +80,9 @@
           <label>A feladat fajtája</label>
           <div class="mod-valaszto" role="radiogroup" aria-label="A feladat fajtája">
             <label><input type="radio" name="f-mod" value="iras" checked />
-              <span>✍️ Íráskészség<small>fogalmazás, rubrika szerint</small></span></label>
-            <label><input type="radio" name="f-mod" value="szakmai" />
-              <span>📚 Szakmai dolgozat<small>tényeket kér számon, megoldókulcs szerint</small></span></label>
+              <span>✍️ Fogalmazás<small>egy írásfeladat, szempontok szerint értékelve</small></span></label>
+            <label><input type="radio" name="f-mod" value="kifejtos" />
+              <span>📝 Kifejtős kérdések<small>több rövid kérdés, megoldókulcs szerint javítva</small></span></label>
           </div>
           <p class="halvany" id="mod-hint" style="display:none;margin-top:0.4rem;">
             A fajta mentés után nem változtatható – a beadások javítása ehhez igazodik.
@@ -90,7 +90,7 @@
         </div>
 
         <div class="form-group">
-          <label>Feladatlap (kép vagy PDF, nem kötelező)</label>
+          <label id="feladatlap-cimke">Feladatlap (kép vagy PDF, nem kötelező)</label>
           <div class="upload-zone" id="upload-zone">
             <input type="file" id="f-fajl" accept="image/*,.pdf" />
             <div class="upload-icon">📄</div>
@@ -196,84 +196,59 @@
           </div>
         </div>
 
-        <!-- MEGOLDÓKULCS (szakmai dolgozat) – a logika: js/szakmai-urlap.js -->
-        <div class="rubrika-blokk" id="szakmai-blokk" style="display:none;">
+        <!-- MEGOLDÓKULCS (kifejtős dolgozat) – a logika: js/kifejtos-urlap.js -->
+        <div class="rubrika-blokk" id="kifejtos-blokk" style="display:none;">
           <div class="rubrika-tolt" id="kulcs-tolt">
             <div class="spinner"></div>
             <span id="kulcs-tolt-szoveg"></span>
           </div>
 
-          <div class="rubrika-fejlec">
-            <h3>Megoldókulcs</h3>
-            <span id="kulcs-badge" class="prompt-badge" style="display:none;">✨ AI vázlat – nézd át</span>
-          </div>
-          <p class="halvany">
-            A kulcsot a diák a határidő előtt nem látja. Az AI csak azt dönti el, hogy egy
-            elem megvan-e a válaszban – a pontot a te beállításaid szerint a rendszer számolja.
-          </p>
-
-          <div class="form-group" style="margin-top:1rem;">
-            <label for="sz-tantargy">Tantárgy</label>
-            <input type="text" id="sz-tantargy" list="sz-tantargyak" maxlength="60" placeholder="Pl. kereskedelem" />
-            <datalist id="sz-tantargyak">
-              <option value="kereskedelem"></option>
-              <option value="logisztika"></option>
-              <option value="marketing"></option>
-              <option value="gazdálkodás"></option>
-              <option value="áruismeret"></option>
-            </datalist>
-          </div>
-
           <div class="form-group">
-            <label>Tananyag (nem kötelező, de ajánlott)</label>
-            <div id="tananyag-lista"><p class="halvany">Betöltés...</p></div>
-            <p id="tananyag-figyelmeztetes" class="tananyag-jelzes"></p>
-            <details id="tananyag-uj" class="tananyag-uj">
-              <summary>＋ Új tananyag feltöltése</summary>
-              <div class="tananyag-uj-torzs">
-                <input type="text" id="tu-cim" maxlength="200" placeholder="Cím, pl. Beszerzés – 10. évf. jegyzet (nem kötelező)" />
-                <input type="file" id="tu-fajl" accept="image/*,.pdf" multiple />
-                <p class="halvany">PDF vagy kép, legfeljebb 5 fájl (együtt max. 14 MB). Word/PowerPoint
-                  fájlt mentsd előbb PDF-be. Egyszer dolgozza fel az AI, utána bármelyik dolgozathoz választhatod.</p>
-                <button type="button" class="btn-sm" id="btn-tananyag-feltolt">⬆ Feltöltés és feldolgozás</button>
-              </div>
-            </details>
+            <label>Tananyag (nem kötelező)</label>
+            <p class="halvany">Amiből a diákok tanultak – ebből készül a megoldókulcs. Ha nincs, az AI a
+              saját tudásából dolgozik. PDF vagy kép, legfeljebb 5 fájl.</p>
+            <div class="upload-zone kicsi">
+              <input type="file" id="tananyag-fajl" accept="image/*,.pdf" multiple aria-label="Tananyag feltöltése" />
+              <p>📚 <strong>Kattints ide</strong> vagy húzd ide a tananyagot</p>
+            </div>
+            <ul class="fajl-lista" id="tananyag-lista"></ul>
             <div class="msg" id="tananyag-msg"></div>
           </div>
 
-          <div class="form-group">
-            <div class="kulcs-sav">
-              <button type="button" class="btn-primary" id="btn-kulcs-keszit">✨ Kulcs készítése a feladatlapból</button>
-              <span id="kulcs-atnezendo" class="kulcs-atnezendo" style="display:none;"></span>
-            </div>
-            <div class="msg" id="kulcs-msg"></div>
+          <div class="kulcs-sav">
+            <button type="button" class="btn-primary" id="btn-kulcs-keszit">✨ Megoldókulcs készítése</button>
+            <button type="button" class="btn-sm" id="btn-kulcs-kezi">vagy összeállítom kézzel</button>
+          </div>
+          <div class="msg" id="kulcs-msg"></div>
+          <div class="kulcs-osszegzes" id="kulcs-osszegzes" hidden></div>
+
+          <details class="kulcs-reszletek" id="kulcs-reszletek" hidden>
+            <summary>Megnézem, szerkesztem</summary>
+            <p class="halvany">A diák a határidő előtt nem látja. Az AI csak azt dönti el, hogy egy elem
+              megvan-e a válaszban – a pontot a rendszer számolja az alábbiak szerint.</p>
+
             <div id="kulcs-kerdesek"></div>
             <button type="button" class="btn-sm" id="btn-kerdes-uj">＋ Kérdés</button>
-          </div>
 
-          <div class="form-group">
-            <label>Ponthatárok (%, a jegyjavaslathoz)</label>
-            <div class="ponthatarok">
-              <label>2-es <input type="number" id="ph-2" min="0" max="100" /></label>
-              <label>3-as <input type="number" id="ph-3" min="0" max="100" /></label>
-              <label>4-es <input type="number" id="ph-4" min="0" max="100" /></label>
-              <label>5-ös <input type="number" id="ph-5" min="0" max="100" /></label>
+            <h4 class="kulcs-alcim">Beállítások</h4>
+            <div class="form-group">
+              <label for="kf-tantargy">Tantárgy</label>
+              <input type="text" id="kf-tantargy" maxlength="60" placeholder="Pl. történelem, kereskedelem" />
             </div>
-          </div>
-
-          <label class="jelolo">
-            <input type="checkbox" id="sz-helyes-lathato" checked />
-            <span>A diák a visszajelzésében lássa a helyes válaszokat
-              <small>Kapcsold ki, ha a dolgozatot jövőre is íratni fogod – különben a megoldás kiszivároghat.</small></span>
-          </label>
-
-          <details id="proba" class="proba">
-            <summary>🧪 Próbajavítás (ajánlott mentés előtt)</summary>
-            <p class="halvany">Írj be egy diákválaszt, és nézd meg, hogyan pontoz a kulcs. Nem ment semmit.</p>
-            <div id="proba-valaszok"></div>
-            <button type="button" class="btn-sm" id="btn-proba">▶ Próbajavítás</button>
-            <div class="msg" id="proba-msg"></div>
-            <div id="proba-eredmeny"></div>
+            <div class="form-group">
+              <label>Ponthatárok (%, a jegyjavaslathoz)</label>
+              <div class="ponthatarok">
+                <label>2-es <input type="number" id="ph-2" min="0" max="100" /></label>
+                <label>3-as <input type="number" id="ph-3" min="0" max="100" /></label>
+                <label>4-es <input type="number" id="ph-4" min="0" max="100" /></label>
+                <label>5-ös <input type="number" id="ph-5" min="0" max="100" /></label>
+              </div>
+            </div>
+            <label class="jelolo">
+              <input type="checkbox" id="kf-helyes-lathato" checked />
+              <span>A diák a visszajelzésében lássa a helyes válaszokat
+                <small>Kapcsold ki, ha a dolgozatot jövőre is íratni fogod – különben a megoldás kiszivároghat.</small></span>
+            </label>
           </details>
         </div>
 
@@ -315,7 +290,7 @@
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import { atmeretez, tulNagy, meret } from './js/kep.js';
-  import { szakmaiUrlap } from './js/szakmai-urlap.js';
+  import { kifejtosUrlap } from './js/kifejtos-urlap.js';
   import {
     db, storage, functions, httpsCallable, writeBatch,
     collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
@@ -338,20 +313,24 @@
   let osztalyNevek = {};
 
   // ══════════════════════════════════════════
-  // A FELADAT FAJTÁJA: íráskészség vagy szakmai dolgozat
-  // A szakmai rész logikája: js/szakmai-urlap.js
+  // A FELADAT FAJTÁJA: fogalmazás vagy kifejtős kérdések
+  // A kifejtős rész logikája: js/kifejtos-urlap.js
   // ══════════════════════════════════════════
-  const szakmaiUi = szakmaiUrlap({ user, feladatlapPath: () => fajlPath });
+  const kifejtosUi = kifejtosUrlap({ user, feladatlapPath: () => fajlPath });
 
   const modRadiok = [...document.querySelectorAll('input[name="f-mod"]')];
   const aktualisMod = () => modRadiok.find((r) => r.checked)?.value || 'iras';
 
   function modBeallit(m) {
     modRadiok.forEach((r) => { r.checked = r.value === m; });
-    document.getElementById('iras-blokk').style.display = m === 'szakmai' ? 'none' : '';
-    document.getElementById('szakmai-blokk').style.display = m === 'szakmai' ? '' : 'none';
-    document.getElementById('r-leiras').placeholder = m === 'szakmai'
-      ? 'Miről szól a dolgozat? (a diák látja)'
+    const kf = m === 'kifejtos';
+    document.getElementById('iras-blokk').style.display = kf ? 'none' : '';
+    document.getElementById('kifejtos-blokk').style.display = kf ? '' : 'none';
+    document.getElementById('feladatlap-cimke').textContent = kf
+      ? 'Feladatlap – a dolgozat kérdései (kép vagy PDF)'
+      : 'Feladatlap (kép vagy PDF, nem kötelező)';
+    document.getElementById('r-leiras').placeholder = kf
+      ? 'Miről szól a dolgozat? (a diák látja – a kulcs elkészültekor kitöltődik)'
       : 'Mit kell a diáknak megírnia?';
   }
   modRadiok.forEach((r) => r.addEventListener('change', () => modBeallit(aktualisMod())));
@@ -461,11 +440,11 @@
       osztalySelect.value = f.osztaly_id;
     }
 
-    if (f.rubrika?.mod === 'szakmai') {
-      modBeallit('szakmai');
+    if (f.rubrika?.mod === 'kifejtos') {
+      modBeallit('kifejtos');
       // A kulcs külön, csak tanári alkollekcióban van
       const kulcsSnap = await getDoc(doc(db, 'feladatok', id, 'kulcs', 'aktualis'));
-      szakmaiUi.kitolt(f.rubrika, f.tananyag_ids, kulcsSnap.exists() ? kulcsSnap.data() : null);
+      kifejtosUi.kitolt(f.rubrika, kulcsSnap.exists() ? kulcsSnap.data() : null);
     } else {
       modBeallit('iras');
       rubrikaKitolt(f.rubrika || {});
@@ -805,11 +784,11 @@
       `${file.name} (${meret(file.size)})`;
     document.getElementById('upload-preview').classList.add('show');
 
-    // Szakmai dolgozatnál nem rubrikát kérünk: a kulcsvázlatot a tanár a
-    // tananyag kiválasztása UTÁN kéri, mert a tananyagtól függ.
-    const szakmaiMod = aktualisMod() === 'szakmai';
-    const tolt = document.getElementById(szakmaiMod ? 'kulcs-tolt' : 'rubrika-tolt');
-    if (szakmaiMod) document.getElementById('kulcs-tolt-szoveg').textContent = 'Feltöltés...';
+    // Kifejtős dolgozatnál nem rubrikát kérünk: a kulcsot a tanár a
+    // tananyag feltöltése UTÁN kéri (egy gomb), mert a tananyagtól függ.
+    const kifejtosMod = aktualisMod() === 'kifejtos';
+    const tolt = document.getElementById(kifejtosMod ? 'kulcs-tolt' : 'rubrika-tolt');
+    if (kifejtosMod) document.getElementById('kulcs-tolt-szoveg').textContent = 'Feltöltés...';
     tolt.classList.add('show');
     document.getElementById('rubrika-badge').style.display = 'none';
 
@@ -819,10 +798,8 @@
       fajlPath = path;
       fajlUrl = null;   // új fájl – az URL-t újra le kell kérni
 
-      if (szakmaiMod) {
-        uzenet('form-msg',
-          'Feladatlap feltöltve. Válaszd ki a tananyagot, majd kérd a „Kulcs készítése” gombbal.',
-          'success');
+      if (kifejtosMod) {
+        kifejtosUi.frissit();
         return;
       }
 
@@ -881,17 +858,15 @@
 
     const osztalyId = osztalySelect.value;
     const cim = document.getElementById('f-cim').value.trim();
-    const szakmaiMod = aktualisMod() === 'szakmai';
+    const kifejtosMod = aktualisMod() === 'kifejtos';
 
     if (!osztalyId) { uzenet('form-msg', 'Válassz osztályt!'); return; }
     if (!cim) { uzenet('form-msg', 'Add meg a feladat címét!'); return; }
 
-    let szakmai = null;
-    if (szakmaiMod) {
-      szakmai = szakmaiUi.beolvas();
-      if (szakmai.hiba) { uzenet('form-msg', szakmai.hiba); return; }
-      if (szakmai.atnezendo > 0 &&
-          !confirm(`${szakmai.atnezendo} kulcselem még átnézésre vár (⚠). Mented így is?`)) return;
+    let kifejtos = null;
+    if (kifejtosMod) {
+      kifejtos = kifejtosUi.beolvas();
+      if (kifejtos.hiba) { uzenet('form-msg', kifejtos.hiba); return; }
     } else {
       const szempontok = szempontokBeolvas();
       const sulyOsszeg = szempontok.reduce((s, sz) => s + sz.suly, 0);
@@ -914,7 +889,7 @@
     const vissza = gombVar(e.target, 'Mentés...');
     try {
       const rubrika = {
-        ...(szakmai ? szakmai.rubrika : rubrikaBeolvas()),
+        ...(kifejtos ? kifejtos.rubrika : rubrikaBeolvas()),
         // A feladat leírása nem része a sablonnak – itt adjuk hozzá
         feladat_leiras: document.getElementById('r-leiras').value.trim()
       };
@@ -926,18 +901,18 @@
         // A szabály csak ezeket a mezőket engedi módosítani – az
         // osztaly_id és a tanar_id szándékosan nem változtatható.
         const feladatRef = doc(db, 'feladatok', szerkesztesId);
-        if (szakmai) {
+        if (kifejtos) {
           // A feladat és a kulcs együtt változik, vagy egyik sem.
           const batch = writeBatch(db);
-          batch.update(feladatRef, { cim, hatarido, rubrika, tananyag_ids: szakmai.tananyagIds });
-          batch.set(doc(db, 'feladatok', szerkesztesId, 'kulcs', 'aktualis'), szakmai.kulcs);
+          batch.update(feladatRef, { cim, hatarido, rubrika });
+          batch.set(doc(db, 'feladatok', szerkesztesId, 'kulcs', 'aktualis'), kifejtos.kulcs);
           await batch.commit();
         } else {
           await updateDoc(feladatRef, { cim, hatarido, rubrika });
         }
         uzenet('form-msg',
           'Módosítások mentve. A korábbi értékeléseket ez nem írja át – ' +
-          `ha az új ${szakmai ? 'kulccsal' : 'rubrikával'} akarod őket, a Javítási sorban futtasd újra.`,
+          `ha az új ${kifejtos ? 'kulccsal' : 'rubrikával'} akarod őket, a Javítási sorban futtasd újra.`,
           'success');
       } else {
         const feladat = {
@@ -960,14 +935,13 @@
           feladat.feladatlap = { path: fajlPath, url };
         }
 
-        if (szakmai) {
+        if (kifejtos) {
           // A feladat és a kulcsa EGY batch-ben: különben a diák már
           // beadhatna, mielőtt a javításhoz kulcs lenne.
-          feladat.tananyag_ids = szakmai.tananyagIds;
           const feladatRef = doc(collection(db, 'feladatok'));
           const batch = writeBatch(db);
           batch.set(feladatRef, feladat);
-          batch.set(doc(db, 'feladatok', feladatRef.id, 'kulcs', 'aktualis'), szakmai.kulcs);
+          batch.set(doc(db, 'feladatok', feladatRef.id, 'kulcs', 'aktualis'), kifejtos.kulcs);
           await batch.commit();
         } else {
           await addDoc(collection(db, 'feladatok'), feladat);
@@ -1014,7 +988,7 @@
     modRadiok.forEach((r) => { r.disabled = false; });
     document.getElementById('mod-hint').style.display = 'none';
     modBeallit('iras');
-    szakmaiUi.torles();
+    kifejtosUi.torles();
   }
 
   document.getElementById('btn-reset').addEventListener('click', () => {
@@ -1129,8 +1103,8 @@
               <h3>${esc(f.cim)}</h3>
               <div class="list-card-meta">
                 <span>🎓 ${esc(osztalyNevek[f.osztaly_id] || '–')}</span>
-                <span>${r.mod === 'szakmai'
-                  ? `📚 ${esc(r.tantargy || 'szakmai dolgozat')} · ${(r.kerdesek || []).length} kérdés`
+                <span>${r.mod === 'kifejtos'
+                  ? `📝 ${esc(r.tantargy || 'kifejtős dolgozat')} · ${(r.kerdesek || []).length} kérdés`
                   : `${esc(r.nyelv || 'angol')} · ${esc(r.tipus || '–')} · ${esc(r.szint || '–')}`}</span>
                 ${f.hatarido ? `<span>⏰ ${datum(f.hatarido)}</span>` : ''}
                 <span class="badge ${f.aktiv ? 'aktiv' : 'inaktiv'}">

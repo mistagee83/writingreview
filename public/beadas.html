@@ -116,8 +116,8 @@
   const r = feladat.rubrika || {};
   document.getElementById('cim').textContent = feladat.cim;
   document.getElementById('alcim').textContent =
-    [...(r.mod === 'szakmai'
-          ? [r.tantargy || 'szakmai dolgozat']
+    [...(r.mod === 'kifejtos'
+          ? [r.tantargy || 'kifejtős dolgozat']
           : [r.nyelv, r.tipus, r.szint, r.min_szo && r.max_szo ? `${r.min_szo}–${r.max_szo} szó` : null]),
      feladat.hatarido ? `határidő: ${datum(feladat.hatarido)}` : null]
       .filter(Boolean).join(' · ');

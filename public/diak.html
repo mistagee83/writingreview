@@ -269,8 +269,8 @@
             <h3>${esc(f.cim)}</h3>
             <div class="list-card-meta">
               <span>🎓 ${esc(nevek[f.osztaly_id] || '–')}</span>
-              <span>${r.mod === 'szakmai'
-                ? `📚 ${esc(r.tantargy || 'szakmai dolgozat')}`
+              <span>${r.mod === 'kifejtos'
+                ? `📝 ${esc(r.tantargy || 'kifejtős dolgozat')}`
                 : `${esc(r.tipus || '–')} · ${esc(r.szint || '–')}`}</span>
               ${r.min_szo && r.max_szo ? `<span>${r.min_szo}–${r.max_szo} szó</span>` : ''}
               ${f.hatarido

@@ -59,9 +59,9 @@ service firebase.storage {
     }
 
     // ══════════════════════════════════════════
-    // TANANYAGOK (szakmai dolgozat)
-    // Csak a tulajdonos: a vele megosztott kolléga a Firestore-beli
-    // kivonatot használja, a fájlt nem tölti le.
+    // TANANYAGOK (kifejtős dolgozat)
+    // A kulcskészítéshez feltöltött tananyag. Csak a tanár sajátja: a
+    // Function olvassa, a diák soha.
     // ══════════════════════════════════════════
     match /tananyagok/{tanarUid}/{fajl} {
       allow read: if tanar() && request.auth.uid == tanarUid;

@@ -246,27 +246,3 @@ test("profil nélküli felhasználó is csatlakozhat, 'Névtelen' néven", async
   ).data();
   assert.equal(tag.nev, "Névtelen");
 });
-
-// ══════════════════════════════════════════
-// TANANYAG-KIVONAT (szakmai dolgozat)
-// ══════════════════════════════════════════
-
-test("a tananyag-kivonat címmel összefűzve; a hiányzó, feldolgozatlan és IDEGEN kimarad", async () => {
-  const t = firestore.collection("tananyagok");
-  await t.doc("t-kesz").set({ tanar_id: "tanar-uid", cim: "Beszerzés", kivonat: "A beszerzés szakaszai: igényfelmérés..." });
-  await t.doc("t-feldolgozatlan").set({ tanar_id: "tanar-uid", cim: "Friss feltöltés" });
-  await t.doc("t-megosztott").set({ tanar_id: "kollega", megosztva: ["tanar-uid"], cim: "Marketing", kivonat: "4P" });
-  await t.doc("t-idegen").set({ tanar_id: "kollega", megosztva: [], cim: "Titkos", kivonat: "nem látszhat" });
-
-  const k = await logika.tananyagKivonat(
-    firestore, ["t-kesz", "t-feldolgozatlan", "t-nincs", "t-idegen", "t-megosztott", 42], "tanar-uid"
-  );
-  assert.equal(k, "## Beszerzés\nA beszerzés szakaszai: igényfelmérés...\n\n## Marketing\n4P");
-
-  assert.equal(await logika.tananyagKivonat(firestore, ["t-idegen"], "tanar-uid"), null,
-    "idegen tananyag azonosítója nem szivárogtathatja ki a kivonatot");
-  assert.equal(await logika.tananyagKivonat(firestore, ["t-feldolgozatlan"], "tanar-uid"), null);
-  assert.equal(await logika.tananyagKivonat(firestore, undefined, "tanar-uid"), null);
-
-  await Promise.all(["t-kesz", "t-feldolgozatlan", "t-megosztott", "t-idegen"].map((id) => t.doc(id).delete()));
-});

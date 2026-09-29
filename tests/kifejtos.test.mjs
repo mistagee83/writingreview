@@ -1,8 +1,8 @@
 // ══════════════════════════════════════════════════════
-// Szakmai dolgozat mód – pontozás, idézet-ellenőrzés, kulcs, promptok
-// Terv: docs/szakmai-mod-terv.md
+// Kifejtős dolgozat – pontozás, idézet-ellenőrzés, kulcs, promptok
+// Terv: docs/kifejtos-mod-terv.md
 //
-// Miért külön teszt: szakmai módban a pontot a KÓD adja, nem az AI.
+// Miért külön teszt: kifejtős módban a pontot a KÓD adja, nem az AI.
 // Ha itt elcsúszik valami, a diák csendben rossz jegyet kap – a
 // rendszer ettől még hibátlanul fut.
 //
@@ -16,14 +16,14 @@ import { test, before } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
-process.env.GCLOUD_PROJECT = "wr-szakmai-teszt";
+process.env.GCLOUD_PROJECT = "wr-kifejtos-teszt";
 
 const require = createRequire(new URL("../functions/package.json", import.meta.url));
 
 let sz;
 
 before(() => {
-  sz = require("./szakmai.js");
+  sz = require("./kifejtos.js");
 });
 
 // ── A minta (anonim átirat, a tanár pontjai) ──
@@ -99,7 +99,7 @@ const MINTA_AI = {
         { id: "e6", statusz: "hianyzik" }
       ],
       kulcson_kivul: [
-        { idezet: "jó a reklámja", szakmailag_helyes: false, megjegyzes: "Nem beszerzési szempont." }
+        { idezet: "jó a reklámja", tartalmilag_helyes: false, megjegyzes: "Nem beszerzési szempont." }
       ],
       visszajelzes: "Négy helyes szempont."
     },
@@ -124,7 +124,7 @@ const MINTA_AI = {
 };
 
 const ertekel = (kulcs = MINTA_KULCS, ai = MINTA_AI, atiras = MINTA_ATIRAS, hatarok) =>
-  sz.szakmaiErtekelesOsszeallitas(
+  sz.kifejtosErtekelesOsszeallitas(
     sz.kulcsEllenorzes(kulcs), ai, sz.valaszSzovegek(atiras), hatarok
   );
 
@@ -365,7 +365,7 @@ test("téves állítás idézet nélkül nem kerül a diák elé", () => {
 test("a kulcson kívüli tétel: 'elfogad' módban a helyes jár, 'tanar_dont' módban függő", () => {
   const ai = structuredClone(MINTA_AI);
   ai.kerdesek[1].kulcson_kivul = [
-    { idezet: "jó a reklámja", szakmailag_helyes: true, megjegyzes: "" }
+    { idezet: "jó a reklámja", tartalmilag_helyes: true, megjegyzes: "" }
   ];
   const elfogad = ertekel(MINTA_KULCS, ai).kerdesek[1];
   assert.equal(elfogad.kulcson_kivul[0].elfogadva, true);
@@ -380,7 +380,7 @@ test("a kulcson kívüli tétel: 'elfogad' módban a helyes jár, 'tanar_dont' m
 
 test("kulcson kívüli tétel sem járhat kitalált idézettel", () => {
   const ai = structuredClone(MINTA_AI);
-  ai.kerdesek[1].kulcson_kivul = [{ idezet: "raktározási költség", szakmailag_helyes: true, megjegyzes: "" }];
+  ai.kerdesek[1].kulcson_kivul = [{ idezet: "raktározási költség", tartalmilag_helyes: true, megjegyzes: "" }];
   const k = ertekel(MINTA_KULCS, ai).kerdesek[1];
   assert.equal(k.kulcson_kivul[0].elfogadva, false);
   assert.equal(k.pont, 4);
@@ -409,7 +409,7 @@ test("kompatibilitás: a kérdésekből szempontok lesznek (táblázat, elemzés
   assert.deepEqual(r.szempontok.map((s) => [s.kulcs, s.cim, s.pont, s.max]), [
     ["k1", "1. kérdés", 3, 3], ["k2", "2. kérdés", 4, 5], ["k3", "3. kérdés", 1, 5]
   ]);
-  assert.equal(r.mod, "szakmai");
+  assert.equal(r.mod, "kifejtos");
 });
 
 // ══════════════════════════════════════════
@@ -469,38 +469,38 @@ test("átirat: az összefűzött szöveg kérdésenként, sorszámmal", () => {
 // ══════════════════════════════════════════
 
 test("az értékelő séma NEM kér pontot (a pontot a kód adja)", () => {
-  const json = JSON.stringify(sz.SZAKMAI_ERTEKELES_SCHEMA);
+  const json = JSON.stringify(sz.KIFEJTOS_ERTEKELES_SCHEMA);
   assert.doesNotMatch(json, /"pont"/);
 });
 
-test("értékelő prompt: szakszó-szabály, pozíció, tananyag, nincs pont", () => {
+test("értékelő prompt: szakszó-szabály, pozíció, nincs pont, nincs tananyag", () => {
   const kulcs = sz.kulcsEllenorzes(MINTA_KULCS);
-  const p = sz.szakmaiErtekelesPrompt(
-    { cim: "Beszerzés dolgozat", rubrika: { mod: "szakmai", tantargy: "kereskedelem" } },
-    kulcs, sz.valaszSzovegek(MINTA_ATIRAS), "A beszerzés szakaszai: ..."
+  const p = sz.kifejtosErtekelesPrompt(
+    { cim: "Beszerzés dolgozat", rubrika: { mod: "kifejtos", tantargy: "kereskedelem" } },
+    kulcs, sz.valaszSzovegek(MINTA_ATIRAS)
   );
   assert.match(p, /tantárgy: kereskedelem/);
   assert.match(p, /Szakszóhasználat: PONTOS/);
   assert.match(p, /"pozicio"/);
-  assert.match(p, /# A TANANYAG/);
   assert.match(p, /PONTOT NE ADJ/);
-  assert.doesNotMatch(p, /nyelvtanár/);
+  // A tananyag SZÁNDÉKOSAN nincs benne: a kulcs abból készült.
+  assert.doesNotMatch(p, /TANANYAG/);
+  assert.doesNotMatch(p, /nyelvtanár|szakképz|szakmai tanár/);
   // a sorrend-mód a modell elől rejtve: nem ő dönt róla
-  assert.doesNotMatch(p, /pozicio"?\s*mód|relativ/);
+  assert.doesNotMatch(p, /relativ/);
 });
 
-test("értékelő prompt tananyag nélkül nem említ tananyagot", () => {
-  const p = sz.szakmaiErtekelesPrompt(
-    { cim: "x", rubrika: { mod: "szakmai" } },
-    sz.kulcsEllenorzes(MINTA_KULCS), sz.valaszSzovegek(MINTA_ATIRAS), null
+test("értékelő prompt tantárgy nélkül is értelmes", () => {
+  const p = sz.kifejtosErtekelesPrompt(
+    { cim: "x", rubrika: { mod: "kifejtos" } },
+    sz.kulcsEllenorzes(MINTA_KULCS), sz.valaszSzovegek(MINTA_ATIRAS)
   );
-  assert.doesNotMatch(p, /# A TANANYAG/);
-  assert.match(p, /Te egy tapasztalt szakmai tanár vagy\./);
+  assert.match(p, /^Te egy tapasztalt tanár vagy\./);
 });
 
 test("átíró prompt: szószedet figyelmeztetéssel, a kulcs pontjai nélkül", () => {
   const kulcs = sz.kulcsEllenorzes(MINTA_KULCS);
-  const p = sz.szakmaiAtiratPrompt(kulcs, sz.szoszedetGyujtes(kulcs));
+  const p = sz.kifejtosAtiratPrompt(kulcs, sz.szoszedetGyujtes(kulcs));
   assert.match(p, /NEM megoldókulcs/);
   assert.match(p, /TANÁRI JELÖLÉSEKET/);
   assert.match(p, /- Beszerzési piackutatás/);
@@ -511,12 +511,13 @@ test("átíró prompt: szószedet figyelmeztetéssel, a kulcs pontjai nélkül",
 test("mód: a hiányzó érték az íráskészség (a régi feladatok változatlanok)", () => {
   assert.equal(sz.feladatMod(undefined), "iras");
   assert.equal(sz.feladatMod({ tipus: "esszé" }), "iras");
-  assert.equal(sz.feladatMod({ mod: "szakmai" }), "szakmai");
+  assert.equal(sz.feladatMod({ mod: "kifejtos" }), "kifejtos");
+  assert.equal(sz.feladatMod({ mod: "szakmai" }), "iras", "a régi, sosem élesített név nem kifejtős");
   assert.equal(sz.feladatMod({ mod: "valami" }), "iras");
 });
 
 // ══════════════════════════════════════════
-// 2. FÁZIS: KULCSJAVASLAT, TANANYAG, PRÓBAJAVÍTÁS
+// KULCSJAVASLAT
 // ══════════════════════════════════════════
 
 const JAVASLAT = {
@@ -588,58 +589,48 @@ test("a kulcsjavaslat sémája NEM kér beállítást (sorrend, szigor) – az a
 });
 
 test("kulcskészítő prompt: tananyaggal ahhoz igazodik, nélküle 'altalanos'", () => {
-  const vele = sz.kulcsKeszitesPrompt("kereskedelem", "A beszerzés szakaszai: …");
+  const vele = sz.kulcsKeszitesPrompt("történelem", true);
   assert.match(vele, /# A TANANYAG/);
-  assert.match(vele, /tantárgy: kereskedelem/);
-  const nelkule = sz.kulcsKeszitesPrompt(null, null);
+  assert.match(vele, /=== TANANYAG ===/);
+  assert.match(vele, /tantárgy: történelem/);
+  const nelkule = sz.kulcsKeszitesPrompt(null, false);
   assert.doesNotMatch(nelkule, /# A TANANYAG/);
-  assert.match(nelkule, /Tananyag NINCS megadva/);
-  assert.match(nelkule, /Te egy tapasztalt szakmai tanár vagy\./);
+  assert.match(nelkule, /Tananyag NINCS csatolva/);
+  assert.match(nelkule, /^Te egy tapasztalt tanár vagy\./);
 });
 
-test("tananyag: a tulajdonos és a megosztott kolléga olvashatja, más nem", () => {
-  const t = { tanar_id: "a", megosztva: ["b"] };
-  assert.ok(sz.tananyagOlvashato(t, "a"));
-  assert.ok(sz.tananyagOlvashato(t, "b"));
-  assert.equal(sz.tananyagOlvashato(t, "c"), false);
-  assert.equal(sz.tananyagOlvashato({ tanar_id: "a" }, "b"), false);
-  assert.equal(sz.tananyagOlvashato(t, undefined), false);
+test("kulcskészítő prompt: előbb azt kérdezi, feladatlap-e (ne gyártson kérdést jegyzetből)", () => {
+  const p = sz.kulcsKeszitesPrompt(null, true);
+  assert.match(p, /FELADATLAP-E\?/);
+  assert.match(p, /"nem_feladatlap" legyen true/);
+  assert.ok(sz.KULCS_JAVASLAT_SCHEMA.required.includes("nem_feladatlap"));
 });
 
-test("tokenbecslés: ~4 karakter / token", () => {
-  assert.equal(sz.tokenBecsles("x".repeat(60000 * 4)), sz.KIVONAT_FIGYELMEZTETES_TOKEN);
-  assert.equal(sz.tokenBecsles(null), 0);
+test("kulcsjavaslat: ha az AI szerint nem feladatlap, olvasható hiba – kérdés nélkül", () => {
+  assert.throws(
+    () => sz.kulcsJavaslatTisztitas({ nem_feladatlap: true, kerdesek: JAVASLAT.kerdesek }, true),
+    (e) => e.message === sz.NEM_FELADATLAP_UZENET
+  );
+  assert.match(sz.NEM_FELADATLAP_UZENET, /tananyagnak/);
 });
 
-test("próbajavítás: csak a kulcs kérdései, üres válasz nélkül, levágva", () => {
-  const t = require("./index.js")._teszt;
-  const kulcs = sz.kulcsEllenorzes(MINTA_KULCS);
-  const m = t.probaValaszok({ 1: " Beszerzés ", 2: "", 99: "idegen", 3: "x".repeat(9000) }, kulcs);
-  assert.deepEqual([...m.keys()], ["1", "3"]);
-  assert.equal(m.get("1"), "Beszerzés");
-  assert.equal(m.get("3").length, 5000);
-  assert.equal(t.probaValaszok(null, kulcs).size, 0);
+test("a sorrend alapértéke a relatív (a beállítás összecsukva, a legtöbben nem nyitják le)", () => {
+  assert.equal(sz.ALAP_BEALLITAS.sorrend, "relativ");
 });
 
-// ══════════════════════════════════════════
-// A BÖNGÉSZŐS PÉLDÁNY (public/js/szakmai.js)
-// A kliens ugyanazzal validál és számol, mint a szerver – ha a generált
-// fájl elavult, a tanár mást látna, mint amit a javítás ad.
-// ══════════════════════════════════════════
-
-test("a public/js/szakmai.js friss (node scripts/szakmai-kliens.mjs)", async () => {
-  const { kliensKod, FORRAS, CEL } = await import("../scripts/szakmai-kliens.mjs");
+test("a public/js/kifejtos.js friss (node scripts/kifejtos-kliens.mjs)", async () => {
+  const { kliensKod, FORRAS, CEL } = await import("../scripts/kifejtos-kliens.mjs");
   const { readFileSync } = await import("node:fs");
   const vart = kliensKod(readFileSync(FORRAS, "utf8"));
   const van = readFileSync(CEL, "utf8").replace(/\r\n/g, "\n");
   assert.equal(van, vart,
-    "Elavult a public/js/szakmai.js – futtasd: node scripts/szakmai-kliens.mjs");
+    "Elavult a public/js/kifejtos.js – futtasd: node scripts/kifejtos-kliens.mjs");
 });
 
 test("a böngészős példány ugyanazt pontozza: a minta 8/13 → 3-as", async () => {
-  const kliens = await import("../public/js/szakmai.js");
+  const kliens = await import("../public/js/kifejtos.js");
   assert.deepEqual(Object.keys(kliens).sort(), Object.keys(sz).sort(), "ugyanazok az exportok");
-  const r = kliens.szakmaiErtekelesOsszeallitas(
+  const r = kliens.kifejtosErtekelesOsszeallitas(
     kliens.kulcsEllenorzes(MINTA_KULCS), MINTA_AI, kliens.valaszSzovegek(MINTA_ATIRAS)
   );
   assert.equal(r.osszpontszam, 8);

@@ -24,7 +24,7 @@ import {
 } from "node:fs";
 import { join, dirname, basename, extname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { generalas } from "./szakmai-kliens.mjs";
+import { generalas } from "./kifejtos-kliens.mjs";
 
 const GYOKER = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(GYOKER, "public");
@@ -109,7 +109,7 @@ function hivatkozasAtir(tartalom, regi, uj, aktualisFajl) {
 
 // ══════════════════════════════════════════
 // 0. GENERÁLT FORRÁSOK
-// A szakmai pontozó böngészős példánya a functions/szakmai.js-ből
+// A kifejtős pontozó böngészős példánya a functions/kifejtos.js-ből
 // készül – deploy előtt mindig frissen, hogy ne mehessen ki elavult.
 // ══════════════════════════════════════════
 generalas();
