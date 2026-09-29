@@ -75,3 +75,6 @@ ui-debug.log
 
 # Generalt deploy-konyvtar (scripts/build.mjs)
 dist/
+
+# Mintadolgozatok, tananyagok (diáknév, kézírás, szerzői anyag) – nem kerülnek a repóba
+tests/dolgozatok/
