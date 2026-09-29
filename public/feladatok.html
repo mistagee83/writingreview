@@ -878,13 +878,31 @@
 
     // A feladatlap: kép közvetlenül, PDF beágyazva. A típust az útvonalból
     // tudjuk – a dokumentum nem tárol mime-típust.
+    //
+    // Ha van leírás, a feladatlap alapból csukva van: jellemzően ugyanazt
+    // a szöveget tartalmazza, és a fókusz a leíráson van. A PDF-néző
+    // eszköztárát (nyomtatás, letöltés) a #toolbar=0 rejti el – ezt a
+    // Chrome/Edge beépített nézője érti, a többi böngésző figyelmen kívül
+    // hagyja.
     const lap = document.getElementById('v-lap');
     const url = f.feladatlap?.url;
     const pdf = /\.pdf$/i.test(f.feladatlap?.path || '');
-    lap.innerHTML = !url ? '' : pdf
-      ? `<iframe src="${esc(url)}" title="Feladatlap"></iframe>
-         <p><a href="${esc(url)}" target="_blank" rel="noopener">📄 Feladatlap megnyitása új lapon</a></p>`
+    const lapHtml = !url ? '' : pdf
+      ? `<iframe src="${esc(url)}#toolbar=0&navpanes=0&view=FitH" title="Feladatlap"></iframe>`
       : `<img src="${esc(url)}" alt="Feladatlap" />`;
+    lap.innerHTML = !url ? '' : r.feladat_leiras
+      ? `<button class="btn-sm" id="v-lap-mutat">📄 Feladatlap mutatása</button>
+         <div id="v-lap-tartalom" hidden></div>`
+      : lapHtml;
+
+    document.getElementById('v-lap-mutat')?.addEventListener('click', (e) => {
+      const tartalom = document.getElementById('v-lap-tartalom');
+      const nyit = tartalom.hidden;
+      // Csak nyitáskor töltjük be, hogy a PDF ne töltődjön le feleslegesen
+      tartalom.innerHTML = nyit ? lapHtml : '';
+      tartalom.hidden = !nyit;
+      e.target.textContent = nyit ? '📄 Feladatlap elrejtése' : '📄 Feladatlap mutatása';
+    });
 
     vetites.classList.add('show');
     document.body.style.overflow = 'hidden';

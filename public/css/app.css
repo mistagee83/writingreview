@@ -808,8 +808,8 @@ input[type="number"]:focus { border-color: var(--accent); }
   border-radius: 8px;
   background: #fff;
 }
-.vetites-lap a { color: #fff; }
-.vetites-lap p { margin-top: 0.6rem; font-size: 0.9rem; }
+.vetites-lap > .btn-sm { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25); }
+.vetites-lap > .btn-sm + div { margin-top: 1rem; }
 
 /* ── MODAL ── */
 .modal {
