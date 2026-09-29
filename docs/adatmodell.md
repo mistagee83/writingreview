@@ -349,8 +349,22 @@ Az `osszpontszam`-ot és a `max_pontszam`-ot a Function számolja a
 Amit a tanár jóváhagyott, és amit a diák megkap.
 
 ```js
-{ jegy: 4, szoveg: '...', szempontok: {...}, tanar_id, jovahagyva_at }
+{
+  jegy: 4, szoveg: '...',
+  szempontok: [                 // a pontozási táblázat, amit a diák lát
+    { kulcs: 'nyelvtan', cim: 'Nyelvhelyesség', pont: 8, max: 10, megjegyzes: '...' }
+  ],
+  osszpontszam: 17, max_pontszam: 20, szazalek: 85,
+  tanar_id, jovahagyva_at
+}
 ```
+
+A pontozás azért kerül ide, mert az `ertekeles/ai`-t a diák nem
+olvashatja. A jóváhagyáskor a `pontTablazat` állítja elő: a váz
+(szempontok, maximumok) az AI-értékelésből jön, a tanár csak a pontot
+és a megjegyzést írhatja át, az összeget a Function számolja. A 2026.
+szeptember 29. előtti jóváhagyásokban nincs `szempontok` – ott a diák
+oldala a rubrika maximumait mutatja, ahogy korábban.
 
 - **olvasás:** a tanár mindig; a diák **csak akkor**, ha a szülő beadás
   státusza `elkuldve`.

@@ -116,10 +116,13 @@
   function eredmenyBadge(e) {
     if (!e) return '';
     const { ai, tanari } = e;
+    // A diáknak elküldött (esetleg tanár által módosított) pontszám az
+    // irányadó; régebbi, pontozás nélküli jóváhagyásnál az AI-é
+    const p = tanari?.max_pontszam ? tanari : ai;
     const reszek = [];
-    if (ai?.max_pontszam) {
-      reszek.push(`<span class="badge javitva">📊 ${esc(ai.osszpontszam)}/${esc(ai.max_pontszam)} pont` +
-        `${ai.szazalek != null ? ` · ${esc(ai.szazalek)}%` : ''}</span>`);
+    if (p?.max_pontszam) {
+      reszek.push(`<span class="badge javitva">📊 ${esc(p.osszpontszam)}/${esc(p.max_pontszam)} pont` +
+        `${p.szazalek != null ? ` · ${esc(p.szazalek)}%` : ''}</span>`);
     }
     if (tanari?.jegy) reszek.push(`<span class="badge aktiv">Jegy: ${esc(tanari.jegy)}</span>`);
     return reszek.join('');
@@ -242,6 +245,12 @@
       const tanariSnap = await getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'tanari'));
       const tanari = tanariSnap.exists() ? tanariSnap.data() : null;
 
+      // A diáknak kimenő pontozás: a már elküldött változat, különben az
+      // AI javaslata. A címek a feladat rubrikájából jönnek.
+      const cimek = Object.fromEntries((f?.rubrika?.szempontok || []).map((sz) => [sz.kulcs, sz.cim]));
+      const pontSorok = (tanari?.szempontok?.length ? tanari.szempontok : (ai?.szempontok || []))
+        .map((sz) => ({ ...sz, cim: sz.cim || cimek[sz.kulcs] || sz.kulcs }));
+
       // Dolgozatfotók
       const kepUrlek = await Promise.all(
         (b.kep_paths || []).map((p) =>
@@ -310,6 +319,25 @@
             Ezt – és csak ezt – fogja a diák látni, az elküldés után.
             Az AI javaslata előre be van írva; szerkeszd bátran.
           </p>
+          ${pontSorok.length ? `
+          <div class="form-group">
+            <label>Pontozás – ezt is látja a diák</label>
+            <div class="tabla-gorgeto">
+              <table class="tabla pont-szerk">
+                <thead><tr><th>Szempont</th><th>Pont</th><th>Megjegyzés</th></tr></thead>
+                <tbody>${pontSorok.map((sz) => `
+                  <tr data-kulcs="${esc(sz.kulcs)}">
+                    <td>${esc(sz.cim)}</td>
+                    <td class="pont-cella">
+                      <input type="number" class="p-pont" min="0" max="${esc(sz.max)}" step="any"
+                             value="${esc(sz.pont)}" aria-label="${esc(sz.cim)} pont" /> / ${esc(sz.max)}
+                    </td>
+                    <td><textarea class="p-megj" rows="2" aria-label="${esc(sz.cim)} megjegyzés">${esc(sz.megjegyzes || '')}</textarea></td>
+                  </tr>`).join('')}</tbody>
+                <tfoot><tr><td>Összesen</td><td colspan="2"><strong id="p-ossz"></strong></td></tr></tfoot>
+              </table>
+            </div>
+          </div>` : ''}
           <div class="form-group">
             <label for="m-jegy">Jegy (nem kötelező)</label>
             <select id="m-jegy">
@@ -334,6 +362,21 @@
       document.getElementById('m-szoveg').value = tanari?.szoveg || ai?.diak_szoveg || '';
       if (tanari?.jegy) document.getElementById('m-jegy').value = String(tanari.jegy);
 
+      // Élő összeg a pontmezőkből – ugyanígy számol a szerver is
+      const osszFrissit = () => {
+        const ossz = document.getElementById('p-ossz');
+        if (!ossz) return;
+        let p = 0, max = 0;
+        torzs.querySelectorAll('.pont-szerk tbody tr').forEach((tr) => {
+          const inp = tr.querySelector('.p-pont');
+          p += Number(inp.value) || 0;
+          max += Number(inp.max) || 0;
+        });
+        ossz.textContent = `${p} / ${max} pont${max ? ` · ${Math.round((p / max) * 100)}%` : ''}`;
+      };
+      torzs.querySelectorAll('.p-pont').forEach((i) => i.addEventListener('input', osszFrissit));
+      osszFrissit();
+
       document.getElementById('m-kuld').addEventListener('click', async (ev) => {
         uzenetTorles('m-msg');
         const szoveg = document.getElementById('m-szoveg').value.trim();
@@ -341,12 +384,27 @@
 
         if (!szoveg) { uzenet('m-msg', 'A visszajelzés szövege nem lehet üres.'); return; }
 
+        const szempontok = [...torzs.querySelectorAll('.pont-szerk tbody tr')].map((tr) => ({
+          kulcs: tr.dataset.kulcs,
+          pont: tr.querySelector('.p-pont').value,
+          megjegyzes: tr.querySelector('.p-megj').value
+        }));
+        const rossz = szempontok.find((sz, i) => {
+          const inp = torzs.querySelectorAll('.p-pont')[i];
+          return sz.pont === '' || !inp.checkValidity();
+        });
+        if (rossz) {
+          uzenet('m-msg', 'Minden pont 0 és a szempont maximuma között legyen.');
+          return;
+        }
+
         const vissza = gombVar(ev.target, 'Küldés...');
         try {
           await visszajelzesJovahagyas({
             beadasId,
             jegy: jegyStr ? Number(jegyStr) : null,
-            szoveg
+            szoveg,
+            szempontok: szempontok.map((sz) => ({ ...sz, pont: Number(sz.pont) }))
           });
           uzenet('m-msg', 'Elküldve – a diák már látja.', 'success');
         } catch (err) {

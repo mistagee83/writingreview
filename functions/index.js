@@ -923,6 +923,56 @@ exports.beadasUjrafuttatas = onCall(
   }
 );
 
+/**
+ * A diáknak kimenő pontozási táblázat.
+ *
+ * A váz (mely szempontok, mennyi a maximum) az AI-értékelésből jön – a
+ * kliens ezt nem írhatja át. A tanár szempontonként a pontot és a
+ * megjegyzést módosíthatja; az összeget és a százalékot mi számoljuk.
+ *
+ * @param {object} ai az ertekeles/ai dokumentum
+ * @param {object} rubrika a feladat rubrikája (a szempontok címeihez)
+ * @param {Array<{kulcs, pont, megjegyzes}>} [modositasok] a tanár módosításai
+ */
+function pontTablazat(ai, rubrika, modositasok) {
+  const cimek = Object.fromEntries(
+    (rubrika?.szempontok || []).map((sz) => [sz.kulcs, sz.cim])
+  );
+  const modMap = new Map(
+    (Array.isArray(modositasok) ? modositasok : [])
+      .filter((m) => m && typeof m.kulcs === "string")
+      .map((m) => [m.kulcs, m])
+  );
+
+  const szempontok = (ai?.szempontok || []).map((sz) => {
+    const max = Number(sz.max) || 0;
+    const cim = cimek[sz.kulcs] || sz.kulcs;
+    const m = modMap.get(sz.kulcs);
+
+    let pont = Number(sz.pont) || 0;
+    if (m && m.pont != null && m.pont !== "") {
+      const p = Number(m.pont);
+      if (!Number.isFinite(p) || p < 0 || p > max) {
+        throw new Error(`Érvénytelen pontszám – ${cim}: 0 és ${max} között lehet.`);
+      }
+      pont = p;
+    }
+
+    const megjegyzes = String(m?.megjegyzes ?? sz.megjegyzes ?? "").trim().slice(0, 2000);
+    return { kulcs: sz.kulcs, cim, pont, max, megjegyzes };
+  });
+
+  const osszpontszam = szempontok.reduce((s, sz) => s + sz.pont, 0);
+  const maxPontszam = szempontok.reduce((s, sz) => s + sz.max, 0);
+
+  return {
+    szempontok,
+    osszpontszam,
+    max_pontszam: maxPontszam,
+    szazalek: maxPontszam > 0 ? Math.round((osszpontszam / maxPontszam) * 100) : null
+  };
+}
+
 // ══════════════════════════════════════════════════════
 // 6. VISSZAJELZÉS JÓVÁHAGYÁSA (tanár)
 // Ez az a pont, ahol a diák egyáltalán megláthat bármit: egyszerre
@@ -931,7 +981,7 @@ exports.beadasUjrafuttatas = onCall(
 exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
   const uid = tanar(request);
 
-  const { beadasId, jegy, szoveg } = request.data || {};
+  const { beadasId, jegy, szoveg, szempontok } = request.data || {};
   if (!beadasId) throw new HttpsError("invalid-argument", "Hiányzó beadás ID.");
   if (!szoveg || !szoveg.trim()) {
     throw new HttpsError("invalid-argument", "A visszajelzés szövege nem lehet üres.");
@@ -954,11 +1004,27 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
     throw new HttpsError("failed-precondition", `Ebben az állapotban nem küldhető el: ${beadas.statusz}`);
   }
 
+  // A pontozási táblázat a diák visszajelzésébe: az AI-értékelés NEM
+  // olvasható a diáknak, ezért a jóváhagyott változatot ide másoljuk.
+  const [aiSnap, feladatSnap] = await Promise.all([
+    beadasRef.collection("ertekeles").doc("ai").get(),
+    firestore.collection("feladatok").doc(beadas.feladat_id).get()
+  ]);
+  let tabla = { szempontok: [], osszpontszam: null, max_pontszam: null, szazalek: null };
+  if (aiSnap.exists) {
+    try {
+      tabla = pontTablazat(aiSnap.data(), feladatSnap.data()?.rubrika, szempontok);
+    } catch (e) {
+      throw new HttpsError("invalid-argument", e.message);
+    }
+  }
+
   const batch = firestore.batch();
 
   batch.set(beadasRef.collection("ertekeles").doc("tanari"), {
     jegy: jegy ?? null,
     szoveg: szoveg.trim(),
+    ...tabla,
     tanar_id: uid,
     jovahagyva_at: FieldValue.serverTimestamp()
   });
@@ -970,7 +1036,9 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
 
   await batch.commit();
 
-  logger.info("Visszajelzés elküldve", { beadasId, tanar: uid, jegy: jegy ?? null });
+  logger.info("Visszajelzés elküldve", {
+    beadasId, tanar: uid, jegy: jegy ?? null, pont: tabla.osszpontszam
+  });
   return { siker: true };
 });
 
@@ -989,6 +1057,7 @@ exports._teszt = {
   ertekelesPrompt,
   rubrikaPrompt,
   rubrikaSchema,
+  pontTablazat,
   nyelve,
   anyanyelvu,
   szintInfo,

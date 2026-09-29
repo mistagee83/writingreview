@@ -126,6 +126,39 @@
       </div>
     </div>
 
+    ${(tanari.szempontok || []).length ? `
+      <div class="panel">
+        <div class="panel-header"><h2>📊 Pontozás</h2></div>
+        <div class="panel-body">
+          <div class="tabla-gorgeto">
+            <table class="tabla eredmeny-tabla">
+              <thead><tr><th>Szempont</th><th>Pont</th><th>Megjegyzés</th></tr></thead>
+              <tbody>${tanari.szempontok.map((sz) => `
+                <tr>
+                  <td>${esc(sz.cim || sz.kulcs)}</td>
+                  <td>${esc(sz.pont)} / ${esc(sz.max)}</td>
+                  <td class="megj">${esc(sz.megjegyzes || '')}</td>
+                </tr>`).join('')}</tbody>
+              <tfoot><tr>
+                <td>Összesen</td>
+                <td>${esc(tanari.osszpontszam)} / ${esc(tanari.max_pontszam)}</td>
+                <td>${tanari.szazalek != null ? `${esc(tanari.szazalek)}%` : ''}${tanari.jegy ? ` · jegy: ${esc(tanari.jegy)}` : ''}</td>
+              </tr></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>` : (rubrika.szempontok || []).length ? `
+      <div class="panel">
+        <div class="panel-header"><h2>📐 Mi alapján értékeltek</h2></div>
+        <div class="panel-body">
+          <table class="tabla">
+            <thead><tr><th>Szempont</th><th>Pont</th></tr></thead>
+            <tbody>${rubrika.szempontok.map((sz) =>
+              `<tr><td>${esc(sz.cim || sz.kulcs)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>` : ''}
+
     ${beadas.atirat ? `
       <div class="panel">
         <div class="panel-header"><h2>✍️ A dolgozatod, ahogy az AI kiolvasta</h2></div>
@@ -135,18 +168,6 @@
             Ha ez nem egyezik azzal, amit írtál, a gép félreolvasta a kézírást –
             érdemes szólnod a tanárodnak.
           </p>
-        </div>
-      </div>` : ''}
-
-    ${(rubrika.szempontok || []).length ? `
-      <div class="panel">
-        <div class="panel-header"><h2>📐 Mi alapján értékeltek</h2></div>
-        <div class="panel-body">
-          <table class="tabla">
-            <thead><tr><th>Szempont</th><th>Pont</th></tr></thead>
-            <tbody>${rubrika.szempontok.map((sz) =>
-              `<tr><td>${esc(sz.cim || sz.kulcs)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
-          </table>
         </div>
       </div>` : ''}`;
 </script>

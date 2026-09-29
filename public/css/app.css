@@ -1338,3 +1338,19 @@ a.brand:focus-visible { outline: 2px solid var(--accent-on-dark); outline-offset
 @media (prefers-reduced-motion: reduce) {
   .btn-vissza { transition: none; }
 }
+
+/* ── PONTOZÁS SZERKESZTÉSE (javító modal) ──
+   Telefonon a három oszlop nem fér ki: a táblázat a saját keretén belül
+   görgethető, az oldal nem lóg túl. */
+.tabla-gorgeto { overflow-x: auto; }
+.pont-szerk { min-width: 460px; }
+.pont-szerk td { vertical-align: top; }
+.pont-szerk .pont-cella { white-space: nowrap; }
+.pont-szerk .p-pont { width: 4.5rem; padding: 0.35rem 0.5rem; }
+.pont-szerk .p-megj { width: 100%; min-width: 180px; padding: 0.35rem 0.5rem; font-size: 0.85rem; resize: vertical; }
+.pont-szerk tfoot td { border-top: 1.5px solid var(--border); padding-top: 0.6rem; }
+
+/* ── EREDMÉNY (diák visszajelzése) ── */
+.eredmeny-tabla td:nth-child(2) { white-space: nowrap; font-weight: 600; }
+.eredmeny-tabla tfoot td { border-top: 1.5px solid var(--border); font-weight: 700; }
+.eredmeny-tabla .megj { color: var(--muted); font-size: 0.85rem; }
