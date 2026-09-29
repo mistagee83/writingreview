@@ -201,6 +201,20 @@
   </main>
 </div>
 
+<!-- VETÍTÉS: a feladat órai kivetítésre, a szerkesztő nélkül -->
+<div class="vetites" id="vetites" role="dialog" aria-modal="true" aria-labelledby="v-cim">
+  <div class="vetites-sav">
+    <button class="btn-sm" id="v-teljes" title="Teljes képernyő (F)">⛶ Teljes képernyő</button>
+    <button class="btn-sm" id="v-bezar" title="Bezárás (Esc)">✕ Bezár</button>
+  </div>
+  <div class="vetites-tartalom">
+    <h1 id="v-cim"></h1>
+    <div class="vetites-meta" id="v-meta"></div>
+    <div class="vetites-leiras" id="v-leiras"></div>
+    <div class="vetites-lap" id="v-lap"></div>
+  </div>
+</div>
+
 <script type="module">
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
@@ -838,6 +852,68 @@
   });
 
   // ══════════════════════════════════════════
+  // VETÍTÉS
+  // Csak az, amit a diáknak látnia kell – a rubrika pontjai és a
+  // tanári utasítás nem kerülnek ki a táblára.
+  // ══════════════════════════════════════════
+  const vetites = document.getElementById('vetites');
+
+  function vetitesNyit(id) {
+    const f = feladatok[id];
+    if (!f) { alert('A feladat adatai nem érhetők el. Töltsd újra az oldalt.'); return; }
+    const r = f.rubrika || {};
+
+    document.getElementById('v-cim').textContent = f.cim || '';
+
+    const meta = [];
+    if (r.min_szo && r.max_szo) meta.push(`📝 ${r.min_szo}–${r.max_szo} szó`);
+    else if (r.min_szo) meta.push(`📝 legalább ${r.min_szo} szó`);
+    else if (r.max_szo) meta.push(`📝 legfeljebb ${r.max_szo} szó`);
+    if (f.hatarido) meta.push(`⏰ Határidő: ${datum(f.hatarido)}`);
+    document.getElementById('v-meta').innerHTML = meta.map((m) => `<span>${esc(m)}</span>`).join('');
+
+    const leiras = document.getElementById('v-leiras');
+    leiras.textContent = r.feladat_leiras || '';
+    leiras.style.display = r.feladat_leiras ? '' : 'none';
+
+    // A feladatlap: kép közvetlenül, PDF beágyazva. A típust az útvonalból
+    // tudjuk – a dokumentum nem tárol mime-típust.
+    const lap = document.getElementById('v-lap');
+    const url = f.feladatlap?.url;
+    const pdf = /\.pdf$/i.test(f.feladatlap?.path || '');
+    lap.innerHTML = !url ? '' : pdf
+      ? `<iframe src="${esc(url)}" title="Feladatlap"></iframe>
+         <p><a href="${esc(url)}" target="_blank" rel="noopener">📄 Feladatlap megnyitása új lapon</a></p>`
+      : `<img src="${esc(url)}" alt="Feladatlap" />`;
+
+    vetites.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    vetites.scrollTop = 0;
+  }
+
+  function vetitesZar() {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    vetites.classList.remove('show');
+    document.body.style.overflow = '';
+    document.getElementById('v-lap').innerHTML = '';   // a PDF-néző ne fusson tovább
+  }
+
+  function teljesKepernyo() {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else vetites.requestFullscreen?.().catch(() => {});
+  }
+
+  document.getElementById('v-bezar').addEventListener('click', vetitesZar);
+  document.getElementById('v-teljes').addEventListener('click', teljesKepernyo);
+  document.addEventListener('keydown', (e) => {
+    if (!vetites.classList.contains('show')) return;
+    // Teljes képernyőn az első Esc-et a böngésző a kilépésre használja fel,
+    // így az ott nem zárja be a nézetet – ez szándékos.
+    if (e.key === 'Escape' && !document.fullscreenElement) vetitesZar();
+    if (e.key === 'f' || e.key === 'F') teljesKepernyo();
+  });
+
+  // ══════════════════════════════════════════
   // LISTA (realtime)
   // ══════════════════════════════════════════
   const lista = document.getElementById('lista');
@@ -872,6 +948,7 @@
               </div>
             </div>
             <div class="list-card-actions">
+              <button class="btn-sm" data-akcio="vetit" data-id="${esc(d.id)}" title="Megtekintés, kivetítés">👁</button>
               <button class="btn-sm" data-akcio="elemzes" data-id="${esc(d.id)}" title="Osztályszintű elemzés">📊</button>
               <button class="btn-sm" data-akcio="szerkeszt" data-id="${esc(d.id)}" title="Szerkesztés">✏️</button>
               <button class="btn-sm" data-akcio="kiadas" data-id="${esc(d.id)}" title="Kiadás másik osztálynak">📤</button>
@@ -896,6 +973,11 @@
 
     if (akcio === 'elemzes') {
       window.location.href = `elemzes.html?feladat=${id}`;
+      return;
+    }
+
+    if (akcio === 'vetit') {
+      vetitesNyit(id);
       return;
     }
 
