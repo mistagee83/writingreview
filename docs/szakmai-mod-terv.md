@@ -1,8 +1,17 @@
 # WritingReview – szakmai dolgozat mód (terv)
 
-Állapot: **terv, még nincs megvalósítva.** Készült 2026-09-28-án, egy valódi
+Állapot: **az 1. fázis (mag) kész, 2026-09-29; nincs még telepítve.** A
+tanári felület (2. fázis) nélkül szakmai feladat még nem hozható létre, így
+élesben semmi nem változik. Készült 2026-09-28-án, egy valódi
 mintacsomag (3 szkennelt oldal: kereskedelem, marketing, pénztörténet) és
 két próbafuttatás alapján – lásd [A próbák eredménye](#a-próbák-eredménye).
+
+Hol van a kód:
+- `functions/szakmai.js` – tiszta függvények, sémák, promptok (pontozás,
+  idézet-ellenőrzés, kulcsellenőrzés, jegyjavaslat);
+- `functions/index.js` – `feldolgozSzakmai()`, `tananyagKivonat()`, az
+  elágazás a `feldolgozBeadas()`-ban;
+- `tests/szakmai.test.mjs` – benne a minta regressziós esete (8/13 → 3-as).
 
 ## Cél
 
@@ -411,7 +420,7 @@ legértékesebb visszajelzés a tanárnak.
 
 ## Megvalósítás – fázisok
 
-1. **Mag (functions)**
+1. **Mag (functions)** – ✅ kész, 2026-09-29
    - `rubrika.mod`, a mód szerinti elágazás a `feldolgozBeadas`-ban;
    - pontozó tiszta függvények (`kerdesPontozas`, `sorrendPontozas`,
      `idezetEllenorzes`, `jegyJavaslat`) + unit-tesztek. **Regressziós eset a
@@ -450,6 +459,19 @@ használja.
 | Megosztható-e a tananyagtár? | **Igen**, e-mail-címmel, kollégánként (4. fázis). |
 | Milyen formátumú lehet a tananyag? | **PDF és kép.** DOCX/PPTX-et a tanár PDF-be menti. |
 | Kell-e kulcssablon? | **Nem.** Minden dolgozat más, a kulcs a feladathoz tartozik. |
+
+### Az 1. fázisban hozott részletdöntések (2026-09-29)
+
+| kérdés | döntés |
+|---|---|
+| Mi az alapértelmezett beállítás? | `sorrend: nem_szamit`, `szakszo: lenyeg`, `reszpont: 0.5`, `kulcson_kivul: elfogad` – a felület ezt tölti elő, a tanár választ. |
+| Mennyit ér egy elfogadott kulcson kívüli tétel? | **1 pontot** (`KULCSON_KIVULI_TETEL_PONT`), a kérdés maximumáig. |
+| Mi történik a téves állítással, ha az idézete nincs a válaszban? | `hianyzik` lesz: a diák nem kaphat jelzést olyan tévedésért, amit le sem írt. |
+| Hogyan tűri az idézet-ellenőrzés az eltérést? | Kisbetű, írásjel **és ékezet** nélkül hasonlít (az OCR félreolvashat egy ékezetet). Toldaléktűrő: a rövidebb szó legfeljebb 2 betűvel térhet el a közös elejüktől. 4 betű alatt, és így a számoknál is, pontos egyezés kell. A `...` kihagyást jelöl. |
+| Relatív sorrendnél a leghosszabb részsorozat számít? | A **legtöbbet érő**: részpontos elemeknél ez eltérhet a leghosszabbtól. |
+| Jegyjavaslat: kerekített százalékból? | **Nem**, a pontos arányból: 54,6% nem ér 3-ast 55%-os határnál. |
+| Ki hozza létre a tananyag-dokumentumot? | **Csak Function** (a kivonattal együtt, 2. fázis). A kliens csak a címet írhatja át. |
+| Ki írhatja a kulcsot? | A feladat tanára kliensről is – a Function minden használat előtt `kulcsEllenorzes()`-sel ellenőrzi. |
 
 ---
 

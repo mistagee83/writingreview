@@ -1,0 +1,867 @@
+// ══════════════════════════════════════════════════════
+// WritingReview – szakmai dolgozat mód
+// Terv: docs/szakmai-mod-terv.md
+//
+// Ebben a fájlban CSAK tiszta függvények, sémák és promptok vannak –
+// Firestore és hálózat nélkül, hogy minden unit-tesztelhető legyen
+// (tests/szakmai.test.mjs). A Firestore-oldali folyamat az index.js-ben.
+//
+// A munkamegosztás:
+//  - az AI elemenként CSAK státuszt ad (megvan / reszben / hianyzik /
+//    teves), szó szerinti idézetet és – sorrendnél – pozíciót;
+//  - a PONTOT a kód számolja, a tanár beállításai szerint;
+//  - az idézetet a kód visszakeresi a diák válaszában: ha nincs ott,
+//    az elem nem jár. Olcsó, determinisztikus fék a hallucináció ellen.
+// ══════════════════════════════════════════════════════
+
+const KERDES_TIPUSOK = [
+  "zart_felsorolas", "nyilt_felsorolas", "sorrend", "tablazat", "magyarazat", "valasztos"
+];
+const ELEM_STATUSZOK = ["megvan", "reszben", "hianyzik", "teves"];
+const SORREND_MODOK = ["nem_szamit", "relativ", "pozicio"];
+const SZAKSZO_MODOK = ["lenyeg", "pontos"];
+const KULCSON_KIVUL_MODOK = ["elfogad", "tanar_dont"];
+
+// Helyesírásért SZÁNDÉKOSAN nincs kategória: szakmai dolgozatnál nem
+// vonunk le érte, és ha lenne rá kategória, az AI töltené.
+const SZAKMAI_HIBA_KATEGORIAK = [
+  "hianyzo_elem", "szakmai_tevedes", "pontatlan_fogalom", "sorrend", "hianyos_kifejtes"
+];
+
+// Ezeket a felület tölti elő, a tanár választ. Az AI-t SZÁNDÉKOSAN nem
+// kérdezzük róluk: ha javasolna, a tanár hajlamos lenne átnézés nélkül
+// jóváhagyni – és a próbán épp a sorrend szigorán csúszott el a pontozás.
+const ALAP_BEALLITAS = {
+  sorrend: "nem_szamit",
+  szakszo: "lenyeg",
+  reszpont: 0.5,
+  kulcson_kivul: "elfogad"
+};
+
+// %-ban, "legalább ennyi kell a jegyhez". A tanári profil felülírhatja.
+const ALAP_PONTHATAROK = { 2: 40, 3: 55, 4: 70, 5: 85 };
+
+// Nyílt felsorolásnál egy elfogadott, kulcson kívüli tétel ennyit ér.
+const KULCSON_KIVULI_TETEL_PONT = 1;
+
+const KERDES_MAX = 50;
+const ELEM_MAX = 60;
+const SZOSZEDET_MAX = 300;
+
+/** Mód: a hiányzó érték a régi (íráskészség) mód. */
+function feladatMod(rubrika) {
+  return rubrika?.mod === "szakmai" ? "szakmai" : "iras";
+}
+
+/** Fél pontok miatti lebegőpontos zaj ellen. */
+function kerekit(x) {
+  return Math.round(x * 100) / 100;
+}
+
+// ══════════════════════════════════════════════════════
+// IDÉZET-ELLENŐRZÉS
+// ══════════════════════════════════════════════════════
+
+/**
+ * Szöveg → összehasonlítható szavak: kisbetű, ékezet és írásjel nélkül.
+ * Az ékezetet azért hagyjuk el, mert az átírás egy-egy ékezetet
+ * félreolvashat – az idézet-ellenőrzés a hallucinációt fogja meg, nem
+ * az OCR-t.
+ */
+function szavak(s) {
+  return String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
+}
+
+/**
+ * Toldaléktűrő szóegyezés. A szószedet az átírásnál egy-egy szót a saját
+ * alakjára igazíthat ("alakulás" → "alakulása"), és az AI is idézhet
+ * toldalékkal – ezért elég, ha a rövidebb szó legfeljebb 2 betűvel tér el
+ * a közös elejüktől. Rövid szavaknál (és számoknál) pontos egyezés kell:
+ * "1848" ne egyezzen "1849"-cel.
+ */
+function szoEgyezik(a, b) {
+  if (a === b) return true;
+  const [rovid, hosszu] = a.length <= b.length ? [a, b] : [b, a];
+  if (rovid.length < 4) return false;
+  let k = 0;
+  while (k < rovid.length && rovid[k] === hosszu[k]) k++;
+  return k >= 4 && k >= rovid.length - 2;
+}
+
+/** A `minta` szósorozat első előfordulása a `szoveg`-ben, `tol`-tól. */
+function sorozatKeres(szoveg, minta, tol) {
+  for (let i = tol; i + minta.length <= szoveg.length; i++) {
+    let jo = true;
+    for (let j = 0; j < minta.length; j++) {
+      if (!szoEgyezik(szoveg[i + j], minta[j])) { jo = false; break; }
+    }
+    if (jo) return i;
+  }
+  return -1;
+}
+
+/**
+ * Tényleg ott van-e az idézet a diák válaszában?
+ * A "..." / "…" kihagyást jelöl: a részeknek sorrendben kell meglenniük.
+ */
+function idezetEllenorzes(idezet, valasz) {
+  const reszek = String(idezet ?? "")
+    .split(/\.{3}|…/)
+    .map(szavak)
+    .filter((r) => r.length > 0);
+  if (reszek.length === 0) return false;
+
+  const v = szavak(valasz);
+  let tol = 0;
+  for (const r of reszek) {
+    const i = sorozatKeres(v, r, tol);
+    if (i < 0) return false;
+    tol = i + r.length;
+  }
+  return true;
+}
+
+// ══════════════════════════════════════════════════════
+// PONTOZÁS
+// Tiszta függvények: a javító nézet (3. fázis) a tanári felülírás után
+// ugyanezekkel számol újra.
+// ══════════════════════════════════════════════════════
+
+function elemErtek(kulcsElem, statusz, reszpont) {
+  if (statusz === "megvan") return kulcsElem.pont;
+  if (statusz === "reszben") return kulcsElem.pont * reszpont;
+  return 0;
+}
+
+/**
+ * Sorrendtípusú kérdésnél mely elemek érnek pontot.
+ *
+ * A mintában a diák sorrendje a kulcs sorszámaival 1, 5, 2, 3 volt:
+ *   nem_szamit → mind a 4 megtalált elem
+ *   relativ    → a leghosszabb helyes sorrendű részsorozat: 1, 2, 3
+ *   pozicio    → csak ami pontosan a helyén van: 1
+ *
+ * Relatív módban az elemek pontja eltérhet (részpont), ezért nem a
+ * leghosszabb, hanem a legtöbbet érő növekvő részsorozatot keressük.
+ *
+ * @param {Array<{id, pont}>} kulcsElemek a helyes sorrendben
+ * @param {Map<string, {statusz, pozicio}>} allapot elemenként
+ * @returns {Set<string>} a pontot érő elemek id-i
+ */
+function sorrendPontozas(kulcsElemek, allapot, mod, reszpont = ALAP_BEALLITAS.reszpont) {
+  const talalt = kulcsElemek
+    .map((ke, i) => ({ ke, hely: i + 1, a: allapot.get(ke.id) }))
+    .filter(({ a }) => a && (a.statusz === "megvan" || a.statusz === "reszben"));
+
+  if (mod === "nem_szamit") return new Set(talalt.map(({ ke }) => ke.id));
+
+  // Pozíció nélkül nem lehet sorrendet ítélni – az ilyen elem nem jár.
+  const helyezett = talalt.filter(({ a }) => Number.isInteger(a.pozicio) && a.pozicio > 0);
+
+  if (mod === "pozicio") {
+    return new Set(helyezett.filter(({ hely, a }) => a.pozicio === hely).map(({ ke }) => ke.id));
+  }
+
+  // relativ: súlyozott leghosszabb növekvő részsorozat, O(n²) – n kicsi.
+  const sor = [...helyezett].sort((x, y) => x.a.pozicio - y.a.pozicio);
+  const ertek = sor.map(({ ke, a }) => elemErtek(ke, a.statusz, reszpont));
+  const legjobb = ertek.slice();
+  const elozo = sor.map(() => -1);
+  for (let i = 0; i < sor.length; i++) {
+    for (let j = 0; j < i; j++) {
+      if (sor[j].hely < sor[i].hely
+          && sor[j].a.pozicio < sor[i].a.pozicio
+          && legjobb[j] + ertek[i] > legjobb[i]) {
+        legjobb[i] = legjobb[j] + ertek[i];
+        elozo[i] = j;
+      }
+    }
+  }
+  const ids = new Set();
+  let i = legjobb.reduce((m, v, k) => (v > (legjobb[m] ?? -1) ? k : m), -1);
+  while (i >= 0) {
+    ids.add(sor[i].ke.id);
+    i = elozo[i];
+  }
+  return ids;
+}
+
+/**
+ * Egy kérdés pontszáma a (már ellenőrzött vagy tanár által felülírt)
+ * elemstátuszokból.
+ *
+ * @param {object} kerdes a kulcs kérdése (kulcsEllenorzes után)
+ * @param {{elemek, kulcson_kivul, valasztott_ag}} eredmeny
+ */
+function kerdesPontozas(kerdes, eredmeny) {
+  const b = { ...ALAP_BEALLITAS, ...(kerdes.beallitas || {}) };
+
+  let kulcsElemek = kerdes.elemek || [];
+  let valasztottAg = null;
+  if (kerdes.tipus === "valasztos") {
+    const ag = (kerdes.agak || []).find((a) => a.id === eredmeny?.valasztott_ag);
+    kulcsElemek = ag ? ag.elemek : [];
+    valasztottAg = ag ? ag.id : null;
+  }
+
+  const allapot = new Map((eredmeny?.elemek || []).map((e) => [e.id, e]));
+
+  const jarnak = kerdes.tipus === "sorrend"
+    ? sorrendPontozas(kulcsElemek, allapot, b.sorrend, b.reszpont)
+    : null;
+
+  const elemek = kulcsElemek.map((ke) => {
+    const statusz = allapot.get(ke.id)?.statusz;
+    const pont = !jarnak || jarnak.has(ke.id) ? elemErtek(ke, statusz, b.reszpont) : 0;
+    return { id: ke.id, pont: kerekit(pont) };
+  });
+
+  // Nyílt felsorolásnál a kulcson kívüli, de elfogadott tétel is ér.
+  // Az 'elfogadva' mezőt az értékelés-összeállítás (vagy a tanár) állítja.
+  const kulcsonKivulPont = kerdes.tipus === "nyilt_felsorolas"
+    ? (eredmeny?.kulcson_kivul || []).filter((t) => t.elfogadva === true).length
+      * KULCSON_KIVULI_TETEL_PONT
+    : 0;
+
+  const osszeg = elemek.reduce((s, e) => s + e.pont, 0) + kulcsonKivulPont;
+  return {
+    pont: kerekit(Math.min(osszeg, kerdes.max_pont)),
+    max: kerdes.max_pont,
+    elemek,
+    kulcson_kivul_pont: kulcsonKivulPont,
+    valasztott_ag: valasztottAg
+  };
+}
+
+/** A ponthatárok ellenőrzése – rossz érték helyett az alapértelmezés. */
+function ponthatarokEllenorzes(h) {
+  if (!h || typeof h !== "object") return { ...ALAP_PONTHATAROK };
+  const szamok = [2, 3, 4, 5].map((j) => Number(h[j]));
+  const jo = szamok.every((x) => Number.isFinite(x) && x >= 0 && x <= 100)
+    && szamok.every((x, i) => i === 0 || x > szamok[i - 1]);
+  return jo ? { 2: szamok[0], 3: szamok[1], 4: szamok[2], 5: szamok[3] } : { ...ALAP_PONTHATAROK };
+}
+
+/**
+ * Jegyjavaslat a pontszámból. A pontos arányt nézzük, nem a kerekített
+ * százalékot: 54,6% ne érjen 3-ast 55%-os határnál.
+ */
+function jegyJavaslat(pont, max, ponthatarok) {
+  if (!(max > 0)) return null;
+  const h = ponthatarokEllenorzes(ponthatarok);
+  const sz = (pont / max) * 100;
+  for (const jegy of [5, 4, 3, 2]) {
+    if (sz + 1e-9 >= h[jegy]) return jegy;
+  }
+  return 1;
+}
+
+// ══════════════════════════════════════════════════════
+// MEGOLDÓKULCS
+// ══════════════════════════════════════════════════════
+
+function hiba(uzenet) {
+  return new Error(`Hibás megoldókulcs: ${uzenet}`);
+}
+
+function elemekEllenorzese(nyers, hol) {
+  if (!Array.isArray(nyers) || nyers.length === 0) throw hiba(`${hol}: nincs egy elem sem.`);
+  if (nyers.length > ELEM_MAX) throw hiba(`${hol}: túl sok elem.`);
+  const idk = new Set();
+  return nyers.map((e, i) => {
+    const id = String(e?.id ?? "").trim();
+    if (!id) throw hiba(`${hol}, ${i + 1}. elem: hiányzó azonosító.`);
+    if (idk.has(id)) throw hiba(`${hol}: ismétlődő elemazonosító (${id}).`);
+    idk.add(id);
+    const allitas = String(e.allitas ?? "").trim();
+    if (!allitas) throw hiba(`${hol}, ${id}: üres állítás.`);
+    const pont = Number(e.pont);
+    if (!Number.isFinite(pont) || pont < 0) throw hiba(`${hol}, ${id}: érvénytelen pont.`);
+    return {
+      id,
+      allitas,
+      pont,
+      elfogadhato: (Array.isArray(e.elfogadhato) ? e.elfogadhato : [])
+        .map((x) => String(x).trim()).filter(Boolean),
+      forras: e.forras === "tananyag" ? "tananyag" : "altalanos",
+      ellenorizendo: e.ellenorizendo === true
+    };
+  });
+}
+
+function beallitasEllenorzes(nyers, hol) {
+  const b = { ...ALAP_BEALLITAS, ...(nyers || {}) };
+  if (!SORREND_MODOK.includes(b.sorrend)) throw hiba(`${hol}: ismeretlen sorrend-mód.`);
+  if (!SZAKSZO_MODOK.includes(b.szakszo)) throw hiba(`${hol}: ismeretlen szakszó-mód.`);
+  if (!KULCSON_KIVUL_MODOK.includes(b.kulcson_kivul)) throw hiba(`${hol}: ismeretlen kulcson kívüli mód.`);
+  const reszpont = Number(b.reszpont);
+  if (!Number.isFinite(reszpont) || reszpont < 0 || reszpont > 1) {
+    throw hiba(`${hol}: a részpont 0 és 1 között lehet.`);
+  }
+  return { sorrend: b.sorrend, szakszo: b.szakszo, reszpont, kulcson_kivul: b.kulcson_kivul };
+}
+
+/**
+ * A kulcs ellenőrzése és egységes alakra hozása. A Function minden
+ * használat előtt ezen engedi át – a kulcsot a tanár kliensről is
+ * szerkeszti, a szabályok pedig a belső szerkezetet nem ellenőrzik.
+ *
+ * @throws {Error} olvasható üzenettel, ha a kulcs nem használható
+ */
+function kulcsEllenorzes(kulcs) {
+  const nyers = kulcs?.kerdesek;
+  if (!Array.isArray(nyers) || nyers.length === 0) throw hiba("nincs egy kérdés sem.");
+  if (nyers.length > KERDES_MAX) throw hiba("túl sok kérdés.");
+
+  const sorszamok = new Set();
+  const kerdesek = nyers.map((k, i) => {
+    const sorszam = String(k?.sorszam ?? "").trim();
+    const hol = `${sorszam || i + 1}. kérdés`;
+    if (!sorszam) throw hiba(`${i + 1}. kérdés: hiányzó sorszám.`);
+    if (sorszamok.has(sorszam)) throw hiba(`ismétlődő sorszám (${sorszam}).`);
+    sorszamok.add(sorszam);
+
+    if (!KERDES_TIPUSOK.includes(k.tipus)) throw hiba(`${hol}: ismeretlen típus.`);
+    const maxPont = Number(k.max_pont);
+    if (!Number.isFinite(maxPont) || maxPont <= 0) throw hiba(`${hol}: érvénytelen max pont.`);
+
+    let elemek = [];
+    let agak = null;
+    if (k.tipus === "valasztos") {
+      if (!Array.isArray(k.agak) || k.agak.length === 0) throw hiba(`${hol}: nincs választható ág.`);
+      const agIdk = new Set();
+      agak = k.agak.map((a, j) => {
+        const id = String(a?.id ?? "").trim();
+        if (!id) throw hiba(`${hol}, ${j + 1}. ág: hiányzó azonosító.`);
+        if (agIdk.has(id)) throw hiba(`${hol}: ismétlődő ágazonosító (${id}).`);
+        agIdk.add(id);
+        return {
+          id,
+          cim: String(a.cim ?? "").trim() || id,
+          elemek: elemekEllenorzese(a.elemek, `${hol}, ${id} ág`)
+        };
+      });
+    } else {
+      elemek = elemekEllenorzese(k.elemek, hol);
+    }
+
+    return {
+      sorszam,
+      szoveg: String(k.szoveg ?? "").trim(),
+      tipus: k.tipus,
+      max_pont: maxPont,
+      elemek,
+      agak,
+      beallitas: beallitasEllenorzes(k.beallitas, hol),
+      megjegyzes: String(k.megjegyzes ?? "").trim()
+    };
+  });
+
+  return { kerdesek };
+}
+
+/**
+ * Szószedet az átíráshoz: a kulcs szakszavai. Nem megoldókulcs – az
+ * átíró csak olvasási segítségnek kapja, hogy egy nehezen olvasható
+ * szakszót jól ismerjen fel.
+ */
+function szoszedetGyujtes(kulcs) {
+  const lista = [];
+  const lat = new Set();
+  const felvesz = (s) => {
+    const t = String(s ?? "").trim();
+    const k = t.toLowerCase();
+    if (t && !lat.has(k) && lista.length < SZOSZEDET_MAX) {
+      lat.add(k);
+      lista.push(t);
+    }
+  };
+  for (const k of kulcs.kerdesek || []) {
+    const elemek = [...(k.elemek || []), ...(k.agak || []).flatMap((a) => a.elemek || [])];
+    for (const e of elemek) {
+      felvesz(e.allitas);
+      (e.elfogadhato || []).forEach(felvesz);
+    }
+  }
+  return lista;
+}
+
+// ══════════════════════════════════════════════════════
+// ÁTIRAT
+// ══════════════════════════════════════════════════════
+
+/**
+ * Kérdésenkénti válaszszövegek az idézet-ellenőrzéshez. Táblázatnál a
+ * cellák is ide kerülnek, mert az idézet cellából is jöhet.
+ *
+ * @returns {Map<string, string>} sorszám → válasz
+ */
+function valaszSzovegek(atiras) {
+  const m = new Map();
+  const hozzaad = (kerdes, szoveg) => {
+    const k = String(kerdes ?? "").trim();
+    const s = String(szoveg ?? "").trim();
+    if (!k || !s) return;
+    m.set(k, m.has(k) ? `${m.get(k)}\n${s}` : s);
+  };
+  for (const v of atiras?.valaszok || []) hozzaad(v.kerdes, v.valasz);
+  for (const t of atiras?.tablazatok || []) {
+    for (const c of t.cellak || []) hozzaad(t.kerdes, c.ertek);
+  }
+  return m;
+}
+
+/**
+ * Összefűzött átirat – a mostani felület (javítás, visszajelzés) egyetlen
+ * szövegként mutatja, és ez szakmai módban is így maradhat.
+ */
+function atiratOsszefuzes(atiras) {
+  const sorok = [];
+  for (const v of atiras?.valaszok || []) {
+    sorok.push(`${v.kerdes}. ${String(v.valasz ?? "").trim()}`);
+  }
+  for (const t of atiras?.tablazatok || []) {
+    sorok.push(`${t.kerdes}. (táblázat)`);
+    for (const c of t.cellak || []) {
+      sorok.push(`   ${c.sor} | ${c.oszlop}: ${String(c.ertek ?? "").trim()}`);
+    }
+  }
+  return sorok.join("\n").trim();
+}
+
+// ══════════════════════════════════════════════════════
+// ÉRTÉKELÉS ÖSSZEÁLLÍTÁSA
+// Az AI státuszaiból → ellenőrzött elemek → pontok → jegyjavaslat.
+// ══════════════════════════════════════════════════════
+
+/** Egy AI-elem ellenőrzése: idézet nélkül nincs pont. */
+function elemEllenorzes(kulcsElem, aiElem, valasz) {
+  const aiStatusz = ELEM_STATUSZOK.includes(aiElem?.statusz) ? aiElem.statusz : "hianyzik";
+  const idezet = String(aiElem?.idezet ?? "").trim() || null;
+  const pozicio = Number.isInteger(aiElem?.pozicio) && aiElem.pozicio > 0 ? aiElem.pozicio : null;
+
+  if (aiStatusz === "hianyzik") {
+    return { id: kulcsElem.id, statusz: "hianyzik", ai_statusz: aiStatusz, idezet: null, pozicio: null, idezet_ok: null };
+  }
+
+  // A téves állítás is idézethez kötött: e nélkül a diák olyan tévedésért
+  // kapna jelzést, amit le sem írt.
+  const idezetOk = idezetEllenorzes(idezet, valasz);
+  return {
+    id: kulcsElem.id,
+    statusz: idezetOk ? aiStatusz : "hianyzik",
+    ai_statusz: aiStatusz,
+    idezet,
+    pozicio,
+    idezet_ok: idezetOk
+  };
+}
+
+/**
+ * A teljes szakmai értékelés az AI válaszából.
+ *
+ * @param {object} kulcs kulcsEllenorzes() kimenete
+ * @param {object} ai az értékelő modell válasza (SZAKMAI_ERTEKELES_SCHEMA)
+ * @param {Map<string,string>} valaszok valaszSzovegek() kimenete
+ * @param {object} [ponthatarok]
+ */
+function szakmaiErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
+  const aiKerdesek = new Map(
+    (ai?.kerdesek || []).map((k) => [String(k.sorszam ?? "").trim(), k])
+  );
+  const figyelmeztetesek = [];
+
+  const kerdesek = kulcs.kerdesek.map((kk) => {
+    const ak = aiKerdesek.get(kk.sorszam);
+    const valasz = valaszok.get(kk.sorszam) || "";
+    if (!ak) figyelmeztetesek.push({ kerdes: kk.sorszam, tipus: "nincs_ertekeles" });
+
+    let kulcsElemek = kk.elemek;
+    let valasztottAg = null;
+    if (kk.tipus === "valasztos") {
+      const ag = kk.agak.find((a) => a.id === String(ak?.valasztott_ag ?? "").trim());
+      if (ak && !ag && valasz) figyelmeztetesek.push({ kerdes: kk.sorszam, tipus: "ismeretlen_ag" });
+      kulcsElemek = ag ? ag.elemek : [];
+      valasztottAg = ag ? ag.id : null;
+    }
+
+    const aiElemek = new Map((ak?.elemek || []).map((e) => [String(e.id ?? "").trim(), e]));
+    const elemek = kulcsElemek.map((ke) => {
+      const e = elemEllenorzes(ke, aiElemek.get(ke.id), valasz);
+      if (e.idezet_ok === false) {
+        figyelmeztetesek.push({ kerdes: kk.sorszam, elem_id: ke.id, tipus: "idezet_nem_talalhato" });
+      }
+      return e;
+    });
+
+    // Kulcson kívüli tételek: csak nyílt felsorolásnál érnek pontot, de
+    // máshol is megőrizzük – a tanár látja, mit írt még a diák.
+    const kulcsonKivul = (ak?.kulcson_kivul || [])
+      .map((t) => {
+        const idezet = String(t.idezet ?? "").trim();
+        const idezetOk = idezetEllenorzes(idezet, valasz);
+        const helyes = t.szakmailag_helyes === true && idezetOk;
+        return {
+          idezet,
+          szakmailag_helyes: t.szakmailag_helyes === true,
+          megjegyzes: String(t.megjegyzes ?? "").trim(),
+          idezet_ok: idezetOk,
+          // null = a tanár dönt; a javító nézetben ez függő tétel.
+          elfogadva: !helyes ? false : kk.beallitas.kulcson_kivul === "elfogad" ? true : null
+        };
+      })
+      .filter((t) => t.idezet);
+
+    const p = kerdesPontozas(kk, { elemek, kulcson_kivul: kulcsonKivul, valasztott_ag: valasztottAg });
+    const pontok = new Map(p.elemek.map((e) => [e.id, e.pont]));
+
+    return {
+      sorszam: kk.sorszam,
+      pont: p.pont,
+      max: p.max,
+      elemek: elemek.map((e) => ({ ...e, pont: pontok.get(e.id) ?? 0 })),
+      kulcson_kivul: kulcsonKivul,
+      valasztott_ag: valasztottAg,
+      visszajelzes: String(ak?.visszajelzes ?? "").trim()
+    };
+  });
+
+  const osszpontszam = kerekit(kerdesek.reduce((s, k) => s + k.pont, 0));
+  const maxPontszam = kerekit(kerdesek.reduce((s, k) => s + k.max, 0));
+
+  // A hibákat az AI adja; a 'tipus' a meglévő osztályszintű elemzés
+  // (elemzesAggregalas) miatt kell, ott a kategória a címke.
+  const hibak = (ai?.hibak || [])
+    .filter((h) => SZAKMAI_HIBA_KATEGORIAK.includes(h.kategoria))
+    .map((h) => ({
+      kategoria: h.kategoria,
+      tipus: h.kategoria,
+      kerdes: String(h.kerdes ?? "").trim(),
+      idezet: String(h.idezet ?? "").trim(),
+      javaslat: String(h.javaslat ?? "").trim(),
+      magyarazat: String(h.magyarazat ?? "").trim()
+    }));
+
+  return {
+    mod: "szakmai",
+    kerdesek,
+    // KOMPATIBILITÁS: a kérdésekből képzett szempontok, hogy a
+    // pontozási táblázat és az osztályszintű elemzés változatlanul működjön.
+    szempontok: kerdesek.map((k) => ({
+      kulcs: `k${k.sorszam}`,
+      cim: `${k.sorszam}. kérdés`,
+      pont: k.pont,
+      max: k.max,
+      megjegyzes: k.visszajelzes
+    })),
+    osszpontszam,
+    max_pontszam: maxPontszam,
+    szazalek: maxPontszam > 0 ? Math.round((osszpontszam / maxPontszam) * 100) : null,
+    javasolt_jegy: jegyJavaslat(osszpontszam, maxPontszam, ponthatarok),
+    hibak,
+    figyelmeztetesek,
+    diak_szoveg: String(ai?.diak_szoveg ?? "").trim()
+  };
+}
+
+// ══════════════════════════════════════════════════════
+// JSON SÉMÁK
+// ══════════════════════════════════════════════════════
+
+/** Kézírás → kérdésenkénti válaszok. */
+const SZAKMAI_ATIRAT_SCHEMA = {
+  type: "object",
+  properties: {
+    valaszok: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          kerdes: { type: "string" },
+          valasz: { type: "string" },
+          bizonytalan: { type: "array", items: { type: "string" } }
+        },
+        required: ["kerdes", "valasz"]
+      }
+    },
+    tablazatok: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          kerdes: { type: "string" },
+          cellak: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                sor: { type: "string" },
+                oszlop: { type: "string" },
+                ertek: { type: "string" }
+              },
+              required: ["sor", "oszlop", "ertek"]
+            }
+          }
+        },
+        required: ["kerdes", "cellak"]
+      }
+    },
+    olvashatosag: { type: "string", enum: ["jo", "kozepes", "gyenge"] },
+    megjegyzes: { type: "string" }
+  },
+  required: ["valaszok", "olvashatosag"]
+};
+
+/**
+ * Válaszok + kulcs → elemstátuszok. PONT MEZŐ SZÁNDÉKOSAN NINCS: ha lenne,
+ * a modell kitöltené, és kísértés lenne használni.
+ */
+const SZAKMAI_ERTEKELES_SCHEMA = {
+  type: "object",
+  properties: {
+    kerdesek: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          sorszam: { type: "string" },
+          valasztott_ag: { type: "string" },
+          elemek: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                statusz: { type: "string", enum: ELEM_STATUSZOK },
+                idezet: { type: "string" },
+                pozicio: { type: "integer" }
+              },
+              required: ["id", "statusz"]
+            }
+          },
+          kulcson_kivul: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                idezet: { type: "string" },
+                szakmailag_helyes: { type: "boolean" },
+                megjegyzes: { type: "string" }
+              },
+              required: ["idezet", "szakmailag_helyes", "megjegyzes"]
+            }
+          },
+          visszajelzes: { type: "string" }
+        },
+        required: ["sorszam", "elemek", "visszajelzes"]
+      }
+    },
+    hibak: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          kategoria: { type: "string", enum: SZAKMAI_HIBA_KATEGORIAK },
+          kerdes: { type: "string" },
+          idezet: { type: "string" },
+          javaslat: { type: "string" },
+          magyarazat: { type: "string" }
+        },
+        required: ["kategoria", "kerdes", "idezet", "javaslat", "magyarazat"]
+      }
+    },
+    diak_szoveg: { type: "string" }
+  },
+  required: ["kerdesek", "hibak", "diak_szoveg"]
+};
+
+// ══════════════════════════════════════════════════════
+// PROMPTOK
+// ══════════════════════════════════════════════════════
+
+function tantargya(rubrika) {
+  const t = String(rubrika?.tantargy ?? "").trim().slice(0, 60);
+  return t || null;
+}
+
+/**
+ * Átírás, szakmai változat. A próbán ez bizonyult a legjobbnak (C):
+ * kérdésenkénti kimenet, tanári jelölések kiszűrve, szószedettel – a
+ * csali szakszavak egyszer sem kerültek be az átiratba.
+ */
+function szakmaiAtiratPrompt(kulcs, szoszedet) {
+  const kerdesLista = kulcs.kerdesek
+    .map((k) => `- ${k.sorszam}.${k.szoveg ? ` ${k.szoveg}` : ""}${k.tipus === "tablazat" ? " (TÁBLÁZAT)" : ""}`)
+    .join("\n");
+
+  const szoszedetResz = szoszedet.length
+    ? `
+# SZÓSZEDET – CSAK OLVASÁSI SEGÍTSÉG
+Ezek a szakszavak előfordulhatnak a dolgozatban. Ha egy nehezen olvasható
+szó ezek egyikének látszik, így írd. FIGYELEM: ez NEM megoldókulcs. Soha
+ne írj be olyan szót, ami nincs a lapon, és ne egészítsd ki a diák
+válaszát – attól, hogy egy szó a listán van, a diák nem feltétlenül írta le.
+${szoszedet.map((s) => `- ${s}`).join("\n")}
+`
+    : "";
+
+  return `Te egy pontos átíró vagy. A képeken egy diák kézzel írt szakmai
+dolgozata látható (egy nyomtatott feladatlap, a diák válaszaival).
+
+# A KÉRDÉSEK
+${kerdesLista}
+
+# FELADAT
+Írd át a diák válaszait KÉRDÉSENKÉNT, SZÓ SZERINT.
+- A "kerdes" mező a kérdés sorszáma legyen, pontosan a fenti alakban.
+- A nyomtatott kérdésszöveget NE írd a válaszba – csak azt, amit a diák írt.
+- Ha egy válasz máshol folytatódik (lap alján, hátoldalon, nyíllal
+  jelölve), fűzd a saját kérdéséhez.
+- TÁBLÁZATOS kérdésnél a "tablazatok" tömbbe írd, cellánként: a sor és
+  az oszlop a nyomtatott fejléc szövege, az "ertek" a diák beírása.
+- Az áthúzott szöveget hagyd ki.
+- Ha a szöveg a kép szélén le van vágva, a hiányzó részt jelöld így: [...]
+- A TANÁRI JELÖLÉSEKET hagyd figyelmen kívül: pontszámok, pipák, aláhúzások,
+  margójegyzetek, piros vagy más színű javítások. Csak a diák írását írd át.
+- NE javítsd a hibákat: a helyesírási és nyelvtani hibákat is add vissza.
+- Olvashatatlan szó: [?]. Bizonytalan szó: a legjobb tipp, utána [?], és
+  vedd fel a "bizonytalan" tömbbe is.
+- Ha egy kérdésre nincs válasz, hagyd ki.
+${szoszedetResz}
+Az olvashatosag mezőben értékeld, mennyire volt olvasható a kézírás.`;
+}
+
+function elemSor(e) {
+  const tovabbi = e.elfogadhato.length ? ` (elfogadható még: ${e.elfogadhato.join("; ")})` : "";
+  return `    - [${e.id}] ${e.allitas}${tovabbi}`;
+}
+
+function kerdesLeiras(k) {
+  const fej = `## ${k.sorszam}. kérdés${k.szoveg ? `: ${k.szoveg}` : ""}\nTípus: ${k.tipus}`;
+  const szigor = k.beallitas.szakszo === "pontos"
+    ? "Szakszóhasználat: PONTOS – ha a diák nem a pontos szakkifejezést írja (pl. csak egy részét, vagy köznyelvi megfelelőt), az elem \"reszben\"."
+    : "Szakszóhasználat: LÉNYEG – a tartalmilag azonos, más szavakkal írt válasz is \"megvan\".";
+
+  let torzs;
+  if (k.tipus === "valasztos") {
+    torzs = `A diák EGY ágat választ – a "valasztott_ag" mezőbe annak az azonosítóját írd,
+és csak annak az elemeit értékeld.
+${k.agak.map((a) => `  Ág [${a.id}] ${a.cim}:\n${a.elemek.map(elemSor).join("\n")}`).join("\n")}`;
+  } else {
+    torzs = `Elemek:\n${k.elemek.map(elemSor).join("\n")}`;
+  }
+
+  const extra = [];
+  if (k.tipus === "sorrend") {
+    extra.push("SORREND: minden megtalált elemnél add meg a \"pozicio\" mezőben, hányadikként írta a diák (1-től számozva, a diák összes felsorolt tételét számolva).");
+  }
+  if (k.tipus === "nyilt_felsorolas") {
+    extra.push("NYÍLT FELSOROLÁS: ami a diák válaszában szakmailag helyes, de egyik elemnek sem felel meg, azt a \"kulcson_kivul\" tömbbe vedd fel.");
+  }
+  if (k.tipus === "tablazat") {
+    extra.push("TÁBLÁZAT: az elemek a cellák. Az idézet a diák adott cellába írt szövege legyen.");
+  }
+
+  return [fej, szigor, torzs, ...extra].join("\n");
+}
+
+/**
+ * Értékelés, szakmai változat. A modell elemenként státuszt, idézetet és
+ * pozíciót ad – pontot NEM: azt a kód számolja a tanár beállításai szerint.
+ *
+ * @param {object} feladat a feladat dokumentum (cim, rubrika)
+ * @param {object} kulcs kulcsEllenorzes() kimenete
+ * @param {Map<string,string>} valaszok valaszSzovegek() kimenete
+ * @param {string|null} kivonat a tananyag szövege, ha van
+ */
+function szakmaiErtekelesPrompt(feladat, kulcs, valaszok, kivonat) {
+  const tantargy = tantargya(feladat.rubrika);
+  const persona = tantargy
+    ? `Te egy tapasztalt szakmai tanár vagy, a tantárgy: ${tantargy}.`
+    : "Te egy tapasztalt szakmai tanár vagy.";
+
+  const valaszResz = kulcs.kerdesek
+    .map((k) => `## ${k.sorszam}. kérdés\n"""\n${valaszok.get(k.sorszam) || "(nincs válasz)"}\n"""`)
+    .join("\n\n");
+
+  const tananyagResz = kivonat
+    ? `
+# A TANANYAG
+Ebből tanultak a diákok. Ehhez mérd, mi számít szakmailag helyesnek –
+a téves állításokat és a kulcson kívüli tételeket is ez alapján ítéld meg,
+ne a saját általános tudásod alapján.
+"""
+${kivonat}
+"""
+`
+    : "";
+
+  return `${persona} Magyar szakképzős diák dolgozatát javítod,
+a tanár által jóváhagyott megoldókulcs alapján.
+
+# A FELADAT
+Cím: ${feladat.cim || "nincs megadva"}
+${tananyagResz}
+# A MEGOLDÓKULCS
+${kulcs.kerdesek.map(kerdesLeiras).join("\n\n")}
+
+# A DIÁK VÁLASZAI (kézírásból átírva)
+${valaszResz}
+
+# UTASÍTÁSOK
+1. Minden kérdésnél MINDEN kulcselemhez adj státuszt:
+   - "megvan": a diák leírta (a szakszó-szabály szerint);
+   - "reszben": részben, pontatlanul, vagy kétnyelvű kérdésnél csak az egyik nyelven;
+   - "hianyzik": nem írta le;
+   - "teves": az elemhez tartozó állítása szakmailag téves.
+2. A "megvan", "reszben" és "teves" elemeknél az "idezet" a diák
+   válaszának SZÓ SZERINTI részlete legyen, abból a kérdésből, amelyikhez
+   az elem tartozik. Ne javítsd, ne fogalmazd át – a rendszer visszakeresi,
+   és ha nem találja, az elem nem ér pontot.
+3. PONTOT NE ADJ: csak státuszt, idézetet és (sorrendnél) pozíciót. A
+   pontozást a rendszer végzi a tanár szabályai szerint.
+4. A helyesírási hibák NEM számítanak: "megvan" az elem, ha a szakszó
+   felismerhető. Az átiratban [?] jelöli az olvashatatlan részt, [...] a
+   levágott részt – ezekért ne büntess.
+5. A "hibak" tömbbe a szakmai hibákat vedd fel (tévedés, pontatlan
+   fogalom, hiányzó elem, rossz sorrend, hiányos kifejtés). Helyesírást ne.
+6. Kérdésenként a "visszajelzes" 1-2 mondat a tanárnak, magyarul.
+7. A "diak_szoveg" a diáknak szóló visszajelzés MAGYARUL: barátságos,
+   konstruktív, 2-4 bekezdés. Kezdd azzal, ami jól sikerült, és emeld ki a
+   2-3 legfontosabb hiányt. Ne írj bele pontszámot és jegyet.`;
+}
+
+module.exports = {
+  KERDES_TIPUSOK,
+  ELEM_STATUSZOK,
+  SORREND_MODOK,
+  SZAKSZO_MODOK,
+  KULCSON_KIVUL_MODOK,
+  SZAKMAI_HIBA_KATEGORIAK,
+  ALAP_BEALLITAS,
+  ALAP_PONTHATAROK,
+  KULCSON_KIVULI_TETEL_PONT,
+  SZAKMAI_ATIRAT_SCHEMA,
+  SZAKMAI_ERTEKELES_SCHEMA,
+  feladatMod,
+  szavak,
+  szoEgyezik,
+  idezetEllenorzes,
+  sorrendPontozas,
+  kerdesPontozas,
+  ponthatarokEllenorzes,
+  jegyJavaslat,
+  kulcsEllenorzes,
+  szoszedetGyujtes,
+  valaszSzovegek,
+  atiratOsszefuzes,
+  elemEllenorzes,
+  szakmaiErtekelesOsszeallitas,
+  szakmaiAtiratPrompt,
+  szakmaiErtekelesPrompt
+};

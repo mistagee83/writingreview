@@ -22,6 +22,7 @@ const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
 const { getStorage } = require("firebase-admin/storage");
 const logger = require("firebase-functions/logger");
+const szakmai = require("./szakmai");
 
 initializeApp();
 
@@ -786,6 +787,12 @@ async function feldolgozBeadas(beadasId) {
     frissitve: FieldValue.serverTimestamp()
   });
 
+  // Szakmai dolgozat: más átírás, más értékelés, a pontot a kód adja.
+  // A hiányzó mód a régi (íráskészség) útvonal – az változatlan.
+  if (szakmai.feladatMod(feladat.rubrika) === "szakmai") {
+    return await feldolgozSzakmai(firestore, beadasRef, feladatSnap.ref, feladat, kepPaths);
+  }
+
   // ── 1. lépés: átírás ──
   // Külön lépés, hogy a tanár lássa, mit olvasott ki az AI – e nélkül
   // nem lehet megállapítani, hogy a diák hibázott vagy az AI félreolvasott.
@@ -847,6 +854,109 @@ async function feldolgozBeadas(beadasId) {
 
   logger.info("Beadás kijavítva", { beadasId, osszpontszam, maxPontszam });
   return { osszpontszam, maxPontszam };
+}
+
+// ── SZAKMAI DOLGOZAT ──
+// Terv: docs/szakmai-mod-terv.md. A tiszta függvények a szakmai.js-ben.
+
+/** Egy tananyag kivonata legfeljebb ennyi karakter kerül a promptba. */
+const KIVONAT_MAX_KAR = 400000;
+
+/**
+ * A feladathoz választott tananyagok kivonata, címmel elválasztva.
+ * Hiányzó vagy még fel nem dolgozott tananyag nem hiba: a kulcs a tanár
+ * által jóváhagyott, a tananyag csak a téves állítások megítéléséhez kell.
+ */
+async function tananyagKivonat(firestore, tananyagIds) {
+  const idk = (Array.isArray(tananyagIds) ? tananyagIds : [])
+    .filter((id) => typeof id === "string" && id).slice(0, 10);
+  if (idk.length === 0) return null;
+
+  const snapok = await Promise.all(
+    idk.map((id) => firestore.collection("tananyagok").doc(id).get())
+  );
+  const reszek = snapok
+    .filter((s) => s.exists && s.data().kivonat)
+    .map((s) => `## ${s.data().cim || "Tananyag"}\n${s.data().kivonat}`);
+  if (reszek.length === 0) return null;
+  return reszek.join("\n\n").slice(0, KIVONAT_MAX_KAR);
+}
+
+async function feldolgozSzakmai(firestore, beadasRef, feladatRef, feladat, kepPaths) {
+  // A kulcs külön, csak tanári alkollekcióban van: a feladat dokumentumát
+  // a diák olvashatja, a kulcs viszont maga a megoldás.
+  const kulcsSnap = await feladatRef.collection("kulcs").doc("aktualis").get();
+  if (!kulcsSnap.exists) {
+    throw new Error("A feladathoz még nincs megoldókulcs – a tanár a feladat szerkesztésénél készítheti el.");
+  }
+  const kulcsAdat = kulcsSnap.data();
+  const kulcs = szakmai.kulcsEllenorzes(kulcsAdat);
+  const szoszedet = Array.isArray(kulcsAdat.szoszedet) && kulcsAdat.szoszedet.length
+    ? kulcsAdat.szoszedet.map(String)
+    : szakmai.szoszedetGyujtes(kulcs);
+
+  // ── 1. lépés: kérdésenkénti átírás ──
+  const kepek = await Promise.all(kepPaths.map(fajlBase64));
+  const { eredmeny: atiras, modell: atirasModell } = await geminiHivas(
+    "atiras",
+    [{ text: szakmai.szakmaiAtiratPrompt(kulcs, szoszedet) }, ...kepek],
+    szakmai.SZAKMAI_ATIRAT_SCHEMA
+  );
+
+  const atirat = szakmai.atiratOsszefuzes(atiras);
+  if (!atirat) throw new Error("Az átírás üres szöveget adott.");
+
+  await beadasRef.update({
+    atirat,
+    atirat_valaszok: (atiras.valaszok || []).map((v) => ({
+      kerdes: String(v.kerdes ?? ""),
+      valasz: String(v.valasz ?? ""),
+      bizonytalan: Array.isArray(v.bizonytalan) ? v.bizonytalan.map(String) : []
+    })),
+    atirat_tablazatok: (atiras.tablazatok || []).map((t) => ({
+      kerdes: String(t.kerdes ?? ""),
+      cellak: (t.cellak || []).map((c) => ({
+        sor: String(c.sor ?? ""), oszlop: String(c.oszlop ?? ""), ertek: String(c.ertek ?? "")
+      }))
+    })),
+    atirat_olvashatosag: atiras.olvashatosag || null,
+    atirat_megjegyzes: atiras.megjegyzes || null,
+    atirat_model: atirasModell,
+    frissitve: FieldValue.serverTimestamp()
+  });
+
+  // ── 2. lépés: értékelés – az AI státuszt ad, a pontot a kód ──
+  const valaszok = szakmai.valaszSzovegek(atiras);
+  const kivonat = await tananyagKivonat(firestore, feladat.tananyag_ids);
+  const { eredmeny: ai, modell: ertekelesModell } = await geminiHivas(
+    "ertekeles",
+    [{ text: szakmai.szakmaiErtekelesPrompt(feladat, kulcs, valaszok, kivonat) }],
+    szakmai.SZAKMAI_ERTEKELES_SCHEMA
+  );
+
+  const ertekeles = szakmai.szakmaiErtekelesOsszeallitas(
+    kulcs, ai, valaszok, feladat.rubrika?.ponthatarok
+  );
+
+  await beadasRef.collection("ertekeles").doc("ai").set({
+    ...ertekeles,
+    model: ertekelesModell,
+    atirat_model: atirasModell,
+    generalva: FieldValue.serverTimestamp()
+  });
+
+  await beadasRef.update({
+    statusz: "javitva",
+    frissitve: FieldValue.serverTimestamp()
+  });
+
+  logger.info("Szakmai beadás kijavítva", {
+    beadasId: beadasRef.id,
+    osszpontszam: ertekeles.osszpontszam,
+    maxPontszam: ertekeles.max_pontszam,
+    figyelmeztetes: ertekeles.figyelmeztetesek.length
+  });
+  return { osszpontszam: ertekeles.osszpontszam, maxPontszam: ertekeles.max_pontszam };
 }
 
 /** Hibakezelés: a státusz 'hiba' lesz, olvasható üzenettel. */
@@ -946,7 +1056,8 @@ function pontTablazat(ai, rubrika, modositasok) {
 
   const szempontok = (ai?.szempontok || []).map((sz) => {
     const max = Number(sz.max) || 0;
-    const cim = cimek[sz.kulcs] || sz.kulcs;
+    // Szakmai módban nincs rubrika-szempont: a címet az értékelés hozza.
+    const cim = cimek[sz.kulcs] || sz.cim || sz.kulcs;
     const m = modMap.get(sz.kulcs);
 
     let pont = Number(sz.pont) || 0;
@@ -1058,6 +1169,7 @@ exports._teszt = {
   rubrikaPrompt,
   rubrikaSchema,
   pontTablazat,
+  tananyagKivonat,
   nyelve,
   anyanyelvu,
   szintInfo,

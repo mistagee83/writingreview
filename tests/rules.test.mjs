@@ -435,6 +435,119 @@ test("az elemzést kliensről senki nem írhatja", async () => {
 });
 
 // ══════════════════════════════════════════
+// MEGOLDÓKULCS (szakmai dolgozat)
+// A feladatot a diák olvashatja – a kulcsot SOHA.
+// ══════════════════════════════════════════
+
+const KULCS = { kerdesek: [{ sorszam: "1", tipus: "zart_felsorolas", max_pont: 1,
+  elemek: [{ id: "e1", allitas: "Beszerzés", pont: 1 }] }] };
+
+async function kulcsotLetrehoz() {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "feladatok", FELADAT, "kulcs", "aktualis"), KULCS);
+  });
+}
+
+test("a tanár olvashatja és írhatja a saját feladata kulcsát", async () => {
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", FELADAT, "kulcs", "aktualis"), KULCS));
+  await assertSucceeds(getDoc(doc(tanar(), "feladatok", FELADAT, "kulcs", "aktualis")));
+});
+
+test("a DIÁK NEM olvashatja a kulcsot, pedig a feladatot igen", async () => {
+  await kulcsotLetrehoz();
+  await assertSucceeds(getDoc(doc(diak(), "feladatok", FELADAT)));
+  await assertFails(getDoc(doc(diak(), "feladatok", FELADAT, "kulcs", "aktualis")));
+  await assertFails(getDocs(collection(diak(), "feladatok", FELADAT, "kulcs")));
+});
+
+test("a diák NEM írhatja a kulcsot", async () => {
+  await assertFails(setDoc(doc(diak(), "feladatok", FELADAT, "kulcs", "aktualis"), KULCS));
+});
+
+test("idegen tanár NEM olvashatja és NEM írhatja a kulcsot", async () => {
+  await kulcsotLetrehoz();
+  await assertFails(getDoc(doc(tanar2(), "feladatok", FELADAT, "kulcs", "aktualis")));
+  await assertFails(setDoc(doc(tanar2(), "feladatok", FELADAT, "kulcs", "aktualis"), KULCS));
+});
+
+test("a feladat tananyag-listája szerkeszthető", async () => {
+  await assertSucceeds(updateDoc(doc(tanar(), "feladatok", FELADAT), { tananyag_ids: ["t1"] }));
+});
+
+// ══════════════════════════════════════════
+// TANANYAGTÁR
+// ══════════════════════════════════════════
+
+async function tananyagotLetrehoz(extra = {}) {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "tananyagok", "tananyag-1"), {
+      tanar_id: TANAR, megosztva: [], cim: "Beszerzés – jegyzet", tantargy: "kereskedelem",
+      fajlok: [], kivonat: "A beszerzés szakaszai...", letrehozva: new Date(), ...extra
+    });
+  });
+}
+
+test("a tulajdonos olvashatja és listázhatja a tananyagát", async () => {
+  await tananyagotLetrehoz();
+  await assertSucceeds(getDoc(doc(tanar(), "tananyagok", "tananyag-1")));
+  await assertSucceeds(getDocs(query(collection(tanar(), "tananyagok"), where("tanar_id", "==", TANAR))));
+});
+
+test("a vele megosztott kolléga olvashatja és listázhatja", async () => {
+  await tananyagotLetrehoz({ megosztva: [TANAR2] });
+  await assertSucceeds(getDoc(doc(tanar2(), "tananyagok", "tananyag-1")));
+  await assertSucceeds(getDocs(query(
+    collection(tanar2(), "tananyagok"), where("megosztva", "array-contains", TANAR2)
+  )));
+});
+
+test("a nem megosztott kolléga NEM olvashatja", async () => {
+  await tananyagotLetrehoz();
+  await assertFails(getDoc(doc(tanar2(), "tananyagok", "tananyag-1")));
+});
+
+test("megosztás mező nélkül is működik a szabály (a tulajdonos olvas, más nem)", async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "tananyagok", "tananyag-1"), { tanar_id: TANAR, cim: "x" });
+  });
+  await assertSucceeds(getDoc(doc(tanar(), "tananyagok", "tananyag-1")));
+  await assertFails(getDoc(doc(tanar2(), "tananyagok", "tananyag-1")));
+});
+
+test("a diák NEM olvashatja a tananyagot (akkor sem, ha a listán van)", async () => {
+  await tananyagotLetrehoz({ megosztva: [DIAK] });
+  await assertFails(getDoc(doc(diak(), "tananyagok", "tananyag-1")));
+});
+
+test("tananyagot kliensről senki nem hoz létre (a kivonat Function)", async () => {
+  await assertFails(setDoc(doc(tanar(), "tananyagok", "uj"), {
+    tanar_id: TANAR, cim: "x", tantargy: "y", fajlok: [], letrehozva: new Date()
+  }));
+});
+
+test("a tulajdonos átnevezheti, de a kivonatot és a megosztást NEM írhatja", async () => {
+  await tananyagotLetrehoz();
+  const ref = () => doc(tanar(), "tananyagok", "tananyag-1");
+  await assertSucceeds(updateDoc(ref(), { cim: "Új cím" }));
+  await assertFails(updateDoc(ref(), { kivonat: "hamis" }));
+  await assertFails(updateDoc(ref(), { megosztva: [TANAR2] }));
+  await assertFails(updateDoc(ref(), { cim: "" }));
+});
+
+test("a megosztott kolléga NEM szerkesztheti, NEM osztja tovább és NEM törölheti", async () => {
+  await tananyagotLetrehoz({ megosztva: [TANAR2] });
+  const ref = () => doc(tanar2(), "tananyagok", "tananyag-1");
+  await assertFails(updateDoc(ref(), { cim: "Átvett" }));
+  await assertFails(updateDoc(ref(), { megosztva: [TANAR2, DIAK] }));
+  await assertFails(deleteDoc(ref()));
+});
+
+test("a tulajdonos törölheti a tananyagát", async () => {
+  await tananyagotLetrehoz();
+  await assertSucceeds(deleteDoc(doc(tanar(), "tananyagok", "tananyag-1")));
+});
+
+// ══════════════════════════════════════════
 // RUBRIKA-SABLONOK
 // ══════════════════════════════════════════
 

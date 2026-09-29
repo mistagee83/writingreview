@@ -259,6 +259,17 @@ beadások után a tanár kézzel futtatja újra.
 *Későbbre:* több feladatot átfogó **haladásjelző** (javul-e az osztály
 időben). Külön modul, más query, más megjelenítés.
 
+### Szakmai dolgozat: `feladatok/{feladatId}/kulcs/aktualis`, `tananyagok/{tananyagId}`
+
+A szakmai mód (`rubrika.mod: 'szakmai'`) adatai – a teljes leírás a
+[szakmai-mod-terv.md](szakmai-mod-terv.md)-ben. Röviden:
+
+- **`kulcs/aktualis`** – a megoldókulcs. **Csak a feladat tanára** olvassa és
+  írja: a feladatot a diák olvashatja, a kulcs viszont maga a megoldás.
+- **`tananyagok/{id}`** – a tanár tananyagtára. A tulajdonos és a
+  `megosztva` listán lévő tanárok olvassák. Létrehozni csak Function tud; a
+  kliens csak a `cim`-et írhatja át.
+
 ### `rubrikak/{sablonId}`
 
 A tanár elmentett értékelési sablonjai, hogy ne kelljen minden
@@ -377,6 +388,7 @@ oldala a rubrika maximumait mutatja, ahogy korábban.
 ```
 feladatlapok/{tanarUid}/{fajl}          – feladatlap kép/PDF
 beadasok/{diakUid}/{beadasId}/{fajl}    – dolgozatfotók
+tananyagok/{tanarUid}/{fajl}            – tananyag PDF/kép (szakmai mód), csak a tulajdonos
 ```
 
 - A feladatlapot a diák a dokumentumban tárolt tokenes letöltési URL-lel

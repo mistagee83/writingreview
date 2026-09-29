@@ -59,6 +59,22 @@ service firebase.storage {
     }
 
     // ══════════════════════════════════════════
+    // TANANYAGOK (szakmai dolgozat)
+    // Csak a tulajdonos: a vele megosztott kolléga a Firestore-beli
+    // kivonatot használja, a fájlt nem tölti le.
+    // ══════════════════════════════════════════
+    match /tananyagok/{tanarUid}/{fajl} {
+      allow read: if tanar() && request.auth.uid == tanarUid;
+
+      allow create: if tanar()
+        && request.auth.uid == tanarUid
+        && kepVagyPdf()
+        && maxTizMega();
+
+      allow update, delete: if false;
+    }
+
+    // ══════════════════════════════════════════
     // DOLGOZATFOTÓK
     // ══════════════════════════════════════════
     match /beadasok/{diakUid}/{beadasId}/{fajl} {

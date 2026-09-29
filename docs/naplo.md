@@ -20,7 +20,7 @@ jóváhagyás → osztályszintű elemzés.
 | Élő cím | https://writingreview-41e59.web.app |
 | Firebase projekt | `writingreview-41e59` (Firestore: `eur3`, functions: `europe-west1`) |
 | GitHub | https://github.com/mistagee83/writingreview (privát) |
-| Kód | ~10800 sor, 12 oldal, 11 Cloud Function, 221 teszt |
+| Kód | ~10800 sor, 12 oldal, 11 Cloud Function, 282 teszt |
 | Futtatókörnyezet | Node 24 (a 20-at 2026-10-30-án kikapcsolják) |
 | Modell | `gemini-3.8-flash` mind a négy AI-lépésben |
 
@@ -72,6 +72,13 @@ jóváhagyás → osztályszintű elemzés.
 
     Nyitott modálnál a gomb először a modált zárja (a lap saját bezáró
     gombját nyomja meg, hogy a takarítás is lefusson).
+
+### Folyamatban: szakmai dolgozat mód
+
+Terv és állapot: [szakmai-mod-terv.md](szakmai-mod-terv.md). Az 1. fázis
+(pontozó mag, szakmai átírás és értékelés, szabályok) kész, de felület
+még nincs hozzá, ezért élesben semmi nem változik. A meglévő
+íráskészség-útvonal érintetlen: a `rubrika.mod` hiánya = `iras`.
 
 ---
 

@@ -246,3 +246,21 @@ test("profil nélküli felhasználó is csatlakozhat, 'Névtelen' néven", async
   ).data();
   assert.equal(tag.nev, "Névtelen");
 });
+
+// ══════════════════════════════════════════
+// TANANYAG-KIVONAT (szakmai dolgozat)
+// ══════════════════════════════════════════
+
+test("a tananyag-kivonat címmel összefűzve; a hiányzó és feldolgozatlan kimarad", async () => {
+  const t = firestore.collection("tananyagok");
+  await t.doc("t-kesz").set({ cim: "Beszerzés", kivonat: "A beszerzés szakaszai: igényfelmérés..." });
+  await t.doc("t-feldolgozatlan").set({ cim: "Friss feltöltés" });
+
+  const k = await logika.tananyagKivonat(firestore, ["t-kesz", "t-feldolgozatlan", "t-nincs", 42]);
+  assert.equal(k, "## Beszerzés\nA beszerzés szakaszai: igényfelmérés...");
+
+  assert.equal(await logika.tananyagKivonat(firestore, ["t-feldolgozatlan"]), null);
+  assert.equal(await logika.tananyagKivonat(firestore, undefined), null);
+
+  await Promise.all([t.doc("t-kesz").delete(), t.doc("t-feldolgozatlan").delete()]);
+});

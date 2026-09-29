@@ -151,9 +151,22 @@ service cloud.firestore {
 
       allow update: if tanar()
         && resource.data.tanar_id == request.auth.uid
-        && csakEzekValtoznak(['cim', 'aktiv', 'hatarido', 'rubrika']);
+        && csakEzekValtoznak(['cim', 'aktiv', 'hatarido', 'rubrika', 'tananyag_ids']);
 
       allow delete: if tanar() && resource.data.tanar_id == request.auth.uid;
+
+      // ── MEGOLDÓKULCS (szakmai dolgozat) ──
+      // A feladat dokumentumát a diák olvashatja, a kulcs viszont maga a
+      // megoldás – ezért alkollekció: a szabályok mező szinten nem
+      // szűrnek. A diák a helyes válaszokat csak a saját, jóváhagyott
+      // ertekeles/tanari dokumentumában látja.
+      // A belső szerkezetet a Function ellenőrzi (kulcsEllenorzes)
+      // minden használat előtt.
+      match /kulcs/{docId} {
+        allow read, write: if tanar()
+          && get(/databases/$(database)/documents/feladatok/$(feladatId))
+               .data.tanar_id == request.auth.uid;
+      }
 
       // ── OSZTÁLYSZINTŰ ELEMZÉS ──
       // A feladat maga látható a diákoknak, az elemzés NEM: benne van az
@@ -192,6 +205,35 @@ service cloud.firestore {
         && resource.data.tanar_id == request.auth.uid
         && request.resource.data.tanar_id == resource.data.tanar_id
         && csakEzekValtoznak(['nev', 'rubrika', 'frissitve']);
+
+      allow delete: if tanar() && resource.data.tanar_id == request.auth.uid;
+    }
+
+    // ══════════════════════════════════════════
+    // TANANYAGTÁR (szakmai dolgozat)
+    //
+    // A tulajdonos és a vele megosztott kollégák olvashatják. Létrehozni
+    // és a kivonatot, megosztást írni csak Function tud: a kivonat a
+    // feltöltéskor egy Gemini-hívással készül, a megosztás pedig e-mail-
+    // címből tanári uid-ot keres. A kliens csak a címet szerkesztheti.
+    // ══════════════════════════════════════════
+    match /tananyagok/{tananyagId} {
+      function olvashatja() {
+        return tanar()
+          && (resource.data.tanar_id == request.auth.uid
+              || request.auth.uid in resource.data.get('megosztva', []));
+      }
+
+      allow get, list: if olvashatja();
+
+      allow create: if false;
+
+      allow update: if tanar()
+        && resource.data.tanar_id == request.auth.uid
+        && csakEzekValtoznak(['cim'])
+        && request.resource.data.cim is string
+        && request.resource.data.cim.size() > 0
+        && request.resource.data.cim.size() <= 200;
 
       allow delete: if tanar() && resource.data.tanar_id == request.auth.uid;
     }
