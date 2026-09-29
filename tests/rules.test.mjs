@@ -257,6 +257,46 @@ test("a tanár létrehozhat feladatot a saját osztályába", async () => {
   );
 });
 
+// A feladatlap (kép/PDF) NEM kötelező: a tanár magától is összeállíthat
+// feladatot. Ilyenkor a mező nem kerül a dokumentumba – pontosan ezt
+// írja az oldal, ezért pontosan ezt a dokumentumot próbáljuk.
+test("a tanár létrehozhat feladatot feladatlap NÉLKÜL is", async () => {
+  await assertSucceeds(
+    setDoc(doc(tanar(), "feladatok", "kezi-feladat"), {
+      osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Saját feladat",
+      aktiv: true, hatarido: null, rubrika: { tipus: "esszé" },
+      letrehozva: new Date()
+    })
+  );
+});
+
+test("a feladatlap nélküli feladatot a diák is olvashatja", async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "feladatok", "kezi-feladat"), {
+      osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Saját feladat",
+      aktiv: true, hatarido: null, rubrika: { tipus: "esszé" },
+      letrehozva: new Date()
+    });
+  });
+  await assertSucceeds(getDoc(doc(diak(), "feladatok", "kezi-feladat")));
+});
+
+test("a feladatlap nélküli feladat szerkeszthető", async () => {
+  // Szerkesztésnél a mentés csak a cím / határidő / rubrika mezőt írja.
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "feladatok", "kezi-feladat"), {
+      osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Saját feladat",
+      aktiv: true, hatarido: null, rubrika: { tipus: "esszé" },
+      letrehozva: new Date()
+    });
+  });
+  await assertSucceeds(
+    updateDoc(doc(tanar(), "feladatok", "kezi-feladat"), {
+      cim: "Átírt cím", hatarido: null, rubrika: { tipus: "levél" }
+    })
+  );
+});
+
 test("a tanár NEM hozhat létre feladatot más osztályába", async () => {
   await assertFails(
     setDoc(doc(tanar2(), "feladatok", "uj-feladat"), {

@@ -132,7 +132,7 @@ A csatlakozás és a kódgenerálás ezen keresztül tranzakciós, így nincs
 | `hatarido` | timestamp \| null | |
 | `aktiv` | bool | |
 | `rubrika` | map | lásd alább |
-| `feladatlap` | map | `{ path, url }` |
+| `feladatlap` | map | `{ path, url }` – **opcionális**: ha a tanár nem töltött fel képet/PDF-et, a mező nem létezik (nem `null`, nem üres map) |
 | `letrehozva` | timestamp | |
 
 **`rubrika`** – ez váltja a régi `javito_prompt` szabadszöveget:

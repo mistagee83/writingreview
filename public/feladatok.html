@@ -33,7 +33,7 @@
     <div class="page-header split">
       <div>
         <h1>Feladatok</h1>
-        <p>Töltsd fel a feladatlapot – az AI kitölti a rubrikát, te pedig jóváhagyod</p>
+        <p>Adj ki új feladatot. Ha feltöltesz feladatlapot, az AI kitölti a rubrikát – de kézzel is megadhatod.</p>
       </div>
       <button class="btn-primary" id="btn-panel">
         <span id="panel-ikon">＋</span> Új feladat
@@ -77,12 +77,13 @@
         </div>
 
         <div class="form-group">
-          <label>Feladatlap (kép vagy PDF)</label>
+          <label>Feladatlap (kép vagy PDF, nem kötelező)</label>
           <div class="upload-zone" id="upload-zone">
             <input type="file" id="f-fajl" accept="image/*,.pdf" />
             <div class="upload-icon">📄</div>
             <p><strong>Kattints ide</strong> vagy húzd ide a fájlt</p>
             <p>JPG, PNG, PDF – max. 10MB</p>
+            <p>Feltöltés nélkül a rubrikát kézzel add meg – ilyenkor nem indul AI-elemzés.</p>
           </div>
           <div class="upload-preview" id="upload-preview">
             <span>✅</span><span id="upload-nev">–</span>
@@ -732,7 +733,6 @@
 
     if (!osztalyId) { uzenet('form-msg', 'Válassz osztályt!'); return; }
     if (!cim) { uzenet('form-msg', 'Add meg a feladat címét!'); return; }
-    if (!fajlPath) { uzenet('form-msg', 'Töltsd fel a feladatlapot!'); return; }
     if (szempontok.length === 0) { uzenet('form-msg', 'Legalább egy szempont kell.'); return; }
     if (sulyOsszeg <= 0) {
       uzenet('form-msg', 'Adj pontot legalább egy szempontnak.');
@@ -750,9 +750,6 @@
 
     const vissza = gombVar(e.target, 'Mentés...');
     try {
-      // Változatlan fájlnál az URL már megvan; új feltöltésnél lekérjük
-      const url = fajlUrl || await getDownloadURL(storageRef(storage, fajlPath));
-
       const rubrika = {
         ...rubrikaBeolvas(),
         // A feladat leírása nem része a sablonnak – itt adjuk hozzá
@@ -773,16 +770,27 @@
           'ha az új rubrikával akarod őket, a Javítási sorban futtasd újra.',
           'success');
       } else {
-        await addDoc(collection(db, 'feladatok'), {
+        const feladat = {
           osztaly_id: osztalyId,
           tanar_id: user.uid,
           cim,
           hatarido,
           aktiv: true,
           rubrika,
-          feladatlap: { path: fajlPath, url },
           letrehozva: serverTimestamp()
-        });
+        };
+
+        // A feladatlap NEM kötelező. Ha nincs, a mező egyszerűen nem
+        // kerül a dokumentumba: egy { path: null, url: undefined } a
+        // Firestore-ban hibát dobna, egy üres map pedig azt sugallná,
+        // hogy van feladatlap. A diák oldala (beadas.html) ?.-vel olvassa.
+        if (fajlPath) {
+          // Változatlan fájlnál az URL már megvan; új feltöltésnél lekérjük
+          const url = fajlUrl || await getDownloadURL(storageRef(storage, fajlPath));
+          feladat.feladatlap = { path: fajlPath, url };
+        }
+
+        await addDoc(collection(db, 'feladatok'), feladat);
         uzenet('form-msg',
           mod === 'kiadas'
             ? `Kiadva a(z) "${osztalyNevek[osztalyId]}" osztálynak.`
@@ -903,7 +911,8 @@
         // jellemzően más – ezt ne vegye át csendben.
         document.getElementById('f-hatarido').value = '';
         uzenet('form-msg',
-          'Válassz osztályt és adj új határidőt. A feladatlap és a rubrika átvéve.',
+          'Válassz osztályt és adj új határidőt. ' +
+          (fajlPath ? 'A feladatlap és a rubrika átvéve.' : 'A rubrika átvéve.'),
           'success');
       }
       return;

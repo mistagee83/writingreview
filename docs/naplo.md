@@ -251,6 +251,15 @@ komment nélküli kódon kell futnia (`kodCsak`).
 teszt `while` ciklusa körnél végtelenségig futott, és a tesztfájl
 lefagyott megállás helyett. Minden bejárás legyen korlátos.
 
+**Egy követelmény több helyen él, és a szöveg elmehet a kód mellett.**
+A feladatlap-feltöltés „nem kötelező" volt a bemutatóban, miközben a
+mentés kikényszerítette – és a kód három helyen feltételezte a fájlt
+(a mentés ellenőrzése, a `getDownloadURL(storageRef(…, null))`
+szerkesztésnél, és a Firestore-ba írt `undefined`). Ezért van egy teszt,
+ami a SZÖVEGET köti a kódhoz (`tests/feladatlap-opcionalis.test.mjs`).
+Ha a felületen új ígéret jelenik meg („nem kötelező", „automatikus"),
+tegyél mellé ilyen tesztet.
+
 **A PWA-ból minden CSENDBEN romlik el.** Ha egy ikon átnevezésre
 kerül, a telepítés egyszerűen nem ajánlódik fel – hibaüzenet nincs. Ha a
 `sw.js` a hashelt könyvtárba kerülne, a böngésző nem találná, és soha nem
