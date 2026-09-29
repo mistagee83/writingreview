@@ -20,7 +20,7 @@ jóváhagyás → osztályszintű elemzés.
 | Élő cím | https://writingreview-41e59.web.app |
 | Firebase projekt | `writingreview-41e59` (Firestore: `eur3`, functions: `europe-west1`) |
 | GitHub | https://github.com/mistagee83/writingreview (privát) |
-| Kód | ~10800 sor, 12 oldal, 12 Cloud Function, 286 teszt |
+| Kód | ~10800 sor, 12 oldal, 12 Cloud Function, 296 teszt |
 | Futtatókörnyezet | Node 24 (a 20-at 2026-10-30-án kikapcsolják) |
 | Modell | `gemini-3.8-flash` mind a négy AI-lépésben |
 
@@ -78,10 +78,10 @@ jóváhagyás → osztályszintű elemzés.
 Terv és állapot: [kifejtos-mod-terv.md](kifejtos-mod-terv.md). A feladat
 fajtája: **Fogalmazás** (a régi útvonal, `iras`) vagy **Kifejtős kérdések**
 (`kifejtos` – több rövid kérdés, megoldókulcs szerint, bármilyen tárgyból).
-Az 1. fázis (pontozó mag, átírás, értékelés, szabályok) és a 2. fázis
-(feladatlap + tananyag → egy gombbal kulcs → mentés) kész. A javító nézet
-és a diák visszajelzése még a régi, szempontos formában mutatja az
-eredményt (3. fázis). A fogalmazás-útvonal érintetlen: a `rubrika.mod`
+Az 1–3. fázis kész: pontozó mag; feladatlap + tananyag → egy gombbal
+kulcs → mentés; kérdésenkénti javító nézet elemenkénti felülírással; a
+diák kérdésenként látja, mit írt jól és mi lett volna a helyes. Hátra van
+az elemenkénti hiányarány az osztályszintű elemzésben (4. fázis). A fogalmazás-útvonal érintetlen: a `rubrika.mod`
 hiánya = `iras`.
 
 A 2. fázis első változata (tananyagtár, próbajavítás, „szakmai” név) túl

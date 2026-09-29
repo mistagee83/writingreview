@@ -1,10 +1,10 @@
 # WritingReview – kifejtős kérdéseket tartalmazó dolgozat (terv)
 
-Állapot: **az 1. és a 2. fázis kész, 2026-09-29; nincs még telepítve.** A
-tanár létrehozhat kifejtős dolgozatot (feladatlap + tananyag → kulcs →
-mentés), és a beadások javítása lefut. A javító nézet és a diák
-visszajelzése (3. fázis) még a régi, szempontos formában mutatja az
-eredményt.
+Állapot: **az 1–3. fázis kész, 2026-09-29.** A tanár létrehozhat kifejtős
+dolgozatot (feladatlap + tananyag → kulcs → mentés), a beadások javítása
+lefut, a javító nézetben kérdésenként, elemenként ellenőrizhet és
+felülírhat, a diák pedig kérdésenkénti visszajelzést kap. Hátra van: az
+elemenkénti hiányarány az osztályszintű elemzésben (4. fázis).
 
 Készült 2026-09-28-án „szakmai dolgozat mód” néven, egy valódi mintacsomag
 (3 szkennelt oldal: kereskedelem, marketing, pénztörténet) és két
@@ -21,6 +21,7 @@ Hol van a kód:
   (`node scripts/kifejtos-kliens.mjs`, a build is lefuttatja; drift-teszt
   ellenőrzi). Kézzel nem szerkesztendő;
 - `public/js/kifejtos-urlap.js` – a feladat-űrlap kulcs része;
+- `public/js/kifejtos-javitas.js` – a javító nézet kérdésenkénti része;
 - `tests/kifejtos.test.mjs` – benne a minta regressziós esete (8/13 → 3-as).
 
 ## Cél
@@ -208,23 +209,42 @@ Hibakategóriák (módonként külön enum): `hianyzo_elem`, `tartalmi_tevedes`,
 `pontatlan_fogalom`, `sorrend`, `hianyos_kifejtes`. Helyesírásért **nincs**
 hibabejegyzés és levonás.
 
-### `beadasok/{beadasId}/ertekeles/tanari` – bővítés (3. fázis)
+### `beadasok/{beadasId}/ertekeles/tanari` – bővítés
 
-A jóváhagyáskor (`visszajelzesJovahagyas`) a Function ide másolja a
-kérdésenkénti eredményt **a kulcs szövegével együtt** – ezt látja a diák:
+A jóváhagyáskor (`visszajelzesJovahagyas`) a Function ide írja a
+kérdésenkénti eredményt – ezt látja a diák. A kliens **csak a tanár
+döntéseit** küldi (`kerdesek: [{ sorszam, elemek: [{id, statusz}],
+kulcson_kivul: [{index, elfogadva}] }]`), pontot nem; a pontot a Function
+számolja a kulcsból a `kifejtosTanariEredmeny()`-nyel – ugyanazzal, amivel
+a javító nézet élőben mutatja.
 
 ```js
-kerdesek: [{
-  sorszam: '3', pont: 1, max: 5,
-  elemek: [
-    { allitas: 'Igényfelmérés', statusz: 'megvan', idezet: 'igényfelmérés' },
-    { allitas: 'Megrendelés', statusz: 'hianyzik' }
-  ]
-}]
+{
+  jegy, szoveg, tanar_id, jovahagyva_at,
+  mod: 'kifejtos',
+  helyes_valaszok_lathatok: true,
+  kerdesek: [{
+    sorszam: '3', szoveg: 'Írd le…', pont: 1, max: 5,
+    valasztott: null,               // választós kérdésnél az ág címe
+    sorrend: 'pozicio',             // csak ha a sorrend számított
+    elemek: [
+      { id: 'e1', allitas: 'Igényfelmérés', statusz: 'megvan', idezet: 'igényfelmérés', pont: 1 },
+      { id: 'e3', allitas: 'Szállító kiválasztása', statusz: 'megvan', idezet: '…', pont: 0,
+        rossz_helyen: true },       // leírta, de a sorrend-szabály szerint nincs a helyén
+      { id: 'e4', allitas: 'Megrendelés', statusz: 'hianyzik', idezet: null, pont: 0,
+        tanar_modositotta: true }   // a tanár felülírta az AI döntését
+    ],
+    kulcson_kivul: [{ idezet: 'jó a reklámja', elfogadva: true }]
+  }],
+  szempontok: [...],                // kompatibilitás (javítási sor, elemzés)
+  osszpontszam, max_pontszam, szazalek, javasolt_jegy
+}
 ```
 
-A másolat a **tanár által felülírt** státuszokat tartalmazza. Ha a
-`helyes_valaszok_lathatok` ki van kapcsolva, az `allitas` nem másolódik át.
+Ha a `helyes_valaszok_lathatok` ki van kapcsolva, az `allitas` **nem kerül
+a dokumentumba** – a diák csak a saját szavait és a pontokat látja, a
+hiányzó elemeket egyáltalán nem. Az idézet csak akkor megy ki, ha az
+ellenőrzésen átment (hallucinált idézet a diákhoz sem jut el).
 
 ### Storage
 
@@ -335,20 +355,21 @@ egyszer sem kerültek be.
   ha volt tananyag); kérdésenkénti beállítások; tantárgy, ponthatárok, „lássa
   a diák a helyes válaszokat”.
 
-**`beadas.html`** (diák, 3. fázis): fotózási tanács – a teljes lap legyen a
-képen, a szélek is.
+**`beadas.html`** (diák): fotózási tanács – a teljes lap legyen a képen, a
+szélek is; a hátoldalt is le kell fotózni, ha oda folytatódik a válasz.
 
-**`javitas.html`** (3. fázis) – **itt történik az ellenőrzés**:
-- kérdésenként a diák válasza, alatta az elemek ✓ / ½ / ✗ jelöléssel és a
-  kiemelt idézettel;
-- a tanár kattintással felülírhat egy elemstátuszt – a pont a kliensen
-  újraszámolódik ugyanazzal a függvénnyel (`public/js/kifejtos.js`);
-- kulcson kívüli tételek: elfogad / elutasít;
-- a jegy legördülő a `javasolt_jegy`-gyel előtöltve.
+**`javitas.html`** – **itt történik az ellenőrzés**:
+- kérdésenként a diák válasza, alatta a kulcs elemei ✓ / ½ / ✕ / téves
+  gombokkal (az AI döntése előre bejelölve) és a diák szavaival (idézet);
+- ⚠ ha az AI idézete nincs a válaszban; „AI: ✓” ha a tanár felülírta;
+  „↕ nem a helyén” sorrendes kérdésnél, a szabály szövegével;
+- a pont és a jegyjavaslat élőben számolódik (`kifejtosTanariEredmeny`);
+  a jegy a javaslattal töltődik elő, amíg a tanár maga nem választ;
+- kulcson kívüli tételek: elfogad / nem.
 
-**`visszajelzes.html`** (diák, 3. fázis): kérdésenként a pont, elemenként ✓
-amit jól írt, ½ amit részben (mellette a helyes kifejezés), ✗ ami hiányzott
-vagy téves – **mi lett volna a helyes**.
+**`visszajelzes.html`** (diák): kérdésenként a pont, elemenként ✓ amit jól
+írt, ½ amit részben, ✕ ami hiányzott vagy téves – **„Helyesen: …”** mellette,
+és „Te: …” a saját szavaival; ↕ ha jó, de nem a helyén.
 
 **`elemzes.html`**: most a `szempontok` kompatibilitási mezőn át
 kérdésenkénti átlag. Később: **elemenkénti hiányarány** („az osztály 70%-a
@@ -374,8 +395,9 @@ kihagyta a megrendelést”).
    értékelés; szabályok.
 2. **Kulcs és űrlap** – ✅ 2026-09-29: `kulcsKeszites`, az egyszerűsített
    `feladatok.html` űrlap, a generált böngészős pontozó modul.
-3. **Javítás és visszajelzés**: kérdésenkénti javító nézet, felülírás,
-   jegyjavaslat; a helyes válaszok a diák visszajelzésében; fotózási tanács.
+3. **Javítás és visszajelzés** – ✅ 2026-09-29: kérdésenkénti javító nézet,
+   felülírás, élő pont és jegyjavaslat; a helyes válaszok a diák
+   visszajelzésében; fotózási tanács.
 4. **Elemzés**: elemenkénti hiányarány az osztályszintű elemzésben.
 
 A mintadokumentumok **nem kerülnek a repóba** (`tests/dolgozatok/` a

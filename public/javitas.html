@@ -62,6 +62,7 @@
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { statuszBadge, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { kifejtosJavitas } from './js/kifejtos-javitas.js';
   import {
     db, storage, functions, httpsCallable,
     collection, doc, getDoc, getDocs,
@@ -245,10 +246,20 @@
       const tanariSnap = await getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'tanari'));
       const tanari = tanariSnap.exists() ? tanariSnap.data() : null;
 
+      // Kifejtős dolgozat: kérdésenkénti javítás a megoldókulcs szerint.
+      // A kulcs csak a tanárnak olvasható alkollekcióban van.
+      const kifejtosMod = ai?.mod === 'kifejtos';
+      let kulcsAdat = null;
+      if (kifejtosMod) {
+        const ks = await getDoc(doc(db, 'feladatok', b.feladat_id, 'kulcs', 'aktualis')).catch(() => null);
+        kulcsAdat = ks?.exists() ? ks.data() : null;
+      }
+
       // A diáknak kimenő pontozás: a már elküldött változat, különben az
       // AI javaslata. A címek a feladat rubrikájából jönnek.
       const cimek = Object.fromEntries((f?.rubrika?.szempontok || []).map((sz) => [sz.kulcs, sz.cim]));
-      const pontSorok = (tanari?.szempontok?.length ? tanari.szempontok : (ai?.szempontok || []))
+      // Kifejtősnél nincs szempontonkénti pontmező: ott elemenként dönt a tanár.
+      const pontSorok = kifejtosMod ? [] : (tanari?.szempontok?.length ? tanari.szempontok : (ai?.szempontok || []))
         .map((sz) => ({ ...sz, cim: sz.cim || cimek[sz.kulcs] || sz.kulcs }));
 
       // Dolgozatfotók
@@ -276,7 +287,23 @@
           ${b.atirat_megjegyzes ? `<p class="halvany">${esc(b.atirat_megjegyzes)}</p>` : ''}
         </div>
 
-        ${ai ? `
+        ${kifejtosMod ? `
+        <div class="m-szekcio">
+          <h4>📝 Kérdésenként <span class="badge javitva" id="kf-ossz"></span></h4>
+          <p class="halvany">Az AI döntése előre be van jelölve. Ha nem értesz egyet, kattints a
+            megfelelőre – a pont azonnal újraszámolódik. A diák a te döntésedet látja.</p>
+          <div id="kf-javitas">${kulcsAdat ? '' : '<p class="hiba-szoveg">A feladat megoldókulcsa nem található – a kérdésenkénti javítás nem jeleníthető meg.</p>'}</div>
+          ${(ai.hibak || []).length ? `
+          <h4 style="margin-top:1.2rem;">Tartalmi hibák (${ai.hibak.length})</h4>
+          <div class="hiba-lista">
+            ${ai.hibak.map((h) => `
+              <div class="hiba-elem">
+                <span class="badge inaktiv">${esc(h.kategoria)}${h.kerdes ? ` · ${esc(h.kerdes)}. kérdés` : ''}</span>
+                <div>${esc(h.idezet)}${h.javaslat ? ` → <strong>${esc(h.javaslat)}</strong>` : ''}</div>
+                <p class="halvany">${esc(h.magyarazat)}</p>
+              </div>`).join('')}
+          </div>` : ''}
+        </div>` : ai ? `
         <div class="m-szekcio">
           <h4>🤖 AI értékelés
             <span class="badge javitva">${ai.osszpontszam}/${ai.max_pontszam} pont${ai.szazalek != null ? ` · ${ai.szazalek}%` : ''}</span>
@@ -296,7 +323,7 @@
           <div class="hiba-lista">
             ${ai.hibak.map((h) => `
               <div class="hiba-elem">
-                <span class="badge inaktiv">${esc(h.kategoria)} · ${esc(h.tipus)}</span>
+                <span class="badge inaktiv">${esc(h.kategoria)}${h.tipus && h.tipus !== h.kategoria ? ` · ${esc(h.tipus)}` : ''}${h.kerdes ? ` · ${esc(h.kerdes)}. kérdés` : ''}</span>
                 <div><s>${esc(h.idezet)}</s> → <strong>${esc(h.javaslat)}</strong></div>
                 <p class="halvany">${esc(h.magyarazat)}</p>
               </div>`).join('')}
@@ -339,7 +366,7 @@
             </div>
           </div>` : ''}
           <div class="form-group">
-            <label for="m-jegy">Jegy (nem kötelező)</label>
+            <label for="m-jegy">Jegy (nem kötelező) <span id="m-jegy-javaslat" class="halvany"></span></label>
             <select id="m-jegy">
               <option value="">– nincs jegy –</option>
               <option value="5">5</option><option value="4">4</option>
@@ -361,6 +388,33 @@
       // Előtöltés: a már jóváhagyott szöveg, különben az AI javaslata
       document.getElementById('m-szoveg').value = tanari?.szoveg || ai?.diak_szoveg || '';
       if (tanari?.jegy) document.getElementById('m-jegy').value = String(tanari.jegy);
+
+      // ── Kifejtős: kérdésenkénti javítás, élő pont és jegyjavaslat ──
+      // A jegyet csak addig töltjük elő a javaslattal, amíg a tanár nem
+      // választott maga – utána az ő döntése marad.
+      let kf = null;
+      if (kifejtosMod && kulcsAdat) {
+        const jegyEl = document.getElementById('m-jegy');
+        let jegyKezzel = Boolean(tanari?.jegy);
+        jegyEl.addEventListener('change', () => { jegyKezzel = true; });
+        try {
+          kf = kifejtosJavitas({
+            el: document.getElementById('kf-javitas'),
+            beadas: b, ai, kulcsAdat, feladat: f, tanari,
+            onValtozas: (e) => {
+              document.getElementById('kf-ossz').textContent =
+                `${e.osszpontszam}/${e.max_pontszam} pont${e.szazalek != null ? ` · ${e.szazalek}%` : ''}`;
+              document.getElementById('m-jegy-javaslat').textContent =
+                e.javasolt_jegy ? `– javasolt: ${e.javasolt_jegy}` : '';
+              if (!jegyKezzel && e.javasolt_jegy) jegyEl.value = String(e.javasolt_jegy);
+            }
+          });
+        } catch (err) {
+          console.error(err);
+          document.getElementById('kf-javitas').innerHTML =
+            `<p class="hiba-szoveg">A megoldókulcs nem használható: ${esc(err.message)}</p>`;
+        }
+      }
 
       // Élő összeg a pontmezőkből – ugyanígy számol a szerver is
       const osszFrissit = () => {
@@ -398,13 +452,22 @@
           return;
         }
 
+        if (kifejtosMod && !kf) {
+          uzenet('m-msg', 'A megoldókulcs nélkül ez a kifejtős dolgozat nem küldhető el.');
+          return;
+        }
+
         const vissza = gombVar(ev.target, 'Küldés...');
         try {
           await visszajelzesJovahagyas({
             beadasId,
             jegy: jegyStr ? Number(jegyStr) : null,
             szoveg,
-            szempontok: szempontok.map((sz) => ({ ...sz, pont: Number(sz.pont) }))
+            // Kifejtősnél csak a tanár döntései mennek – a pontot a szerver
+            // számolja a kulcsból, ugyanazzal a függvénnyel.
+            ...(kf
+              ? { kerdesek: kf.modositasok() }
+              : { szempontok: szempontok.map((sz) => ({ ...sz, pont: Number(sz.pont) })) })
           });
           uzenet('m-msg', 'Elküldve – a diák már látja.', 'success');
         } catch (err) {

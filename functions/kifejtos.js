@@ -575,6 +575,120 @@ function kifejtosErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
 }
 
 // ══════════════════════════════════════════════════════
+// A TANÁR JÓVÁHAGYÁSA
+// Az AI-értékelés + a tanár felülírásai → amit a diák lát.
+// A szerver (visszajelzesJovahagyas) ezzel ír, a javító nézet ezzel mutat
+// élő pontszámot – ugyanaz a függvény, tehát nem csúszhatnak el.
+// ══════════════════════════════════════════════════════
+
+/**
+ * A kliens a PONTOT nem küldheti el, csak elemstátuszt és a kulcson kívüli
+ * tételek elfogadását – a pontot mindig ez a függvény számolja a kulcsból.
+ *
+ * @param {object} kulcs kulcsEllenorzes() kimenete
+ * @param {object} ai az ertekeles/ai dokumentum (kifejtős)
+ * @param {Array<{sorszam, elemek?: {id, statusz}[], kulcson_kivul?: {index, elfogadva}[]}>} [modositasok]
+ * @param {{ponthatarok?: object, helyesLathato?: boolean}} [opciok]
+ */
+function kifejtosTanariEredmeny(kulcs, ai, modositasok, opciok = {}) {
+  const helyesLathato = opciok.helyesLathato !== false;
+  const aiKerdesek = new Map((ai?.kerdesek || []).map((k) => [String(k.sorszam), k]));
+  const modMap = new Map(
+    (Array.isArray(modositasok) ? modositasok : [])
+      .filter((m) => m && m.sorszam != null)
+      .map((m) => [String(m.sorszam), m])
+  );
+
+  const kerdesek = kulcs.kerdesek.map((kk) => {
+    const ak = aiKerdesek.get(kk.sorszam) || {};
+    const m = modMap.get(kk.sorszam);
+
+    // A kulcs az irány: ha azóta változott, a hiányzó elem "hianyzik".
+    const ag = kk.tipus === "valasztos"
+      ? (kk.agak || []).find((a) => a.id === ak.valasztott_ag) || null
+      : null;
+    const kulcsElemek = kk.tipus === "valasztos" ? (ag ? ag.elemek : []) : kk.elemek;
+
+    const aiElemek = new Map((ak.elemek || []).map((e) => [e.id, e]));
+    const felulirt = new Map(
+      (Array.isArray(m?.elemek) ? m.elemek : [])
+        .filter((e) => e && ELEM_STATUSZOK.includes(e.statusz))
+        .map((e) => [String(e.id), e.statusz])
+    );
+    const elemek = kulcsElemek.map((ke) => {
+      const a = aiElemek.get(ke.id) || {};
+      const statusz = felulirt.get(ke.id) ?? (ELEM_STATUSZOK.includes(a.statusz) ? a.statusz : "hianyzik");
+      return {
+        id: ke.id,
+        allitas: ke.allitas,
+        statusz,
+        idezet: statusz === "hianyzik" ? null : (a.idezet_ok ? a.idezet : null),
+        pozicio: Number.isInteger(a.pozicio) ? a.pozicio : null,
+        tanar_modositotta: felulirt.has(ke.id) && felulirt.get(ke.id) !== a.statusz
+      };
+    });
+
+    const elfogadas = new Map(
+      (Array.isArray(m?.kulcson_kivul) ? m.kulcson_kivul : [])
+        .filter((t) => t && Number.isInteger(t.index) && typeof t.elfogadva === "boolean")
+        .map((t) => [t.index, t.elfogadva])
+    );
+    const kulcsonKivul = (ak.kulcson_kivul || []).map((t, i) => ({
+      idezet: t.idezet,
+      elfogadva: elfogadas.has(i) ? elfogadas.get(i) : (t.elfogadva ?? null)
+    }));
+
+    const p = kerdesPontozas(kk, { elemek, kulcson_kivul: kulcsonKivul, valasztott_ag: ag ? ag.id : null });
+    const pontok = new Map(p.elemek.map((e) => [e.id, e.pont]));
+
+    // Sorrendnél egy leírt, jó lépés is érhet 0 pontot, ha nincs a helyén.
+    // Ezt ki kell mondani – különben a diák egy ✓ mellett 0 pontot lát.
+    const sorrendSzamit = kk.tipus === "sorrend" && kk.beallitas.sorrend !== "nem_szamit";
+    const kulcsElemMap = new Map(kulcsElemek.map((ke) => [ke.id, ke]));
+
+    return {
+      sorszam: kk.sorszam,
+      szoveg: kk.szoveg,
+      pont: p.pont,
+      max: p.max,
+      valasztott: ag ? ag.cim : null,
+      ...(sorrendSzamit ? { sorrend: kk.beallitas.sorrend } : {}),
+      elemek: elemek.map((e) => {
+        const ki = { id: e.id, statusz: e.statusz, idezet: e.idezet, pont: pontok.get(e.id) ?? 0 };
+        // Csak ha a sorrend vitte el a pontot, nem a részpont-szabály.
+        if (sorrendSzamit && ki.pont === 0
+            && elemErtek(kulcsElemMap.get(e.id), e.statusz, kk.beallitas.reszpont) > 0) {
+          ki.rossz_helyen = true;
+        }
+        if (e.tanar_modositotta) ki.tanar_modositotta = true;
+        // A helyes válasz csak akkor megy ki, ha a tanár engedi (újra
+        // felhasznált dolgozatnál a megoldás kiszivároghatna).
+        if (helyesLathato) ki.allitas = e.allitas;
+        return ki;
+      }),
+      kulcson_kivul: kulcsonKivul.filter((t) => t.idezet)
+    };
+  });
+
+  const osszpontszam = kerekit(kerdesek.reduce((s, k) => s + k.pont, 0));
+  const maxPontszam = kerekit(kerdesek.reduce((s, k) => s + k.max, 0));
+
+  return {
+    mod: "kifejtos",
+    helyes_valaszok_lathatok: helyesLathato,
+    kerdesek,
+    // KOMPATIBILITÁS: a javítási sor és az osztályszintű elemzés szempontokat vár
+    szempontok: kerdesek.map((k) => ({
+      kulcs: `k${k.sorszam}`, cim: `${k.sorszam}. kérdés`, pont: k.pont, max: k.max, megjegyzes: ""
+    })),
+    osszpontszam,
+    max_pontszam: maxPontszam,
+    szazalek: maxPontszam > 0 ? Math.round((osszpontszam / maxPontszam) * 100) : null,
+    javasolt_jegy: jegyJavaslat(osszpontszam, maxPontszam, opciok.ponthatarok)
+  };
+}
+
+// ══════════════════════════════════════════════════════
 // JSON SÉMÁK
 // ══════════════════════════════════════════════════════
 
@@ -1070,6 +1184,7 @@ module.exports = {
   atiratOsszefuzes,
   elemEllenorzes,
   kifejtosErtekelesOsszeallitas,
+  kifejtosTanariEredmeny,
   kifejtosAtiratPrompt,
   kifejtosErtekelesPrompt,
   kulcsKeszitesPrompt,

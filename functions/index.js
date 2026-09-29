@@ -1070,7 +1070,9 @@ function pontTablazat(ai, rubrika, modositasok) {
 exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
   const uid = tanar(request);
 
-  const { beadasId, jegy, szoveg, szempontok } = request.data || {};
+  // szempontok: fogalmazásnál a tanár pontjai szempontonként.
+  // kerdesek: kifejtősnél a tanár elemstátusz-felülírásai (pontot nem küldhet).
+  const { beadasId, jegy, szoveg, szempontok, kerdesek } = request.data || {};
   if (!beadasId) throw new HttpsError("invalid-argument", "Hiányzó beadás ID.");
   if (!szoveg || !szoveg.trim()) {
     throw new HttpsError("invalid-argument", "A visszajelzés szövege nem lehet üres.");
@@ -1100,7 +1102,25 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
     firestore.collection("feladatok").doc(beadas.feladat_id).get()
   ]);
   let tabla = { szempontok: [], osszpontszam: null, max_pontszam: null, szazalek: null };
-  if (aiSnap.exists) {
+  if (aiSnap.exists && aiSnap.data().mod === "kifejtos") {
+    // Kifejtős dolgozat: a pontot a KULCSBÓL számoljuk, a tanár felülírt
+    // elemstátuszaival – ugyanazzal a függvénnyel, amit a javító nézet mutat.
+    const kulcsSnap = await feladatSnap.ref.collection("kulcs").doc("aktualis").get();
+    if (!kulcsSnap.exists) {
+      throw new HttpsError("failed-precondition", "A feladat megoldókulcsa nem található.");
+    }
+    let kulcs;
+    try {
+      kulcs = kifejtos.kulcsEllenorzes(kulcsSnap.data());
+    } catch (e) {
+      throw new HttpsError("failed-precondition", e.message);
+    }
+    const rubrika = feladatSnap.data()?.rubrika || {};
+    tabla = kifejtos.kifejtosTanariEredmeny(kulcs, aiSnap.data(), kerdesek, {
+      ponthatarok: rubrika.ponthatarok,
+      helyesLathato: rubrika.helyes_valaszok_lathatok !== false
+    });
+  } else if (aiSnap.exists) {
     try {
       tabla = pontTablazat(aiSnap.data(), feladatSnap.data()?.rubrika, szempontok);
     } catch (e) {

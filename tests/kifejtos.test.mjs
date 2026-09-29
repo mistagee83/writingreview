@@ -636,3 +636,111 @@ test("a böngészős példány ugyanazt pontozza: a minta 8/13 → 3-as", async 
   assert.equal(r.osszpontszam, 8);
   assert.equal(r.javasolt_jegy, 3);
 });
+
+// ══════════════════════════════════════════
+// A TANÁR JÓVÁHAGYÁSA (kifejtosTanariEredmeny)
+// Ezt a diák látja. A kliens csak státuszt küldhet, pontot nem – ha ez
+// elcsúszik, a diák hamis pontszámot kap.
+// ══════════════════════════════════════════
+
+const kulcsMinta = () => sz.kulcsEllenorzes(MINTA_KULCS);
+const aiMinta = () => ertekel();
+
+test("jóváhagyás felülírás nélkül: az AI eredménye megy ki (8/13 → 3-as)", () => {
+  const r = sz.kifejtosTanariEredmeny(kulcsMinta(), aiMinta(), []);
+  assert.equal(r.osszpontszam, 8);
+  assert.equal(r.max_pontszam, 13);
+  assert.equal(r.javasolt_jegy, 3);
+  assert.equal(r.kerdesek[2].elemek[0].allitas, "Igényfelmérés");
+  assert.equal(r.kerdesek[0].szoveg, "Sorold fel az áruforgalmi folyamat szakaszait!");
+  assert.deepEqual(r.szempontok.map((s) => [s.kulcs, s.pont]), [["k1", 3], ["k2", 4], ["k3", 1]]);
+});
+
+test("a tanár felülír egy elemet: a pont a kulcsból újraszámolódik", () => {
+  const r = sz.kifejtosTanariEredmeny(kulcsMinta(), aiMinta(), [
+    { sorszam: "2", elemek: [{ id: "e4", statusz: "megvan" }] }
+  ]);
+  assert.equal(r.kerdesek[1].pont, 5);
+  assert.equal(r.osszpontszam, 9);
+  const e4 = r.kerdesek[1].elemek.find((e) => e.id === "e4");
+  assert.equal(e4.tanar_modositotta, true);
+  assert.equal(e4.idezet, null, "idézet nélkül is jár, ha a tanár így döntött");
+});
+
+test("a kliens pontot nem küldhet: ismeretlen státusz, idegen elem és pont mező figyelmen kívül", () => {
+  const r = sz.kifejtosTanariEredmeny(kulcsMinta(), aiMinta(), [
+    { sorszam: "1", pont: 99, elemek: [{ id: "e1", statusz: "szuper", pont: 50 }, { id: "kitalalt", statusz: "megvan" }] },
+    { sorszam: "99", elemek: [{ id: "e1", statusz: "megvan" }] },
+    null
+  ]);
+  assert.equal(r.osszpontszam, 8);
+  assert.equal(r.kerdesek[0].pont, 3);
+});
+
+test("a kulcson kívüli tétel elfogadása a tanáré", () => {
+  const r = sz.kifejtosTanariEredmeny(kulcsMinta(), aiMinta(), [
+    { sorszam: "2", kulcson_kivul: [{ index: 0, elfogadva: true }] }
+  ]);
+  assert.equal(r.kerdesek[1].pont, 5);
+  assert.equal(r.kerdesek[1].kulcson_kivul[0].elfogadva, true);
+  // nem logikai érték → figyelmen kívül
+  const r2 = sz.kifejtosTanariEredmeny(kulcsMinta(), aiMinta(), [
+    { sorszam: "2", kulcson_kivul: [{ index: 0, elfogadva: "igen" }] }
+  ]);
+  assert.equal(r2.kerdesek[1].pont, 4);
+});
+
+test("ha a helyes válaszok nem láthatók, az állítás nem kerül a diák dokumentumába", () => {
+  const r = sz.kifejtosTanariEredmeny(kulcsMinta(), aiMinta(), [], { helyesLathato: false });
+  assert.equal(r.helyes_valaszok_lathatok, false);
+  const json = JSON.stringify(r.kerdesek);
+  assert.doesNotMatch(json, /"allitas"/);
+  assert.doesNotMatch(json, /Megrendelés/, "a hiányzó elem helyes megoldása nem szivároghat ki");
+  assert.equal(r.osszpontszam, 8, "a pont ettől nem változik");
+});
+
+test("a hallucinált idézet a diákhoz sem megy ki", () => {
+  const ai = aiMinta();
+  const e = ai.kerdesek[0].elemek[0];
+  e.idezet = "kitalált"; e.idezet_ok = false; e.statusz = "hianyzik";
+  const r = sz.kifejtosTanariEredmeny(kulcsMinta(), ai, []);
+  assert.equal(r.kerdesek[0].elemek[0].idezet, null);
+});
+
+test("a jegyjavaslat a feladat ponthatáraiból és a felülírt pontokból számol", () => {
+  const r = sz.kifejtosTanariEredmeny(kulcsMinta(), aiMinta(), [
+    { sorszam: "2", elemek: [{ id: "e4", statusz: "megvan" }] }
+  ], { ponthatarok: { 2: 30, 3: 45, 4: 65, 5: 80 } });
+  assert.equal(r.osszpontszam, 9);   // 69%
+  assert.equal(r.javasolt_jegy, 4);
+});
+
+test("ha a kulcs azóta új elemet kapott, az hiányzónak számít", () => {
+  const kulcs = structuredClone(MINTA_KULCS);
+  kulcs.kerdesek[0].elemek.push(e("e4", "Szállítás"));
+  kulcs.kerdesek[0].max_pont = 4;
+  const r = sz.kifejtosTanariEredmeny(sz.kulcsEllenorzes(kulcs), aiMinta(), []);
+  assert.equal(r.kerdesek[0].elemek[3].statusz, "hianyzik");
+  assert.equal(r.kerdesek[0].pont, 3);
+});
+
+test("sorrendnél a jó, de rossz helyen lévő lépés jelzést kap (ne ✓ + 0 pont legyen)", () => {
+  const r = sz.kifejtosTanariEredmeny(kulcsMinta(), aiMinta(), []);
+  const k3 = r.kerdesek[2];
+  assert.equal(k3.sorrend, "pozicio");
+  const rossz = k3.elemek.filter((e) => e.rossz_helyen).map((e) => e.id).sort();
+  // pozíció szerint csak e1 van a helyén; e2 (részben), e3, e5 leírva, de nem a helyén
+  assert.deepEqual(rossz, ["e2", "e3", "e5"]);
+  assert.equal(r.kerdesek[0].sorrend, undefined, "nem sorrendes kérdésnél nincs ilyen mező");
+  assert.ok(r.kerdesek[0].elemek.every((e) => !e.rossz_helyen));
+});
+
+test("a részpont-szabály miatti 0 pont nem 'rossz helyen'", () => {
+  const kulcs = structuredClone(MINTA_KULCS);
+  kulcs.kerdesek[2].beallitas = { sorrend: "relativ", reszpont: 0 };
+  const r = sz.kifejtosTanariEredmeny(sz.kulcsEllenorzes(kulcs), ertekel(kulcs), []);
+  const e2 = r.kerdesek[2].elemek.find((e) => e.id === "e2");
+  assert.equal(e2.statusz, "reszben");
+  assert.equal(e2.pont, 0);
+  assert.ok(!e2.rossz_helyen, "a részben jó 0-t ér a szabály miatt, nem a sorrend miatt");
+});

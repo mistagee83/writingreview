@@ -109,6 +109,58 @@
     throw new Error('nincs tanari');
   }
 
+  // ── KIFEJTŐS DOLGOZAT: kérdésenként, elemenként ──
+  // A visszajelzés egyben javítókulcs: a diák látja, mit írt jól, és mi
+  // lett volna a helyes – hacsak a tanár ki nem kapcsolta (újra felhasznált
+  // dolgozatnál a megoldás kiszivároghatna). Ilyenkor az "allitas" nincs a
+  // dokumentumban, és csak a saját szavai és a pontok látszanak.
+  function kerdesenkent(t) {
+    const JEL = {
+      megvan: ['✓', 'Jó'], reszben: ['½', 'Részben jó'],
+      hianyzik: ['✕', 'Hiányzik'], teves: ['✕', 'Téves']
+    };
+    const elemSor = (e) => {
+      // Leírta, de a sorrend-szabály szerint nincs a helyén: ne ✓ + 0 pont legyen.
+      const [jel, cimke] = e.rossz_helyen ? ['↕', 'Jó, de nem a helyén'] : (JEL[e.statusz] || JEL.hianyzik);
+      const helyes = e.allitas
+        ? (e.statusz === 'megvan' ? esc(e.allitas) : `<strong>Helyesen:</strong> ${esc(e.allitas)}`)
+        : esc(cimke);
+      return `<li class="vk-elem s-${e.rossz_helyen ? 'reszben' : esc(e.statusz)}">
+          <span class="vk-jel" title="${esc(cimke)}">${jel}</span>
+          <div>${helyes}${e.idezet ? `<div class="vk-idezet">Te: „${esc(e.idezet)}”${e.statusz === 'teves' ? ' – ez nem helyes' : ''}${e.rossz_helyen ? ' – jó, de nem a helyén' : ''}</div>` : ''}</div>
+          <span class="vk-pont">${esc(e.pont)}</span>
+        </li>`;
+    };
+    return `
+      <div class="panel">
+        <div class="panel-header"><h2>📊 Kérdésenként</h2>
+          <span class="badge javitva">${esc(t.osszpontszam)} / ${esc(t.max_pontszam)} pont${t.szazalek != null ? ` · ${esc(t.szazalek)}%` : ''}</span></div>
+        <div class="panel-body">
+          ${t.kerdesek.map((k) => `
+            <div class="vk-kerdes">
+              <div class="vk-fej">
+                <strong>${esc(k.sorszam)}.</strong>
+                <span>${esc(k.szoveg || '')}</span>
+                <span class="vk-kerdes-pont">${esc(k.pont)} / ${esc(k.max)}</span>
+              </div>
+              ${k.valasztott ? `<p class="halvany">A választásod: ${esc(k.valasztott)}</p>` : ''}
+              ${k.sorrend ? '<p class="halvany">↕ Ennél a kérdésnél a sorrend is számított.</p>' : ''}
+              <ul class="vk-elemek">
+                ${(t.helyes_valaszok_lathatok === false
+                    ? k.elemek.filter((e) => e.statusz !== 'hianyzik')
+                    : k.elemek).map(elemSor).join('')}
+                ${(k.kulcson_kivul || []).map((x) => `<li class="vk-elem ${x.elfogadva ? 's-megvan' : 's-hianyzik'}">
+                    <span class="vk-jel">+</span>
+                    <div><div class="vk-idezet">Te: „${esc(x.idezet)}”</div>${x.elfogadva ? 'Ezt is elfogadta a tanár.' : 'Ez nem számított bele.'}</div>
+                    <span class="vk-pont"></span>
+                  </li>`).join('')}
+              </ul>
+            </div>`).join('')}
+          <p class="halvany">✓ jó · ½ részben jó · ✕ hiányzik vagy téves${t.kerdesek.some((k) => k.sorrend) ? ' · ↕ jó, de nem a helyén' : ''}</p>
+        </div>
+      </div>`;
+  }
+
   tartalom.innerHTML = `
     ${tanari.jegy ? `
       <div class="jegy-kartya">
@@ -126,7 +178,7 @@
       </div>
     </div>
 
-    ${(tanari.szempontok || []).length ? `
+    ${(tanari.kerdesek || []).length ? kerdesenkent(tanari) : (tanari.szempontok || []).length ? `
       <div class="panel">
         <div class="panel-header"><h2>📊 Pontozás</h2></div>
         <div class="panel-body">
