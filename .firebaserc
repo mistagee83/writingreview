@@ -3,5 +3,21 @@
     "default": "writingreview-41e59",
     "pilot": "writingreview-41e59",
     "prod": "writerev2"
+  },
+  "targets": {
+    "writingreview-41e59": {
+      "hosting": {
+        "app": [
+          "writingreview-41e59"
+        ]
+      }
+    },
+    "writerev2": {
+      "hosting": {
+        "app": [
+          "writing-review"
+        ]
+      }
+    }
   }
 }

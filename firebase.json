@@ -22,6 +22,7 @@
     }
   ],
   "hosting": {
+    "target": "app",
     "public": "dist",
     "predeploy": [
       "node scripts/build.mjs"

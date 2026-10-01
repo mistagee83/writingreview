@@ -142,3 +142,30 @@ test("a szerver beállításai: alapból pilot, kvóta csak prodban; ismeretlen 
   assert.ok(p.cors.includes("https://wr-prod.web.app") && p.cors.includes("https://app.pelda.hu"));
   assert.equal(beallitasok({ KORNYEZET: "staging" }).kornyezet, "pilot");
 });
+
+// ── deploy-bekötés ──
+
+const json = (f) => JSON.parse(readFileSync(new URL(`../${f}`, import.meta.url), "utf8"));
+
+test("a hosting-cél mindkét projekten kötve van (különben a deploy elhasal), a prod külön oldalra megy", () => {
+  const cel = json("firebase.json").hosting.target;
+  assert.ok(cel, "a firebase.json hostingjának kell target");
+  const rc = json(".firebaserc");
+  for (const [alias, projekt] of [["pilot", pilot.projekt], ["prod", prod.projekt]]) {
+    assert.equal(rc.projects[alias], projekt, `${alias} alias`);
+    assert.ok(rc.targets[projekt]?.hosting?.[cel]?.length === 1, `${projekt}: a ${cel} cél nincs oldalhoz kötve`);
+  }
+  // A pilot a saját alapoldalán marad, a prod másik oldalon.
+  assert.deepEqual(rc.targets[pilot.projekt].hosting[cel], [pilot.projekt]);
+  assert.notEqual(rc.targets[prod.projekt].hosting[cel][0], prod.projekt);
+});
+
+test("a prod egyéni hosting-oldala (és a firebaseapp címe) a CORS-ban szerepel", () => {
+  const env = readFileSync(new URL("../functions/.env.prod", import.meta.url), "utf8");
+  const domainek = /^ENGEDELYEZETT_DOMAINEK=(.*)$/m.exec(env)?.[1] ?? "";
+  const oldal = json(".firebaserc").targets[prod.projekt].hosting[json("firebase.json").hosting.target][0];
+  const cors = corsLista(prod.projekt, domainek);
+  assert.ok(cors.includes(`https://${oldal}.web.app`));
+  assert.ok(cors.includes(`https://${oldal}.firebaseapp.com`));
+  assert.ok(cors.includes(`https://${prod.projekt}.web.app`), "az alapoldal is marad");
+});
