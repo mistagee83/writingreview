@@ -1,6 +1,6 @@
 # WritingReview – két környezet: pilot (teszt) és kereskedelmi
 
-*Terv, 2026-10-01. **Az A. lépés kódja kész** (lásd 7. A), a többi még nincs megvalósítva. Az állapotról és az indulásról a
+*Terv, 2026-10-01; **az A. és a B. lépés kész** (lásd 7. A és B), a C. és D. még hátravan. Az állapotról és az indulásról a
 [`folytatas.md`](folytatas.md) szól, a működésről a [`mukodesi-leiras.md`](mukodesi-leiras.md).*
 
 ## 1. Döntések (a tulajdonos válaszai)
@@ -59,6 +59,12 @@ A funkciók régiója (`europe-west1`) és a `REGION` állandó a két környeze
 
 ## 5. A kereskedelmi verzió extrái (csak `prod`)
 
+### 5.0 Önkiszolgáló tanári regisztráció
+- **Ma:** mindenki diákként regisztrál, a tanári szerepet admin állítja kézzel (Felhasználók oldal „Tanárrá” gomb, vagy `szerep.mjs`). A pilotban ez elég, **a kereskedelmi verzióban nem működik**.
+- **Cél:** a tanár maga regisztrál tanárként, és azonnal használhatja a szolgáltatást (a csomagja kvótájával), az üzemeltető beavatkozása nélkül.
+- **Védelem:** a tanári jogot (és vele az AI-költséget) diák ne szerezhesse meg magának; a szerepet kizárólag a szerver állítsa (callable függvény), megerősített e-mail és/vagy meghívó/iskolai domain/előfizetés alapján. A szerep és a csomag együtt tervezendő az 5.1-gyel.
+- Nyitott: a regisztráció módja (külön „tanári” belépés, vagy a csomagválasztás része), a próbaidőszak, az iskolai (több tanáros) fiókok.
+
 ### 5.1 Kvóta és előfizetés
 - **Kvóta:** tanáronkénti havi AI-használat (pl. beadások száma), a csomagtól függően. A számlálót a szerver vezeti (tranzakcióban), és **minden AI-hívó függvényben a Gemini-hívás előtt** ellenőrzi; a kliens csak megjeleníti.
 - **Csomagok:** a `config`-ban vagy egy Firestore-dokumentumban (pl. `ingyenes`, `alap`, `profi`), kvótával és ponthatárral. A tanár profiljában az aktuális csomag és a hónap használata.
@@ -101,7 +107,11 @@ Ma **nincs CI**, és a cloud-munkamenetből nem lehet deployolni (nincs hiteles�
 - Tesztek: a konfigok érvényessége és a két környezet kulcskészletének egyezése; a CORS-lista képzése; a build mindkét `--env`-re lefut.
 - **Kész, ha:** a pilot ugyanúgy működik, mint ma, és `deploy:prod` (még üres projektre) ugyanazt a kódot építi, a prod konfiggal.
 
-### B. A kereskedelmi projekt létrehozása (a saját gépeden, a konzolban)
+### B. A kereskedelmi projekt létrehozása (a saját gépeden, a konzolban) – **kész (2026-10-01)**
+
+*Megvalósítva:* projekt `writerev2` (Blaze, a tulajdonos számlázási fiókja alatt); Firestore `(default)`, **`eur3`** (az első, véletlenül `nam5` adatbázist töröltük és újra létrehoztuk, amíg üres volt); `GEMINI_API_KEY` secret külön kulccsal; web-config a `config/prod.json`-ban; a functions (12 db, `europe-west1`), a szabályok/indexek/Storage-szabály és a hosting deployolva; az első admin kinevezve; a belépés működik. **Hosting-oldal: `writing-review` → <https://writing-review.web.app>** (az alapoldal `writerev2.web.app` azonosítója nem módosítható, ezért külön oldalt vettünk fel; a `firebase.json` hostingja `target: app`, a `.firebaserc` `targets` köti: prod → `writing-review`, pilot → a saját alapoldala). A CORS-ba az új oldal címei a `functions/.env.prod`-ban (`ENGEDELYEZETT_DOMAINEK`); az Authentication engedélyezett domainjei között az új cím felvéve. *Nincs ellenőrizve:* a Storage-bucket helye és CORS-a, a költségkeret/riasztás, az ütemezett mentés, a teljes smoke teszt – lásd `folytatas.md` 5–6.
+
+*Eredeti terv (a lépések):*
 1. Új Firebase-projekt, **Blaze** csomag, a saját számlázási fiók hozzákötve; költségkeret és riasztás.
 2. **Firestore-hely: jól válaszd meg, utólag nem módosítható** (a pilot `eur3`-at használ; EU célpiacra az is jó, vagy egy konkrét EU-régió). Storage-bucket EU-ban, Functions: `europe-west1`.
 3. Auth: e-mail/jelszó és Google bekapcsolása, engedélyezett domainek.
@@ -114,7 +124,7 @@ Ma **nincs CI**, és a cloud-munkamenetből nem lehet deployolni (nincs hiteles�
 - Tesztek PR-on; automatikus deploy a pilotra; címkés, jóváhagyásos deploy a prodra (6. pont).
 
 ### D. Kereskedelmi funkciók
-- Kvóta és csomagok (5.1), fizetés és webhook; jogi dokumentumok és az EU-s AI-feldolgozás (5.2); egyéni domain; üzemeltetési háló (5.3).
+- **Önkiszolgáló tanári regisztráció (5.0)**, kvóta és csomagok (5.1), fizetés és webhook; jogi dokumentumok és az EU-s AI-feldolgozás (5.2); egyéni domain; üzemeltetési háló (5.3).
 - Közben nyitva marad: az éles átkattintás angol AI-visszajelzéssel, és a `docs/folytatas.md` többi pontja (fordítási rések, GPA-skála).
 
 ## 8. Nyitott kérdések
