@@ -67,7 +67,7 @@ test("a státusz-táblák minden kulcsa létezik minden nyelven", async () => {
 // ── a lapok használata ──
 // Az átalakított lapok minden t('…') hívása és data-i18n* kulcsa
 // létezik-e. Új lap átalakításakor add hozzá ide.
-const ATALAKITOTT = ["diak.html", "index.html", "beadas.html", "js/ui.js", "js/pwa.js"];
+const ATALAKITOTT = ["diak.html", "index.html", "beadas.html", "visszajelzes.html", "js/ui.js", "js/pwa.js"];
 
 test("az átalakított lapok minden kulcsa létezik a szótárban", () => {
   for (const f of ATALAKITOTT) {
@@ -94,7 +94,7 @@ test("az átalakított lapokban nincs beégetett magyar szöveg a megjelenítés
     // az input placeholder tartaléka is
     .replace(/<input[^>]*data-i18n[^>]*>/g, "");
   const ekezetes = /[áéíóöőúüűÁÉÍÓÖŐÚÜŰ]/;
-  for (const f of ["diak.html", "index.html", "beadas.html"]) {
+  for (const f of ["diak.html", "index.html", "beadas.html", "visszajelzes.html"]) {
     const sorok = kod(readFileSync(new URL(f, PUBLIC), "utf8")).split("\n");
     const talalat = sorok.filter((s) => ekezetes.test(s) && !/Névtelen/.test(s) && !/console\.(error|warn|log)/.test(s));
     assert.deepEqual(talalat, [], `${f}: beégetett magyar szöveg`);

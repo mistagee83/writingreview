@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WritingReview – Visszajelzés</title>
+  <title data-i18n="vj.oldalcim">WritingReview – Visszajelzés</title>
   <link rel="manifest" href="manifest.webmanifest"/>
   <meta name="theme-color" content="#0f0f0f"/>
   <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
@@ -16,21 +16,21 @@
 </head>
 <body class="theme-diak">
 
-<div id="loading-screen">Betöltés...</div>
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
 
 <div class="topbar gated" id="topbar">
   <div class="brand">Writing<span>Review</span></div>
   <div class="topbar-right">
     <div class="user-info">🎓 <strong id="user-name">–</strong></div>
-    <button class="btn-logout" onclick="logout()">Kilépés</button>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
   </div>
 </div>
 
 <main class="main centered gated" id="app-main">
-  <a class="vissza-link" href="diak.html">← Feladataim</a>
+  <a class="vissza-link" href="diak.html" data-i18n="beadas.vissza">← Feladataim</a>
 
   <div class="page-header">
-    <h1 id="cim">Visszajelzés</h1>
+    <h1 id="cim" data-i18n="vj.cim">Visszajelzés</h1>
     <p id="alcim">–</p>
   </div>
 
@@ -38,6 +38,7 @@
 </main>
 
 <script type="module">
+  import { t } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { statuszBadge, STATUSZ_DIAK } from './js/ui.js';
   import { db, doc, getDoc } from './js/firebase-config.js';
@@ -48,8 +49,7 @@
   const tartalom = document.getElementById('tartalom');
 
   if (!beadasId) {
-    tartalom.innerHTML = `<div class="empty-state"><p>Hiányzó azonosító.
-      <a href="diak.html">Vissza a listához</a></p></div>`;
+    tartalom.innerHTML = `<div class="empty-state"><p>${t('vj.hianyzo_azonosito')}</p></div>`;
     throw new Error('nincs id');
   }
 
@@ -60,8 +60,7 @@
     if (!snap.exists()) throw new Error('nincs');
     beadas = snap.data();
   } catch (e) {
-    tartalom.innerHTML = `<div class="empty-state"><p>Ez a beadás nem érhető el.
-      <a href="diak.html">Vissza</a></p></div>`;
+    tartalom.innerHTML = `<div class="empty-state"><p>${t('vj.nem_elerheto')}</p></div>`;
     throw e;
   }
 
@@ -74,17 +73,17 @@
   } catch (_) { /* törölt feladat */ }
 
   document.getElementById('cim').textContent = feladatCim;
-  document.getElementById('alcim').textContent = `Beadva: ${datum(beadas.letrehozva)}`;
+  document.getElementById('alcim').textContent = t('diak.beadva_datum', { datum: datum(beadas.letrehozva) });
 
   // ── MÉG NINCS ELKÜLDVE ──
   // Ilyenkor a szabály sem engedné olvasni a visszajelzést.
   if (beadas.statusz !== 'elkuldve') {
     const mit = {
-      feltoltve:   'A dolgozatod megérkezett, még nem kezdődött el a feldolgozás.',
-      folyamatban: 'Az AI épp olvassa a dolgozatodat.',
-      javitva:     'Az AI végzett, most a tanárod ellenőrzi. Amint elküldi, itt fogod látni.',
-      hiba:        'A feldolgozás során hiba történt. Szólj a tanárodnak.'
-    }[beadas.statusz] || 'A visszajelzés még nem érkezett meg.';
+      feltoltve:   t('vj.statusz_feltoltve'),
+      folyamatban: t('vj.statusz_folyamatban'),
+      javitva:     t('vj.statusz_javitva'),
+      hiba:        t('vj.statusz_hiba')
+    }[beadas.statusz] || t('vj.statusz_alap');
 
     tartalom.innerHTML = `<div class="empty-state">
       <div class="empty-icon">⏳</div>
@@ -105,7 +104,7 @@
 
   if (!tanari) {
     tartalom.innerHTML = `<div class="empty-state">
-      <p>A visszajelzés nem tölthető be. Szólj a tanárodnak.</p></div>`;
+      <p>${t('vj.nem_toltheto')}</p></div>`;
     throw new Error('nincs tanari');
   }
 
@@ -114,49 +113,49 @@
   // lett volna a helyes – hacsak a tanár ki nem kapcsolta (újra felhasznált
   // dolgozatnál a megoldás kiszivároghatna). Ilyenkor az "allitas" nincs a
   // dokumentumban, és csak a saját szavai és a pontok látszanak.
-  function kerdesenkent(t) {
+  function kerdesenkent(ert) {
     const JEL = {
-      megvan: ['✓', 'Jó'], reszben: ['½', 'Részben jó'],
-      hianyzik: ['✕', 'Hiányzik'], teves: ['✕', 'Téves']
+      megvan: ['✓', t('vj.jel_megvan')], reszben: ['½', t('vj.jel_reszben')],
+      hianyzik: ['✕', t('vj.jel_hianyzik')], teves: ['✕', t('vj.jel_teves')]
     };
     const elemSor = (e) => {
       // Leírta, de a sorrend-szabály szerint nincs a helyén: ne ✓ + 0 pont legyen.
-      const [jel, cimke] = e.rossz_helyen ? ['↕', 'Jó, de nem a helyén'] : (JEL[e.statusz] || JEL.hianyzik);
+      const [jel, cimke] = e.rossz_helyen ? ['↕', t('vj.jel_rossz_helyen')] : (JEL[e.statusz] || JEL.hianyzik);
       const helyes = e.allitas
-        ? (e.statusz === 'megvan' ? esc(e.allitas) : `<strong>Helyesen:</strong> ${esc(e.allitas)}`)
+        ? (e.statusz === 'megvan' ? esc(e.allitas) : `<strong>${t('vj.helyesen')}</strong> ${esc(e.allitas)}`)
         : esc(cimke);
       return `<li class="vk-elem s-${e.rossz_helyen ? 'reszben' : esc(e.statusz)}">
           <span class="vk-jel" title="${esc(cimke)}">${jel}</span>
-          <div>${helyes}${e.idezet ? `<div class="vk-idezet">Te: „${esc(e.idezet)}”${e.statusz === 'teves' ? ' – ez nem helyes' : ''}${e.rossz_helyen ? ' – jó, de nem a helyén' : ''}</div>` : ''}</div>
+          <div>${helyes}${e.idezet ? `<div class="vk-idezet">${t('vj.te_idezet', { idezet: esc(e.idezet) })}${e.statusz === 'teves' ? t('vj.nem_helyes') : ''}${e.rossz_helyen ? t('vj.nem_helyen') : ''}</div>` : ''}</div>
           <span class="vk-pont">${esc(e.pont)}</span>
         </li>`;
     };
     return `
       <div class="panel">
-        <div class="panel-header"><h2>📊 Kérdésenként</h2>
-          <span class="badge javitva">${esc(t.osszpontszam)} / ${esc(t.max_pontszam)} pont${t.szazalek != null ? ` · ${esc(t.szazalek)}%` : ''}</span></div>
+        <div class="panel-header"><h2>${t('vj.kerdesenkent_cim')}</h2>
+          <span class="badge javitva">${t('vj.pont_osszes', { ossz: esc(ert.osszpontszam), max: esc(ert.max_pontszam) })}${ert.szazalek != null ? ` · ${esc(ert.szazalek)}%` : ''}</span></div>
         <div class="panel-body">
-          ${t.kerdesek.map((k) => `
+          ${ert.kerdesek.map((k) => `
             <div class="vk-kerdes">
               <div class="vk-fej">
                 <strong>${esc(k.sorszam)}.</strong>
                 <span>${esc(k.szoveg || '')}</span>
                 <span class="vk-kerdes-pont">${esc(k.pont)} / ${esc(k.max)}</span>
               </div>
-              ${k.valasztott ? `<p class="halvany">A választásod: ${esc(k.valasztott)}</p>` : ''}
-              ${k.sorrend ? '<p class="halvany">↕ Ennél a kérdésnél a sorrend is számított.</p>' : ''}
+              ${k.valasztott ? `<p class="halvany">${t('vj.valasztasod', { v: esc(k.valasztott) })}</p>` : ''}
+              ${k.sorrend ? `<p class="halvany">${t('vj.sorrend_szamit')}</p>` : ''}
               <ul class="vk-elemek">
-                ${(t.helyes_valaszok_lathatok === false
+                ${(ert.helyes_valaszok_lathatok === false
                     ? k.elemek.filter((e) => e.statusz !== 'hianyzik')
                     : k.elemek).map(elemSor).join('')}
                 ${(k.kulcson_kivul || []).map((x) => `<li class="vk-elem ${x.elfogadva ? 's-megvan' : 's-hianyzik'}">
                     <span class="vk-jel">+</span>
-                    <div><div class="vk-idezet">Te: „${esc(x.idezet)}”</div>${x.elfogadva ? 'Ezt is elfogadta a tanár.' : 'Ez nem számított bele.'}</div>
+                    <div><div class="vk-idezet">${t('vj.te_idezet', { idezet: esc(x.idezet) })}</div>${x.elfogadva ? t('vj.elfogadva') : t('vj.nem_szamitott')}</div>
                     <span class="vk-pont"></span>
                   </li>`).join('')}
               </ul>
             </div>`).join('')}
-          <p class="halvany">✓ jó · ½ részben jó · ✕ hiányzik vagy téves${t.kerdesek.some((k) => k.sorrend) ? ' · ↕ jó, de nem a helyén' : ''}</p>
+          <p class="halvany">${t('vj.jelmagyarazat')}${ert.kerdesek.some((k) => k.sorrend) ? t('vj.jelmagyarazat_sorrend') : ''}</p>
         </div>
       </div>`;
   }
@@ -164,27 +163,27 @@
   tartalom.innerHTML = `
     ${tanari.jegy ? `
       <div class="jegy-kartya">
-        <div class="jegy-label">Jegy</div>
+        <div class="jegy-label">${t('vj.jegy')}</div>
         <div class="jegy-szam">${esc(tanari.jegy)}</div>
       </div>` : ''}
 
     <div class="panel">
-      <div class="panel-header"><h2>💬 A tanárod visszajelzése</h2></div>
+      <div class="panel-header"><h2>${t('vj.tanari_cim')}</h2></div>
       <div class="panel-body">
         <div class="visszajelzes-szoveg">${esc(tanari.szoveg).replace(/\n/g, '<br/>')}</div>
         ${tanari.jovahagyva_at
-          ? `<p class="halvany" style="margin-top:1.2rem;">Elküldve: ${datum(tanari.jovahagyva_at)}</p>`
+          ? `<p class="halvany" style="margin-top:1.2rem;">${t('vj.elkuldve', { datum: datum(tanari.jovahagyva_at) })}</p>`
           : ''}
       </div>
     </div>
 
     ${(tanari.kerdesek || []).length ? kerdesenkent(tanari) : (tanari.szempontok || []).length ? `
       <div class="panel">
-        <div class="panel-header"><h2>📊 Pontozás</h2></div>
+        <div class="panel-header"><h2>${t('vj.pontozas_cim')}</h2></div>
         <div class="panel-body">
           <div class="tabla-gorgeto">
             <table class="tabla eredmeny-tabla">
-              <thead><tr><th>Szempont</th><th>Pont</th><th>Megjegyzés</th></tr></thead>
+              <thead><tr><th>${t('beadas.szempont')}</th><th>${t('beadas.pont')}</th><th>${t('vj.megjegyzes')}</th></tr></thead>
               <tbody>${tanari.szempontok.map((sz) => `
                 <tr>
                   <td>${esc(sz.cim || sz.kulcs)}</td>
@@ -192,19 +191,19 @@
                   <td class="megj">${esc(sz.megjegyzes || '')}</td>
                 </tr>`).join('')}</tbody>
               <tfoot><tr>
-                <td>Összesen</td>
+                <td>${t('vj.osszesen')}</td>
                 <td>${esc(tanari.osszpontszam)} / ${esc(tanari.max_pontszam)}</td>
-                <td>${tanari.szazalek != null ? `${esc(tanari.szazalek)}%` : ''}${tanari.jegy ? ` · jegy: ${esc(tanari.jegy)}` : ''}</td>
+                <td>${tanari.szazalek != null ? `${esc(tanari.szazalek)}%` : ''}${tanari.jegy ? t('vj.jegy_kis', { jegy: esc(tanari.jegy) }) : ''}</td>
               </tr></tfoot>
             </table>
           </div>
         </div>
       </div>` : (rubrika.szempontok || []).length ? `
       <div class="panel">
-        <div class="panel-header"><h2>📐 Mi alapján értékeltek</h2></div>
+        <div class="panel-header"><h2>${t('vj.rubrika_cim')}</h2></div>
         <div class="panel-body">
           <table class="tabla">
-            <thead><tr><th>Szempont</th><th>Pont</th></tr></thead>
+            <thead><tr><th>${t('beadas.szempont')}</th><th>${t('beadas.pont')}</th></tr></thead>
             <tbody>${rubrika.szempontok.map((sz) =>
               `<tr><td>${esc(sz.cim || sz.kulcs)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
           </table>
@@ -213,13 +212,10 @@
 
     ${beadas.atirat ? `
       <div class="panel">
-        <div class="panel-header"><h2>✍️ A dolgozatod, ahogy az AI kiolvasta</h2></div>
+        <div class="panel-header"><h2>${t('vj.atirat_cim')}</h2></div>
         <div class="panel-body">
           <pre class="atirat">${esc(beadas.atirat)}</pre>
-          <p class="halvany">
-            Ha ez nem egyezik azzal, amit írtál, a gép félreolvasta a kézírást –
-            érdemes szólnod a tanárodnak.
-          </p>
+          <p class="halvany">${t('vj.atirat_tipp')}</p>
         </div>
       </div>` : ''}`;
 </script>
