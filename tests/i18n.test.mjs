@@ -182,3 +182,28 @@ test("kulcsHibaSzoveg(): a hiba a saját nyelvén jelenik meg, kód nélkül a s
 
   assert.equal(kulcsHibaSzoveg(new Error("más hiba")), "más hiba");
 });
+
+test("hibaSzoveg(): a szerver details.kod-ja alapján a felület nyelvén jelenik meg", async () => {
+  const { hibaSzoveg } = await import("../public/js/ui.js");
+  const hiba = (kod, extra = {}, message = "Magyar üzenet.") =>
+    Object.assign(new Error(message), { code: "functions/not-found", details: { kod, ...extra } });
+
+  nyelvCsere("en");
+  assert.equal(hibaSzoveg(hiba("beadas_nincs")), "The submission was not found.");
+  assert.equal(hibaSzoveg(hiba("statusz_nem_kuldheto", { statusz: "feltoltve" })),
+    "It can't be sent in this state: feltoltve");
+  assert.equal(hibaSzoveg(hiba("ai_hiba", { reszlet: "Gemini (x): HTTP 503" })),
+    "The AI step failed: Gemini (x): HTTP 503");
+  assert.equal(
+    hibaSzoveg(hiba("kulcshiba", { kulcsKod: "nincs_kerdes", parameterek: {} })),
+    "Invalid answer key: there are no questions."
+  );
+  // kód nélkül (vagy ismeretlen kóddal) az általános szöveg marad, nem a magyar üzenet
+  assert.equal(hibaSzoveg(Object.assign(new Error("Magyar."), { code: "functions/not-found" })),
+    "The item you are looking for was not found.");
+  assert.equal(hibaSzoveg(hiba("ismeretlen_kod")), "The item you are looking for was not found.");
+
+  nyelvCsere("hu");
+  assert.equal(hibaSzoveg(hiba("beadas_nincs", {}, "A beadás nem található.")), "A beadás nem található.",
+    "magyarul a szerver pontos üzenete jelenik meg");
+});

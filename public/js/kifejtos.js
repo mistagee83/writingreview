@@ -314,6 +314,7 @@ function hiba(kod, p = {}) {
   const e = new Error(`Hibás megoldókulcs: ${KULCS_HIBA_HU[kod](p)}`);
   e.kod = kod;
   e.parameterek = p;
+  e.kulcsHiba = true;   // a szerver ebből tudja: details.kod = "kulcshiba"
   return e;
 }
 
@@ -865,6 +866,7 @@ const ELEMZES_HIBA_MAX = 150;
  */
 function kifejtosElemzesPrompt(feladat, alap, kf, hibak) {
   const tantargy = tantargya(feladat.rubrika);
+  const kim = kimenet(feladat.rubrika);
 
   const kerdesLista = kf.kerdesek
     .map((k) => `- ${k.sorszam}. kérdés${k.szoveg ? ` (${k.szoveg})` : ""}: ` +
@@ -902,12 +904,12 @@ ${kihagyottLista || "- nincs ilyen: minden elem a diákok többségénél megvol
 ${hibaLista || "- nincs adat"}
 
 # UTASÍTÁSOK
-1. "osszegzes": 2-3 bekezdés a tanárnak, magyarul. Mi ült jól, és mely
+1. "osszegzes": 2-3 bekezdés a tanárnak, ${kim.hatarozo}. Mi ült jól, és mely
    fogalmak, tananyagrészek hiányoznak rendszerszinten? Keress mintát: egy
    egész témakör hiányzik, vagy csak a szakszóhasználat pontatlan, vagy
    egy tipikus tévhit terjed? Ne ismételd a számokat – ÉRTELMEZD őket.
 2. "tipushibak": a közös tartalmi hiányok és tévedések, a JELENTÉS szerint
-   összevonva, a legfontosabbal kezdve, legfeljebb 6. A "cim" magyarul,
+   összevonva, a legfontosabbal kezdve, legfeljebb 6. A "cim" ${kim.hatarozo},
    közérthetően (pl. "A beszerzés szakaszainak sorrendje"). A "peldak" a
    fenti hibákból vett SZÓ SZERINTI diákidézetek – ha egy hiányhoz nincs
    idézet, a hiányzó elemet nevezd meg.
@@ -1046,6 +1048,24 @@ function tantargya(rubrika) {
 }
 
 /** "Te egy tapasztalt tanár vagy." – tantárggyal, ha van. */
+// ── A VISSZAJELZÉS NYELVE ──
+// A diáknak és a tanárnak szóló, AI-generált szövegek (visszajelzés,
+// magyarázatok, osztályelemzés) nyelve. A feladat rubrikájának
+// `kimeneti_nyelv` mezője adja; a régebbi feladatoknál nincs ilyen –
+// azok magyarok, ezért az alapérték "hu". Az instrukciók magyarul
+// maradnak, csak a KIMENET nyelvét kérjük másként.
+const KIMENETI_NYELVEK = {
+  hu: { kod: "hu", melleknev: "magyar", hatarozo: "magyarul", hatarozoNagy: "MAGYARUL" },
+  en: { kod: "en", melleknev: "angol", hatarozo: "angolul", hatarozoNagy: "ANGOLUL" }
+};
+const ALAP_KIMENETI_NYELV = "hu";
+
+/** A kimeneti nyelv leírója egy kódból vagy egy rubrikából; ismeretlen → magyar. */
+function kimenet(forras) {
+  const kod = typeof forras === "string" ? forras : forras?.kimeneti_nyelv;
+  return KIMENETI_NYELVEK[kod] || KIMENETI_NYELVEK[ALAP_KIMENETI_NYELV];
+}
+
 function persona(tantargy) {
   return tantargy
     ? `Te egy tapasztalt tanár vagy, a tantárgy: ${tantargy}.`
@@ -1147,6 +1167,7 @@ ${k.agak.map((a) => `  Ág [${a.id}] ${a.cim}:\n${a.elemek.map(elemSor).join("\n
  * @param {Map<string,string>} valaszok valaszSzovegek() kimenete
  */
 function kifejtosErtekelesPrompt(feladat, kulcs, valaszok) {
+  const kim = kimenet(feladat?.rubrika);
   const valaszResz = kulcs.kerdesek
     .map((k) => `## ${k.sorszam}. kérdés\n"""\n${valaszok.get(k.sorszam) || "(nincs válasz)"}\n"""`)
     .join("\n\n");
@@ -1180,8 +1201,8 @@ ${valaszResz}
    levágott részt – ezekért ne büntess.
 5. A "hibak" tömbbe a tartalmi hibákat vedd fel (tévedés, pontatlan
    fogalom, hiányzó elem, rossz sorrend, hiányos kifejtés). Helyesírást ne.
-6. Kérdésenként a "visszajelzes" 1-2 mondat a tanárnak, magyarul.
-7. A "diak_szoveg" a diáknak szóló visszajelzés MAGYARUL: barátságos,
+6. Kérdésenként a "visszajelzes" 1-2 mondat a tanárnak, ${kim.hatarozo}.
+7. A "diak_szoveg" a diáknak szóló visszajelzés ${kim.hatarozoNagy}: barátságos,
    konstruktív, 2-4 bekezdés. Kezdd azzal, ami jól sikerült, és emeld ki a
    2-3 legfontosabb hiányt. Ne írj bele pontszámot és jegyet.`;
 }
@@ -1329,7 +1350,7 @@ dolgozat. A "cim_javaslat" rövid cím, a "tantargy" a tantárgy neve.`;
  * @throws {Error} ha a feladatlap nem feladatlap, vagy nincs használható kérdés
  */
 function kulcsJavaslatTisztitas(nyers, vanTananyag) {
-  if (nyers?.nem_feladatlap === true) throw new Error(NEM_FELADATLAP_UZENET);
+  if (nyers?.nem_feladatlap === true) throw Object.assign(new Error(NEM_FELADATLAP_UZENET), { kod: "nem_feladatlap" });
 
   const szoveg = (x) => String(x ?? "").trim();
   const elemTisztitas = (lista, elotag) => (Array.isArray(lista) ? lista : [])
@@ -1387,7 +1408,7 @@ function kulcsJavaslatTisztitas(nyers, vanTananyag) {
   });
 
   if (kerdesek.length === 0) {
-    throw new Error("Az AI egyetlen használható kérdést sem talált a feladatlapon.");
+    throw Object.assign(new Error("Az AI egyetlen használható kérdést sem talált a feladatlapon."), { kod: "nincs_hasznalhato_kerdes" });
   }
 
   return { kulcs: kulcsEllenorzes({ kerdesek }), kihagyott };
@@ -1407,6 +1428,9 @@ export {
   KIFEJTOS_ERTEKELES_SCHEMA,
   KULCS_JAVASLAT_SCHEMA,
   NEM_FELADATLAP_UZENET,
+  KIMENETI_NYELVEK,
+  ALAP_KIMENETI_NYELV,
+  kimenet,
   feladatMod,
   szavak,
   szoEgyezik,

@@ -72,6 +72,15 @@
         </div>
 
         <div class="form-group">
+          <label for="f-kimenet" data-i18n="fel.kimenet_label">A visszajelzés nyelve</label>
+          <select id="f-kimenet" style="max-width:240px;">
+            <option value="hu" data-i18n="fel.kimenet_hu">magyar</option>
+            <option value="en" data-i18n="fel.kimenet_en">angol</option>
+          </select>
+          <p class="halvany" data-i18n="fel.kimenet_tipp" style="margin-top:0.4rem;">Ezen a nyelven kapja meg a diák az AI-visszajelzést, és ezen készül a tanári elemzés is.</p>
+        </div>
+
+        <div class="form-group">
           <label for="f-cim" data-i18n="fel.feladat_cime">Feladat címe</label>
           <input type="text" id="f-cim" placeholder="Pl. Essay writing – My hometown" data-i18n-placeholder="fel.cim_pelda" maxlength="200" />
         </div>
@@ -286,7 +295,7 @@
 </div>
 
 <script type="module">
-  import { t, nyelvNev, tipusNev, szintNev } from './js/i18n.js';
+  import { t, nyelv, nyelvNev, tipusNev, szintNev } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
@@ -318,6 +327,12 @@
   // A kifejtős rész logikája: js/kifejtos-urlap.js
   // ══════════════════════════════════════════
   const kifejtosUi = kifejtosUrlap({ user, feladatlapPath: () => fajlPath });
+
+  // A visszajelzés nyelvének alapértéke a tanár felületi nyelve; régi
+  // feladatnál (nincs mező) magyar – ahogy a szerver is értelmezi.
+  const kimenetEl = document.getElementById('f-kimenet');
+  const alapKimenet = () => (['hu', 'en'].includes(nyelv()) ? nyelv() : 'hu');
+  kimenetEl.value = alapKimenet();
 
   const modRadiok = [...document.querySelectorAll('input[name="f-mod"]')];
   const aktualisMod = () => modRadiok.find((r) => r.checked)?.value || 'iras';
@@ -452,6 +467,7 @@
       rubrikaKitolt(f.rubrika || {});
     }
     document.getElementById('r-leiras').value = f.rubrika?.feladat_leiras || '';
+    kimenetEl.value = f.rubrika?.kimeneti_nyelv || 'hu';
 
     // A feladatlapot átvesszük – nem kell újra feltölteni
     fajlPath = f.feladatlap?.path || null;
@@ -807,7 +823,8 @@
 
       const { data } = await feladatlapElemzes({
         feladatlapPath: path,
-        nyelv: document.getElementById('r-nyelv').value
+        nyelv: document.getElementById('r-nyelv').value,
+        kimenetiNyelv: kimenetEl.value
       });
       const r = data.rubrika || {};
 
@@ -888,7 +905,9 @@
       const rubrika = {
         ...(kifejtos ? kifejtos.rubrika : rubrikaBeolvas()),
         // A feladat leírása nem része a sablonnak – itt adjuk hozzá
-        feladat_leiras: document.getElementById('r-leiras').value.trim()
+        feladat_leiras: document.getElementById('r-leiras').value.trim(),
+        // Nem része a sablonnak: feladatonként állítható
+        kimeneti_nyelv: kimenetEl.value
       };
       const hatarido = hataridoStr
         ? Timestamp.fromDate(new Date(hataridoStr + 'T23:59:59'))
@@ -958,6 +977,7 @@
 
   function urlapTorles() {
     document.getElementById('f-cim').value = '';
+    kimenetEl.value = alapKimenet();
     document.getElementById('f-hatarido').value = '';
     document.getElementById('f-fajl').value = '';
     document.getElementById('r-leiras').value = '';

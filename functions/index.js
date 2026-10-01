@@ -99,13 +99,86 @@ const AI_OPCIOK = { ...HIVAS_OPCIOK, secrets: [GEMINI_API_KEY], timeoutSeconds: 
 // SEGÉDFÜGGVÉNYEK
 // ══════════════════════════════════════════════════════
 
+// ══════════════════════════════════════════════════════
+// FELHASZNÁLÓNAK SZÁNT HIBÁK
+//
+// Minden hiba KÉT arcot visel: a magyar `message` (napló, magyar felület)
+// és a `details.kod` + paraméterei, amiből a kliens a SAJÁT nyelvén
+// jelenít meg szöveget (public/js/i18n-*.js, "szerver.<kod>").
+// Új hibakódnál mindkét szótárba fel kell venni a szöveget – a
+// tests/i18n.test.mjs ellenőrzi.
+// ══════════════════════════════════════════════════════
+const HIBA_SZOVEG = {
+  belepes_kell: () => "Belépés szükséges.",
+  tanar_kell: () => "Ehhez tanári jogosultság kell.",
+  admin_kell: () => "Ehhez admin jogosultság kell.",
+  kod_generalas: () => "Nem sikerült egyedi kódot generálni. Próbáld újra.",
+  osztaly_nev_kell: () => "Az osztály nevét add meg.",
+  osztaly_nev_hosszu: () => "Túl hosszú név.",
+  kod_nincs: () => "Nem találtam osztályt ezzel a kóddal.",
+  osztaly_megszunt: () => "Az osztály már nem létezik.",
+  osztaly_zart: () => "Ez az osztály már nem fogad új diákokat.",
+  kod_formatum: () => "Érvénytelen kódformátum.",
+  feladatlap_utvonal: () => "Hiányzó feladatlap útvonal.",
+  nem_a_tied_feltoltes: () => "Ez nem a te feltöltésed.",
+  beadas_id_kell: () => "Hiányzó beadás ID.",
+  beadas_nincs: () => "A beadás nem található.",
+  nem_a_te_beadasod: () => "Ez nem a te diákod beadása.",
+  beadas_folyamatban: () => "Ez a beadás épp feldolgozás alatt van.",
+  visszajelzes_ures: () => "A visszajelzés szövege nem lehet üres.",
+  jegy_ertek: () => "A jegy 1 és 5 közötti egész szám legyen.",
+  statusz_nem_kuldheto: (p) => `Ebben az állapotban nem küldhető el: ${p.statusz}`,
+  kulcs_nincs: () => "A feladat megoldókulcsa nem található.",
+  nev_rovid: () => "A név legalább 2 karakter legyen.",
+  nev_hosszu: () => "A név legfeljebb 80 karakter lehet.",
+  osztaly_diak_id_kell: () => "Hiányzó osztály- vagy diákazonosító.",
+  osztaly_nincs: () => "Az osztály nem található.",
+  nem_a_te_osztalyod: () => "Ez nem a te osztályod.",
+  diak_nem_tag: () => "Ez a diák nem tagja az osztálynak.",
+  felhasznalo_id_kell: () => "Hiányzó felhasználó-azonosító.",
+  szerep_ervenytelen: (p) => `Érvénytelen szerep: ${p.szerep}`,
+  admin_jog_logikai: () => "Az admin jog logikai érték.",
+  sajat_admin: () => "A saját admin jogodat nem veheted el. Kérd meg egy másik admint.",
+  nincs_modositas: () => "Nincs mit módosítani.",
+  nincs_felhasznalo: () => "Nincs ilyen felhasználó.",
+  feladat_id_kell: () => "Hiányzó feladat ID.",
+  feladat_nincs: () => "A feladat nem található.",
+  nem_a_te_feladatod: () => "Ez nem a te feladatod.",
+  nincs_kiertekelt: () => "Ehhez a feladathoz még nincs kiértékelt beadás.",
+  kulcs_feladatlap_kell: () => "A kulcshoz feladatlap kell – töltsd fel előbb.",
+  max_tananyag: (p) => `Legfeljebb ${p.max} tananyag-fájl tölthető fel.`,
+  kulcs_meret: () => "A feladatlap és a tananyag együtt túl nagy (legfeljebb 14 MB). Hagyd el a tananyag felesleges részeit."
+};
+
+/** Kódolt HttpsError: magyar üzenet + details.kod a kliens fordításához. */
+function hiba(code, kod, params = {}) {
+  return new HttpsError(code, HIBA_SZOVEG[kod](params), { kod, ...params });
+}
+
+/**
+ * Egy belső hiba (más modul, AI-lépés) továbbadása HttpsError-ként úgy,
+ * hogy a kódja ne vesszen el. A kulcs-hibák (functions/kifejtos.js) külön
+ * jelölést kapnak, mert azok kódkészlete más.
+ */
+function hibaAtvezet(code, e) {
+  let details;
+  if (e.kulcsHiba) details = { kod: "kulcshiba", kulcsKod: e.kod, parameterek: e.parameterek };
+  else if (e.kod) details = { kod: e.kod, ...(e.parameterek || {}) };
+  return new HttpsError(code, e.message, details);
+}
+
+/** Váratlan (AI vagy szerver) hiba: a részlet technikai, a kerete fordítható. */
+function belsoHiba(e, kod = "szerver_hiba") {
+  return new HttpsError("internal", e.message, { kod, reszlet: e.message });
+}
+
 function db() {
   return getFirestore();
 }
 
 /** Belépés megkövetelése. */
 function belepve(request) {
-  if (!request.auth) throw new HttpsError("unauthenticated", "Belépés szükséges.");
+  if (!request.auth) throw hiba("unauthenticated", "belepes_kell");
   return request.auth.uid;
 }
 
@@ -113,7 +186,7 @@ function belepve(request) {
 function tanar(request) {
   const uid = belepve(request);
   if (request.auth.token?.szerep !== "tanar") {
-    throw new HttpsError("permission-denied", "Ehhez tanári jogosultság kell.");
+    throw hiba("permission-denied", "tanar_kell");
   }
   return uid;
 }
@@ -510,6 +583,8 @@ function ertekelesPrompt(feladat, atirat) {
     r.min_szo && r.max_szo ? `${r.min_szo}–${r.max_szo} szó` : "nincs megadva";
 
   const nyelv = nyelve(r);
+  // A visszajelzés nyelve (feladatonként): lásd kifejtos.kimenet()
+  const kim = kifejtos.kimenet(r);
 
   // A mérce a szinttől ÉS a nyelvtől függ. Ha nincs szint, a sort ki is
   // hagyjuk – a "nincs megadva" felirat is arra bátorítaná az AI-t, hogy
@@ -528,7 +603,7 @@ function ertekelesPrompt(feladat, atirat) {
         : `A tanár nem adott meg célszintet: a feladatból és a
    szempontokból ítéld meg, mit lehet elvárni. CEFR-szintet ne találj ki.`);
 
-  return `Te egy tapasztalt ${nyelv}tanár vagy, aki magyar diákokat értékel.
+  return `Te egy tapasztalt ${nyelv}tanár vagy, aki ${kim.kod === "hu" ? "magyar " : ""}diákokat értékel.
 
 # A FELADAT
 Cím: ${feladat.cim}
@@ -552,7 +627,7 @@ ${atirat}
    ${merce}
 2. A "hibak" tömbbe vedd fel a konkrét hibákat. Minden hibánál az
    "idezet" a diák SZÓ SZERINTI szövegrészlete legyen, a "javaslat" a
-   helyes változat, a "magyarazat" pedig egy rövid magyar nyelvű indoklás.
+   helyes változat, a "magyarazat" pedig egy rövid ${kim.melleknev} nyelvű indoklás.
    A "tipus" egy rövid, gépi feldolgozásra alkalmas címke legyen,
    a ${nyelv} nyelv nyelvtani fogalmaival (angolnál pl. "past_simple",
    "article_missing"; németnél pl. "dativ_falsch", "wortstellung") –
@@ -560,14 +635,19 @@ ${atirat}
    ugyanarra a hibafajtára MINDIG ugyanazt a címkét használd.
    Az átiratban [?] jelöli az olvashatatlan részeket – ezeket NE
    számold hibának.
-3. A "diak_szoveg" a diáknak szóló visszajelzés MAGYARUL: barátságos,
+3. A "diak_szoveg" a diáknak szóló visszajelzés ${kim.hatarozoNagy}: barátságos,
    konstruktív hangnem, 3-5 bekezdés. Kezdd azzal, ami sikerült.
    Ne sorold fel az összes hibát – emeld ki a 2-3 legfontosabbat.
    Ne írj bele pontszámot és jegyet: azt a tanár állapítja meg.
 4. Az "erossegek" és "fejlesztendo" rövid, tömör felsorolások a tanárnak.`;
 }
 
-function rubrikaPrompt(nyelv) {
+/**
+ * @param {string} nyelv a tanított nyelv (angol, német…)
+ * @param {string} [kimenetiNyelv] a szempontcímek és a leírás nyelve (hu | en)
+ */
+function rubrikaPrompt(nyelv, kimenetiNyelv) {
+  const kim = kifejtos.kimenet(kimenetiNyelv);
   // Anyanyelvi feladatlapnál a CEFR értelmetlen: nem azt kérdezzük.
   const szintKeres = ANYANYELVEK.includes(nyelv)
     ? `- Melyik ÉVFOLYAMNAK szól a feladatlap? Ezt írd a "szint" mezőbe.
@@ -586,11 +666,11 @@ Elemezd, és állítsd össze belőle az értékelési rubrikát:
 ${szintKeres}
 - Mekkora terjedelmet vár el? (Ha a feladatlap megadja, azt használd.)
 - Milyen szempontok szerint érdemes értékelni? Adj 3-5 szempontot,
-  magyar címekkel. A pontszámokat úgy oszd el, hogy az összeg PONTOSAN
+  ${kim.melleknev} címekkel. A pontszámokat úgy oszd el, hogy az összeg PONTOSAN
   100 legyen – ez csak javaslat, a tanár utólag átskálázhatja (pl. 50
   pontos dolgozatra). A "kulcs" rövid, ékezet nélküli azonosító legyen
   (pl. tartalom, szerkezet, szokincs, nyelvtan).
-- A "feladat_leiras" mezőbe foglald össze magyarul, mi a diák konkrét
+- A "feladat_leiras" mezőbe foglald össze ${kim.hatarozo}, mi a diák konkrét
   feladata a feladatlap szerint.
 
 Ha valamit nem lehet kiolvasni a feladatlapból, adj józan
@@ -635,15 +715,15 @@ async function osztalyLetrehozasLogika(firestore, uid, nev) {
     }
   }
 
-  throw new HttpsError("resource-exhausted", "Nem sikerült egyedi kódot generálni. Próbáld újra.");
+  throw hiba("resource-exhausted", "kod_generalas");
 }
 
 exports.osztalyLetrehozas = onCall(HIVAS_OPCIOK, async (request) => {
   const uid = tanar(request);
 
   const nev = (request.data?.nev || "").trim();
-  if (!nev) throw new HttpsError("invalid-argument", "Az osztály nevét add meg.");
-  if (nev.length > 100) throw new HttpsError("invalid-argument", "Túl hosszú név.");
+  if (!nev) throw hiba("invalid-argument", "osztaly_nev_kell");
+  if (nev.length > 100) throw hiba("invalid-argument", "osztaly_nev_hosszu");
 
   return await osztalyLetrehozasLogika(db(), uid, nev);
 });
@@ -658,16 +738,16 @@ async function csatlakozasLogika(firestore, uid, kod) {
     const kodSnap = await tx.get(firestore.collection("kodok").doc(kod));
     if (!kodSnap.exists) {
       logger.warn("Ismeretlen osztálykód", { kod, uid });
-      throw new HttpsError("not-found", "Nem találtam osztályt ezzel a kóddal.");
+      throw hiba("not-found", "kod_nincs");
     }
 
     const osztalyRef = firestore.collection("osztalyok").doc(kodSnap.data().osztaly_id);
     const osztalySnap = await tx.get(osztalyRef);
     if (!osztalySnap.exists) {
-      throw new HttpsError("not-found", "Az osztály már nem létezik.");
+      throw hiba("not-found", "osztaly_megszunt");
     }
     if (!osztalySnap.data().aktiv) {
-      throw new HttpsError("failed-precondition", "Ez az osztály már nem fogad új diákokat.");
+      throw hiba("failed-precondition", "osztaly_zart");
     }
 
     const tagRef = osztalyRef.collection("tagok").doc(uid);
@@ -708,7 +788,7 @@ exports.osztalyhozCsatlakozas = onCall(HIVAS_OPCIOK, async (request) => {
 
   const kod = (request.data?.kod || "").trim().toUpperCase();
   if (!/^[A-Z2-9]{3}-[A-Z2-9]{4}$/.test(kod)) {
-    throw new HttpsError("invalid-argument", "Érvénytelen kódformátum.");
+    throw hiba("invalid-argument", "kod_formatum");
   }
 
   return await csatlakozasLogika(db(), uid, kod);
@@ -724,7 +804,7 @@ exports.feladatlapElemzes = onCall(AI_OPCIOK, async (request) => {
   const uid = tanar(request);
 
   const path = request.data?.feladatlapPath;
-  if (!path) throw new HttpsError("invalid-argument", "Hiányzó feladatlap útvonal.");
+  if (!path) throw hiba("invalid-argument", "feladatlap_utvonal");
 
   // A tanár által választott nyelv csak támpont – a modell a feladatlap
   // alapján felülírhatja, és a válaszában jelzi a tényleges nyelvet.
@@ -734,13 +814,13 @@ exports.feladatlapElemzes = onCall(AI_OPCIOK, async (request) => {
 
   // A tanár csak a saját feltöltését elemezheti.
   if (!path.startsWith(`feladatlapok/${uid}/`)) {
-    throw new HttpsError("permission-denied", "Ez nem a te feltöltésed.");
+    throw hiba("permission-denied", "nem_a_tied_feltoltes");
   }
 
   try {
     const { eredmeny: rubrika, modell } = await geminiHivas(
       'rubrika',
-      [{ text: rubrikaPrompt(nyelvTipp) }, await fajlBase64(path)],
+      [{ text: rubrikaPrompt(nyelvTipp, request.data?.kimenetiNyelv) }, await fajlBase64(path)],
       rubrikaSchema(nyelvTipp)
     );
 
@@ -755,7 +835,7 @@ exports.feladatlapElemzes = onCall(AI_OPCIOK, async (request) => {
     return { rubrika, suly_osszeg: sulyOsszeg, model: modell };
   } catch (e) {
     logger.error("feladatlapElemzes hiba", { uid, path, hiba: e.message });
-    throw new HttpsError("internal", e.message);
+    throw belsoHiba(e, "ai_hiba");
   }
 });
 
@@ -991,22 +1071,22 @@ exports.beadasUjrafuttatas = onCall(
     const uid = tanar(request);
 
     const beadasId = request.data?.beadasId;
-    if (!beadasId) throw new HttpsError("invalid-argument", "Hiányzó beadás ID.");
+    if (!beadasId) throw hiba("invalid-argument", "beadas_id_kell");
 
     const beadasSnap = await db().collection("beadasok").doc(beadasId).get();
-    if (!beadasSnap.exists) throw new HttpsError("not-found", "A beadás nem található.");
+    if (!beadasSnap.exists) throw hiba("not-found", "beadas_nincs");
     if (beadasSnap.data().tanar_id !== uid) {
-      throw new HttpsError("permission-denied", "Ez nem a te diákod beadása.");
+      throw hiba("permission-denied", "nem_a_te_beadasod");
     }
     if (beadasSnap.data().statusz === "folyamatban") {
-      throw new HttpsError("failed-precondition", "Ez a beadás épp feldolgozás alatt van.");
+      throw hiba("failed-precondition", "beadas_folyamatban");
     }
 
     try {
       return { siker: true, ...(await feldolgozBeadas(beadasId)) };
     } catch (e) {
       await hibaraAllit(beadasId, e);
-      throw new HttpsError("internal", e.message);
+      throw belsoHiba(e, "ai_hiba");
     }
   }
 );
@@ -1042,7 +1122,10 @@ function pontTablazat(ai, rubrika, modositasok) {
     if (m && m.pont != null && m.pont !== "") {
       const p = Number(m.pont);
       if (!Number.isFinite(p) || p < 0 || p > max) {
-        throw new Error(`Érvénytelen pontszám – ${cim}: 0 és ${max} között lehet.`);
+        throw Object.assign(
+          new Error(`Érvénytelen pontszám – ${cim}: 0 és ${max} között lehet.`),
+          { kod: "pont_hatar", parameterek: { cim, max } }
+        );
       }
       pont = p;
     }
@@ -1073,26 +1156,26 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
   // szempontok: fogalmazásnál a tanár pontjai szempontonként.
   // kerdesek: kifejtősnél a tanár elemstátusz-felülírásai (pontot nem küldhet).
   const { beadasId, jegy, szoveg, szempontok, kerdesek } = request.data || {};
-  if (!beadasId) throw new HttpsError("invalid-argument", "Hiányzó beadás ID.");
+  if (!beadasId) throw hiba("invalid-argument", "beadas_id_kell");
   if (!szoveg || !szoveg.trim()) {
-    throw new HttpsError("invalid-argument", "A visszajelzés szövege nem lehet üres.");
+    throw hiba("invalid-argument", "visszajelzes_ures");
   }
   if (jegy != null && !(Number.isInteger(jegy) && jegy >= 1 && jegy <= 5)) {
-    throw new HttpsError("invalid-argument", "A jegy 1 és 5 közötti egész szám legyen.");
+    throw hiba("invalid-argument", "jegy_ertek");
   }
 
   const firestore = db();
   const beadasRef = firestore.collection("beadasok").doc(beadasId);
 
   const beadasSnap = await beadasRef.get();
-  if (!beadasSnap.exists) throw new HttpsError("not-found", "A beadás nem található.");
+  if (!beadasSnap.exists) throw hiba("not-found", "beadas_nincs");
 
   const beadas = beadasSnap.data();
   if (beadas.tanar_id !== uid) {
-    throw new HttpsError("permission-denied", "Ez nem a te diákod beadása.");
+    throw hiba("permission-denied", "nem_a_te_beadasod");
   }
   if (!["javitva", "elkuldve"].includes(beadas.statusz)) {
-    throw new HttpsError("failed-precondition", `Ebben az állapotban nem küldhető el: ${beadas.statusz}`);
+    throw hiba("failed-precondition", "statusz_nem_kuldheto", { statusz: beadas.statusz });
   }
 
   // A pontozási táblázat a diák visszajelzésébe: az AI-értékelés NEM
@@ -1107,13 +1190,13 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
     // elemstátuszaival – ugyanazzal a függvénnyel, amit a javító nézet mutat.
     const kulcsSnap = await feladatSnap.ref.collection("kulcs").doc("aktualis").get();
     if (!kulcsSnap.exists) {
-      throw new HttpsError("failed-precondition", "A feladat megoldókulcsa nem található.");
+      throw hiba("failed-precondition", "kulcs_nincs");
     }
     let kulcs;
     try {
       kulcs = kifejtos.kulcsEllenorzes(kulcsSnap.data());
     } catch (e) {
-      throw new HttpsError("failed-precondition", e.message);
+      throw hibaAtvezet("failed-precondition", e);
     }
     const rubrika = feladatSnap.data()?.rubrika || {};
     tabla = kifejtos.kifejtosTanariEredmeny(kulcs, aiSnap.data(), kerdesek, {
@@ -1124,7 +1207,7 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
     try {
       tabla = pontTablazat(aiSnap.data(), feladatSnap.data()?.rubrika, szempontok);
     } catch (e) {
-      throw new HttpsError("invalid-argument", e.message);
+      throw hibaAtvezet("invalid-argument", e);
     }
   }
 
@@ -1160,6 +1243,10 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
 // ══════════════════════════════════════════════════════
 exports._teszt = {
   claimOsszefuzes,
+  HIBA_SZOVEG,
+  hiba,
+  hibaAtvezet,
+  belsoHiba,
   elemzesAggregalas,
   elemzesPrompt,
   atiratPrompt,
@@ -1215,10 +1302,10 @@ exports.nevModositas = onCall(HIVAS_OPCIOK, async (request) => {
 
   const nev = (request.data?.nev || "").trim().replace(/\s+/g, " ");
   if (nev.length < 2) {
-    throw new HttpsError("invalid-argument", "A név legalább 2 karakter legyen.");
+    throw hiba("invalid-argument", "nev_rovid");
   }
   if (nev.length > 80) {
-    throw new HttpsError("invalid-argument", "A név legfeljebb 80 karakter lehet.");
+    throw hiba("invalid-argument", "nev_hosszu");
   }
 
   const firestore = db();
@@ -1277,7 +1364,7 @@ exports.diakEltavolitas = onCall(HIVAS_OPCIOK, async (request) => {
 
   const { osztalyId, diakUid } = request.data || {};
   if (!osztalyId || !diakUid) {
-    throw new HttpsError("invalid-argument", "Hiányzó osztály- vagy diákazonosító.");
+    throw hiba("invalid-argument", "osztaly_diak_id_kell");
   }
 
   const firestore = db();
@@ -1286,16 +1373,16 @@ exports.diakEltavolitas = onCall(HIVAS_OPCIOK, async (request) => {
   return await firestore.runTransaction(async (tx) => {
     const osztalySnap = await tx.get(osztalyRef);
     if (!osztalySnap.exists) {
-      throw new HttpsError("not-found", "Az osztály nem található.");
+      throw hiba("not-found", "osztaly_nincs");
     }
     if (osztalySnap.data().tanar_id !== uid) {
-      throw new HttpsError("permission-denied", "Ez nem a te osztályod.");
+      throw hiba("permission-denied", "nem_a_te_osztalyod");
     }
 
     const tagRef = osztalyRef.collection("tagok").doc(diakUid);
     const tagSnap = await tx.get(tagRef);
     if (!tagSnap.exists) {
-      throw new HttpsError("not-found", "Ez a diák nem tagja az osztálynak.");
+      throw hiba("not-found", "diak_nem_tag");
     }
 
     const nev = tagSnap.data().nev || "a diák";
@@ -1333,7 +1420,7 @@ const ERVENYES_SZEREPEK = ["tanar", "diak"];
 function admin(request) {
   const uid = belepve(request);
   if (request.auth.token?.admin !== true) {
-    throw new HttpsError("permission-denied", "Ehhez admin jogosultság kell.");
+    throw hiba("permission-denied", "admin_kell");
   }
   return uid;
 }
@@ -1399,23 +1486,20 @@ exports.szerepBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
   const adminUid = admin(request);
 
   const { uid, szerep, adminJog } = request.data || {};
-  if (!uid) throw new HttpsError("invalid-argument", "Hiányzó felhasználó-azonosító.");
+  if (!uid) throw hiba("invalid-argument", "felhasznalo_id_kell");
 
   if (szerep !== undefined && !ERVENYES_SZEREPEK.includes(szerep)) {
-    throw new HttpsError("invalid-argument", `Érvénytelen szerep: ${szerep}`);
+    throw hiba("invalid-argument", "szerep_ervenytelen", { szerep });
   }
   if (adminJog !== undefined && typeof adminJog !== "boolean") {
-    throw new HttpsError("invalid-argument", "Az admin jog logikai érték.");
+    throw hiba("invalid-argument", "admin_jog_logikai");
   }
 
   // Kizárás-védelem: a saját admin jogát senki ne vehesse el magától,
   // különben admin nélkül maradhat a rendszer, és csak szkripttel
   // lehetne visszaállítani.
   if (uid === adminUid && adminJog === false) {
-    throw new HttpsError(
-      "failed-precondition",
-      "A saját admin jogodat nem veheted el. Kérd meg egy másik admint."
-    );
+    throw hiba("failed-precondition", "sajat_admin");
   }
 
   try {
@@ -1426,7 +1510,7 @@ exports.szerepBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
     if (adminJog !== undefined) valtozasok.admin = adminJog ? true : null;
 
     if (Object.keys(valtozasok).length === 0) {
-      throw new HttpsError("invalid-argument", "Nincs mit módosítani.");
+      throw hiba("invalid-argument", "nincs_modositas");
     }
 
     const ujClaimek = claimOsszefuzes(user.customClaims, valtozasok);
@@ -1455,10 +1539,10 @@ exports.szerepBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
   } catch (e) {
     if (e instanceof HttpsError) throw e;
     if (e.code === "auth/user-not-found") {
-      throw new HttpsError("not-found", "Nincs ilyen felhasználó.");
+      throw hiba("not-found", "nincs_felhasznalo");
     }
     logger.error("szerepBeallitas hiba", { cel: uid, hiba: e.message });
-    throw new HttpsError("internal", e.message);
+    throw belsoHiba(e);
   }
 });
 
@@ -1559,6 +1643,7 @@ function elemzesAggregalas(ertekelesek) {
 function elemzesPrompt(feladat, agg) {
   const r = feladat.rubrika || {};
   const nyelv = nyelve(r);
+  const kim = kifejtos.kimenet(r);
 
   const szint = szintInfo(r);
   const szintSor = szint ? `${szint.cimke}: ${szint.ertek}\n` : "";
@@ -1576,7 +1661,7 @@ function elemzesPrompt(feladat, agg) {
     .map((sz) => `- ${sz.kulcs}: ${sz.atlag_pont}/${sz.max_pont} (${sz.szazalek}%)`)
     .join("\n");
 
-  return `Te egy tapasztalt ${nyelv}tanár és szaktanácsadó vagy. Egy magyar
+  return `Te egy tapasztalt ${nyelv}tanár és szaktanácsadó vagy. Egy ${kim.kod === "hu" ? "magyar " : ""}
 osztály ${nyelv} dolgozatainak összesített hibáit kapod meg, és a tanárnak
 kell segítened: mire érdemes órán visszatérni.
 
@@ -1604,11 +1689,11 @@ ${cimkeLista || "- nincs adat"}
 ${hibaLista || "- nincs adat"}
 
 # UTASÍTÁSOK
-1. "osszegzes": 2-3 bekezdés a tanárnak, magyarul. Mi ment jól az
+1. "osszegzes": 2-3 bekezdés a tanárnak, ${kim.hatarozo}. Mi ment jól az
    osztálynak, és mi az a 2-3 dolog, ami rendszerszinten hiányzik.
    Ne ismételd a számokat, azokat a tanár látja – ÉRTELMEZD őket.
 2. "tipushibak": a JELENTÉS szerint összevont típushibák, a
-   legfontosabbal kezdve, legfeljebb 6. A "cim" magyarul, közérthetően
+   legfontosabbal kezdve, legfeljebb 6. A "cim" ${kim.hatarozo}, közérthetően
    (pl. "A határozott articulus elhagyása"), a "peldak" pedig a fenti
    konkrét hibákból vett SZÓ SZERINTI idézetek.
    A "gyakorisag": "általános" ha a diákok többségét érinti, "gyakori" ha
@@ -1620,7 +1705,7 @@ ${hibaLista || "- nincs adat"}
 4. "generalo_prompt": egy KÉSZ, önmagában is használható prompt, amit a
    tanár bemásolhat egy AI-ba, hogy gyakorlósort generáljon az osztály
    konkrét hibáira. Tartalmazza a nyelvet, ${szint ? "a szintet, " : ""}a célzott
-   hibákat és a kért feladattípusokat. Az instrukciót magyarul írd, de a generált
+   hibákat és a kért feladattípusokat. Az instrukciót ${kim.hatarozo} írd, de a generált
    feladatok nyelve ${nyelv} legyen.
 
 Ha 3-nál kevesebb kiértékelt dolgozat van, az "osszegzes" ELSŐ mondatában
@@ -1633,15 +1718,15 @@ exports.feladatElemzes = onCall(
     const uid = tanar(request);
 
     const feladatId = request.data?.feladatId;
-    if (!feladatId) throw new HttpsError("invalid-argument", "Hiányzó feladat ID.");
+    if (!feladatId) throw hiba("invalid-argument", "feladat_id_kell");
 
     const firestore = db();
 
     const feladatSnap = await firestore.collection("feladatok").doc(feladatId).get();
-    if (!feladatSnap.exists) throw new HttpsError("not-found", "A feladat nem található.");
+    if (!feladatSnap.exists) throw hiba("not-found", "feladat_nincs");
     const feladat = feladatSnap.data();
     if (feladat.tanar_id !== uid) {
-      throw new HttpsError("permission-denied", "Ez nem a te feladatod.");
+      throw hiba("permission-denied", "nem_a_te_feladatod");
     }
 
     const beadasok = await firestore
@@ -1676,10 +1761,7 @@ exports.feladatElemzes = onCall(
     }
 
     if (ertekelesek.length === 0) {
-      throw new HttpsError(
-        "failed-precondition",
-        "Ehhez a feladathoz még nincs kiértékelt beadás."
-      );
+      throw hiba("failed-precondition", "nincs_kiertekelt");
     }
 
     const agg = elemzesAggregalas(ertekelesek);
@@ -1692,13 +1774,13 @@ exports.feladatElemzes = onCall(
     if (kifejtosMod) {
       const kulcsSnap = await feladatSnap.ref.collection("kulcs").doc("aktualis").get();
       if (!kulcsSnap.exists) {
-        throw new HttpsError("failed-precondition", "A feladat megoldókulcsa nem található.");
+        throw hiba("failed-precondition", "kulcs_nincs");
       }
       let kulcs;
       try {
         kulcs = kifejtos.kulcsEllenorzes(kulcsSnap.data());
       } catch (e) {
-        throw new HttpsError("failed-precondition", e.message);
+        throw hibaAtvezet("failed-precondition", e);
       }
       kf = kifejtos.kifejtosAggregalas(kulcs, ertekelesek);
       prompt = kifejtos.kifejtosElemzesPrompt(feladat, agg, kf, ertekelesek.flatMap((e) => e.hibak || []));
@@ -1766,18 +1848,18 @@ exports.kulcsKeszites = onCall(
     const { feladatlapPath, tananyagPaths, tantargy } = request.data || {};
 
     if (!feladatlapPath) {
-      throw new HttpsError("invalid-argument", "A kulcshoz feladatlap kell – töltsd fel előbb.");
+      throw hiba("invalid-argument", "kulcs_feladatlap_kell");
     }
     if (typeof feladatlapPath !== "string" || !feladatlapPath.startsWith(`feladatlapok/${uid}/`)) {
-      throw new HttpsError("permission-denied", "Ez nem a te feltöltésed.");
+      throw hiba("permission-denied", "nem_a_tied_feltoltes");
     }
     const tananyag = Array.isArray(tananyagPaths) ? tananyagPaths : [];
     if (tananyag.length > TANANYAG_FAJL_MAX) {
-      throw new HttpsError("invalid-argument", `Legfeljebb ${TANANYAG_FAJL_MAX} tananyag-fájl tölthető fel.`);
+      throw hiba("invalid-argument", "max_tananyag", { max: TANANYAG_FAJL_MAX });
     }
     for (const path of tananyag) {
       if (typeof path !== "string" || !path.startsWith(`tananyagok/${uid}/`)) {
-        throw new HttpsError("permission-denied", "Ez nem a te feltöltésed.");
+        throw hiba("permission-denied", "nem_a_tied_feltoltes");
       }
     }
 
@@ -1786,8 +1868,7 @@ exports.kulcsKeszites = onCall(
       [feladatlapPath, ...tananyag].map((path) => bucket.file(path).getMetadata().then(([m]) => Number(m.size || 0)))
     );
     if (meretek.reduce((a, b) => a + b, 0) > KULCS_OSSZMERET_MAX) {
-      throw new HttpsError("invalid-argument",
-        "A feladatlap és a tananyag együtt túl nagy (legfeljebb 14 MB). Hagyd el a tananyag felesleges részeit.");
+      throw hiba("invalid-argument", "kulcs_meret");
     }
 
     const tantargyTisztitva = String(tantargy || "").trim().slice(0, 60) || null;
@@ -1806,14 +1887,14 @@ exports.kulcsKeszites = onCall(
       ({ eredmeny, modell } = await geminiHivas("rubrika", reszek, kifejtos.KULCS_JAVASLAT_SCHEMA));
     } catch (e) {
       logger.error("kulcsKeszites hiba", { uid, hiba: e.message });
-      throw new HttpsError("internal", e.message);
+      throw belsoHiba(e, "ai_hiba");
     }
 
     let tiszta;
     try {
       tiszta = kifejtos.kulcsJavaslatTisztitas(eredmeny, vanTananyag);
     } catch (e) {
-      throw new HttpsError("failed-precondition", e.message);
+      throw hibaAtvezet("failed-precondition", e);
     }
 
     logger.info("Kulcsvázlat kész", { uid, kerdes: tiszta.kulcs.kerdesek.length, tananyag: tananyag.length });

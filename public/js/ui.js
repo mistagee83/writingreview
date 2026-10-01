@@ -2,7 +2,7 @@
 // WritingReview – közös UI segédek
 // ══════════════════════════════════════════════════════
 
-import { t, nyelv } from "./i18n.js";
+import { t, nyelv, vanKulcs, kulcsHibaSzoveg } from "./i18n.js";
 
 /**
  * Státusz-címkék.
@@ -53,10 +53,18 @@ export function uzenetTorles(elemId) {
 export function hibaSzoveg(e) {
   // A kliens saját, már lefordított hibái (new Error(t(...)) + helyi = true)
   if (e?.helyi) return e.message;
-  // A Function saját üzenete egyelőre MAGYAR, ezért csak magyar felületen
-  // mutatjuk meg (pontosabb, mint az általános kódszöveg). Más nyelven
-  // az általános, lefordított szöveg jelenik meg, amíg a szerver is
-  // üzenetkódokat nem küld.
+  // A Function üzenete MAGYAR; a hiba kódját a details.kod hordozza
+  // (functions/index.js → hiba()). Magyar felületen a saját üzenet a
+  // pontosabb; más nyelven a kódból fordítunk, és csak ha nincs kód vagy
+  // szöveg hozzá, esünk vissza az általános hibaszövegre.
+  const d = e?.details;
+  if (nyelv() !== "hu" && d?.kod) {
+    if (d.kod === "kulcshiba") {
+      return kulcsHibaSzoveg({ kod: d.kulcsKod, parameterek: d.parameterek, message: e.message });
+    }
+    const kulcs = `szerver.${d.kod}`;
+    if (vanKulcs(kulcs)) return t(kulcs, d);
+  }
   if (nyelv() === "hu" && e?.message && !/^INTERNAL$/i.test(e.message)) return e.message;
   const kod = e?.code?.replace(/^functions\//, "");
   const kulcs = `hiba.${kod}`;
