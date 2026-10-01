@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WritingReview – Tanári felület</title>
+  <title data-i18n="tanar.oldalcim">WritingReview – Tanári felület</title>
   <link rel="manifest" href="manifest.webmanifest"/>
   <meta name="theme-color" content="#0f0f0f"/>
   <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
@@ -16,13 +16,13 @@
 </head>
 <body>
 
-<div id="loading-screen">Betöltés...</div>
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
 
 <div class="topbar gated" id="topbar">
   <div class="brand">Writing<span>Review</span></div>
   <div class="topbar-right">
-    <div class="user-info"><span class="csak-nagy">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
-    <button class="btn-logout" onclick="logout()">Kilépés</button>
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
   </div>
 </div>
 
@@ -31,25 +31,25 @@
 
   <main class="main">
     <div class="page-header">
-      <h1>Főoldal</h1>
-      <p>Üdvözlünk a WritingReview tanári felületén</p>
+      <h1 data-i18n="tanar.cim">Főoldal</h1>
+      <p data-i18n="tanar.alcim">Üdvözlünk a WritingReview tanári felületén</p>
     </div>
 
     <div class="stats-grid">
       <a class="stat-card" href="javitas.html">
-        <div class="stat-label">Ellenőrzésre vár</div>
+        <div class="stat-label" data-i18n="tanar.stat_varakozik">Ellenőrzésre vár</div>
         <div class="stat-value accent" id="stat-varakozik">–</div>
       </a>
       <a class="stat-card" href="feladatok.html">
-        <div class="stat-label">Aktív feladatok</div>
+        <div class="stat-label" data-i18n="tanar.stat_feladatok">Aktív feladatok</div>
         <div class="stat-value" id="stat-feladatok">–</div>
       </a>
       <a class="stat-card" href="osztalyok.html">
-        <div class="stat-label">Osztályok</div>
+        <div class="stat-label" data-i18n="tanar.stat_osztalyok">Osztályok</div>
         <div class="stat-value" id="stat-osztalyok">–</div>
       </a>
       <a class="stat-card" href="osztalyok.html">
-        <div class="stat-label">Összes diák</div>
+        <div class="stat-label" data-i18n="tanar.stat_diakok">Összes diák</div>
         <div class="stat-value" id="stat-diakok">–</div>
       </a>
     </div>
@@ -57,23 +57,23 @@
     <div class="modules-grid">
       <a class="module-card" href="osztalyok.html">
         <div class="module-icon">🎓</div>
-        <div class="module-title">Osztályok</div>
-        <div class="module-desc">Osztály létrehozása, osztálykód megosztása, névsor megtekintése.</div>
+        <div class="module-title" data-i18n="tanar.modul_osztalyok_cim">Osztályok</div>
+        <div class="module-desc" data-i18n="tanar.modul_osztalyok_leiras">Osztály létrehozása, osztálykód megosztása, névsor megtekintése.</div>
       </a>
       <a class="module-card" href="feladatok.html">
         <div class="module-icon">📋</div>
-        <div class="module-title">Feladatkezelés</div>
-        <div class="module-desc">Feladatlap feltöltése, AI által kitöltött rubrika jóváhagyása.</div>
+        <div class="module-title" data-i18n="tanar.modul_feladatok_cim">Feladatkezelés</div>
+        <div class="module-desc" data-i18n="tanar.modul_feladatok_leiras">Feladatlap feltöltése, AI által kitöltött rubrika jóváhagyása.</div>
       </a>
       <a class="module-card" href="javitas.html">
         <div class="module-icon">✏️</div>
-        <div class="module-title">Javítási sor</div>
-        <div class="module-desc">Az AI javaslatainak ellenőrzése, jegy és visszajelzés elküldése.</div>
+        <div class="module-title" data-i18n="tanar.modul_javitas_cim">Javítási sor</div>
+        <div class="module-desc" data-i18n="tanar.modul_javitas_leiras">Az AI javaslatainak ellenőrzése, jegy és visszajelzés elküldése.</div>
       </a>
       <a class="module-card" href="feladatok.html">
         <div class="module-icon">📊</div>
-        <div class="module-title">Osztályszintű elemzés</div>
-        <div class="module-desc">Egy feladat beadásaiból típushibák, javasolt gyakorlatok és kész feladatgeneráló prompt. A feladatlistából, a 📊 gombbal.</div>
+        <div class="module-title" data-i18n="tanar.modul_elemzes_cim">Osztályszintű elemzés</div>
+        <div class="module-desc" data-i18n="tanar.modul_elemzes_leiras">Egy feladat beadásaiból típushibák, javasolt gyakorlatok és kész feladatgeneráló prompt. A feladatlistából, a 📊 gombbal.</div>
       </a>
     </div>
   </main>

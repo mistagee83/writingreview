@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WritingReview – Javítási sor</title>
+  <title data-i18n="jav.oldalcim">WritingReview – Javítási sor</title>
   <link rel="manifest" href="manifest.webmanifest"/>
   <meta name="theme-color" content="#0f0f0f"/>
   <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
@@ -16,13 +16,13 @@
 </head>
 <body>
 
-<div id="loading-screen">Betöltés...</div>
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
 
 <div class="topbar gated" id="topbar">
   <div class="brand">Writing<span>Review</span></div>
   <div class="topbar-right">
-    <div class="user-info"><span class="csak-nagy">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
-    <button class="btn-logout" onclick="logout()">Kilépés</button>
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
   </div>
 </div>
 
@@ -31,19 +31,19 @@
 
   <main class="main narrow">
     <div class="page-header">
-      <h1>Javítási sor</h1>
-      <p>Az AI javaslatait ellenőrizd, szerkeszd, majd küldd el a diáknak – addig ő semmit nem lát</p>
+      <h1 data-i18n="jav.cim">Javítási sor</h1>
+      <p data-i18n="jav.alcim">Az AI javaslatait ellenőrizd, szerkeszd, majd küldd el a diáknak – addig ő semmit nem lát</p>
     </div>
 
     <div class="szuro" id="szuro">
-      <button class="szuro-btn active" data-statusz="javitva">📝 Ellenőrzésre vár</button>
-      <button class="szuro-btn" data-statusz="folyamatban">⚙️ Feldolgozás alatt</button>
-      <button class="szuro-btn" data-statusz="elkuldve">📧 Elküldve</button>
-      <button class="szuro-btn" data-statusz="hiba">⚠️ Hibás</button>
-      <button class="szuro-btn" data-statusz="mind">Mind</button>
+      <button class="szuro-btn active" data-statusz="javitva" data-i18n="jav.szuro_javitva">📝 Ellenőrzésre vár</button>
+      <button class="szuro-btn" data-statusz="folyamatban" data-i18n="jav.szuro_folyamatban">⚙️ Feldolgozás alatt</button>
+      <button class="szuro-btn" data-statusz="elkuldve" data-i18n="jav.szuro_elkuldve">📧 Elküldve</button>
+      <button class="szuro-btn" data-statusz="hiba" data-i18n="jav.szuro_hiba">⚠️ Hibás</button>
+      <button class="szuro-btn" data-statusz="mind" data-i18n="jav.szuro_mind">Mind</button>
     </div>
 
-    <div id="lista"><div class="empty-state bare"><p>Betöltés...</p></div></div>
+    <div id="lista"><div class="empty-state bare"><p data-i18n="kozos.betoltes">Betöltés...</p></div></div>
   </main>
 </div>
 
@@ -59,6 +59,7 @@
 </div>
 
 <script type="module">
+  import { t } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { statuszBadge, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
@@ -81,6 +82,16 @@
 
   const lista = document.getElementById('lista');
   let leiratkozas = null;
+
+  /** Az átírás olvashatósága: az AI kódja (jo / kozepes / gyenge) → szöveg. */
+  function olvashatosagSzoveg(kod) {
+    const szoveg = {
+      jo:       t('jav.olvashatosag_jo'),
+      kozepes:  t('jav.olvashatosag_kozepes'),
+      gyenge:   t('jav.olvashatosag_gyenge')
+    }[kod];
+    return esc(szoveg || kod);
+  }
   let feladatCache = {};
 
   async function feladatCim(feladatId) {
@@ -122,10 +133,10 @@
     const p = tanari?.max_pontszam ? tanari : ai;
     const reszek = [];
     if (p?.max_pontszam) {
-      reszek.push(`<span class="badge javitva">📊 ${esc(p.osszpontszam)}/${esc(p.max_pontszam)} pont` +
+      reszek.push(`<span class="badge javitva">${t('jav.pont_badge', { ossz: esc(p.osszpontszam), max: esc(p.max_pontszam) })}` +
         `${p.szazalek != null ? ` · ${esc(p.szazalek)}%` : ''}</span>`);
     }
-    if (tanari?.jegy) reszek.push(`<span class="badge aktiv">Jegy: ${esc(tanari.jegy)}</span>`);
+    if (tanari?.jegy) reszek.push(`<span class="badge aktiv">${t('jav.jegy_badge', { jegy: esc(tanari.jegy) })}</span>`);
     return reszek.join('');
   }
 
@@ -140,12 +151,12 @@
       ? query(...alap, orderBy('letrehozva', 'desc'))
       : query(...alap, where('statusz', '==', statusz), orderBy('letrehozva', 'desc'));
 
-    lista.innerHTML = `<div class="empty-state bare"><p>Betöltés...</p></div>`;
+    lista.innerHTML = `<div class="empty-state bare"><p>${t('kozos.betoltes')}</p></div>`;
 
     leiratkozas = onSnapshot(q, async (snap) => {
       if (snap.empty) {
         lista.innerHTML = `<div class="empty-state">
-          <div class="empty-icon">📭</div><p>Nincs beadás ebben az állapotban.</p></div>`;
+          <div class="empty-icon">📭</div><p>${t('jav.nincs_beadas')}</p></div>`;
         return;
       }
 
@@ -158,21 +169,21 @@
         return `
           <div class="list-card">
             <div>
-              <h3>${esc(b.diak_nev || 'Névtelen diák')}</h3>
+              <h3>${esc(b.diak_nev || t('jav.nevtelen_diak'))}</h3>
               <div class="list-card-meta">
-                <span>${esc(f?.cim || 'törölt feladat')}</span>
+                <span>${esc(f?.cim || t('jav.torolt_feladat'))}</span>
                 <span>${datum(b.letrehozva)}</span>
                 ${statuszBadge(b.statusz)}
                 ${eredmenyBadge(e)}
                 ${b.atirat_olvashatosag === 'gyenge'
-                  ? '<span class="badge inaktiv">✍️ nehezen olvasható</span>' : ''}
+                  ? `<span class="badge inaktiv">${t('jav.nehezen_olvashato')}</span>` : ''}
               </div>
               ${b.hiba ? `<p class="hiba-szoveg">${esc(b.hiba)}</p>` : ''}
             </div>
             <div class="list-card-actions">
-              <button class="btn-sm" data-akcio="nyit" data-id="${esc(d.id)}">Megnyitás</button>
+              <button class="btn-sm" data-akcio="nyit" data-id="${esc(d.id)}">${t('jav.megnyitas')}</button>
               ${['hiba', 'javitva'].includes(b.statusz)
-                ? `<button class="btn-sm" data-akcio="ujra" data-id="${esc(d.id)}">🔄 Újra</button>` : ''}
+                ? `<button class="btn-sm" data-akcio="ujra" data-id="${esc(d.id)}">${t('jav.ujra')}</button>` : ''}
             </div>
           </div>`;
       }));
@@ -180,7 +191,7 @@
       lista.innerHTML = kartyak.join('');
     }, (e) => {
       console.error(e);
-      lista.innerHTML = `<div class="empty-state bare"><p>Nem sikerült betölteni. Hiányzó index? Nézd meg a konzolt.</p></div>`;
+      lista.innerHTML = `<div class="empty-state bare"><p>${t('jav.betoltesi_hiba')}</p></div>`;
     });
   }
 
@@ -207,11 +218,11 @@
     }
 
     if (b.dataset.akcio === 'ujra') {
-      const vissza = gombVar(b, 'Fut...');
+      const vissza = gombVar(b, t('jav.fut'));
       try {
         await beadasUjrafuttatas({ beadasId: b.dataset.id });
       } catch (err) {
-        alert('Nem sikerült: ' + hibaSzoveg(err));
+        alert(t('jav.nem_sikerult', { ok: hibaSzoveg(err) }));
       } finally {
         vissza();
       }
@@ -233,12 +244,12 @@
 
     try {
       const bSnap = await getDoc(doc(db, 'beadasok', beadasId));
-      if (!bSnap.exists()) { torzs.innerHTML = '<p>A beadás nem található.</p>'; return; }
+      if (!bSnap.exists()) { torzs.innerHTML = `<p>${t('jav.nem_talalhato')}</p>`; return; }
       const b = bSnap.data();
       const f = await feladatCim(b.feladat_id);
 
       document.getElementById('m-cim').textContent =
-        `${b.diak_nev || 'Névtelen'} – ${f?.cim || 'törölt feladat'}`;
+        `${b.diak_nev || t('jav.nevtelen')} – ${f?.cim || t('jav.torolt_feladat')}`;
 
       const aiSnap = await getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'ai'));
       const ai = aiSnap.exists() ? aiSnap.data() : null;
@@ -270,46 +281,45 @@
 
       torzs.innerHTML = `
         <div class="m-szekcio">
-          <h4>📷 Beadott fotók</h4>
+          <h4>${t('jav.fotok_cim')}</h4>
           <div class="kep-sor">
             ${kepUrlek.filter(Boolean).map((u, i) =>
-              `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="oldal ${i + 1}" /></a>`
-            ).join('') || '<p class="halvany">Nem sikerült betölteni a képeket.</p>'}
+              `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="${t('beadas.oldal_alt', { n: i + 1 })}" /></a>`
+            ).join('') || `<p class="halvany">${t('jav.kep_hiba')}</p>`}
           </div>
         </div>
 
         <div class="m-szekcio">
-          <h4>✍️ Amit az AI kiolvasott
-            ${b.atirat_olvashatosag ? `<span class="badge inaktiv">${esc(b.atirat_olvashatosag)} olvashatóság</span>` : ''}
+          <h4>${t('jav.atirat_cim')}
+            ${b.atirat_olvashatosag ? `<span class="badge inaktiv">${olvashatosagSzoveg(b.atirat_olvashatosag)}</span>` : ''}
           </h4>
-          <p class="halvany">Ha ez nem egyezik a fotóval, az AI félreolvasott – ne a diákot hibáztasd.</p>
-          <pre class="atirat">${esc(b.atirat || '(nincs átirat)')}</pre>
+          <p class="halvany">${t('jav.atirat_figyelmeztetes')}</p>
+          <pre class="atirat">${esc(b.atirat || t('jav.nincs_atirat'))}</pre>
           ${b.atirat_megjegyzes ? `<p class="halvany">${esc(b.atirat_megjegyzes)}</p>` : ''}
         </div>
 
         ${kifejtosMod ? `
         <div class="m-szekcio">
-          <h4>📝 Kérdésenként <span class="badge javitva" id="kf-ossz"></span></h4>
-          <p class="halvany">Az AI döntése előre be van jelölve. Ha nem értesz egyet, kattints a
-            megfelelőre – a pont azonnal újraszámolódik. A diák a te döntésedet látja.</p>
-          <div id="kf-javitas">${kulcsAdat ? '' : '<p class="hiba-szoveg">A feladat megoldókulcsa nem található – a kérdésenkénti javítás nem jeleníthető meg.</p>'}</div>
+          <h4>${t('jav.kerdesenkent_cim')} <span class="badge javitva" id="kf-ossz"></span></h4>
+          <p class="halvany">${t('jav.kerdesenkent_leiras')}</p>
+          <div id="kf-javitas">${kulcsAdat ? '' : `<p class="hiba-szoveg">${t('jav.nincs_kulcs')}</p>`}</div>
           ${(ai.hibak || []).length ? `
-          <h4 style="margin-top:1.2rem;">Tartalmi hibák (${ai.hibak.length})</h4>
+          <h4 style="margin-top:1.2rem;">${t('jav.tartalmi_hibak', { db: ai.hibak.length })}</h4>
           <div class="hiba-lista">
             ${ai.hibak.map((h) => `
               <div class="hiba-elem">
-                <span class="badge inaktiv">${esc(h.kategoria)}${h.kerdes ? ` · ${esc(h.kerdes)}. kérdés` : ''}</span>
+                <span class="badge inaktiv">${esc(h.kategoria)}${h.kerdes ? t('jav.kerdes_jelzo', { n: esc(h.kerdes) }) : ''}</span>
                 <div>${esc(h.idezet)}${h.javaslat ? ` → <strong>${esc(h.javaslat)}</strong>` : ''}</div>
                 <p class="halvany">${esc(h.magyarazat)}</p>
               </div>`).join('')}
           </div>` : ''}
         </div>` : ai ? `
         <div class="m-szekcio">
-          <h4>🤖 AI értékelés
-            <span class="badge javitva">${ai.osszpontszam}/${ai.max_pontszam} pont${ai.szazalek != null ? ` · ${ai.szazalek}%` : ''}</span>
+          <h4>${t('jav.ai_ertekeles_cim')}
+            <span class="badge javitva">${t('vj.pont_osszes', { ossz: ai.osszpontszam, max: ai.max_pontszam })}${ai.szazalek != null ? ` · ${ai.szazalek}%` : ''}</span>
           </h4>
           <table class="tabla">
-            <thead><tr><th>Szempont</th><th>Pont</th><th>Megjegyzés</th></tr></thead>
+            <thead><tr><th>${t('beadas.szempont')}</th><th>${t('beadas.pont')}</th><th>${t('vj.megjegyzes')}</th></tr></thead>
             <tbody>${(ai.szempontok || []).map((sz) => `
               <tr>
                 <td>${esc(sz.kulcs)}</td>
@@ -319,68 +329,65 @@
           </table>
 
           ${(ai.hibak || []).length ? `
-          <h4 style="margin-top:1.2rem;">Talált hibák (${ai.hibak.length})</h4>
+          <h4 style="margin-top:1.2rem;">${t('jav.talalt_hibak', { db: ai.hibak.length })}</h4>
           <div class="hiba-lista">
             ${ai.hibak.map((h) => `
               <div class="hiba-elem">
-                <span class="badge inaktiv">${esc(h.kategoria)}${h.tipus && h.tipus !== h.kategoria ? ` · ${esc(h.tipus)}` : ''}${h.kerdes ? ` · ${esc(h.kerdes)}. kérdés` : ''}</span>
+                <span class="badge inaktiv">${esc(h.kategoria)}${h.tipus && h.tipus !== h.kategoria ? ` · ${esc(h.tipus)}` : ''}${h.kerdes ? t('jav.kerdes_jelzo', { n: esc(h.kerdes) }) : ''}</span>
                 <div><s>${esc(h.idezet)}</s> → <strong>${esc(h.javaslat)}</strong></div>
                 <p class="halvany">${esc(h.magyarazat)}</p>
               </div>`).join('')}
           </div>` : ''}
 
           ${(ai.erossegek || []).length ? `
-            <h4 style="margin-top:1.2rem;">Erősségek</h4>
+            <h4 style="margin-top:1.2rem;">${t('jav.erossegek')}</h4>
             <ul class="lista-pontok">${ai.erossegek.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
           ${(ai.fejlesztendo || []).length ? `
-            <h4 style="margin-top:0.8rem;">Fejlesztendő</h4>
+            <h4 style="margin-top:0.8rem;">${t('jav.fejlesztendo')}</h4>
             <ul class="lista-pontok">${ai.fejlesztendo.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
         </div>` : `
         <div class="m-szekcio">
-          <p class="halvany">Ehhez a beadáshoz még nincs AI értékelés (státusz: ${esc(b.statusz)}).</p>
+          <p class="halvany">${t('jav.nincs_ai', { statusz: esc(b.statusz) })}</p>
         </div>`}
 
         <div class="m-szekcio kiemelt">
-          <h4>📧 Visszajelzés a diáknak</h4>
-          <p class="halvany">
-            Ezt – és csak ezt – fogja a diák látni, az elküldés után.
-            Az AI javaslata előre be van írva; szerkeszd bátran.
-          </p>
+          <h4>${t('jav.visszajelzes_cim')}</h4>
+          <p class="halvany">${t('jav.visszajelzes_leiras')}</p>
           ${pontSorok.length ? `
           <div class="form-group">
-            <label>Pontozás – ezt is látja a diák</label>
+            <label>${t('jav.pontozas_label')}</label>
             <div class="tabla-gorgeto">
               <table class="tabla pont-szerk">
-                <thead><tr><th>Szempont</th><th>Pont</th><th>Megjegyzés</th></tr></thead>
+                <thead><tr><th>${t('beadas.szempont')}</th><th>${t('beadas.pont')}</th><th>${t('vj.megjegyzes')}</th></tr></thead>
                 <tbody>${pontSorok.map((sz) => `
                   <tr data-kulcs="${esc(sz.kulcs)}">
                     <td>${esc(sz.cim)}</td>
                     <td class="pont-cella">
                       <input type="number" class="p-pont" min="0" max="${esc(sz.max)}" step="any"
-                             value="${esc(sz.pont)}" aria-label="${esc(sz.cim)} pont" /> / ${esc(sz.max)}
+                             value="${esc(sz.pont)}" aria-label="${esc(t('jav.pont_aria', { cim: sz.cim }))}" /> / ${esc(sz.max)}
                     </td>
-                    <td><textarea class="p-megj" rows="2" aria-label="${esc(sz.cim)} megjegyzés">${esc(sz.megjegyzes || '')}</textarea></td>
+                    <td><textarea class="p-megj" rows="2" aria-label="${esc(t('jav.megj_aria', { cim: sz.cim }))}">${esc(sz.megjegyzes || '')}</textarea></td>
                   </tr>`).join('')}</tbody>
-                <tfoot><tr><td>Összesen</td><td colspan="2"><strong id="p-ossz"></strong></td></tr></tfoot>
+                <tfoot><tr><td>${t('vj.osszesen')}</td><td colspan="2"><strong id="p-ossz"></strong></td></tr></tfoot>
               </table>
             </div>
           </div>` : ''}
           <div class="form-group">
-            <label for="m-jegy">Jegy (nem kötelező) <span id="m-jegy-javaslat" class="halvany"></span></label>
+            <label for="m-jegy">${t('jav.jegy_label')} <span id="m-jegy-javaslat" class="halvany"></span></label>
             <select id="m-jegy">
-              <option value="">– nincs jegy –</option>
+              <option value="">${t('jav.nincs_jegy')}</option>
               <option value="5">5</option><option value="4">4</option>
               <option value="3">3</option><option value="2">2</option><option value="1">1</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="m-szoveg">Szöveges visszajelzés</label>
+            <label for="m-szoveg">${t('jav.szoveg_label')}</label>
             <textarea id="m-szoveg" rows="10"></textarea>
           </div>
           <div class="msg" id="m-msg"></div>
           <div class="gomb-sor">
             <button class="btn-primary" id="m-kuld">
-              ${b.statusz === 'elkuldve' ? '🔄 Módosítás elküldése' : '📧 Elküldés a diáknak'}
+              ${b.statusz === 'elkuldve' ? t('jav.kuld_modosit') : t('jav.kuld')}
             </button>
           </div>
         </div>`;
@@ -403,16 +410,16 @@
             beadas: b, ai, kulcsAdat, feladat: f, tanari,
             onValtozas: (e) => {
               document.getElementById('kf-ossz').textContent =
-                `${e.osszpontszam}/${e.max_pontszam} pont${e.szazalek != null ? ` · ${e.szazalek}%` : ''}`;
+                `${t('vj.pont_osszes', { ossz: e.osszpontszam, max: e.max_pontszam })}${e.szazalek != null ? ` · ${e.szazalek}%` : ''}`;
               document.getElementById('m-jegy-javaslat').textContent =
-                e.javasolt_jegy ? `– javasolt: ${e.javasolt_jegy}` : '';
+                e.javasolt_jegy ? t('jav.javasolt', { jegy: e.javasolt_jegy }) : '';
               if (!jegyKezzel && e.javasolt_jegy) jegyEl.value = String(e.javasolt_jegy);
             }
           });
         } catch (err) {
           console.error(err);
           document.getElementById('kf-javitas').innerHTML =
-            `<p class="hiba-szoveg">A megoldókulcs nem használható: ${esc(err.message)}</p>`;
+            `<p class="hiba-szoveg">${t('jav.kulcs_hiba', { ok: esc(err.message) })}</p>`;
         }
       }
 
@@ -426,7 +433,7 @@
           p += Number(inp.value) || 0;
           max += Number(inp.max) || 0;
         });
-        ossz.textContent = `${p} / ${max} pont${max ? ` · ${Math.round((p / max) * 100)}%` : ''}`;
+        ossz.textContent = `${t('vj.pont_osszes', { ossz: p, max })}${max ? ` · ${Math.round((p / max) * 100)}%` : ''}`;
       };
       torzs.querySelectorAll('.p-pont').forEach((i) => i.addEventListener('input', osszFrissit));
       osszFrissit();
@@ -436,7 +443,7 @@
         const szoveg = document.getElementById('m-szoveg').value.trim();
         const jegyStr = document.getElementById('m-jegy').value;
 
-        if (!szoveg) { uzenet('m-msg', 'A visszajelzés szövege nem lehet üres.'); return; }
+        if (!szoveg) { uzenet('m-msg', t('jav.ures_szoveg')); return; }
 
         const szempontok = [...torzs.querySelectorAll('.pont-szerk tbody tr')].map((tr) => ({
           kulcs: tr.dataset.kulcs,
@@ -448,16 +455,16 @@
           return sz.pont === '' || !inp.checkValidity();
         });
         if (rossz) {
-          uzenet('m-msg', 'Minden pont 0 és a szempont maximuma között legyen.');
+          uzenet('m-msg', t('jav.pont_hatar'));
           return;
         }
 
         if (kifejtosMod && !kf) {
-          uzenet('m-msg', 'A megoldókulcs nélkül ez a kifejtős dolgozat nem küldhető el.');
+          uzenet('m-msg', t('jav.kulcs_nelkul'));
           return;
         }
 
-        const vissza = gombVar(ev.target, 'Küldés...');
+        const vissza = gombVar(ev.target, t('jav.kuldes_folyamat'));
         try {
           await visszajelzesJovahagyas({
             beadasId,
@@ -469,7 +476,7 @@
               ? { kerdesek: kf.modositasok() }
               : { szempontok: szempontok.map((sz) => ({ ...sz, pont: Number(sz.pont) })) })
           });
-          uzenet('m-msg', 'Elküldve – a diák már látja.', 'success');
+          uzenet('m-msg', t('jav.elkuldve'), 'success');
         } catch (err) {
           uzenet('m-msg', hibaSzoveg(err));
         } finally {
@@ -479,7 +486,7 @@
 
     } catch (e) {
       console.error(e);
-      torzs.innerHTML = `<p>Nem sikerült betölteni: ${esc(e.message)}</p>`;
+      torzs.innerHTML = `<p>${t('jav.modal_hiba', { ok: esc(e.message) })}</p>`;
     }
   }
 </script>

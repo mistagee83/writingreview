@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WritingReview – Szerepkezelés</title>
+  <title data-i18n="admin.oldalcim">WritingReview – Szerepkezelés</title>
   <link rel="manifest" href="manifest.webmanifest"/>
   <meta name="theme-color" content="#0f0f0f"/>
   <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
@@ -16,13 +16,13 @@
 </head>
 <body>
 
-<div id="loading-screen">Betöltés...</div>
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
 
 <div class="topbar gated" id="topbar">
   <div class="brand">Writing<span>Review</span></div>
   <div class="topbar-right">
-    <div class="user-info"><span class="csak-nagy">🔑 Admin &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
-    <button class="btn-logout" onclick="logout()">Kilépés</button>
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.admin_fejlec">🔑 Admin &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
   </div>
 </div>
 
@@ -31,39 +31,39 @@
 
   <main class="main narrow">
     <div class="page-header">
-      <h1>Szerepkezelés</h1>
-      <p>Itt nevezhetsz ki tanárokat. Mindenki diákként regisztrál – tanári
+      <h1 data-i18n="admin.cim">Szerepkezelés</h1>
+      <p data-i18n="admin.alcim">Itt nevezhetsz ki tanárokat. Mindenki diákként regisztrál – tanári
          jogot innen kap.</p>
     </div>
 
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-label">Tanár</div>
+        <div class="stat-label" data-i18n="admin.stat_tanar">Tanár</div>
         <div class="stat-value accent" id="stat-tanar">–</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Diák</div>
+        <div class="stat-label" data-i18n="admin.stat_diak">Diák</div>
         <div class="stat-value" id="stat-diak">–</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Admin</div>
+        <div class="stat-label" data-i18n="admin.stat_admin">Admin</div>
         <div class="stat-value" id="stat-admin">–</div>
       </div>
     </div>
 
     <div class="panel">
       <div class="panel-header">
-        <h2>👥 Felhasználók</h2>
-        <button class="btn-sm" id="btn-frissit">🔄 Frissítés</button>
+        <h2 data-i18n="admin.felhasznalok_cim">👥 Felhasználók</h2>
+        <button class="btn-sm" id="btn-frissit" data-i18n="admin.frissites">🔄 Frissítés</button>
       </div>
       <div class="panel-body">
         <div class="code-input-row">
-          <input type="text" id="kereso" placeholder="Keresés név vagy email szerint…" />
+          <input type="text" id="kereso" placeholder="Keresés név vagy email szerint…" data-i18n-placeholder="admin.kereso" />
           <select id="szuro" style="max-width:190px;">
-            <option value="mind">Mindenki</option>
-            <option value="tanar">Csak tanárok</option>
-            <option value="diak">Csak diákok</option>
-            <option value="admin">Csak adminok</option>
+            <option value="mind" data-i18n="admin.szuro_mind">Mindenki</option>
+            <option value="tanar" data-i18n="admin.szuro_tanar">Csak tanárok</option>
+            <option value="diak" data-i18n="admin.szuro_diak">Csak diákok</option>
+            <option value="admin" data-i18n="admin.szuro_admin">Csak adminok</option>
           </select>
         </div>
         <div class="msg" id="msg"></div>
@@ -73,7 +73,7 @@
       </div>
     </div>
 
-    <p class="halvany">
+    <p class="halvany" data-i18n="admin.megjegyzes">
       A szerepváltás a felhasználó belépési tokenjébe épül. Ha épp be van
       lépve, a következő oldalbetöltésnél magától frissül – ha mégsem, ki- és
       belépés után biztosan.
@@ -82,6 +82,7 @@
 </div>
 
 <script type="module">
+  import { t } from './js/i18n.js';
   import { vedettOldal, esc } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
@@ -116,7 +117,7 @@
         felhasznalok.filter((f) => f.admin).length;
 
       if (data.csonkolt) {
-        uzenet('msg', 'Több mint 1000 felhasználó – a lista csonkolt.');
+        uzenet('msg', t('admin.csonkolt'));
       }
       rajzol();
     } catch (e) {
@@ -145,7 +146,7 @@
 
     if (sorok.length === 0) {
       lista.innerHTML =
-        `<div class="empty-state bare"><p>Nincs találat.</p></div>`;
+        `<div class="empty-state bare"><p>${t('admin.nincs_talalat')}</p></div>`;
       return;
     }
 
@@ -154,15 +155,15 @@
       return `
         <div class="list-card">
           <div>
-            <h3>${esc(f.nev)}${enSajat ? ' <span class="badge inaktiv">te</span>' : ''}</h3>
+            <h3>${esc(f.nev)}${enSajat ? ` <span class="badge inaktiv">${t('admin.te')}</span>` : ''}</h3>
             <div class="list-card-meta">
               <span>${esc(f.email)}</span>
               <span class="badge ${f.szerep === 'tanar' ? 'aktiv' : 'inaktiv'}">
-                ${f.szerep === 'tanar' ? '👨‍🏫 Tanár' : '🎓 Diák'}
+                ${f.szerep === 'tanar' ? t('admin.tanar_jelzo') : t('admin.diak_jelzo')}
               </span>
-              ${f.admin ? '<span class="badge javitva">🔑 Admin</span>' : ''}
+              ${f.admin ? `<span class="badge javitva">${t('admin.admin_jelzo')}</span>` : ''}
               ${f.tukor_eltero
-                ? '<span class="badge feltoltve" title="A felhasználó tokenje még a régi szerepet tartalmazza">⏳ belépés kell</span>'
+                ? `<span class="badge feltoltve" title="${t('admin.belepes_kell_tipp')}">${t('admin.belepes_kell')}</span>`
                 : ''}
             </div>
           </div>
@@ -171,14 +172,14 @@
                     data-uid="${esc(f.uid)}"
                     data-szerep="${f.szerep === 'tanar' ? 'diak' : 'tanar'}"
                     data-nev="${esc(f.nev)}">
-              ${f.szerep === 'tanar' ? '↓ Diákká' : '↑ Tanárrá'}
+              ${f.szerep === 'tanar' ? t('admin.diakka') : t('admin.tanarra')}
             </button>
             <button class="btn-sm ${f.admin ? 'danger' : ''}" data-akcio="admin"
                     data-uid="${esc(f.uid)}"
                     data-admin="${f.admin ? '0' : '1'}"
                     data-nev="${esc(f.nev)}"
-                    ${enSajat && f.admin ? 'disabled title="A saját admin jogodat nem veheted el"' : ''}>
-              ${f.admin ? '🔑 Admin le' : '🔑 Admin fel'}
+                    ${enSajat && f.admin ? `disabled title="${t('admin.sajat_admin_tilos')}"` : ''}>
+              ${f.admin ? t('admin.admin_le') : t('admin.admin_fel')}
             </button>
           </div>
         </div>`;
@@ -206,14 +207,14 @@
       const ujSzerep = b.dataset.szerep;
       keres = { uid, szerep: ujSzerep };
       kerdes = ujSzerep === 'tanar'
-        ? `${nev} tanári jogot kap. Létrehozhat osztályt, feladatot, és láthatja a saját diákjai dolgozatait. Mehet?`
-        : `${nev} tanári jogát elveszed. A már létrehozott osztályai és feladatai megmaradnak, de nem fog hozzájuk férni. Mehet?`;
+        ? t('admin.kerdes_tanar_fel', { nev })
+        : t('admin.kerdes_tanar_le', { nev });
     } else {
       const ujAdmin = b.dataset.admin === '1';
       keres = { uid, adminJog: ujAdmin };
       kerdes = ujAdmin
-        ? `${nev} admin jogot kap – ő is ki tud nevezni tanárokat. Mehet?`
-        : `${nev} admin jogát elveszed. Mehet?`;
+        ? t('admin.kerdes_admin_fel', { nev })
+        : t('admin.kerdes_admin_le', { nev });
     }
 
     if (!confirm(kerdes)) return;
@@ -222,7 +223,7 @@
     try {
       await szerepBeallitas(keres);
       await betolt();
-      uzenet('msg', `${nev} módosítva.`, 'success');
+      uzenet('msg', t('admin.modositva', { nev }), 'success');
     } catch (err) {
       uzenet('msg', hibaSzoveg(err));
       vissza();

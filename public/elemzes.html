@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WritingReview – Osztályszintű elemzés</title>
+  <title data-i18n="elz.oldalcim">WritingReview – Osztályszintű elemzés</title>
   <link rel="manifest" href="manifest.webmanifest"/>
   <meta name="theme-color" content="#0f0f0f"/>
   <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
@@ -16,13 +16,13 @@
 </head>
 <body>
 
-<div id="loading-screen">Betöltés...</div>
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
 
 <div class="topbar gated" id="topbar">
   <div class="brand">Writing<span>Review</span></div>
   <div class="topbar-right">
-    <div class="user-info"><span class="csak-nagy">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
-    <button class="btn-logout" onclick="logout()">Kilépés</button>
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
   </div>
 </div>
 
@@ -30,7 +30,7 @@
   <nav class="sidebar" id="sidebar"></nav>
 
   <main class="main narrow">
-    <a class="vissza-link" href="feladatok.html">← Feladatok</a>
+    <a class="vissza-link" href="feladatok.html" data-i18n="elz.vissza">← Feladatok</a>
 
     <div class="page-header">
       <h1 id="cim">–</h1>
@@ -46,6 +46,7 @@
 </div>
 
 <script type="module">
+  import { t, nyelvNev } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra } from './js/ui.js';
@@ -63,10 +64,9 @@
   const tartalom = document.getElementById('tartalom');
 
   if (!feladatId) {
-    document.getElementById('cim').textContent = 'Hiányzó feladat';
+    document.getElementById('cim').textContent = t('elz.hianyzo_cim');
     tartalom.innerHTML =
-      `<div class="empty-state"><p>Nincs megadva, melyik feladatról van szó.
-       <a href="feladatok.html">Vissza a listához</a></p></div>`;
+      `<div class="empty-state"><p>${t('elz.hianyzo_leiras')}</p></div>`;
     throw new Error('nincs feladat id');
   }
 
@@ -82,7 +82,7 @@
       <p class="halvany" style="margin-top:1rem;">
         ${hiba ? esc(hiba.message || String(hiba)) : ''}
       </p>
-      <p style="margin-top:1.5rem;"><a class="btn-sm" href="feladatok.html">← Vissza a feladatokhoz</a></p>
+      <p style="margin-top:1.5rem;"><a class="btn-sm" href="feladatok.html">${t('elz.vissza_gomb')}</a></p>
     </div>`;
   }
 
@@ -90,12 +90,12 @@
   try {
     fSnap = await getDoc(doc(db, 'feladatok', feladatId));
   } catch (e) {
-    elakadt('Nem sikerült betölteni a feladatot.', e);
+    elakadt(t('elz.feladat_hiba'), e);
     throw e;
   }
   if (!fSnap.exists()) {
-    document.getElementById('cim').textContent = 'Nem található';
-    elakadt('Ez a feladat nem létezik, vagy nem a tiéd.');
+    document.getElementById('cim').textContent = t('elz.nem_talalhato');
+    elakadt(t('elz.nincs_feladat'));
     throw new Error('nincs feladat');
   }
   const feladat = fSnap.data();
@@ -117,7 +117,7 @@
       where('tanar_id', '==', user.uid)
     ));
   } catch (e) {
-    elakadt('Nem sikerült betölteni a beadásokat. Ha épp most települt új index, próbáld újra pár perc múlva.', e);
+    elakadt(t('elz.beadas_hiba'), e);
     throw e;
   }
   const kiertekelt = bSnap.docs.filter(
@@ -127,8 +127,8 @@
   const kifejtosMod = r.mod === 'kifejtos';
 
   document.getElementById('alcim').textContent =
-    [...(kifejtosMod ? [r.tantargy || 'kifejtős dolgozat'] : [r.nyelv || 'angol', r.tipus, r.szint]),
-     `${bSnap.size} beadás`, `${kiertekelt} kiértékelve`]
+    [...(kifejtosMod ? [r.tantargy || t('diak.kifejtos_alap')] : [nyelvNev(r.nyelv || 'angol'), r.tipus, r.szint]),
+     t('elz.alcim_beadas', { db: bSnap.size }), t('elz.alcim_kiertekelt', { db: kiertekelt })]
       .filter(Boolean).join(' · ');
 
   // ══════════════════════════════════════════
@@ -139,6 +139,12 @@
     'gyakori': 'javitva',
     'szórványos': 'inaktiv'
   };
+  // Az AI kódszavai (magyar) → megjelenített szöveg
+  const gyakorisagSzoveg = (g) => ({
+    'általános':  t('elz.gyak_altalanos'),
+    'gyakori':    t('elz.gyak_gyakori'),
+    'szórványos': t('elz.gyak_szorvanyos')
+  }[g] || g);
 
   function sav(szazalek) {
     const sz = Math.max(0, Math.min(100, Number(szazalek) || 0));
@@ -154,24 +160,27 @@
     const sz = Math.max(0, Math.min(100, Number(szazalek) || 0));
     return `<div class="sav"><div class="sav-kitolt baj" style="width:${sz}%"></div></div>`;
   }
-  const KATEGORIA_CIMKE = {
-    hianyzo_elem: 'hiányzó elem', tartalmi_tevedes: 'tartalmi tévedés',
-    pontatlan_fogalom: 'pontatlan fogalom', sorrend: 'sorrend', hianyos_kifejtes: 'hiányos kifejtés'
-  };
+  const kategoriaCimke = (k) => ({
+    hianyzo_elem:      t('elz.kat_hianyzo_elem'),
+    tartalmi_tevedes:  t('elz.kat_tartalmi_tevedes'),
+    pontatlan_fogalom: t('elz.kat_pontatlan_fogalom'),
+    sorrend:           t('elz.kat_sorrend'),
+    hianyos_kifejtes:  t('elz.kat_hianyos_kifejtes')
+  }[k] || k);
 
   function elemSor(el) {
     const hiany = el.hiany_szazalek ?? 0;
     const reszletek = [
-      el.hianyzik ? `${el.hianyzik} kihagyta` : null,
-      el.teves ? `${el.teves} tévesen írta` : null,
-      el.reszben ? `${el.reszben} részben` : null,
-      el.rossz_helyen ? `${el.rossz_helyen} rossz helyen` : null
+      el.hianyzik ? t('elz.reszlet_hianyzik', { db: el.hianyzik }) : null,
+      el.teves ? t('elz.reszlet_teves', { db: el.teves }) : null,
+      el.reszben ? t('elz.reszlet_reszben', { db: el.reszben }) : null,
+      el.rossz_helyen ? t('elz.reszlet_rossz_helyen', { db: el.rossz_helyen }) : null
     ].filter(Boolean).join(', ');
     return `
       <div class="sav-sor">
         <div class="sav-cimke">${esc(el.allitas)}${el.ag ? ` <span class="halvany">(${esc(el.ag)})</span>` : ''}</div>
         ${hianySav(hiany)}
-        <div class="sav-ertek">${el.db ? `${el.hianyzik + el.teves}/${el.db} diáknál hiányzik` : 'senki nem választotta'}</div>
+        <div class="sav-ertek">${el.db ? t('elz.hianyzik_diaknal', { ossz: el.hianyzik + el.teves, db: el.db }) : t('elz.senki')}</div>
       </div>
       ${reszletek ? `<p class="halvany elem-reszlet">${esc(reszletek)}</p>` : ''}`;
   }
@@ -179,9 +188,9 @@
   function kifejtosPanelek(e) {
     return `
       <div class="panel">
-        <div class="panel-header"><h2>📊 Kérdésenként</h2></div>
+        <div class="panel-header"><h2>${t('vj.kerdesenkent_cim')}</h2></div>
         <div class="panel-body">
-          <p class="halvany">A legrosszabbul sikerült kérdéssel kezdve. Nyisd le, hogy lásd, melyik elem hiányzott.</p>
+          <p class="halvany">${t('elz.kerdesenkent_leiras')}</p>
           ${(e.kerdesek || []).map((k) => `
             <details class="kerdes-reszlet">
               <summary>
@@ -192,23 +201,22 @@
                 </div>
               </summary>
               <div class="kerdes-elemek">${(k.elemek || []).map(elemSor).join('')}</div>
-            </details>`).join('') || '<p class="halvany">Nincs adat.</p>'}
+            </details>`).join('') || `<p class="halvany">${t('elz.nincs_adat')}</p>`}
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-header"><h2>🕳️ Amit a legtöbben kihagytak</h2></div>
+        <div class="panel-header"><h2>${t('elz.kihagyott_cim')}</h2></div>
         <div class="panel-body">
           ${(e.kihagyott || []).length ? `
-            <p class="halvany">A megoldókulcs elemei, a leggyakrabban hiányzóval kezdve – a tévesen leírt is
-              hiánynak számít. Ami a diákok negyedénél ritkábban hiányzott, azt a kérdéseknél lenyitva látod.</p>
+            <p class="halvany">${t('elz.kihagyott_leiras')}</p>
             ${e.kihagyott.map((el) => `
               <div class="sav-sor">
                 <div class="sav-cimke"><span class="badge inaktiv">${esc(el.sorszam)}.</span> ${esc(el.allitas)}</div>
                 ${hianySav(el.hiany_szazalek)}
                 <div class="sav-ertek">${el.hianyzik + el.teves}/${el.db} · ${el.hiany_szazalek}%</div>
               </div>`).join('')}`
-            : '<p class="halvany">Nincs olyan elem, amit a diákok legalább negyede kihagyott volna. 🎉</p>'}
+            : `<p class="halvany">${t('elz.nincs_kihagyott')}</p>`}
         </div>
       </div>`;
   }
@@ -217,41 +225,40 @@
     tartalom.innerHTML = `
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-label">Osztályátlag</div>
+          <div class="stat-label">${t('elz.stat_atlag')}</div>
           <div class="stat-value accent">${e.atlag_szazalek != null ? e.atlag_szazalek + '%' : '–'}</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Kiértékelt dolgozat</div>
+          <div class="stat-label">${t('elz.stat_ertekelt')}</div>
           <div class="stat-value">${e.ertekelt_db}</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Nehezen olvasható</div>
+          <div class="stat-label">${t('elz.stat_nehez')}</div>
           <div class="stat-value">${e.olvashatosag?.gyenge ?? 0}</div>
         </div>
       </div>
 
       ${e.ertekelt_db < 3 ? `
         <div class="msg error" style="display:block;">
-          Csak ${e.ertekelt_db} kiértékelt dolgozat – ez még nem osztályszintű kép.
-          Az elemzés elkészült, de óvatosan olvasd.
+          ${t('elz.keves_dolgozat', { db: e.ertekelt_db })}
         </div>` : ''}
 
       ${e.mod === 'kifejtos' ? kifejtosPanelek(e) : `
       <div class="panel">
-        <div class="panel-header"><h2>📊 Szempontonként</h2></div>
+        <div class="panel-header"><h2>${t('elz.szempontonkent_cim')}</h2></div>
         <div class="panel-body">
-          <p class="halvany">A legrosszabbul teljesített szemponttal kezdve.</p>
+          <p class="halvany">${t('elz.szempont_leiras')}</p>
           ${(e.szempontok || []).map((sz) => `
             <div class="sav-sor">
               <div class="sav-cimke">${esc(sz.kulcs)}</div>
               ${sav(sz.szazalek)}
               <div class="sav-ertek">${sz.atlag_pont}/${sz.max_pont} · ${sz.szazalek ?? '–'}%</div>
-            </div>`).join('') || '<p class="halvany">Nincs adat.</p>'}
+            </div>`).join('') || `<p class="halvany">${t('elz.nincs_adat')}</p>`}
         </div>
       </div>`}
 
       <div class="panel">
-        <div class="panel-header"><h2>🧭 Összegzés</h2></div>
+        <div class="panel-header"><h2>${t('elz.osszegzes_cim')}</h2></div>
         <div class="panel-body">
           <div class="visszajelzes-szoveg">${esc(e.osszegzes).replace(/\n/g, '<br/>')}</div>
         </div>
@@ -259,19 +266,17 @@
 
       ${(e.tipushibak || []).length ? `
       <div class="panel">
-        <div class="panel-header"><h2>${e.mod === 'kifejtos' ? '🔁 Közös hiányok és tévedések' : '🔁 Típushibák'}</h2></div>
+        <div class="panel-header"><h2>${e.mod === 'kifejtos' ? t('elz.kozos_hianyok_cim') : t('elz.tipushibak_cim')}</h2></div>
         <div class="panel-body">
           <p class="halvany">
-            ${e.mod === 'kifejtos'
-              ? 'Az AI értelmezése: jelentés szerint összevonva, a legfontosabbal kezdve.'
-              : 'Jelentés szerint összevonva – a javító AI címkéi elcsúszhatnak, ezért nem a címkék, hanem a tartalmuk alapján csoportosítva.'}
+            ${e.mod === 'kifejtos' ? t('elz.kozos_leiras') : t('elz.tipus_leiras')}
           </p>
           ${e.tipushibak.map((h) => `
             <div class="elem-kartya">
               <h4>
                 ${esc(h.cim)}
-                <span class="badge ${GYAKORISAG_OSZTALY[h.gyakorisag] || 'inaktiv'}">${esc(h.gyakorisag)}</span>
-                <span class="badge inaktiv">${esc(KATEGORIA_CIMKE[h.kategoria] || h.kategoria)}</span>
+                <span class="badge ${GYAKORISAG_OSZTALY[h.gyakorisag] || 'inaktiv'}">${esc(gyakorisagSzoveg(h.gyakorisag))}</span>
+                <span class="badge inaktiv">${esc(kategoriaCimke(h.kategoria))}</span>
               </h4>
               <p>${esc(h.magyarazat)}</p>
               ${(h.peldak || []).length ? `
@@ -282,12 +287,12 @@
 
       ${(e.gyakorlatok || []).length ? `
       <div class="panel">
-        <div class="panel-header"><h2>🎯 Javasolt gyakorlatok</h2></div>
+        <div class="panel-header"><h2>${t('elz.gyakorlatok_cim')}</h2></div>
         <div class="panel-body">
           ${e.gyakorlatok.map((g) => `
             <div class="elem-kartya">
-              <h4>${esc(g.cim)} <span class="badge inaktiv">${esc(g.idotartam_perc)} perc</span></h4>
-              <p class="halvany"><strong>Cél:</strong> ${esc(g.cel)}</p>
+              <h4>${esc(g.cim)} <span class="badge inaktiv">${t('elz.perc', { db: esc(g.idotartam_perc) })}</span></h4>
+              <p class="halvany"><strong>${t('elz.cel')}</strong> ${esc(g.cel)}</p>
               <p>${esc(g.leiras)}</p>
             </div>`).join('')}
         </div>
@@ -296,24 +301,20 @@
       ${e.generalo_prompt ? `
       <div class="panel">
         <div class="panel-header">
-          <h2>✨ Feladatgeneráló prompt</h2>
-          <button class="btn-sm" id="btn-prompt-masol">📋 Másolás</button>
+          <h2>${t('elz.prompt_cim')}</h2>
+          <button class="btn-sm" id="btn-prompt-masol">${t('elz.masolas')}</button>
         </div>
         <div class="panel-body">
-          <p class="halvany">
-            Bemásolhatod bármelyik AI-ba (ChatGPT, Gemini, Claude), és
-            gyakorlósort generál az osztály konkrét hibáira.
-          </p>
+          <p class="halvany">${t('elz.prompt_leiras')}</p>
           <pre class="atirat" id="generalo-prompt">${esc(e.generalo_prompt)}</pre>
         </div>
       </div>` : ''}
 
       <div class="gomb-sor">
-        <button class="btn-sm" id="btn-ujra">🔄 Elemzés újrafuttatása</button>
+        <button class="btn-sm" id="btn-ujra">${t('elz.ujrafuttat')}</button>
       </div>
       <p class="halvany" style="margin-top:0.75rem;">
-        Készült: ${datum(e.generalva)}${e.model ? ` · ${esc(e.model)}` : ''}.
-        Új beadások után érdemes újrafuttatni.
+        ${t('elz.keszult', { datum: datum(e.generalva), model: e.model ? ` · ${esc(e.model)}` : '' })}
       </p>`;
 
     const masol = document.getElementById('btn-prompt-masol');
@@ -329,21 +330,16 @@
       <div class="empty-state">
         <div class="empty-icon">📊</div>
         <p>
-          Ehhez a feladathoz még nincs elemzés.<br/>
-          ${kifejtosMod
-            ? `Megmutatja, melyik kérdés és a kulcs mely elemei hiányoztak a legtöbbeknél,
-               az AI összevonja a közös hiányokat, ismétlő gyakorlatokat javasol, és ad
-               egy kész promptot ismétlő feladatsor generálásához.`
-            : `Az AI összevonja a típushibákat, összegzi az osztály teljesítményét,
-               gyakorlatokat javasol, és ad egy kész promptot feladatgeneráláshoz.`}
+          ${t('elz.nincs_elemzes')}<br/>
+          ${kifejtosMod ? t('elz.meghivo_kifejtos') : t('elz.meghivo_fogalmazas')}
         </p>
         ${kiertekelt === 0
-          ? '<p class="halvany" style="margin-top:1rem;">Egyelőre nincs kiértékelt beadás – előbb javíts ki néhány dolgozatot.</p>'
+          ? `<p class="halvany" style="margin-top:1rem;">${t('elz.nincs_kiertekelt')}</p>`
           : `<p style="margin-top:1.5rem;">
-               <button class="btn-primary" id="btn-keszit">✨ Elemzés készítése</button>
+               <button class="btn-primary" id="btn-keszit">${t('elz.keszit_gomb')}</button>
              </p>
              ${kiertekelt < 3
-               ? `<p class="halvany" style="margin-top:0.75rem;">Csak ${kiertekelt} kiértékelt dolgozat van – a kép még nem lesz osztályszintű.</p>`
+               ? `<p class="halvany" style="margin-top:0.75rem;">${t('elz.keves_kiertekelt', { db: kiertekelt })}</p>`
                : ''}`}
       </div>`;
 
@@ -356,7 +352,7 @@
   // ══════════════════════════════════════════
   async function keszit(gomb) {
     uzenetTorles('msg');
-    const vissza = gombVar(gomb, 'Az AI dolgozik…');
+    const vissza = gombVar(gomb, t('elz.ai_dolgozik'));
     try {
       const { data } = await feladatElemzes({ feladatId });
       rajzol(data);

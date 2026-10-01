@@ -9,7 +9,10 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const PUBLIC = new URL("../public/", import.meta.url);
 const i18n = await import("../public/js/i18n.js");
@@ -67,14 +70,27 @@ test("a státusz-táblák minden kulcsa létezik minden nyelven", async () => {
 // ── a lapok használata ──
 // Az átalakított lapok minden t('…') hívása és data-i18n* kulcsa
 // létezik-e. Új lap átalakításakor add hozzá ide.
-const ATALAKITOTT = ["diak.html", "index.html", "beadas.html", "visszajelzes.html", "js/ui.js", "js/pwa.js"];
+const ATALAKITOTT = [
+  "diak.html", "index.html", "beadas.html", "visszajelzes.html",
+  "tanar.html", "osztalyok.html", "admin.html", "javitas.html", "elemzes.html",
+  "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js"
+];
+
+// A táblázatokban (menü, státusz, fejléc-nevek) a kulcs nem t()-hívásban,
+// hanem szó szerint, idézőjelek közt áll – azt is ellenőrizzük. Fájlnevek
+// (pl. "tanar.html") nem kulcsok.
+const NYELVTEREK = new Set(Object.keys(SZOTARAK[ALAP_NYELV]).map((k) => k.split(".")[0]));
+const TABLAZATKULCS = /["']([a-z]+\.[\w.\-]*[\w])["']/g;
+const FAJLNEV = /\.(html|js|mjs|css|json|png)$/;
 
 test("az átalakított lapok minden kulcsa létezik a szótárban", () => {
   for (const f of ATALAKITOTT) {
     const src = readFileSync(new URL(f, PUBLIC), "utf8");
     const kulcsok = [
       ...[...src.matchAll(/\bt\(\s*['"]([\w.\-]+)['"]/g)].map((m) => m[1]),
-      ...[...src.matchAll(/data-i18n[\w-]*="([\w.\-]+)"/g)].map((m) => m[1])
+      ...[...src.matchAll(/data-i18n[\w-]*="([\w.\-]+)"/g)].map((m) => m[1]),
+      ...[...src.matchAll(TABLAZATKULCS)].map((m) => m[1])
+        .filter((k) => NYELVTEREK.has(k.split(".")[0]) && !FAJLNEV.test(k))
     ];
     assert.ok(kulcsok.length > 0 || f.endsWith("ui.js"), `${f}: nincs egyetlen kulcs sem`);
     for (const k of kulcsok) {
@@ -94,9 +110,28 @@ test("az átalakított lapokban nincs beégetett magyar szöveg a megjelenítés
     // az input placeholder tartaléka is
     .replace(/<input[^>]*data-i18n[^>]*>/g, "");
   const ekezetes = /[áéíóöőúüűÁÉÍÓÖŐÚÜŰ]/;
-  for (const f of ["diak.html", "index.html", "beadas.html", "visszajelzes.html"]) {
+  for (const f of ATALAKITOTT.filter((x) => x.endsWith(".html"))) {
     const sorok = kod(readFileSync(new URL(f, PUBLIC), "utf8")).split("\n");
-    const talalat = sorok.filter((s) => ekezetes.test(s) && !/Névtelen/.test(s) && !/console\.(error|warn|log)/.test(s));
+    const talalat = sorok.filter((s) => ekezetes.test(s) && !/Névtelen/.test(s) && !/console\.(error|warn|log)/.test(s)
+      // az AI magyar kódszavai (adat, nem megjelenő szöveg)
+      && !/['"](általános|szórványos)['"]/.test(s));
     assert.deepEqual(talalat, [], `${f}: beégetett magyar szöveg`);
+  }
+});
+
+test("az átalakított lapok modul-szkriptjei szintaktikailag érvényesek", () => {
+  // A sztringben maradt ${t(...)} vagy egy elgépelt idézőjel nem dob hibát
+  // a kulcs-ellenőrzésen – csak a böngészőben, a lap betöltésekor derülne ki.
+  const dir = mkdtempSync(join(tmpdir(), "wr-i18n-"));
+  for (const f of ATALAKITOTT.filter((x) => x.endsWith(".html"))) {
+    const html = readFileSync(new URL(f, PUBLIC), "utf8");
+    const m = html.match(/<script type="module">([\s\S]*?)<\/script>/);
+    if (!m) continue;
+    const fajl = join(dir, f.replace(/\W/g, "_") + ".mjs");
+    writeFileSync(fajl, m[1]);
+    assert.doesNotThrow(
+      () => execFileSync(process.execPath, ["--check", fajl], { stdio: "pipe" }),
+      `${f}: szintaxishiba a modul-szkriptben`
+    );
   }
 });

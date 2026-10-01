@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WritingReview – Osztályok</title>
+  <title data-i18n="osztalyok.oldalcim">WritingReview – Osztályok</title>
   <link rel="manifest" href="manifest.webmanifest"/>
   <meta name="theme-color" content="#0f0f0f"/>
   <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
@@ -16,13 +16,13 @@
 </head>
 <body>
 
-<div id="loading-screen">Betöltés...</div>
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
 
 <div class="topbar gated" id="topbar">
   <div class="brand">Writing<span>Review</span></div>
   <div class="topbar-right">
-    <div class="user-info"><span class="csak-nagy">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
-    <button class="btn-logout" onclick="logout()">Kilépés</button>
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
   </div>
 </div>
 
@@ -32,18 +32,18 @@
   <main class="main narrow">
     <div class="page-header split">
       <div>
-        <h1>Osztályok</h1>
-        <p>A diákok egyszer csatlakoznak az osztálykóddal – onnantól a feladatok maguktól megjelennek náluk</p>
+        <h1 data-i18n="osztalyok.cim">Osztályok</h1>
+        <p data-i18n="osztalyok.alcim">A diákok egyszer csatlakoznak az osztálykóddal – onnantól a feladatok maguktól megjelennek náluk</p>
       </div>
     </div>
 
     <!-- ÚJ OSZTÁLY -->
     <div class="panel">
-      <div class="panel-header"><h2>➕ Új osztály</h2></div>
+      <div class="panel-header"><h2 data-i18n="osztalyok.uj_cim">➕ Új osztály</h2></div>
       <div class="panel-body">
         <div class="code-input-row">
-          <input type="text" id="osztaly-nev" placeholder="Pl. 9.B angol" maxlength="100" />
-          <button class="btn-primary" id="btn-letrehoz">Létrehozás</button>
+          <input type="text" id="osztaly-nev" placeholder="Pl. 9.B angol" data-i18n-placeholder="osztalyok.nev_pelda" maxlength="100" />
+          <button class="btn-primary" id="btn-letrehoz" data-i18n="osztalyok.letrehozas">Létrehozás</button>
         </div>
         <div class="msg" id="uj-msg"></div>
       </div>
@@ -51,10 +51,10 @@
 
     <!-- OSZTÁLYOK LISTÁJA -->
     <div class="panel">
-      <div class="panel-header"><h2>🎓 Osztályaim</h2></div>
+      <div class="panel-header"><h2 data-i18n="osztalyok.lista_cim">🎓 Osztályaim</h2></div>
       <div class="panel-body flush">
         <div id="lista">
-          <div class="empty-state bare"><p>Betöltés...</p></div>
+          <div class="empty-state bare"><p data-i18n="kozos.betoltes">Betöltés...</p></div>
         </div>
       </div>
     </div>
@@ -62,6 +62,7 @@
 </div>
 
 <script type="module">
+  import { t } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra } from './js/ui.js';
@@ -87,13 +88,13 @@
   async function letrehoz() {
     const nev = nevInput.value.trim();
     uzenetTorles('uj-msg');
-    if (!nev) { uzenet('uj-msg', 'Adj nevet az osztálynak!'); return; }
+    if (!nev) { uzenet('uj-msg', t('osztalyok.adj_nevet')); return; }
 
-    const vissza = gombVar(btn, 'Létrehozás...');
+    const vissza = gombVar(btn, t('osztalyok.letrehozas_folyamat'));
     try {
       const { data } = await osztalyLetrehozas({ nev });
       nevInput.value = '';
-      uzenet('uj-msg', `Létrehozva! Osztálykód: ${data.kod} – ezt add meg a diákoknak.`, 'success');
+      uzenet('uj-msg', t('osztalyok.letrehozva', { kod: data.kod }), 'success');
     } catch (e) {
       uzenet('uj-msg', hibaSzoveg(e));
     } finally {
@@ -117,7 +118,7 @@
       if (snap.empty) {
         lista.innerHTML = `<div class="empty-state bare">
           <div class="empty-icon">🎓</div>
-          <p>Még nincs osztályod. Hozz létre egyet fentebb!</p>
+          <p>${t('osztalyok.nincs_osztaly')}</p>
         </div>`;
         return;
       }
@@ -130,18 +131,18 @@
               <h3>${esc(o.nev)}</h3>
               <div class="list-card-meta">
                 <span class="feladat-kod">${esc(o.kod)}</span>
-                <span>${o.diak_szam || 0} diák</span>
+                <span>${t('osztalyok.diak_szam', { db: o.diak_szam || 0 })}</span>
                 <span>${datum(o.letrehozva)}</span>
                 <span class="badge ${o.aktiv ? 'aktiv' : 'inaktiv'}">
-                  ${o.aktiv ? '✅ Aktív' : '⏸ Zárt'}
+                  ${o.aktiv ? t('osztalyok.aktiv') : t('osztalyok.zart')}
                 </span>
               </div>
             </div>
             <div class="list-card-actions">
-              <button class="btn-sm" data-akcio="masol" data-kod="${esc(o.kod)}">📋 Kód</button>
-              <button class="btn-sm" data-akcio="nevsor" data-id="${esc(d.id)}">👥 Névsor</button>
+              <button class="btn-sm" data-akcio="masol" data-kod="${esc(o.kod)}">${t('osztalyok.kod_gomb')}</button>
+              <button class="btn-sm" data-akcio="nevsor" data-id="${esc(d.id)}">${t('osztalyok.nevsor_gomb')}</button>
               <button class="btn-sm" data-akcio="toggle" data-id="${esc(d.id)}" data-aktiv="${o.aktiv ? '1' : '0'}">
-                ${o.aktiv ? '⏸ Zárás' : '▶ Nyitás'}
+                ${o.aktiv ? t('osztalyok.zaras_gomb') : t('osztalyok.nyitas_gomb')}
               </button>
               <button class="btn-sm danger" data-akcio="torol" data-id="${esc(d.id)}" data-nev="${esc(o.nev)}">🗑</button>
             </div>
@@ -155,7 +156,7 @@
     },
     (e) => {
       console.error(e);
-      lista.innerHTML = `<div class="empty-state bare"><p>Nem sikerült betölteni az osztályokat. Hiányzó index? Nézd meg a konzolt.</p></div>`;
+      lista.innerHTML = `<div class="empty-state bare"><p>${t('osztalyok.betoltesi_hiba')}</p></div>`;
     }
   );
 
@@ -177,17 +178,7 @@
 
     if (akcio === 'diak-torol') {
       const { osztaly, diak, nev } = b.dataset;
-      const ok = confirm(
-        `Eltávolítod ${nev}-t az osztályból?
-
-` +
-        `A korábbi beadásai és a nekik adott visszajelzések MEGMARADNAK – ` +
-        `csak új feladatot nem fog látni, és beadni sem tud.
-
-` +
-        `Az osztálykóddal bármikor újra tud csatlakozni. Ha ezt nem ` +
-        `szeretnéd, zárd le az osztályt.`
-      );
+      const ok = confirm(t('osztalyok.diak_torles_kerdes', { nev }));
       if (!ok) return;
 
       const vissza = gombVar(b, '');
@@ -196,7 +187,7 @@
         // A létszám változása kiváltja az onSnapshot-ot, az pedig
         // újrarendereli a nyitott névsort – nem kell kézzel törölni a sort.
       } catch (err) {
-        alert('Nem sikerült: ' + hibaSzoveg(err));
+        alert(t('osztalyok.nem_sikerult', { ok: hibaSzoveg(err) }));
         vissza();
       }
       return;
@@ -207,18 +198,14 @@
       if (akcio === 'toggle') {
         await updateDoc(doc(db, 'osztalyok', id), { aktiv: b.dataset.aktiv !== '1' });
       } else if (akcio === 'torol') {
-        const ok = confirm(
-          `Törlöd a(z) "${b.dataset.nev}" osztályt?\n\n` +
-          `A feladatok és beadások megmaradnak, de a diákok nem tudnak új ` +
-          `dolgozatot beadni. Ha csak szüneteltetni akarod, használd a Zárás gombot.`
-        );
+        const ok = confirm(t('osztalyok.torles_kerdes', { nev: b.dataset.nev }));
         if (!ok) { b.disabled = false; return; }
         await deleteDoc(doc(db, 'osztalyok', id));
       }
       // a lista onSnapshot-tal frissül magától
     } catch (err) {
       b.disabled = false;
-      alert('Hiba: ' + err.message);
+      alert(t('osztalyok.hiba', { ok: err.message }));
     }
   });
 
@@ -231,17 +218,17 @@
   let nyitottNevsor = null;
 
   function nevsorSor(osztalyId, d) {
-    const t = d.data();
+    const tag = d.data();
     return `<tr>
-      <td>${esc(t.nev)}</td>
-      <td>${esc(t.email)}</td>
-      <td>${datum(t.csatlakozott)}</td>
+      <td>${esc(tag.nev)}</td>
+      <td>${esc(tag.email)}</td>
+      <td>${datum(tag.csatlakozott)}</td>
       <td class="tabla-akcio">
         <button class="btn-sm danger" data-akcio="diak-torol"
                 data-osztaly="${esc(osztalyId)}"
                 data-diak="${esc(d.id)}"
-                data-nev="${esc(t.nev)}"
-                title="Eltávolítás az osztályból">✕</button>
+                data-nev="${esc(tag.nev)}"
+                title="${t('osztalyok.eltavolitas_cim')}">✕</button>
       </td>
     </tr>`;
   }
@@ -255,23 +242,23 @@
       const snap = await getDocs(collection(db, 'osztalyok', osztalyId, 'tagok'));
 
       el.innerHTML = snap.empty
-        ? `<div class="nevsor-box"><p class="halvany">Még nem csatlakozott senki. Add meg a diákoknak az osztálykódot.</p></div>`
+        ? `<div class="nevsor-box"><p class="halvany">${t('osztalyok.nincs_tag')}</p></div>`
         : `<div class="nevsor-box">
             <table class="tabla">
-              <thead><tr><th>Név</th><th>Email</th><th>Csatlakozott</th><th></th></tr></thead>
+              <thead><tr><th>${t('osztalyok.oszlop_nev')}</th><th>${t('osztalyok.oszlop_email')}</th><th>${t('osztalyok.oszlop_csatlakozott')}</th><th></th></tr></thead>
               <tbody>${snap.docs.map((d) => nevsorSor(osztalyId, d)).join('')}</tbody>
             </table>
           </div>`;
     } catch (e) {
       console.error(e);
-      el.innerHTML = `<div class="nevsor-box"><p class="halvany">Nem sikerült betölteni a névsort.</p></div>`;
+      el.innerHTML = `<div class="nevsor-box"><p class="halvany">${t('osztalyok.nevsor_hiba')}</p></div>`;
     }
 
     // A nyitott állapotot a gomb feliratán is jelezzük
     const gomb = document.querySelector(
       `button[data-akcio="nevsor"][data-id="${osztalyId}"]`
     );
-    if (gomb) gomb.textContent = '✕ Névsor';
+    if (gomb) gomb.textContent = t('osztalyok.nevsor_zar_gomb');
   }
 
   /** Nyit/zár. */
@@ -280,7 +267,7 @@
       nyitottNevsor = null;
       const el = document.getElementById(`nevsor-${osztalyId}`);
       if (el) el.innerHTML = '';
-      gomb.textContent = '👥 Névsor';
+      gomb.textContent = t('osztalyok.nevsor_gomb');
       return;
     }
 
@@ -291,7 +278,7 @@
       const regiGomb = document.querySelector(
         `button[data-akcio="nevsor"][data-id="${nyitottNevsor}"]`
       );
-      if (regiGomb) regiGomb.textContent = '👥 Névsor';
+      if (regiGomb) regiGomb.textContent = t('osztalyok.nevsor_gomb');
     }
 
     nyitottNevsor = osztalyId;
@@ -300,7 +287,7 @@
       await nevsorRender(osztalyId);
     } finally {
       vissza();
-      gomb.textContent = '✕ Névsor';
+      gomb.textContent = t('osztalyok.nevsor_zar_gomb');
     }
   }
 </script>

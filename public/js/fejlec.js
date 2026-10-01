@@ -21,6 +21,8 @@
 // A guard.js hívja meg, a kapu kinyitása után.
 // ══════════════════════════════════════════════════════
 
+import { t } from "./i18n.js";
+
 const KEZDOLAP = {
   tanar: "tanar.html",
   diak: "diak.html"
@@ -41,14 +43,14 @@ const SZULO = {
   "visszajelzes.html": "diak.html"
 };
 
-/** Emberi nevek a vissza gomb feliratához. */
+/** A vissza gomb feliratának szótári kulcsai (a t() fordítja le megjelenítéskor). */
 const NEVEK = {
-  "tanar.html": "Főoldal",
-  "diak.html": "Feladataim",
-  "feladatok.html": "Feladatok",
-  "osztalyok.html": "Osztályok",
-  "javitas.html": "Javítási sor",
-  "admin.html": "Szerepkezelés"
+  "tanar.html": "nav.fooldal",
+  "diak.html": "nav.feladataim",
+  "feladatok.html": "nav.feladatok",
+  "osztalyok.html": "nav.osztalyok",
+  "javitas.html": "nav.javitas",
+  "admin.html": "nav.szerepkezeles"
 };
 
 function jelenlegiOldal() {
@@ -116,7 +118,7 @@ function markaLink(bal, kezdo) {
   link.className = marka.className;
   link.innerHTML = marka.innerHTML;
   link.href = kezdo;
-  link.title = "Vissza a főoldalra";
+  link.title = t("fejlec.fooldalra");
   marka.replaceWith(link);
 }
 
@@ -124,12 +126,12 @@ function visszaGomb(bal, cel) {
   // Kezdőlapon nincs hova visszalépni – ott a gomb félrevezető lenne.
   if (!cel || bal.querySelector(".btn-vissza")) return;
 
-  const nev = NEVEK[cel] || "Vissza";
+  const nev = NEVEK[cel] ? t(NEVEK[cel]) : t("fejlec.vissza");
   const gomb = document.createElement("a");
   gomb.className = "btn-vissza";
   gomb.href = cel;
-  gomb.title = `Vissza: ${nev}`;
-  gomb.setAttribute("aria-label", `Vissza: ${nev}`);
+  gomb.title = t("fejlec.vissza_cel", { nev });
+  gomb.setAttribute("aria-label", t("fejlec.vissza_cel", { nev }));
   // A feliratot szűk kijelzőn a CSS elrejti, a nyíl marad
   gomb.innerHTML = `<span aria-hidden="true">←</span><span class="btn-vissza-nev">${nev}</span>`;
 

@@ -98,6 +98,16 @@ export function vanKulcs(kulcs, kod = aktualis) {
   return SZOTARAK[kod]?.[kulcs] !== undefined;
 }
 
+/**
+ * A feladat nyelvének megjelenített neve. A feladatban a nyelv magyar
+ * kódszóként tárolódik ("angol", "német"…) – a szerver is ezt használja,
+ * ezért az adat nem változik, csak a megjelenítés fordul.
+ */
+export function nyelvNev(kod) {
+  const kulcs = `nyelv.${kod}`;
+  return vanKulcs(kulcs) ? t(kulcs) : String(kod ?? "");
+}
+
 /** Dátum az aktuális nyelv formátumában. */
 export function datumSzoveg(date) {
   return date.toLocaleDateString(t("meta.locale"));

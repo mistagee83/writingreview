@@ -10,18 +10,20 @@
 // Csak létező oldalak szerepelnek itt – a még el nem készült modulokat
 // a tanar.html modul-kártyái hirdetik, nem a menü.
 // (Az osztálynévsor az osztalyok.html-ben van, nincs külön "Diákok".)
+import { t } from "./i18n.js";
+
 const MENU = [
-  { label: "Menü" },
-  { href: "tanar.html",     ikon: "🏠", cim: "Főoldal" },
-  { href: "osztalyok.html", ikon: "🎓", cim: "Osztályok" },
-  { href: "feladatok.html", ikon: "📋", cim: "Feladatok" },
-  { href: "javitas.html",   ikon: "✏️", cim: "Javítási sor" }
+  { label: "nav.menu" },
+  { href: "tanar.html",     ikon: "🏠", cim: "nav.fooldal" },
+  { href: "osztalyok.html", ikon: "🎓", cim: "nav.osztalyok" },
+  { href: "feladatok.html", ikon: "📋", cim: "nav.feladatok" },
+  { href: "javitas.html",   ikon: "✏️", cim: "nav.javitas" }
 ];
 
 // Csak adminnak jelenik meg
 const ADMIN_MENU = [
-  { label: "Adminisztráció" },
-  { href: "admin.html", ikon: "🔑", cim: "Szerepkezelés" }
+  { label: "nav.adminisztracio" },
+  { href: "admin.html", ikon: "🔑", cim: "nav.szerepkezeles" }
 ];
 
 /**
@@ -37,11 +39,11 @@ export function oldalsav(aktivHref, opciok = {}) {
 
   el.innerHTML = menu.map((item) => {
     if (item.label) {
-      return `<div class="nav-label">${item.label}</div>`;
+      return `<div class="nav-label">${t(item.label)}</div>`;
     }
     const aktiv = item.href === aktivHref ? " active" : "";
     return `<a class="nav-item${aktiv}" href="${item.href}">
-      <span class="nav-icon">${item.ikon}</span> ${item.cim}
+      <span class="nav-icon">${item.ikon}</span> ${t(item.cim)}
     </a>`;
   }).join("");
 }
