@@ -714,7 +714,7 @@ export default {
   "szerver.nem_a_te_beadasod": "This is not your student's submission.",
   "szerver.beadas_folyamatban": "This submission is being processed right now.",
   "szerver.visszajelzes_ures": "The feedback text can't be empty.",
-  "szerver.jegy_ertek": "The grade must be a whole number from 1 to 5.",
+  "szerver.jegy_ertek": "The grade is not on this task's grading scale.",
   "szerver.statusz_nem_kuldheto": "It can't be sent in this state: {statusz}",
   "szerver.kulcs_nincs": "The task's answer key was not found.",
   "szerver.pont_hatar": "Invalid score – {cim}: it must be between 0 and {max}.",

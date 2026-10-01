@@ -713,7 +713,7 @@ export default {
   "szerver.nem_a_te_beadasod": "Ez nem a te diákod beadása.",
   "szerver.beadas_folyamatban": "Ez a beadás épp feldolgozás alatt van.",
   "szerver.visszajelzes_ures": "A visszajelzés szövege nem lehet üres.",
-  "szerver.jegy_ertek": "A jegy 1 és 5 közötti egész szám legyen.",
+  "szerver.jegy_ertek": "A jegy nem szerepel a feladat jegyskáláján.",
   "szerver.statusz_nem_kuldheto": "Ebben az állapotban nem küldhető el: {statusz}",
   "szerver.kulcs_nincs": "A feladat megoldókulcsa nem található.",
   "szerver.pont_hatar": "Érvénytelen pontszám – {cim}: 0 és {max} között lehet.",

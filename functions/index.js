@@ -126,7 +126,7 @@ const HIBA_SZOVEG = {
   nem_a_te_beadasod: () => "Ez nem a te diákod beadása.",
   beadas_folyamatban: () => "Ez a beadás épp feldolgozás alatt van.",
   visszajelzes_ures: () => "A visszajelzés szövege nem lehet üres.",
-  jegy_ertek: () => "A jegy 1 és 5 közötti egész szám legyen.",
+  jegy_ertek: () => "A jegy nem szerepel a feladat jegyskáláján.",
   statusz_nem_kuldheto: (p) => `Ebben az állapotban nem küldhető el: ${p.statusz}`,
   kulcs_nincs: () => "A feladat megoldókulcsa nem található.",
   nev_rovid: () => "A név legalább 2 karakter legyen.",
@@ -993,7 +993,7 @@ async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths) {
   );
 
   const ertekeles = kifejtos.kifejtosErtekelesOsszeallitas(
-    kulcs, ai, valaszok, feladat.rubrika?.ponthatarok
+    kulcs, ai, valaszok, kifejtos.skalaFeloldas(feladat.rubrika)
   );
 
   await beadasRef.collection("ertekeles").doc("ai").set({
@@ -1160,9 +1160,6 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
   if (!szoveg || !szoveg.trim()) {
     throw hiba("invalid-argument", "visszajelzes_ures");
   }
-  if (jegy != null && !(Number.isInteger(jegy) && jegy >= 1 && jegy <= 5)) {
-    throw hiba("invalid-argument", "jegy_ertek");
-  }
 
   const firestore = db();
   const beadasRef = firestore.collection("beadasok").doc(beadasId);
@@ -1184,6 +1181,12 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
     beadasRef.collection("ertekeles").doc("ai").get(),
     firestore.collection("feladatok").doc(beadas.feladat_id).get()
   ]);
+  // A jegy a FELADAT skáláján értelmezett (magyar 1–5, A–F, százalék…);
+  // a tárolt érték a skála saját alakja, nem a kliens által küldött.
+  const skala = kifejtos.skalaFeloldas(feladatSnap.data()?.rubrika);
+  const tanariJegy = jegy == null ? null : kifejtos.jegyNormalizalas(jegy, skala);
+  if (tanariJegy === undefined) throw hiba("invalid-argument", "jegy_ertek");
+
   let tabla = { szempontok: [], osszpontszam: null, max_pontszam: null, szazalek: null };
   if (aiSnap.exists && aiSnap.data().mod === "kifejtos") {
     // Kifejtős dolgozat: a pontot a KULCSBÓL számoljuk, a tanár felülírt
@@ -1200,7 +1203,7 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
     }
     const rubrika = feladatSnap.data()?.rubrika || {};
     tabla = kifejtos.kifejtosTanariEredmeny(kulcs, aiSnap.data(), kerdesek, {
-      ponthatarok: rubrika.ponthatarok,
+      skala,
       helyesLathato: rubrika.helyes_valaszok_lathatok !== false
     });
   } else if (aiSnap.exists) {
@@ -1214,7 +1217,7 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
   const batch = firestore.batch();
 
   batch.set(beadasRef.collection("ertekeles").doc("tanari"), {
-    jegy: jegy ?? null,
+    jegy: tanariJegy,
     szoveg: szoveg.trim(),
     ...tabla,
     tanar_id: uid,
@@ -1229,7 +1232,7 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
   await batch.commit();
 
   logger.info("Visszajelzés elküldve", {
-    beadasId, tanar: uid, jegy: jegy ?? null, pont: tabla.osszpontszam
+    beadasId, tanar: uid, jegy: tanariJegy, pont: tabla.osszpontszam
   });
   return { siker: true };
 });
