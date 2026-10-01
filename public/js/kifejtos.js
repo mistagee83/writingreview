@@ -275,23 +275,61 @@ function jegyJavaslat(pont, max, ponthatarok) {
 // MEGOLDÓKULCS
 // ══════════════════════════════════════════════════════
 
-function hiba(uzenet) {
-  return new Error(`Hibás megoldókulcs: ${uzenet}`);
+/**
+ * A kulcs-hiba két arcot visel:
+ *   - `message`: magyar szöveg (a szerver naplója, a magyar felület),
+ *   - `kod` + `parameterek`: géppel olvasható, hogy a kliens a SAJÁT
+ *     nyelvén jeleníthesse meg (public/js/i18n-*.js, "kulcshiba.<kod>").
+ * Új hibakódnál mindkét szótárba fel kell venni a szöveget – a
+ * tests/i18n.test.mjs ellenőrzi.
+ *
+ * A paraméterek közös része: `kerdes` (a kérdés sorszáma, vagy ha az
+ * hiányzik, a sora), és ha ágon belüli a hiba, `ag` (az ág azonosítója).
+ */
+const kulcsHely = (p) => `${p.kerdes}. kérdés${p.ag ? `, ${p.ag} ág` : ""}`;
+
+const KULCS_HIBA_HU = {
+  nincs_elem: (p) => `${kulcsHely(p)}: nincs egy elem sem.`,
+  tul_sok_elem: (p) => `${kulcsHely(p)}: túl sok elem.`,
+  hianyzo_elem_azonosito: (p) => `${kulcsHely(p)}, ${p.elem}. elem: hiányzó azonosító.`,
+  ismetlodo_elem_azonosito: (p) => `${kulcsHely(p)}: ismétlődő elemazonosító (${p.id}).`,
+  ures_allitas: (p) => `${kulcsHely(p)}, ${p.id}: üres állítás.`,
+  ervenytelen_pont: (p) => `${kulcsHely(p)}, ${p.id}: érvénytelen pont.`,
+  ismeretlen_sorrend_mod: (p) => `${kulcsHely(p)}: ismeretlen sorrend-mód.`,
+  ismeretlen_szakszo_mod: (p) => `${kulcsHely(p)}: ismeretlen szakszó-mód.`,
+  ismeretlen_kulcson_kivul_mod: (p) => `${kulcsHely(p)}: ismeretlen kulcson kívüli mód.`,
+  reszpont_hatar: (p) => `${kulcsHely(p)}: a részpont 0 és 1 között lehet.`,
+  nincs_kerdes: () => "nincs egy kérdés sem.",
+  tul_sok_kerdes: () => "túl sok kérdés.",
+  hianyzo_sorszam: (p) => `${kulcsHely(p)}: hiányzó sorszám.`,
+  ismetlodo_sorszam: (p) => `ismétlődő sorszám (${p.sorszam}).`,
+  ismeretlen_tipus: (p) => `${kulcsHely(p)}: ismeretlen típus.`,
+  ervenytelen_max_pont: (p) => `${kulcsHely(p)}: érvénytelen max pont.`,
+  nincs_ag: (p) => `${kulcsHely(p)}: nincs választható ág.`,
+  hianyzo_ag_azonosito: (p) => `${kulcsHely(p)}, ${p.ag_sor}. ág: hiányzó azonosító.`,
+  ismetlodo_ag_azonosito: (p) => `${kulcsHely(p)}: ismétlődő ágazonosító (${p.id}).`
+};
+
+function hiba(kod, p = {}) {
+  const e = new Error(`Hibás megoldókulcs: ${KULCS_HIBA_HU[kod](p)}`);
+  e.kod = kod;
+  e.parameterek = p;
+  return e;
 }
 
 function elemekEllenorzese(nyers, hol) {
-  if (!Array.isArray(nyers) || nyers.length === 0) throw hiba(`${hol}: nincs egy elem sem.`);
-  if (nyers.length > ELEM_MAX) throw hiba(`${hol}: túl sok elem.`);
+  if (!Array.isArray(nyers) || nyers.length === 0) throw hiba("nincs_elem", hol);
+  if (nyers.length > ELEM_MAX) throw hiba("tul_sok_elem", hol);
   const idk = new Set();
   return nyers.map((e, i) => {
     const id = String(e?.id ?? "").trim();
-    if (!id) throw hiba(`${hol}, ${i + 1}. elem: hiányzó azonosító.`);
-    if (idk.has(id)) throw hiba(`${hol}: ismétlődő elemazonosító (${id}).`);
+    if (!id) throw hiba("hianyzo_elem_azonosito", { ...hol, elem: i + 1 });
+    if (idk.has(id)) throw hiba("ismetlodo_elem_azonosito", { ...hol, id });
     idk.add(id);
     const allitas = String(e.allitas ?? "").trim();
-    if (!allitas) throw hiba(`${hol}, ${id}: üres állítás.`);
+    if (!allitas) throw hiba("ures_allitas", { ...hol, id });
     const pont = Number(e.pont);
-    if (!Number.isFinite(pont) || pont < 0) throw hiba(`${hol}, ${id}: érvénytelen pont.`);
+    if (!Number.isFinite(pont) || pont < 0) throw hiba("ervenytelen_pont", { ...hol, id });
     return {
       id,
       allitas,
@@ -307,12 +345,12 @@ function elemekEllenorzese(nyers, hol) {
 
 function beallitasEllenorzes(nyers, hol) {
   const b = { ...ALAP_BEALLITAS, ...(nyers || {}) };
-  if (!SORREND_MODOK.includes(b.sorrend)) throw hiba(`${hol}: ismeretlen sorrend-mód.`);
-  if (!SZAKSZO_MODOK.includes(b.szakszo)) throw hiba(`${hol}: ismeretlen szakszó-mód.`);
-  if (!KULCSON_KIVUL_MODOK.includes(b.kulcson_kivul)) throw hiba(`${hol}: ismeretlen kulcson kívüli mód.`);
+  if (!SORREND_MODOK.includes(b.sorrend)) throw hiba("ismeretlen_sorrend_mod", hol);
+  if (!SZAKSZO_MODOK.includes(b.szakszo)) throw hiba("ismeretlen_szakszo_mod", hol);
+  if (!KULCSON_KIVUL_MODOK.includes(b.kulcson_kivul)) throw hiba("ismeretlen_kulcson_kivul_mod", hol);
   const reszpont = Number(b.reszpont);
   if (!Number.isFinite(reszpont) || reszpont < 0 || reszpont > 1) {
-    throw hiba(`${hol}: a részpont 0 és 1 között lehet.`);
+    throw hiba("reszpont_hatar", hol);
   }
   return { sorrend: b.sorrend, szakszo: b.szakszo, reszpont, kulcson_kivul: b.kulcson_kivul };
 }
@@ -326,35 +364,35 @@ function beallitasEllenorzes(nyers, hol) {
  */
 function kulcsEllenorzes(kulcs) {
   const nyers = kulcs?.kerdesek;
-  if (!Array.isArray(nyers) || nyers.length === 0) throw hiba("nincs egy kérdés sem.");
-  if (nyers.length > KERDES_MAX) throw hiba("túl sok kérdés.");
+  if (!Array.isArray(nyers) || nyers.length === 0) throw hiba("nincs_kerdes");
+  if (nyers.length > KERDES_MAX) throw hiba("tul_sok_kerdes");
 
   const sorszamok = new Set();
   const kerdesek = nyers.map((k, i) => {
     const sorszam = String(k?.sorszam ?? "").trim();
-    const hol = `${sorszam || i + 1}. kérdés`;
-    if (!sorszam) throw hiba(`${i + 1}. kérdés: hiányzó sorszám.`);
-    if (sorszamok.has(sorszam)) throw hiba(`ismétlődő sorszám (${sorszam}).`);
+    const hol = { kerdes: sorszam || i + 1 };
+    if (!sorszam) throw hiba("hianyzo_sorszam", { kerdes: i + 1 });
+    if (sorszamok.has(sorszam)) throw hiba("ismetlodo_sorszam", { sorszam });
     sorszamok.add(sorszam);
 
-    if (!KERDES_TIPUSOK.includes(k.tipus)) throw hiba(`${hol}: ismeretlen típus.`);
+    if (!KERDES_TIPUSOK.includes(k.tipus)) throw hiba("ismeretlen_tipus", hol);
     const maxPont = Number(k.max_pont);
-    if (!Number.isFinite(maxPont) || maxPont <= 0) throw hiba(`${hol}: érvénytelen max pont.`);
+    if (!Number.isFinite(maxPont) || maxPont <= 0) throw hiba("ervenytelen_max_pont", hol);
 
     let elemek = [];
     let agak = null;
     if (k.tipus === "valasztos") {
-      if (!Array.isArray(k.agak) || k.agak.length === 0) throw hiba(`${hol}: nincs választható ág.`);
+      if (!Array.isArray(k.agak) || k.agak.length === 0) throw hiba("nincs_ag", hol);
       const agIdk = new Set();
       agak = k.agak.map((a, j) => {
         const id = String(a?.id ?? "").trim();
-        if (!id) throw hiba(`${hol}, ${j + 1}. ág: hiányzó azonosító.`);
-        if (agIdk.has(id)) throw hiba(`${hol}: ismétlődő ágazonosító (${id}).`);
+        if (!id) throw hiba("hianyzo_ag_azonosito", { ...hol, ag_sor: j + 1 });
+        if (agIdk.has(id)) throw hiba("ismetlodo_ag_azonosito", { ...hol, id });
         agIdk.add(id);
         return {
           id,
           cim: String(a.cim ?? "").trim() || id,
-          elemek: elemekEllenorzese(a.elemek, `${hol}, ${id} ág`)
+          elemek: elemekEllenorzese(a.elemek, { ...hol, ag: id })
         };
       });
     } else {

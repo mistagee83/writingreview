@@ -21,6 +21,7 @@
 // (js/kifejtos.js – generált, a functions/kifejtos.js-ből).
 // ══════════════════════════════════════════════════════
 
+import { t, kulcsHibaSzoveg } from './i18n.js';
 import { esc } from './guard.js';
 import { uzenet, uzenetTorles, hibaSzoveg } from './ui.js';
 import { atmeretez, tulNagy, meret } from './kep.js';
@@ -32,33 +33,34 @@ import {
   kulcsEllenorzes, szoszedetGyujtes, ponthatarokEllenorzes
 } from './kifejtos.js';
 
+// Szótári kulcsok – a t() megjelenítéskor fordít
 const TIPUS_CIMKE = {
-  zart_felsorolas: 'Zárt felsorolás',
-  nyilt_felsorolas: 'Nyílt felsorolás („legalább N”)',
-  sorrend: 'Folyamat, sorrend',
-  tablazat: 'Táblázat',
-  magyarazat: 'Rövid magyarázat',
-  valasztos: 'Választós („fejts ki egyet”)'
+  zart_felsorolas: 'kf.tipus_zart_felsorolas',
+  nyilt_felsorolas: 'kf.tipus_nyilt_felsorolas',
+  sorrend: 'kf.tipus_sorrend',
+  tablazat: 'kf.tipus_tablazat',
+  magyarazat: 'kf.tipus_magyarazat',
+  valasztos: 'kf.tipus_valasztos'
 };
 
 const BEALLITAS_OPCIOK = {
   sorrend: [
-    ['relativ', 'Relatív (ajánlott)'],
-    ['pozicio', 'Szigorú pozíció'],
-    ['nem_szamit', 'Nem számít']
+    ['relativ', 'kf.o_sorrend_relativ'],
+    ['pozicio', 'kf.o_sorrend_pozicio'],
+    ['nem_szamit', 'kf.o_sorrend_nem_szamit']
   ],
   szakszo: [
-    ['lenyeg', 'Elég a lényeg'],
-    ['pontos', 'Pontos szakkifejezés kell']
+    ['lenyeg', 'kf.o_szakszo_lenyeg'],
+    ['pontos', 'kf.o_szakszo_pontos']
   ],
   reszpont: [
-    ['0.5', 'fél pontot ér'],
-    ['0', 'nem ér pontot'],
-    ['1', 'teljes pontot ér']
+    ['0.5', 'kf.o_reszpont_0_5'],
+    ['0', 'kf.o_reszpont_0'],
+    ['1', 'kf.o_reszpont_1']
   ],
   kulcson_kivul: [
-    ['elfogad', 'A helyes, kulcson kívüli tétel is jár'],
-    ['tanar_dont', 'A kulcson kívüli tételről én döntök']
+    ['elfogad', 'kf.o_kkivul_elfogad'],
+    ['tanar_dont', 'kf.o_kkivul_tanar_dont']
   ]
 };
 
@@ -84,9 +86,9 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
   // ══════════════════════════════════════════
 
   function tananyagRender() {
-    $('tananyag-lista').innerHTML = tananyag.map((t, i) => `
-      <li><span>📄 ${esc(t.nev)}</span>
-        <button type="button" class="btn-sm" data-tananyag-torol="${i}" title="Eltávolítás">✕</button></li>`).join('');
+    $('tananyag-lista').innerHTML = tananyag.map((fa, i) => `
+      <li><span>📄 ${esc(fa.nev)}</span>
+        <button type="button" class="btn-sm" data-tananyag-torol="${i}" title="${esc(t('kf.tananyag_torol_tipp'))}">✕</button></li>`).join('');
   }
 
   $('tananyag-lista').addEventListener('click', (e) => {
@@ -103,27 +105,31 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
     e.target.value = '';
     if (!fajlok.length) return;
     if (tananyag.length + fajlok.length > TANANYAG_FAJL_MAX) {
-      uzenet('tananyag-msg', `Legfeljebb ${TANANYAG_FAJL_MAX} tananyag-fájl lehet.`);
+      uzenet('tananyag-msg', t('kf.max_fajl', { db: TANANYAG_FAJL_MAX }));
       return;
     }
     const rossz = fajlok.find((f) => !(f.type.startsWith('image/') || f.type === 'application/pdf'));
     if (rossz) {
-      uzenet('tananyag-msg', `„${rossz.name}”: csak PDF vagy kép lehet. A Word/PowerPoint fájlt mentsd PDF-be.`);
+      uzenet('tananyag-msg', t('kf.csak_pdf_kep', { nev: rossz.name }));
       return;
     }
 
-    toltes(true, 'Tananyag feltöltése...');
+    toltes(true, t('kf.tananyag_feltolt'));
     try {
       for (const [i, eredeti] of fajlok.entries()) {
         const f = await atmeretez(eredeti);
-        if (tulNagy(f)) throw new Error(`„${eredeti.name}” túl nagy (${meret(f.size)}), a korlát 10 MB.`);
+        if (tulNagy(f)) {
+          const hibaObj = new Error(t('kf.fajl_nagy', { nev: eredeti.name, meret: meret(f.size) }));
+          hibaObj.helyi = true;
+          throw hibaObj;
+        }
         const path = `tananyagok/${user.uid}/${Date.now()}_${i}_${f.name}`;
         await uploadBytes(storageRef(storage, path), f);
         tananyag.push({ path, nev: eredeti.name });
         tananyagRender();
       }
     } catch (err) {
-      uzenet('tananyag-msg', 'A feltöltés nem sikerült: ' + hibaSzoveg(err));
+      uzenet('tananyag-msg', t('kf.feltoltesi_hiba', { ok: hibaSzoveg(err) }));
     } finally {
       toltes(false);
       frissit();
@@ -139,22 +145,22 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
     $('kulcs-tolt').classList.toggle('show', be);
   }
 
-  const alapKulcs = () => JSON.stringify({ f: feladatlapPath(), t: tananyag.map((t) => t.path) });
+  const alapKulcs = () => JSON.stringify({ f: feladatlapPath(), t: tananyag.map((fa) => fa.path) });
 
   $('btn-kulcs-keszit').addEventListener('click', async () => {
     uzenetTorles('kulcs-msg');
     const path = feladatlapPath();
     if (!path) {
-      uzenet('kulcs-msg', 'Előbb töltsd fel a feladatlapot (fent) – abból olvassa ki az AI a kérdéseket.');
+      uzenet('kulcs-msg', t('kf.elobb_feladatlap'));
       return;
     }
-    if (kerdesek.length && !confirm('Az új kulcs felülírja a mostanit, a módosításaiddal együtt. Folytatod?')) return;
+    if (kerdesek.length && !confirm(t('kf.felulir_kerdes'))) return;
 
-    toltes(true, 'Készül a megoldókulcs... (kb. fél perc)');
+    toltes(true, t('kf.keszul'));
     try {
       const { data } = await kulcsKeszites({
         feladatlapPath: path,
-        tananyagPaths: tananyag.map((t) => t.path),
+        tananyagPaths: tananyag.map((fa) => fa.path),
         tantargy: $('kf-tantargy').value.trim()
       });
 
@@ -167,8 +173,7 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
 
       render();
       if (data.kihagyott?.length) {
-        uzenet('kulcs-msg',
-          `Ezekhez a kérdésekhez az AI nem tudott kulcsot adni, pótold kézzel: ${data.kihagyott.join(', ')}.`);
+        uzenet('kulcs-msg', t('kf.kihagyott', { lista: data.kihagyott.join(', ') }));
         $('kulcs-reszletek').open = true;
       }
     } catch (err) {
@@ -196,7 +201,7 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
   /** A gombfelirat, az összefoglaló és az elavultság-jelzés. */
   function frissit() {
     const van = kerdesek.length > 0;
-    $('btn-kulcs-keszit').textContent = van ? '↻ Megoldókulcs újrakészítése' : '✨ Megoldókulcs készítése';
+    $('btn-kulcs-keszit').textContent = van ? t('kf.ujrakeszit') : t('fel.kulcs_keszit');
     $('btn-kulcs-kezi').hidden = van;
     $('kulcs-reszletek').hidden = !van;
 
@@ -207,10 +212,10 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
       const atnez = atnezendoSzam();
       const elavult = meta.alap && meta.alap !== alapKulcs();
       el.innerHTML = `
-        <strong>✅ Kész a megoldókulcs: ${kerdesek.length} kérdés, ${esc(pont)} pont.</strong>
-        ${meta.generalva && !meta.tananyagbol ? '<span>Tananyag nélkül készült – az AI a saját tudásából dolgozott.</span>' : ''}
-        ${atnez ? `<span class="figyelem">⚠ ${atnez} elemnél az AI bizonytalan volt – érdemes megnézni.</span>` : ''}
-        ${elavult ? '<span class="figyelem">A feladatlap vagy a tananyag azóta változott. Ha az új alapján kell, készítsd újra.</span>' : ''}`;
+        <strong>${t('kf.kesz', { db: kerdesek.length, pont: esc(pont) })}</strong>
+        ${meta.generalva && !meta.tananyagbol ? `<span>${t('kf.nincs_tananyag')}</span>` : ''}
+        ${atnez ? `<span class="figyelem">${t('kf.atnez', { db: atnez })}</span>` : ''}
+        ${elavult ? `<span class="figyelem">${t('kf.elavult')}</span>` : ''}`;
     }
   }
 
@@ -231,7 +236,7 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
 
   function opciok(lista, ertek) {
     return lista.map(([v, c]) =>
-      `<option value="${esc(v)}" ${String(ertek) === v ? 'selected' : ''}>${esc(c)}</option>`).join('');
+      `<option value="${esc(v)}" ${String(ertek) === v ? 'selected' : ''}>${esc(t(c))}</option>`).join('');
   }
 
   const cim = (ki, ai = -1, ei = -1) => `data-k="${ki}" data-a="${ai}" data-e="${ei}"`;
@@ -240,33 +245,33 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
     const jelek = [];
     if (e.ellenorizendo) {
       jelek.push(`<button type="button" class="elem-jel atnez" data-akcio="elem-ok" ${cim(ki, ai, ei)}
-        title="Az AI bizonytalan volt ebben. Kattints, ha átnézted.">⚠ nézd meg – kész ✓</button>`);
+        title="${esc(t('kf.elem_atnez_tipp'))}">${t('kf.elem_atnez_gomb')}</button>`);
     }
     // Csak akkor jelezzük, ha VOLT tananyag: tananyag nélkül minden elem
     // ilyen, azt az összefoglaló egyszer mondja ki.
     if (meta.tananyagbol && e.forras === 'altalanos') {
-      jelek.push(`<span class="elem-jel altalanos" title="Ezt az AI nem a feltöltött tananyagból vette, hanem a saját tudásából – nézd meg, ugyanezt tanítottad-e.">nem a tananyagból</span>`);
+      jelek.push(`<span class="elem-jel altalanos" title="${esc(t('kf.nem_tananyagbol_tipp'))}">${t('kf.nem_tananyagbol')}</span>`);
     }
     return `
       <div class="elem-sor${e.ellenorizendo ? ' jelolt' : ''}">
         ${sorrendes ? `<span class="elem-szam">${ei + 1}.</span>` : ''}
         <textarea rows="1" data-mezo="allitas" ${cim(ki, ai, ei)}
-          placeholder="Amit a diáknak le kell írnia" aria-label="Amit a diáknak le kell írnia">${esc(e.allitas)}</textarea>
+          placeholder="${esc(t('kf.allitas_pelda'))}" aria-label="${esc(t('kf.allitas_pelda'))}">${esc(e.allitas)}</textarea>
         <textarea rows="1" data-mezo="elfogadhato" ${cim(ki, ai, ei)}
-          placeholder="így is jó (nem kötelező)" aria-label="Így is elfogadható">${esc((e.elfogadhato || []).join('; '))}</textarea>
+          placeholder="${esc(t('kf.elfogadhato_pelda'))}" aria-label="${esc(t('kf.elfogadhato_aria'))}">${esc((e.elfogadhato || []).join('; '))}</textarea>
         <input type="number" data-mezo="pont" ${cim(ki, ai, ei)} value="${esc(e.pont)}"
-          min="0" step="0.5" aria-label="Pont" />
+          min="0" step="0.5" aria-label="${esc(t('kf.pont_aria'))}" />
         <span class="elem-gombok">
-          ${ei > 0 ? `<button type="button" class="btn-sm" data-akcio="elem-fel" ${cim(ki, ai, ei)} title="Feljebb">↑</button>` : ''}
-          <button type="button" class="btn-sm danger" data-akcio="elem-torol" ${cim(ki, ai, ei)} title="Törlés">✕</button>
+          ${ei > 0 ? `<button type="button" class="btn-sm" data-akcio="elem-fel" ${cim(ki, ai, ei)} title="${esc(t('kf.feljebb'))}">↑</button>` : ''}
+          <button type="button" class="btn-sm danger" data-akcio="elem-torol" ${cim(ki, ai, ei)} title="${esc(t('kf.torles'))}">✕</button>
         </span>
         ${jelek.length ? `<div class="elem-jelek">${jelek.join('')}</div>` : ''}
       </div>`;
   }
 
-  const ELEM_FEJLEC = `
+  const elemFejlec = () => `
     <div class="elem-fejlec" aria-hidden="true">
-      <span>Amit le kell írnia</span><span>Így is elfogadható <small>(; választja el)</small></span><span>Pont</span>
+      <span>${t('kf.fejlec_allitas')}</span><span>${t('kf.fejlec_elfogadhato')} <small>${t('kf.fejlec_elfogadhato_tipp')}</small></span><span>${t('kf.fejlec_pont')}</span>
     </div>`;
 
   function osszegSzoveg(k) {
@@ -278,8 +283,7 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
     // Nyílt felsorolásnál szándékosan több elem van, mint amennyi pont jár.
     const keves = k.tipus !== 'nyilt_felsorolas' && osszeg < max;
     return {
-      szoveg: `Elemek: ${osszeg} pont · a kérdés max. ${max} pont` +
-        (keves ? ' – az elemekből nem jön ki a maximum' : ''),
+      szoveg: t('kf.osszeg', { osszeg, max }) + (keves ? t('kf.osszeg_keves') : ''),
       keves
     };
   }
@@ -293,46 +297,46 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
       ? `${(k.agak || []).map((a, ai) => `
           <div class="kulcs-ag">
             <div class="kulcs-ag-fej">
-              <input type="text" data-mezo="ag-cim" ${cim(ki, ai)} value="${esc(a.cim)}" aria-label="Lehetőség neve" />
-              <button type="button" class="btn-sm danger" data-akcio="ag-torol" ${cim(ki, ai)} title="Lehetőség törlése">✕</button>
+              <input type="text" data-mezo="ag-cim" ${cim(ki, ai)} value="${esc(a.cim)}" aria-label="${esc(t('kf.ag_cim_aria'))}" />
+              <button type="button" class="btn-sm danger" data-akcio="ag-torol" ${cim(ki, ai)} title="${esc(t('kf.ag_torol'))}">✕</button>
             </div>
-            ${a.elemek.length ? ELEM_FEJLEC : ''}
+            ${a.elemek.length ? elemFejlec() : ''}
             ${a.elemek.map((e, ei) => elemSor(e, ki, ai, ei, false)).join('')}
-            <button type="button" class="btn-sm" data-akcio="elem-uj" ${cim(ki, ai)}>＋ Elem</button>
+            <button type="button" class="btn-sm" data-akcio="elem-uj" ${cim(ki, ai)}>${t('kf.elem_uj')}</button>
           </div>`).join('')}
-          <button type="button" class="btn-sm" data-akcio="ag-uj" ${cim(ki)}>＋ Lehetőség</button>`
-      : `${(k.elemek || []).length ? ELEM_FEJLEC : ''}
+          <button type="button" class="btn-sm" data-akcio="ag-uj" ${cim(ki)}>${t('kf.ag_uj')}</button>`
+      : `${(k.elemek || []).length ? elemFejlec() : ''}
           ${(k.elemek || []).map((e, ei) => elemSor(e, ki, -1, ei, sorrendes)).join('')}
-          <button type="button" class="btn-sm" data-akcio="elem-uj" ${cim(ki)}>＋ Elem</button>`;
+          <button type="button" class="btn-sm" data-akcio="elem-uj" ${cim(ki)}>${t('kf.elem_uj')}</button>`;
 
     return `
       <div class="kulcs-kartya">
         <div class="kulcs-kartya-fej">
           <input type="text" class="kulcs-sorszam" data-mezo="sorszam" ${cim(ki)} value="${esc(k.sorszam)}"
-            aria-label="Sorszám" maxlength="10" />
-          <select data-mezo="tipus" ${cim(ki)} aria-label="Kérdéstípus">
-            ${KERDES_TIPUSOK.map((t) => `<option value="${t}" ${k.tipus === t ? 'selected' : ''}>${esc(TIPUS_CIMKE[t])}</option>`).join('')}
+            aria-label="${esc(t('kf.sorszam_aria'))}" maxlength="10" />
+          <select data-mezo="tipus" ${cim(ki)} aria-label="${esc(t('kf.tipus_aria'))}">
+            ${KERDES_TIPUSOK.map((tp) => `<option value="${tp}" ${k.tipus === tp ? 'selected' : ''}>${esc(t(TIPUS_CIMKE[tp]))}</option>`).join('')}
           </select>
-          <label class="kulcs-max">max
+          <label class="kulcs-max">${t('kf.max')}
             <input type="number" data-mezo="max_pont" ${cim(ki)} value="${esc(k.max_pont)}" min="0.5" step="0.5" />
           </label>
-          <button type="button" class="btn-sm danger" data-akcio="kerdes-torol" ${cim(ki)} title="Kérdés törlése">🗑</button>
+          <button type="button" class="btn-sm danger" data-akcio="kerdes-torol" ${cim(ki)} title="${esc(t('kf.kerdes_torol'))}">🗑</button>
         </div>
-        <textarea rows="1" data-mezo="szoveg" ${cim(ki)} placeholder="A kérdés szövege">${esc(k.szoveg || '')}</textarea>
+        <textarea rows="1" data-mezo="szoveg" ${cim(ki)} placeholder="${esc(t('kf.kerdes_pelda'))}">${esc(k.szoveg || '')}</textarea>
         ${k.megjegyzes ? `<p class="kulcs-megjegyzes">⚠ ${esc(k.megjegyzes)}</p>` : ''}
-        ${k.tipus === 'nyilt_felsorolas' ? '<p class="halvany">Adj meg minden elfogadható tételt – a diák a max. pontig kap pontot.</p>' : ''}
-        ${sorrendes ? '<p class="halvany">Az elemek sorrendje a helyes sorrend (↑ gombbal rendezheted).</p>' : ''}
+        ${k.tipus === 'nyilt_felsorolas' ? `<p class="halvany">${t('kf.nyilt_leiras')}</p>` : ''}
+        ${sorrendes ? `<p class="halvany">${t('kf.sorrend_leiras')}</p>` : ''}
         <div class="kulcs-elemek">${elemResz}</div>
         <p class="kulcs-osszeg${o.keves ? ' figyelem' : ''}" id="kulcs-osszeg-${ki}">${esc(o.szoveg)}</p>
         <div class="kulcs-beallitas">
-          ${sorrendes ? `<label>Rossz sorrend
+          ${sorrendes ? `<label>${t('kf.b_sorrend')}
             <select data-mezo="b-sorrend" ${cim(ki)}
-              title="Relatív: csak a rossz helyre tett lépés veszít pontot. Szigorú: csak az ér pontot, ami pontosan a helyén van.">${opciok(BEALLITAS_OPCIOK.sorrend, b.sorrend)}</select></label>` : ''}
-          <label>Szakszóhasználat
+              title="${esc(t('kf.b_sorrend_tipp'))}">${opciok(BEALLITAS_OPCIOK.sorrend, b.sorrend)}</select></label>` : ''}
+          <label>${t('kf.b_szakszo')}
             <select data-mezo="b-szakszo" ${cim(ki)}>${opciok(BEALLITAS_OPCIOK.szakszo, b.szakszo)}</select></label>
-          <label>A részben jó válasz
+          <label>${t('kf.b_reszpont')}
             <select data-mezo="b-reszpont" ${cim(ki)}>${opciok(BEALLITAS_OPCIOK.reszpont, b.reszpont)}</select></label>
-          ${k.tipus === 'nyilt_felsorolas' ? `<label>Kulcson kívüli tétel
+          ${k.tipus === 'nyilt_felsorolas' ? `<label>${t('kf.b_kulcson_kivul')}
             <select data-mezo="b-kulcson_kivul" ${cim(ki)}>${opciok(BEALLITAS_OPCIOK.kulcson_kivul, b.kulcson_kivul)}</select></label>` : ''}
         </div>
       </div>`;
@@ -400,7 +404,7 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
       const regi = k.tipus;
       const uj = e.target.value;
       if (uj === 'valasztos' && regi !== 'valasztos') {
-        k.agak = [{ id: 'a1', cim: '1. lehetőség', elemek: k.elemek || [] }];
+        k.agak = [{ id: 'a1', cim: t('kf.ag_alap', { n: 1 }), elemek: k.elemek || [] }];
         k.elemek = [];
       } else if (regi === 'valasztos' && uj !== 'valasztos') {
         k.elemek = (k.agak || []).flatMap((a) => a.elemek);
@@ -424,7 +428,7 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
 
     switch (b.dataset.akcio) {
       case 'kerdes-torol':
-        if (!confirm(`Törlöd a(z) ${k.sorszam || ki + 1}. kérdést a kulcsból?`)) return;
+        if (!confirm(t('kf.kerdes_torles_kerdes', { n: k.sorszam || ki + 1 }))) return;
         kerdesek.splice(ki, 1);
         break;
       case 'elem-uj':
@@ -443,11 +447,11 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
         const foglalt = new Set((k.agak || []).map((a) => a.id));
         let n = 1;
         while (foglalt.has(`a${n}`)) n++;
-        k.agak = [...(k.agak || []), { id: `a${n}`, cim: `${n}. lehetőség`, elemek: [] }];
+        k.agak = [...(k.agak || []), { id: `a${n}`, cim: t('kf.ag_alap', { n }), elemek: [] }];
         break;
       }
       case 'ag-torol':
-        if (!confirm(`Törlöd a(z) „${ag.cim}” lehetőséget?`)) return;
+        if (!confirm(t('kf.ag_torles_kerdes', { cim: ag.cim }))) return;
         k.agak.splice(Number(b.dataset.a), 1);
         break;
       default:
@@ -493,21 +497,21 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
 
   function beolvas() {
     if (kerdesek.length === 0) {
-      return { hiba: 'Még nincs megoldókulcs: kattints a „Megoldókulcs készítése” gombra.' };
+      return { hiba: t('kf.kell_kulcs') };
     }
     let kulcs;
     try {
       kulcs = kulcsEllenorzes({ kerdesek });
     } catch (e) {
       $('kulcs-reszletek').open = true;
-      return { hiba: e.message };
+      return { hiba: kulcsHibaSzoveg(e) };
     }
 
     const nyersHatarok = ponthatarokBeolvas();
     const ponthatarok = ponthatarokEllenorzes(nyersHatarok);
     if ([2, 3, 4, 5].some((j) => ponthatarok[j] !== nyersHatarok[j])) {
       $('kulcs-reszletek').open = true;
-      return { hiba: 'A ponthatárok 0 és 100 közötti, növekvő számok legyenek (2-es < 3-as < 4-es < 5-ös).' };
+      return { hiba: t('kf.ponthatar_hiba') };
     }
 
     return {
@@ -525,7 +529,7 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
         szoszedet: szoszedetGyujtes(kulcs),
         // A tananyag a KULCSHOZ tartozik (csak a tanár látja), nem a
         // feladathoz – a diák a feladat dokumentumát olvashatja.
-        tananyag: tananyag.map((t) => ({ path: t.path, nev: t.nev })),
+        tananyag: tananyag.map((fa) => ({ path: fa.path, nev: fa.nev })),
         tananyagbol: meta.tananyagbol === true,
         model: meta.model,
         generalva: meta.generalva === 'most' ? serverTimestamp() : (meta.generalva || null),
@@ -571,7 +575,7 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
     };
     tananyagRender();
     render();
-    if (!kulcsAdat) uzenet('kulcs-msg', 'Ehhez a feladathoz nem található kulcs – készítsd el újra.');
+    if (!kulcsAdat) uzenet('kulcs-msg', t('kf.nincs_kulcs'));
   }
 
   ponthatarokKitolt(ALAP_PONTHATAROK);

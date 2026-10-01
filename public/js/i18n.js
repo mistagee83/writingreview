@@ -128,6 +128,20 @@ export function szintNev(ertek) {
   return SZINT_KULCS[ertek] ? t(SZINT_KULCS[ertek]) : String(ertek ?? "");
 }
 
+/**
+ * A megoldókulcs-ellenőrzés hibája (functions/kifejtos.js → hiba()) az
+ * aktuális nyelven. A hibán kód és paraméterek vannak; ha a kód ismeretlen
+ * (vagy a hiba más eredetű), a hiba saját üzenete marad.
+ */
+export function kulcsHibaSzoveg(e) {
+  const kulcs = `kulcshiba.${e?.kod}`;
+  if (!e?.kod || !vanKulcs(kulcs, ALAP_NYELV)) return e?.message ?? "";
+  const p = e.parameterek || {};
+  const kerdes = t("kulcshiba.hely_kerdes", { kerdes: p.kerdes });
+  const hely = p.ag ? t("kulcshiba.hely_ag", { hely: kerdes, ag: p.ag }) : kerdes;
+  return t("kulcshiba.elofej", { uzenet: t(kulcs, { ...p, hely }) });
+}
+
 /** Dátum az aktuális nyelv formátumában. */
 export function datumSzoveg(date) {
   return date.toLocaleDateString(t("meta.locale"));

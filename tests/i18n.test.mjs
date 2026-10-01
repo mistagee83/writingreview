@@ -73,7 +73,8 @@ test("a státusz-táblák minden kulcsa létezik minden nyelven", async () => {
 const ATALAKITOTT = [
   "diak.html", "index.html", "beadas.html", "visszajelzes.html",
   "tanar.html", "osztalyok.html", "admin.html", "javitas.html", "elemzes.html", "feladatok.html",
-  "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js"
+  "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js",
+  "js/kifejtos-urlap.js", "js/kifejtos-javitas.js"
 ];
 
 // A táblázatokban (menü, státusz, fejléc-nevek) a kulcs nem t()-hívásban,
@@ -112,7 +113,7 @@ test("az átalakított lapokban nincs beégetett magyar szöveg a megjelenítés
     // az input placeholder tartaléka is
     .replace(/<input[^>]*data-i18n[^>]*>/g, "");
   const ekezetes = /[áéíóöőúüűÁÉÍÓÖŐÚÜŰ]/;
-  for (const f of ATALAKITOTT.filter((x) => x.endsWith(".html"))) {
+  for (const f of ATALAKITOTT) {
     const sorok = kod(readFileSync(new URL(f, PUBLIC), "utf8")).split("\n");
     const talalat = sorok.filter((s) => ekezetes.test(s) && !/Névtelen/.test(s) && !/console\.(error|warn|log)/.test(s)
       // az AI magyar kódszavai (adat, nem megjelenő szöveg)
@@ -138,4 +139,46 @@ test("az átalakított lapok modul-szkriptjei szintaktikailag érvényesek", () 
       `${f}: szintaxishiba a modul-szkriptben`
     );
   }
+});
+
+test("az átalakított .js modulok szintaktikailag érvényesek", () => {
+  const dir = mkdtempSync(join(tmpdir(), "wr-i18n-js-"));
+  for (const f of ATALAKITOTT.filter((x) => x.endsWith(".js"))) {
+    const fajl = join(dir, f.replace(/\W/g, "_") + ".mjs");
+    writeFileSync(fajl, readFileSync(new URL(f, PUBLIC), "utf8"));
+    assert.doesNotThrow(
+      () => execFileSync(process.execPath, ["--check", fajl], { stdio: "pipe" }),
+      `${f}: szintaxishiba`
+    );
+  }
+});
+
+test("a megoldókulcs minden hibakódjához van szöveg mindkét nyelven", () => {
+  // functions/kifejtos.js: hiba("kod", …) hívások és a KULCS_HIBA_HU táblázat
+  const forras = readFileSync(new URL("../functions/kifejtos.js", import.meta.url), "utf8");
+  const hivott = new Set([...forras.matchAll(/\bhiba\(\s*"(\w+)"/g)].map((m) => m[1]));
+  const tablazat = forras.slice(forras.indexOf("const KULCS_HIBA_HU"), forras.indexOf("function hiba("));
+  const definialt = new Set([...tablazat.matchAll(/^\s{2}(\w+):/gm)].map((m) => m[1]));
+  assert.ok(hivott.size >= 15, "a hibakódok nem találhatók – a teszt reg. kifejezése elavult?");
+  assert.deepEqual([...hivott].sort(), [...definialt].sort(), "hívott és definiált hibakódok eltérnek");
+  for (const kod of hivott) {
+    for (const nyelv of Object.keys(SZOTARAK)) {
+      assert.ok(SZOTARAK[nyelv][`kulcshiba.${kod}`], `${nyelv}: hiányzó kulcshiba.${kod}`);
+    }
+  }
+});
+
+test("kulcsHibaSzoveg(): a hiba a saját nyelvén jelenik meg, kód nélkül a saját üzenet marad", async () => {
+  const { kulcsHibaSzoveg } = i18n;
+  const kulcs = await import("../public/js/kifejtos.js");
+  const hibaEl = (kulcsAdat) => { try { kulcs.kulcsEllenorzes(kulcsAdat); } catch (e) { return e; } };
+
+  const e1 = hibaEl({ kerdesek: [{ sorszam: "2", tipus: "valasztos", max_pont: 2,
+    agak: [{ id: "x", elemek: [{ id: "e", allitas: "", pont: 1 }] }] }] });
+  nyelvCsere("en");
+  assert.equal(kulcsHibaSzoveg(e1), "Invalid answer key: question 2, branch x, e: empty statement.");
+  nyelvCsere("hu");
+  assert.equal(kulcsHibaSzoveg(e1), e1.message, "magyarul pontosan a szerver szövege");
+
+  assert.equal(kulcsHibaSzoveg(new Error("más hiba")), "más hiba");
 });

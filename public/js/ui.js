@@ -51,6 +51,8 @@ export function uzenetTorles(elemId) {
 
 /** Callable-hibák szövege az aktuális nyelven. */
 export function hibaSzoveg(e) {
+  // A kliens saját, már lefordított hibái (new Error(t(...)) + helyi = true)
+  if (e?.helyi) return e.message;
   // A Function saját üzenete egyelőre MAGYAR, ezért csak magyar felületen
   // mutatjuk meg (pontosabb, mint az általános kódszöveg). Más nyelven
   // az általános, lefordított szöveg jelenik meg, amíg a szerver is
