@@ -69,7 +69,7 @@
 </main>
 
 <script type="module">
-  import { t } from './js/i18n.js';
+  import { t, tipusNev, szintNev } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { statuszBadge, STATUSZ_DIAK, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import {
@@ -272,7 +272,7 @@
               <span>🎓 ${esc(nevek[f.osztaly_id] || '–')}</span>
               <span>${r.mod === 'kifejtos'
                 ? `📝 ${esc(r.tantargy || t('diak.kifejtos_alap'))}`
-                : `${esc(r.tipus || '–')} · ${esc(r.szint || '–')}`}</span>
+                : `${esc(tipusNev(r.tipus || '–'))} · ${esc(szintNev(r.szint || '–'))}`}</span>
               ${r.min_szo && r.max_szo ? `<span>${t('diak.szo_tartomany', { min: r.min_szo, max: r.max_szo })}</span>` : ''}
               ${f.hatarido
                 ? `<span class="${lejart ? 'lejart' : ''}">⏰ ${datum(f.hatarido)}${lejart ? t('diak.lejart') : ''}</span>`

@@ -108,6 +108,26 @@ export function nyelvNev(kod) {
   return vanKulcs(kulcs) ? t(kulcs) : String(kod ?? "");
 }
 
+const TIPUS_KULCS = {
+  "esszé": "tipus.esse", "levél": "tipus.level", "leírás": "tipus.leiras",
+  "elbeszélés": "tipus.elbeszeles", "vélemény": "tipus.velemeny", "egyéb": "tipus.egyeb"
+};
+const SZINT_KULCS = {
+  "5-6. évfolyam": "szint.evf_5_6", "7-8. évfolyam": "szint.evf_7_8",
+  "9-10. évfolyam": "szint.evf_9_10", "11-12. évfolyam": "szint.evf_11_12",
+  "érettségi (közép)": "szint.erettsegi_kozep", "érettségi (emelt)": "szint.erettsegi_emelt"
+};
+
+/** A feladattípus (adatban magyar kódszó) megjelenített neve. */
+export function tipusNev(kod) {
+  return TIPUS_KULCS[kod] ? t(TIPUS_KULCS[kod]) : String(kod ?? "");
+}
+
+/** A szint megjelenített neve. A CEFR-szintek (A1…C1) nem fordulnak, az évfolyamok igen. */
+export function szintNev(ertek) {
+  return SZINT_KULCS[ertek] ? t(SZINT_KULCS[ertek]) : String(ertek ?? "");
+}
+
 /** Dátum az aktuális nyelv formátumában. */
 export function datumSzoveg(date) {
   return date.toLocaleDateString(t("meta.locale"));

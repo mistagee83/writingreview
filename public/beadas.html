@@ -84,7 +84,7 @@
 </main>
 
 <script type="module">
-  import { t } from './js/i18n.js';
+  import { t, nyelvNev, tipusNev, szintNev } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { statuszBadge, STATUSZ_DIAK, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import { atmeretez, tulNagy, meret } from './js/kep.js';
@@ -124,7 +124,7 @@
   document.getElementById('alcim').textContent =
     [...(r.mod === 'kifejtos'
           ? [r.tantargy || t('diak.kifejtos_alap')]
-          : [r.nyelv, r.tipus, r.szint, r.min_szo && r.max_szo ? t('diak.szo_tartomany', { min: r.min_szo, max: r.max_szo }) : null]),
+          : [nyelvNev(r.nyelv), tipusNev(r.tipus), szintNev(r.szint), r.min_szo && r.max_szo ? t('diak.szo_tartomany', { min: r.min_szo, max: r.max_szo }) : null]),
      feladat.hatarido ? t('beadas.hatarido', { datum: datum(feladat.hatarido) }) : null]
       .filter(Boolean).join(' · ');
 

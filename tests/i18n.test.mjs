@@ -72,7 +72,7 @@ test("a státusz-táblák minden kulcsa létezik minden nyelven", async () => {
 // létezik-e. Új lap átalakításakor add hozzá ide.
 const ATALAKITOTT = [
   "diak.html", "index.html", "beadas.html", "visszajelzes.html",
-  "tanar.html", "osztalyok.html", "admin.html", "javitas.html", "elemzes.html",
+  "tanar.html", "osztalyok.html", "admin.html", "javitas.html", "elemzes.html", "feladatok.html",
   "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js"
 ];
 
@@ -105,6 +105,8 @@ test("az átalakított lapokban nincs beégetett magyar szöveg a megjelenítés
     .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "")
+    // sorvégi komment (a "https://" előtt nincs szóköz, azt nem érinti)
+    .replace(/\s\/\/\s.*$/gm, "")
     // a data-i18n elem a magyar tartalék szövegével együtt kivétel
     .replace(/<(\w+)\b[^>]*data-i18n[^>]*>[\s\S]*?<\/\1>/g, "")
     // az input placeholder tartaléka is
@@ -114,7 +116,9 @@ test("az átalakított lapokban nincs beégetett magyar szöveg a megjelenítés
     const sorok = kod(readFileSync(new URL(f, PUBLIC), "utf8")).split("\n");
     const talalat = sorok.filter((s) => ekezetes.test(s) && !/Névtelen/.test(s) && !/console\.(error|warn|log)/.test(s)
       // az AI magyar kódszavai (adat, nem megjelenő szöveg)
-      && !/['"](általános|szórványos)['"]/.test(s));
+      && !/['"](általános|szórványos)['"]/.test(s)
+      // a magyar évfolyam-skála értékei (adat; a szerver ugyanezeket várja)
+      && !/évfolyam|érettségi/.test(s));
     assert.deepEqual(talalat, [], `${f}: beégetett magyar szöveg`);
   }
 });

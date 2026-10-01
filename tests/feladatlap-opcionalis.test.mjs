@@ -19,6 +19,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { SZOTARAK } from "../public/js/i18n.js";
 
 const PUBLIC = new URL("../public/", import.meta.url);
 const FUNCTIONS = new URL("../functions/", import.meta.url);
@@ -140,8 +141,19 @@ test("amit a felület és a bemutató ígér, azt a mentés nem cáfolhatja", ()
 test("a kiadás üzenete nem hazudik feladatlapról, ha nincs", () => {
   // A kiadás egy meglévő feladatot másol másik osztálynak. Ha annak nem
   // volt feladatlapja, az „A feladatlap … átvéve" félrevezető.
+  // Az üzenet szótári kulcsokból áll; a feltétel a fajlPath megléte.
   assert.match(
     feladatok,
-    /fajlPath \? 'A feladatlap és a rubrika átvéve\.' : 'A rubrika átvéve\.'/
+    /fajlPath \? t\('fel\.kiadas_uzenet_lap'\) : t\('fel\.kiadas_uzenet'\)/
   );
+  // A „feladatlap nélküli" változat NEM említhet feladatlapot – egyik nyelven sem.
+  for (const nyelv of ["hu", "en"]) {
+    const szotar = SZOTARAK[nyelv];
+    assert.match(szotar["fel.kiadas_uzenet_lap"], /rubri/i);
+    assert.doesNotMatch(
+      szotar["fel.kiadas_uzenet"],
+      /feladatlap|worksheet/i,
+      `${nyelv}: a feladatlap nélküli kiadás üzenete feladatlapot említ`
+    );
+  }
 });

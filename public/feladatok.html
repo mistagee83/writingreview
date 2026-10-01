@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WritingReview – Feladatok</title>
+  <title data-i18n="fel.oldalcim">WritingReview – Feladatok</title>
   <link rel="manifest" href="manifest.webmanifest"/>
   <meta name="theme-color" content="#0f0f0f"/>
   <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
@@ -16,13 +16,13 @@
 </head>
 <body>
 
-<div id="loading-screen">Betöltés...</div>
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
 
 <div class="topbar gated" id="topbar">
   <div class="brand">Writing<span>Review</span></div>
   <div class="topbar-right">
-    <div class="user-info"><span class="csak-nagy">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
-    <button class="btn-logout" onclick="logout()">Kilépés</button>
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
   </div>
 </div>
 
@@ -32,18 +32,18 @@
   <main class="main narrow">
     <div class="page-header split">
       <div>
-        <h1>Feladatok</h1>
-        <p>Adj ki új feladatot. Ha feltöltesz feladatlapot, az AI kitölti a rubrikát – de kézzel is megadhatod.</p>
+        <h1 data-i18n="fel.cim">Feladatok</h1>
+        <p data-i18n="fel.alcim">Adj ki új feladatot. Ha feltöltesz feladatlapot, az AI kitölti a rubrikát – de kézzel is megadhatod.</p>
       </div>
       <button class="btn-primary" id="btn-panel">
-        <span id="panel-ikon">＋</span> Új feladat
+        <span id="panel-ikon">＋</span> <span data-i18n="fel.uj_gomb">Új feladat</span>
       </button>
     </div>
 
     <!-- FIGYELMEZTETÉS, HA NINCS OSZTÁLY -->
     <div class="panel gated" id="nincs-osztaly-panel">
       <div class="panel-body">
-        <p>Feladatot csak osztályhoz lehet létrehozni, és még nincs osztályod.
+        <p data-i18n-html="fel.nincs_osztaly">Feladatot csak osztályhoz lehet létrehozni, és még nincs osztályod.
           <a href="osztalyok.html">Hozz létre egyet →</a></p>
       </div>
     </div>
@@ -51,148 +51,148 @@
     <!-- ÚJ FELADAT -->
     <div class="panel" id="uj-panel" style="display:none;">
       <div class="panel-header">
-        <h2 id="panel-cim">✏️ Új feladat</h2>
-        <button class="btn-sm" id="btn-bezar">✕ Bezár</button>
+        <h2 id="panel-cim" data-i18n="fel.panel_uj">✏️ Új feladat</h2>
+        <button class="btn-sm" id="btn-bezar" data-i18n="fel.bezar">✕ Bezár</button>
       </div>
       <div class="panel-body">
 
         <div class="ket-hasab">
           <div class="form-group">
-            <label for="f-osztaly">Osztály</label>
+            <label for="f-osztaly" data-i18n="fel.osztaly">Osztály</label>
             <select id="f-osztaly"></select>
-            <p class="halvany" id="osztaly-hint" style="display:none;margin-top:0.4rem;">
+            <p class="halvany" id="osztaly-hint" data-i18n="fel.osztaly_hint" style="display:none;margin-top:0.4rem;">
               Meglévő feladat osztálya nem módosítható – a beadások hozzá tartoznak.
               Másik osztálynak a listából add ki.
             </p>
           </div>
           <div class="form-group">
-            <label for="f-hatarido">Határidő (nem kötelező)</label>
+            <label for="f-hatarido" data-i18n="fel.hatarido">Határidő (nem kötelező)</label>
             <input type="date" id="f-hatarido" />
           </div>
         </div>
 
         <div class="form-group">
-          <label for="f-cim">Feladat címe</label>
-          <input type="text" id="f-cim" placeholder="Pl. Essay writing – My hometown" maxlength="200" />
+          <label for="f-cim" data-i18n="fel.feladat_cime">Feladat címe</label>
+          <input type="text" id="f-cim" placeholder="Pl. Essay writing – My hometown" data-i18n-placeholder="fel.cim_pelda" maxlength="200" />
         </div>
 
         <div class="form-group">
-          <label>A feladat fajtája</label>
-          <div class="mod-valaszto" role="radiogroup" aria-label="A feladat fajtája">
+          <label data-i18n="fel.fajta">A feladat fajtája</label>
+          <div class="mod-valaszto" role="radiogroup" aria-label="A feladat fajtája" data-i18n-aria="fel.fajta">
             <label><input type="radio" name="f-mod" value="iras" checked />
-              <span>✍️ Fogalmazás<small>egy írásfeladat, szempontok szerint értékelve</small></span></label>
+              <span><span data-i18n="fel.fajta_iras">✍️ Fogalmazás</span><small data-i18n="fel.fajta_iras_leiras">egy írásfeladat, szempontok szerint értékelve</small></span></label>
             <label><input type="radio" name="f-mod" value="kifejtos" />
-              <span>📝 Kifejtős kérdések<small>több rövid kérdés, megoldókulcs szerint javítva</small></span></label>
+              <span><span data-i18n="fel.fajta_kifejtos">📝 Kifejtős kérdések</span><small data-i18n="fel.fajta_kifejtos_leiras">több rövid kérdés, megoldókulcs szerint javítva</small></span></label>
           </div>
-          <p class="halvany" id="mod-hint" style="display:none;margin-top:0.4rem;">
+          <p class="halvany" id="mod-hint" data-i18n="fel.fajta_hint" style="display:none;margin-top:0.4rem;">
             A fajta mentés után nem változtatható – a beadások javítása ehhez igazodik.
           </p>
         </div>
 
         <div class="form-group">
-          <label id="feladatlap-cimke">Feladatlap (kép vagy PDF, nem kötelező)</label>
+          <label id="feladatlap-cimke" data-i18n="fel.feladatlap_iras">Feladatlap (kép vagy PDF, nem kötelező)</label>
           <div class="upload-zone" id="upload-zone">
             <input type="file" id="f-fajl" accept="image/*,.pdf" />
             <div class="upload-icon">📄</div>
-            <p><strong>Kattints ide</strong> vagy húzd ide a fájlt</p>
-            <p>JPG, PNG, PDF – max. 10MB</p>
-            <p>Feltöltés nélkül a rubrikát kézzel add meg – ilyenkor nem indul AI-elemzés.</p>
+            <p data-i18n-html="fel.kattints_fajl"><strong>Kattints ide</strong> vagy húzd ide a fájlt</p>
+            <p data-i18n="fel.fajltipus">JPG, PNG, PDF – max. 10MB</p>
+            <p data-i18n="fel.feltoltes_nelkul">Feltöltés nélkül a rubrikát kézzel add meg – ilyenkor nem indul AI-elemzés.</p>
           </div>
           <div class="upload-preview" id="upload-preview">
             <span>✅</span><span id="upload-nev">–</span>
           </div>
-          <p class="halvany" id="fajl-hint" style="display:none;margin-top:0.4rem;">
+          <p class="halvany" id="fajl-hint" data-i18n="fel.fajl_hint" style="display:none;margin-top:0.4rem;">
             A meglévő feladatlap megmarad. Csak akkor tölts fel újat, ha cserélni akarod.
           </p>
         </div>
 
         <div class="form-group">
-          <label for="r-leiras">A feladat leírása (a diáknak és az AI-nak)</label>
-          <textarea id="r-leiras" rows="3" placeholder="Mit kell a diáknak megírnia?"></textarea>
+          <label for="r-leiras" data-i18n="fel.leiras">A feladat leírása (a diáknak és az AI-nak)</label>
+          <textarea id="r-leiras" rows="3" placeholder="Mit kell a diáknak megírnia?" data-i18n-placeholder="fel.leiras_pelda_iras"></textarea>
         </div>
 
         <!-- RUBRIKA (íráskészség) -->
         <div class="rubrika-blokk" id="iras-blokk">
           <div class="rubrika-fejlec">
-            <h3>Értékelési rubrika</h3>
-            <span id="rubrika-badge" class="prompt-badge" style="display:none;">✨ AI által kitöltve</span>
+            <h3 data-i18n="fel.rubrika_cim">Értékelési rubrika</h3>
+            <span id="rubrika-badge" class="prompt-badge" style="display:none;" data-i18n="fel.ai_kitoltve">✨ AI által kitöltve</span>
           </div>
-          <p class="halvany">
+          <p class="halvany" data-i18n="fel.rubrika_leiras">
             Ebből épül a javító prompt a szerveren. A diák is látja – tudja,
             mi alapján értékelik. A pontszám szabadon választható (20, 50, 100…).
           </p>
 
           <div class="sablon-sav">
-            <select id="sablon-valaszto" aria-label="Sablon betöltése">
-              <option value="">Sablon betöltése…</option>
+            <select id="sablon-valaszto" aria-label="Sablon betöltése" data-i18n-aria="fel.sablon_betolt_aria">
+              <option value="" data-i18n="fel.sablon_betolt">Sablon betöltése…</option>
             </select>
-            <button class="btn-sm" id="btn-sablon-torol" title="A kiválasztott sablon törlése" disabled>🗑</button>
-            <button class="btn-sm" id="btn-sablon-ment">💾 Mentés sablonként</button>
+            <button class="btn-sm" id="btn-sablon-torol" title="A kiválasztott sablon törlése" data-i18n-title="fel.sablon_torol_tipp" disabled>🗑</button>
+            <button class="btn-sm" id="btn-sablon-ment" data-i18n="fel.sablon_ment">💾 Mentés sablonként</button>
           </div>
           <div class="msg" id="sablon-msg"></div>
 
           <div class="rubrika-tolt" id="rubrika-tolt">
             <div class="spinner"></div>
-            <span>Gemini elemzi a feladatlapot...</span>
+            <span data-i18n="fel.elemzes_tolt">Gemini elemzi a feladatlapot...</span>
           </div>
 
           <div class="harom-hasab">
             <div class="form-group">
-              <label for="r-nyelv">A dolgozat nyelve</label>
+              <label for="r-nyelv" data-i18n="fel.nyelv_label">A dolgozat nyelve</label>
               <select id="r-nyelv">
-                <option value="angol" selected>angol</option>
-                <option value="német">német</option>
-                <option value="francia">francia</option>
-                <option value="spanyol">spanyol</option>
-                <option value="olasz">olasz</option>
-                <option value="orosz">orosz</option>
-                <option value="latin">latin</option>
-                <option value="magyar">magyar</option>
+                <option value="angol" selected data-i18n="nyelv.angol">angol</option>
+                <option value="német" data-i18n="nyelv.német">német</option>
+                <option value="francia" data-i18n="nyelv.francia">francia</option>
+                <option value="spanyol" data-i18n="nyelv.spanyol">spanyol</option>
+                <option value="olasz" data-i18n="nyelv.olasz">olasz</option>
+                <option value="orosz" data-i18n="nyelv.orosz">orosz</option>
+                <option value="latin" data-i18n="nyelv.latin">latin</option>
+                <option value="magyar" data-i18n="nyelv.magyar">magyar</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="r-tipus">Feladattípus</label>
+              <label for="r-tipus" data-i18n="fel.tipus_label">Feladattípus</label>
               <select id="r-tipus">
-                <option value="esszé">esszé</option>
-                <option value="levél">levél</option>
-                <option value="leírás">leírás</option>
-                <option value="elbeszélés">elbeszélés</option>
-                <option value="vélemény">vélemény</option>
-                <option value="egyéb">egyéb</option>
+                <option value="esszé" data-i18n="tipus.esse">esszé</option>
+                <option value="levél" data-i18n="tipus.level">levél</option>
+                <option value="leírás" data-i18n="tipus.leiras">leírás</option>
+                <option value="elbeszélés" data-i18n="tipus.elbeszeles">elbeszélés</option>
+                <option value="vélemény" data-i18n="tipus.velemeny">vélemény</option>
+                <option value="egyéb" data-i18n="tipus.egyeb">egyéb</option>
               </select>
             </div>
             <div class="form-group">
               <!-- A címke és a lista is nyelvfüggő (lásd szintSkala()):
                    idegen nyelvnél CEFR, magyarnál évfolyam. -->
-              <label for="r-szint" id="r-szint-cimke">Célszint (CEFR)</label>
+              <label for="r-szint" id="r-szint-cimke" data-i18n="fel.szint_cefr">Célszint (CEFR)</label>
               <select id="r-szint"></select>
             </div>
           </div>
 
           <div class="ket-hasab">
             <div class="form-group">
-              <label for="r-min">Minimum szó</label>
+              <label for="r-min" data-i18n="fel.min_szo">Minimum szó</label>
               <input type="number" id="r-min" min="0" max="2000" placeholder="120" />
             </div>
             <div class="form-group">
-              <label for="r-max">Maximum szó</label>
+              <label for="r-max" data-i18n="fel.max_szo">Maximum szó</label>
               <input type="number" id="r-max" min="0" max="2000" placeholder="180" />
             </div>
           </div>
 
           <div class="form-group">
             <label>
-              Szempontok és pontszámok
+              <span data-i18n="fel.szempontok_label">Szempontok és pontszámok</span>
               <span id="suly-jelzo" class="suly-jelzo">összesen: 0 pont</span>
             </label>
             <div id="szempontok"></div>
-            <button class="btn-sm" id="btn-szempont">＋ Szempont</button>
+            <button class="btn-sm" id="btn-szempont" data-i18n="fel.szempont_hozzaad">＋ Szempont</button>
           </div>
 
 
           <div class="form-group">
-            <label for="r-egyeb">Külön kérés az AI-nak (nem kötelező)</label>
-            <textarea id="r-egyeb" rows="2" placeholder="Pl. A múlt idő használatára figyelj külön."></textarea>
+            <label for="r-egyeb" data-i18n="fel.egyeb_label">Külön kérés az AI-nak (nem kötelező)</label>
+            <textarea id="r-egyeb" rows="2" placeholder="Pl. A múlt idő használatára figyelj külön." data-i18n-placeholder="fel.egyeb_pelda"></textarea>
           </div>
         </div>
 
@@ -204,50 +204,50 @@
           </div>
 
           <div class="form-group">
-            <label>Tananyag (nem kötelező)</label>
-            <p class="halvany">Amiből a diákok tanultak – ebből készül a megoldókulcs. Ha nincs, az AI a
+            <label data-i18n="fel.tananyag_label">Tananyag (nem kötelező)</label>
+            <p class="halvany" data-i18n="fel.tananyag_leiras">Amiből a diákok tanultak – ebből készül a megoldókulcs. Ha nincs, az AI a
               saját tudásából dolgozik. PDF vagy kép, legfeljebb 5 fájl.</p>
             <div class="upload-zone kicsi">
-              <input type="file" id="tananyag-fajl" accept="image/*,.pdf" multiple aria-label="Tananyag feltöltése" />
-              <p>📚 <strong>Kattints ide</strong> vagy húzd ide a tananyagot</p>
+              <input type="file" id="tananyag-fajl" accept="image/*,.pdf" multiple aria-label="Tananyag feltöltése" data-i18n-aria="fel.tananyag_aria" />
+              <p data-i18n-html="fel.tananyag_kattints">📚 <strong>Kattints ide</strong> vagy húzd ide a tananyagot</p>
             </div>
             <ul class="fajl-lista" id="tananyag-lista"></ul>
             <div class="msg" id="tananyag-msg"></div>
           </div>
 
           <div class="kulcs-sav">
-            <button type="button" class="btn-primary" id="btn-kulcs-keszit">✨ Megoldókulcs készítése</button>
-            <button type="button" class="btn-sm" id="btn-kulcs-kezi">vagy összeállítom kézzel</button>
+            <button type="button" class="btn-primary" id="btn-kulcs-keszit" data-i18n="fel.kulcs_keszit">✨ Megoldókulcs készítése</button>
+            <button type="button" class="btn-sm" id="btn-kulcs-kezi" data-i18n="fel.kulcs_kezi">vagy összeállítom kézzel</button>
           </div>
           <div class="msg" id="kulcs-msg"></div>
           <div class="kulcs-osszegzes" id="kulcs-osszegzes" hidden></div>
 
           <details class="kulcs-reszletek" id="kulcs-reszletek" hidden>
-            <summary>Megnézem, szerkesztem</summary>
-            <p class="halvany">A diák a határidő előtt nem látja. Az AI csak azt dönti el, hogy egy elem
+            <summary data-i18n="fel.kulcs_reszletek">Megnézem, szerkesztem</summary>
+            <p class="halvany" data-i18n="fel.kulcs_reszletek_leiras">A diák a határidő előtt nem látja. Az AI csak azt dönti el, hogy egy elem
               megvan-e a válaszban – a pontot a rendszer számolja az alábbiak szerint.</p>
 
             <div id="kulcs-kerdesek"></div>
-            <button type="button" class="btn-sm" id="btn-kerdes-uj">＋ Kérdés</button>
+            <button type="button" class="btn-sm" id="btn-kerdes-uj" data-i18n="fel.kerdes_uj">＋ Kérdés</button>
 
-            <h4 class="kulcs-alcim">Beállítások</h4>
+            <h4 class="kulcs-alcim" data-i18n="fel.beallitasok">Beállítások</h4>
             <div class="form-group">
-              <label for="kf-tantargy">Tantárgy</label>
-              <input type="text" id="kf-tantargy" maxlength="60" placeholder="Pl. történelem, kereskedelem" />
+              <label for="kf-tantargy" data-i18n="fel.tantargy">Tantárgy</label>
+              <input type="text" id="kf-tantargy" maxlength="60" placeholder="Pl. történelem, kereskedelem" data-i18n-placeholder="fel.tantargy_pelda" />
             </div>
             <div class="form-group">
-              <label>Ponthatárok (%, a jegyjavaslathoz)</label>
+              <label data-i18n="fel.ponthatarok">Ponthatárok (%, a jegyjavaslathoz)</label>
               <div class="ponthatarok">
-                <label>2-es <input type="number" id="ph-2" min="0" max="100" /></label>
-                <label>3-as <input type="number" id="ph-3" min="0" max="100" /></label>
-                <label>4-es <input type="number" id="ph-4" min="0" max="100" /></label>
-                <label>5-ös <input type="number" id="ph-5" min="0" max="100" /></label>
+                <label><span data-i18n="fel.jegy_2">2-es</span> <input type="number" id="ph-2" min="0" max="100" /></label>
+                <label><span data-i18n="fel.jegy_3">3-as</span> <input type="number" id="ph-3" min="0" max="100" /></label>
+                <label><span data-i18n="fel.jegy_4">4-es</span> <input type="number" id="ph-4" min="0" max="100" /></label>
+                <label><span data-i18n="fel.jegy_5">5-ös</span> <input type="number" id="ph-5" min="0" max="100" /></label>
               </div>
             </div>
             <label class="jelolo">
               <input type="checkbox" id="kf-helyes-lathato" checked />
-              <span>A diák a visszajelzésében lássa a helyes válaszokat
-                <small>Kapcsold ki, ha a dolgozatot jövőre is íratni fogod – különben a megoldás kiszivároghat.</small></span>
+              <span><span data-i18n="fel.helyes_lathato">A diák a visszajelzésében lássa a helyes válaszokat</span>
+                <small data-i18n="fel.helyes_lathato_tipp">Kapcsold ki, ha a dolgozatot jövőre is íratni fogod – különben a megoldás kiszivároghat.</small></span>
             </label>
           </details>
         </div>
@@ -255,17 +255,17 @@
         <div class="msg" id="form-msg"></div>
 
         <div class="gomb-sor">
-          <button class="btn-primary" id="btn-mentes">💾 Feladat mentése</button>
-          <button class="btn-sm" id="btn-reset">Űrlap törlése</button>
+          <button class="btn-primary" id="btn-mentes" data-i18n="fel.mentes_uj">💾 Feladat mentése</button>
+          <button class="btn-sm" id="btn-reset" data-i18n="fel.reset">Űrlap törlése</button>
         </div>
       </div>
     </div>
 
     <!-- LISTA -->
     <div class="panel">
-      <div class="panel-header"><h2>📋 Feladatok</h2></div>
+      <div class="panel-header"><h2 data-i18n="fel.lista_cim">📋 Feladatok</h2></div>
       <div class="panel-body flush">
-        <div id="lista"><div class="empty-state bare"><p>Betöltés...</p></div></div>
+        <div id="lista"><div class="empty-state bare"><p data-i18n="kozos.betoltes">Betöltés...</p></div></div>
       </div>
     </div>
   </main>
@@ -274,8 +274,8 @@
 <!-- VETÍTÉS: a feladat órai kivetítésre, a szerkesztő nélkül -->
 <div class="vetites" id="vetites" role="dialog" aria-modal="true" aria-labelledby="v-cim">
   <div class="vetites-sav">
-    <button class="btn-sm" id="v-teljes" title="Teljes képernyő (F)">⛶ Teljes képernyő</button>
-    <button class="btn-sm" id="v-bezar" title="Bezárás (Esc)">✕ Bezár</button>
+    <button class="btn-sm" id="v-teljes" title="Teljes képernyő (F)" data-i18n-title="fel.v_teljes_tipp" data-i18n="fel.v_teljes">⛶ Teljes képernyő</button>
+    <button class="btn-sm" id="v-bezar" title="Bezárás (Esc)" data-i18n-title="fel.v_bezar_tipp" data-i18n="fel.bezar">✕ Bezár</button>
   </div>
   <div class="vetites-tartalom">
     <h1 id="v-cim"></h1>
@@ -286,6 +286,7 @@
 </div>
 
 <script type="module">
+  import { t, nyelvNev, tipusNev, szintNev } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
@@ -327,11 +328,11 @@
     document.getElementById('iras-blokk').style.display = kf ? 'none' : '';
     document.getElementById('kifejtos-blokk').style.display = kf ? '' : 'none';
     document.getElementById('feladatlap-cimke').textContent = kf
-      ? 'Feladatlap – a dolgozat kérdései (kép vagy PDF)'
-      : 'Feladatlap (kép vagy PDF, nem kötelező)';
+      ? t('fel.feladatlap_kifejtos')
+      : t('fel.feladatlap_iras');
     document.getElementById('r-leiras').placeholder = kf
-      ? 'Miről szól a dolgozat? (a diák látja – a kulcs elkészültekor kitöltődik)'
-      : 'Mit kell a diáknak megírnia?';
+      ? t('fel.leiras_pelda_kifejtos')
+      : t('fel.leiras_pelda_iras');
   }
   modRadiok.forEach((r) => r.addEventListener('change', () => modBeallit(aktualisMod())));
 
@@ -371,10 +372,11 @@
   // A lista dokumentumai, hogy szerkesztéskor ne kelljen újra lekérni
   const feladatok = {};
 
+  // Szótári kulcsok – a t() a megjelenítéskor fordít
   const FELIRATOK = {
-    uj:          { cim: '✏️ Új feladat',                 mentes: '💾 Feladat mentése' },
-    szerkesztes: { cim: '✏️ Feladat szerkesztése',       mentes: '💾 Módosítások mentése' },
-    kiadas:      { cim: '📤 Kiadás másik osztálynak',    mentes: '📤 Kiadás' }
+    uj:          { cim: 'fel.panel_uj',          mentes: 'fel.mentes_uj' },
+    szerkesztes: { cim: 'fel.panel_szerkesztes', mentes: 'fel.mentes_szerkesztes' },
+    kiadas:      { cim: 'fel.panel_kiadas',      mentes: 'fel.mentes_kiadas' }
   };
 
   function panelZar() {
@@ -392,8 +394,8 @@
 
     document.getElementById('uj-panel').style.display = 'block';
     document.getElementById('panel-ikon').textContent = '✕';
-    document.getElementById('panel-cim').textContent = FELIRATOK[mod].cim;
-    document.getElementById('btn-mentes').textContent = FELIRATOK[mod].mentes;
+    document.getElementById('panel-cim').textContent = t(FELIRATOK[mod].cim);
+    document.getElementById('btn-mentes').textContent = t(FELIRATOK[mod].mentes);
 
     // Szerkesztéskor az osztály zárolt
     const szerk = mod === 'szerkesztes';
@@ -480,9 +482,9 @@
     const sor = document.createElement('div');
     sor.className = 'szempont-sor';
     sor.innerHTML = `
-      <input type="text" class="sz-kulcs" placeholder="kulcs" value="${esc(kulcs)}" maxlength="30" />
-      <input type="text" class="sz-cim" placeholder="Megjelenő cím" value="${esc(cim)}" maxlength="80" />
-      <input type="number" class="sz-suly" placeholder="pont" min="0" max="1000" value="${esc(suly)}" />
+      <input type="text" class="sz-kulcs" placeholder="${esc(t('fel.szempont_kulcs'))}" value="${esc(kulcs)}" maxlength="30" />
+      <input type="text" class="sz-cim" placeholder="${esc(t('fel.szempont_cim'))}" value="${esc(cim)}" maxlength="80" />
+      <input type="number" class="sz-suly" placeholder="${esc(t('fel.szempont_pont'))}" min="0" max="1000" value="${esc(suly)}" />
       <button class="btn-sm danger" type="button" data-torol>✕</button>`;
     sor.querySelector('[data-torol]').addEventListener('click', () => {
       sor.remove();
@@ -500,7 +502,7 @@
     const osszeg = [...szempontokEl.querySelectorAll('.sz-suly')]
       .reduce((s, i) => s + (Number(i.value) || 0), 0);
     const jelzo = document.getElementById('suly-jelzo');
-    jelzo.textContent = `összesen: ${osszeg} pont`;
+    jelzo.textContent = t('fel.suly_osszesen', { db: osszeg });
     jelzo.className = 'suly-jelzo' + (osszeg > 0 ? ' ok' : ' figyelem');
   }
 
@@ -520,10 +522,10 @@
   // Alapértelmezett rubrika, ha az AI nem fut le
   function alapSzempontok() {
     szempontokEl.innerHTML = '';
-    szempontSor('tartalom', 'Tartalom és feladatteljesítés', 30);
-    szempontSor('szerkezet', 'Szerkezet és kohézió', 20);
-    szempontSor('szokincs', 'Szókincs', 25);
-    szempontSor('nyelvtan', 'Nyelvhelyesség', 25);
+    szempontSor('tartalom', t('fel.alap_tartalom'), 30);
+    szempontSor('szerkezet', t('fel.alap_szerkezet'), 20);
+    szempontSor('szokincs', t('fel.alap_szokincs'), 25);
+    szempontSor('nyelvtan', t('fel.alap_nyelvtan'), 25);
     sulyFrissit();
   }
   alapSzempontok();
@@ -546,12 +548,12 @@
   const ANYANYELVEK = ['magyar'];
   const SZINT_SKALAK = {
     idegen: {
-      cimke: 'Célszint (CEFR)',
+      cimke: 'fel.szint_cefr',
       alap: 'B1',
       ertekek: ['A1', 'A2', 'B1', 'B2', 'C1']
     },
     anyanyelv: {
-      cimke: 'Évfolyam',
+      cimke: 'fel.szint_evfolyam',
       alap: '',
       ertekek: ['5-6. évfolyam', '7-8. évfolyam', '9-10. évfolyam',
                 '11-12. évfolyam', 'érettségi (közép)', 'érettségi (emelt)']
@@ -595,10 +597,10 @@
    */
   function szintSkalaFrissit(nyelv, kivant) {
     const skala = szintSkala(nyelv);
-    szintCimkeEl.textContent = skala.cimke;
+    szintCimkeEl.textContent = t(skala.cimke);
     szintEl.innerHTML =
-      '<option value="">nem releváns</option>' +
-      skala.ertekek.map((sz) => `<option value="${esc(sz)}">${esc(sz)}</option>`).join('');
+      `<option value="">${esc(t('fel.nem_relevans'))}</option>` +
+      skala.ertekek.map((sz) => `<option value="${esc(sz)}">${esc(szintNev(sz))}</option>`).join('');
 
     if (kivant === undefined) {
       szintEl.value = skala.alap;
@@ -681,15 +683,15 @@
       sablonok = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
       sablonValaszto.innerHTML =
-        '<option value="">Sablon betöltése…</option>' +
+        `<option value="">${esc(t('fel.sablon_betolt'))}</option>` +
         sablonok.map((sb) => {
           const pont = (sb.rubrika?.szempontok || [])
             .reduce((a, sz) => a + (Number(sz.suly) || 0), 0);
-          return `<option value="${esc(sb.id)}">${esc(sb.nev)} (${pont} pont)</option>`;
+          return `<option value="${esc(sb.id)}">${esc(t('fel.sablon_opt', { nev: sb.nev, pont }))}</option>`;
         }).join('');
     } catch (e) {
       console.error('Sablonok betöltése:', e);
-      uzenet('sablon-msg', 'A sablonok nem tölthetők be. Hiányzó index? Nézd meg a konzolt.');
+      uzenet('sablon-msg', t('fel.sablon_betoltesi_hiba'));
     }
   }
 
@@ -700,7 +702,7 @@
     if (!sb) return;
     rubrikaKitolt(sb.rubrika || {});
     document.getElementById('rubrika-badge').style.display = 'none';
-    uzenet('sablon-msg', `"${sb.nev}" betöltve. Szabadon módosíthatod.`, 'success');
+    uzenet('sablon-msg', t('fel.sablon_betoltve', { nev: sb.nev }), 'success');
   });
 
   document.getElementById('btn-sablon-ment').addEventListener('click', async (e) => {
@@ -708,7 +710,7 @@
     const rubrika = rubrikaBeolvas();
 
     if (rubrika.szempontok.length === 0) {
-      uzenet('sablon-msg', 'Előbb állítsd össze a szempontokat.');
+      uzenet('sablon-msg', t('fel.sablon_elobb'));
       return;
     }
 
@@ -716,17 +718,17 @@
     const alapNev = kivalasztott
       ? kivalasztott.nev
       // A szint elhagyható ("nem releváns"), a névbe ne kerüljön "null"
-      : [rubrika.tipus, rubrika.szint].filter(Boolean).join(' ') +
-        ` – ${rubrika.szempontok.reduce((a, sz) => a + sz.suly, 0)} pont`;
+      : [tipusNev(rubrika.tipus), szintNev(rubrika.szint)].filter(Boolean).join(' ') +
+        t('fel.sablon_alapnev', { pont: rubrika.szempontok.reduce((a, sz) => a + sz.suly, 0) });
 
-    const nev = (prompt('A sablon neve:', alapNev) || '').trim();
+    const nev = (prompt(t('fel.sablon_nev_prompt'), alapNev) || '').trim();
     if (!nev) return;
 
-    const vissza = gombVar(e.currentTarget, 'Mentés...');
+    const vissza = gombVar(e.currentTarget, t('fel.mentes_folyamat'));
     try {
       const letezo = sablonok.find((x) => x.nev === nev);
       if (letezo) {
-        if (!confirm(`Már van "${nev}" nevű sablon. Felülírod?`)) { vissza(); return; }
+        if (!confirm(t('fel.sablon_van', { nev }))) { vissza(); return; }
         await updateDoc(doc(db, 'rubrikak', letezo.id), {
           rubrika, frissitve: serverTimestamp()
         });
@@ -736,9 +738,9 @@
         });
       }
       await sablonokBetolt();
-      uzenet('sablon-msg', `"${nev}" elmentve.`, 'success');
+      uzenet('sablon-msg', t('fel.sablon_elmentve', { nev }), 'success');
     } catch (err) {
-      uzenet('sablon-msg', 'Mentési hiba: ' + hibaSzoveg(err));
+      uzenet('sablon-msg', t('fel.sablon_mentesi_hiba', { ok: hibaSzoveg(err) }));
     } finally {
       vissza();
     }
@@ -747,7 +749,7 @@
   document.getElementById('btn-sablon-torol').addEventListener('click', async (e) => {
     const sb = sablonok.find((x) => x.id === sablonValaszto.value);
     if (!sb) return;
-    if (!confirm(`Törlöd a "${sb.nev}" sablont? A már létrehozott feladatokat nem érinti.`)) return;
+    if (!confirm(t('fel.sablon_torles_kerdes', { nev: sb.nev }))) return;
 
     const vissza = gombVar(e.currentTarget, '');
     try {
@@ -755,9 +757,9 @@
       await sablonokBetolt();
       sablonValaszto.value = '';
       document.getElementById('btn-sablon-torol').disabled = true;
-      uzenet('sablon-msg', 'Sablon törölve.', 'success');
+      uzenet('sablon-msg', t('fel.sablon_torolve'), 'success');
     } catch (err) {
-      uzenet('sablon-msg', 'Törlési hiba: ' + hibaSzoveg(err));
+      uzenet('sablon-msg', t('fel.sablon_torlesi_hiba', { ok: hibaSzoveg(err) }));
     } finally {
       vissza();
     }
@@ -776,7 +778,7 @@
     const file = await atmeretez(eredeti);
 
     if (tulNagy(file)) {
-      uzenet('form-msg', `A fájl túl nagy (${meret(file.size)}), a korlát 10 MB.`);
+      uzenet('form-msg', t('fel.fajl_nagy', { meret: meret(file.size) }));
       return;
     }
 
@@ -788,7 +790,7 @@
     // tananyag feltöltése UTÁN kéri (egy gomb), mert a tananyagtól függ.
     const kifejtosMod = aktualisMod() === 'kifejtos';
     const tolt = document.getElementById(kifejtosMod ? 'kulcs-tolt' : 'rubrika-tolt');
-    if (kifejtosMod) document.getElementById('kulcs-tolt-szoveg').textContent = 'Feltöltés...';
+    if (kifejtosMod) document.getElementById('kulcs-tolt-szoveg').textContent = t('fel.feltoltes_folyamat');
     tolt.classList.add('show');
     document.getElementById('rubrika-badge').style.display = 'none';
 
@@ -816,9 +818,7 @@
       const valasztottNyelv = document.getElementById('r-nyelv').value;
       if (r.nyelv && r.nyelv !== valasztottNyelv) {
         document.getElementById('r-nyelv').value = r.nyelv;
-        uzenet('form-msg',
-          `A feladatlap ${r.nyelv} nyelvűnek tűnik – átállítottam. ` +
-          `Ha nem jó, írd át kézzel.`, 'success');
+        uzenet('form-msg', t('fel.nyelv_atallitva', { nyelv: nyelvNev(r.nyelv) }), 'success');
       }
       if (r.tipus) document.getElementById('r-tipus').value = r.tipus;
       // A nyelv változhatott, tehát a skála is: együtt kell állítani.
@@ -838,13 +838,10 @@
 
       document.getElementById('rubrika-badge').style.display = 'inline-flex';
       if (data.suly_osszeg > 0 && data.suly_osszeg !== 100) {
-        uzenet('form-msg',
-          `Az AI ${data.suly_osszeg} pontos rubrikát javasolt. Ha más ` +
-          `pontszámmal dolgozol, írd át a szempontok pontjait.`, 'success');
+        uzenet('form-msg', t('fel.ai_pont_figyelem', { db: data.suly_osszeg }), 'success');
       }
     } catch (err) {
-      uzenet('form-msg', 'A feladatlap elemzése nem sikerült: ' + hibaSzoveg(err) +
-        ' A rubrikát kézzel is kitöltheted.');
+      uzenet('form-msg', t('fel.elemzes_hiba', { ok: hibaSzoveg(err) }));
     } finally {
       tolt.classList.remove('show');
     }
@@ -860,8 +857,8 @@
     const cim = document.getElementById('f-cim').value.trim();
     const kifejtosMod = aktualisMod() === 'kifejtos';
 
-    if (!osztalyId) { uzenet('form-msg', 'Válassz osztályt!'); return; }
-    if (!cim) { uzenet('form-msg', 'Add meg a feladat címét!'); return; }
+    if (!osztalyId) { uzenet('form-msg', t('fel.valassz_osztaly')); return; }
+    if (!cim) { uzenet('form-msg', t('fel.add_cim')); return; }
 
     let kifejtos = null;
     if (kifejtosMod) {
@@ -870,9 +867,9 @@
     } else {
       const szempontok = szempontokBeolvas();
       const sulyOsszeg = szempontok.reduce((s, sz) => s + sz.suly, 0);
-      if (szempontok.length === 0) { uzenet('form-msg', 'Legalább egy szempont kell.'); return; }
+      if (szempontok.length === 0) { uzenet('form-msg', t('fel.kell_szempont')); return; }
       if (sulyOsszeg <= 0) {
-        uzenet('form-msg', 'Adj pontot legalább egy szempontnak.');
+        uzenet('form-msg', t('fel.kell_pont'));
         return;
       }
     }
@@ -882,11 +879,11 @@
     const maxSzo = Number(document.getElementById('r-max').value) || null;
 
     if (minSzo && maxSzo && minSzo > maxSzo) {
-      uzenet('form-msg', 'A minimum szószám nem lehet nagyobb a maximumnál.');
+      uzenet('form-msg', t('fel.min_max'));
       return;
     }
 
-    const vissza = gombVar(e.target, 'Mentés...');
+    const vissza = gombVar(e.target, t('fel.mentes_folyamat'));
     try {
       const rubrika = {
         ...(kifejtos ? kifejtos.rubrika : rubrikaBeolvas()),
@@ -910,10 +907,7 @@
         } else {
           await updateDoc(feladatRef, { cim, hatarido, rubrika });
         }
-        uzenet('form-msg',
-          'Módosítások mentve. A korábbi értékeléseket ez nem írja át – ' +
-          `ha az új ${kifejtos ? 'kulccsal' : 'rubrikával'} akarod őket, a Javítási sorban futtasd újra.`,
-          'success');
+        uzenet('form-msg', kifejtos ? t('fel.mentve_kulcs') : t('fel.mentve_rubrika'), 'success');
       } else {
         const feladat = {
           osztaly_id: osztalyId,
@@ -948,15 +942,15 @@
         }
         uzenet('form-msg',
           mod === 'kiadas'
-            ? `Kiadva a(z) "${osztalyNevek[osztalyId]}" osztálynak.`
-            : 'Feladat mentve! A diákok már látják az osztályukban.',
+            ? t('fel.kiadva', { nev: osztalyNevek[osztalyId] })
+            : t('fel.mentve'),
           'success');
       }
 
       urlapTorles();
       panelZar();
     } catch (err) {
-      uzenet('form-msg', 'Mentési hiba: ' + hibaSzoveg(err));
+      uzenet('form-msg', t('fel.mentesi_hiba', { ok: hibaSzoveg(err) }));
     } finally {
       vissza();
     }
@@ -1005,16 +999,16 @@
 
   function vetitesNyit(id) {
     const f = feladatok[id];
-    if (!f) { alert('A feladat adatai nem érhetők el. Töltsd újra az oldalt.'); return; }
+    if (!f) { alert(t('fel.nem_elerheto')); return; }
     const r = f.rubrika || {};
 
     document.getElementById('v-cim').textContent = f.cim || '';
 
     const meta = [];
-    if (r.min_szo && r.max_szo) meta.push(`📝 ${r.min_szo}–${r.max_szo} szó`);
-    else if (r.min_szo) meta.push(`📝 legalább ${r.min_szo} szó`);
-    else if (r.max_szo) meta.push(`📝 legfeljebb ${r.max_szo} szó`);
-    if (f.hatarido) meta.push(`⏰ Határidő: ${datum(f.hatarido)}`);
+    if (r.min_szo && r.max_szo) meta.push(t('fel.v_szo', { min: r.min_szo, max: r.max_szo }));
+    else if (r.min_szo) meta.push(t('fel.v_legalabb', { min: r.min_szo }));
+    else if (r.max_szo) meta.push(t('fel.v_legfeljebb', { max: r.max_szo }));
+    if (f.hatarido) meta.push(t('fel.v_hatarido', { datum: datum(f.hatarido) }));
     document.getElementById('v-meta').innerHTML = meta.map((m) => `<span>${esc(m)}</span>`).join('');
 
     const leiras = document.getElementById('v-leiras');
@@ -1033,10 +1027,10 @@
     const url = f.feladatlap?.url;
     const pdf = /\.pdf$/i.test(f.feladatlap?.path || '');
     const lapHtml = !url ? '' : pdf
-      ? `<iframe src="${esc(url)}#toolbar=0&navpanes=0&view=FitH" title="Feladatlap"></iframe>`
-      : `<img src="${esc(url)}" alt="Feladatlap" />`;
+      ? `<iframe src="${esc(url)}#toolbar=0&navpanes=0&view=FitH" title="${esc(t('fel.v_lap_cim'))}"></iframe>`
+      : `<img src="${esc(url)}" alt="${esc(t('fel.v_lap_cim'))}" />`;
     lap.innerHTML = !url ? '' : r.feladat_leiras
-      ? `<button class="btn-sm" id="v-lap-mutat">📄 Feladatlap mutatása</button>
+      ? `<button class="btn-sm" id="v-lap-mutat">${t('fel.v_lap_mutat')}</button>
          <div id="v-lap-tartalom" hidden></div>`
       : lapHtml;
 
@@ -1046,7 +1040,7 @@
       // Csak nyitáskor töltjük be, hogy a PDF ne töltődjön le feleslegesen
       tartalom.innerHTML = nyit ? lapHtml : '';
       tartalom.hidden = !nyit;
-      e.target.textContent = nyit ? '📄 Feladatlap elrejtése' : '📄 Feladatlap mutatása';
+      e.target.textContent = nyit ? t('fel.v_lap_rejt') : t('fel.v_lap_mutat');
     });
 
     vetites.classList.add('show');
@@ -1090,7 +1084,7 @@
     (snap) => {
       if (snap.empty) {
         lista.innerHTML = `<div class="empty-state bare">
-          <div class="empty-icon">📭</div><p>Még nincs feladat.</p></div>`;
+          <div class="empty-icon">📭</div><p>${t('fel.nincs_feladat')}</p></div>`;
         return;
       }
       lista.innerHTML = snap.docs.map((d) => {
@@ -1104,30 +1098,30 @@
               <div class="list-card-meta">
                 <span>🎓 ${esc(osztalyNevek[f.osztaly_id] || '–')}</span>
                 <span>${r.mod === 'kifejtos'
-                  ? `📝 ${esc(r.tantargy || 'kifejtős dolgozat')} · ${(r.kerdesek || []).length} kérdés`
-                  : `${esc(r.nyelv || 'angol')} · ${esc(r.tipus || '–')} · ${esc(r.szint || '–')}`}</span>
+                  ? esc(t('fel.kifejtos_sor', { targy: r.tantargy || t('diak.kifejtos_alap'), db: (r.kerdesek || []).length }))
+                  : `${esc(nyelvNev(r.nyelv || 'angol'))} · ${esc(tipusNev(r.tipus || '–'))} · ${esc(szintNev(r.szint || '–'))}`}</span>
                 ${f.hatarido ? `<span>⏰ ${datum(f.hatarido)}</span>` : ''}
                 <span class="badge ${f.aktiv ? 'aktiv' : 'inaktiv'}">
-                  ${f.aktiv ? '✅ Aktív' : '⏸ Zárt'}
+                  ${f.aktiv ? t('osztalyok.aktiv') : t('osztalyok.zart')}
                 </span>
               </div>
             </div>
             <div class="list-card-actions">
-              <button class="btn-sm" data-akcio="vetit" data-id="${esc(d.id)}" title="Megtekintés, kivetítés">👁</button>
-              <button class="btn-sm" data-akcio="elemzes" data-id="${esc(d.id)}" title="Osztályszintű elemzés">📊</button>
-              <button class="btn-sm" data-akcio="szerkeszt" data-id="${esc(d.id)}" title="Szerkesztés">✏️</button>
-              <button class="btn-sm" data-akcio="kiadas" data-id="${esc(d.id)}" title="Kiadás másik osztálynak">📤</button>
+              <button class="btn-sm" data-akcio="vetit" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_vetit'))}">👁</button>
+              <button class="btn-sm" data-akcio="elemzes" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_elemzes'))}">📊</button>
+              <button class="btn-sm" data-akcio="szerkeszt" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_szerkeszt'))}">✏️</button>
+              <button class="btn-sm" data-akcio="kiadas" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_kiadas'))}">📤</button>
               <button class="btn-sm" data-akcio="toggle" data-id="${esc(d.id)}" data-aktiv="${f.aktiv ? '1' : '0'}">
-                ${f.aktiv ? '⏸ Zárás' : '▶ Nyitás'}
+                ${f.aktiv ? t('osztalyok.zaras_gomb') : t('osztalyok.nyitas_gomb')}
               </button>
-              <button class="btn-sm danger" data-akcio="torol" data-id="${esc(d.id)}" title="Törlés">🗑</button>
+              <button class="btn-sm danger" data-akcio="torol" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_torol'))}">🗑</button>
             </div>
           </div>`;
       }).join('');
     },
     (e) => {
       console.error(e);
-      lista.innerHTML = `<div class="empty-state bare"><p>Nem sikerült betölteni. Hiányzó index? Nézd meg a konzolt.</p></div>`;
+      lista.innerHTML = `<div class="empty-state bare"><p>${t('jav.betoltesi_hiba')}</p></div>`;
     }
   );
 
@@ -1148,7 +1142,7 @@
 
     if (akcio === 'szerkeszt' || akcio === 'kiadas') {
       if (!(await feladatBetolt(id))) {
-        alert('A feladat adatai nem érhetők el. Töltsd újra az oldalt.');
+        alert(t('fel.nem_elerheto'));
         return;
       }
       panelNyit(akcio === 'szerkeszt' ? 'szerkesztes' : 'kiadas', id);
@@ -1157,10 +1151,7 @@
         // Kiadásnál más osztályt kell választani, a határidő pedig
         // jellemzően más – ezt ne vegye át csendben.
         document.getElementById('f-hatarido').value = '';
-        uzenet('form-msg',
-          'Válassz osztályt és adj új határidőt. ' +
-          (fajlPath ? 'A feladatlap és a rubrika átvéve.' : 'A rubrika átvéve.'),
-          'success');
+        uzenet('form-msg', fajlPath ? t('fel.kiadas_uzenet_lap') : t('fel.kiadas_uzenet'), 'success');
       }
       return;
     }
@@ -1170,14 +1161,14 @@
       if (akcio === 'toggle') {
         await updateDoc(doc(db, 'feladatok', id), { aktiv: b.dataset.aktiv !== '1' });
       } else if (akcio === 'torol') {
-        if (!confirm('Törlöd ezt a feladatot? A beadások megmaradnak.')) {
+        if (!confirm(t('fel.torles_kerdes'))) {
           b.disabled = false; return;
         }
         await deleteDoc(doc(db, 'feladatok', id));
       }
     } catch (err) {
       b.disabled = false;
-      alert('Hiba: ' + err.message);
+      alert(t('osztalyok.hiba', { ok: err.message }));
     }
   });
 </script>
