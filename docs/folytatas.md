@@ -98,6 +98,7 @@ cd writingreview
 5. **Két környezet**: a mostani Firebase-projekt marad teszt/pilot, új, különálló projekt a
    nemzetközi éles verziónak (`firebase use` aliasok; külön adatbázis, felhasználók,
    számlázás). Egy kódbázis, két telepítés.
+   **A terv: [`kornyezetek-terv.md`](kornyezetek-terv.md)** (döntések, lépések A–D).
 6. **Adatvédelem** (kiskorúak kézírásmintái mennek AI-hoz): adatkezelési tájékoztató,
    adatfeldolgozói megállapodás, **EU-s feldolgozási régió** a modellhez, országspecifikus
    szabályok (GDPR; USA-ban FERPA/COPPA).
