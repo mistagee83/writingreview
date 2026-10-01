@@ -1,0 +1,15 @@
+{
+  "kornyezet": "prod",
+  "projekt": "writerev2",
+  "alapnyelv": "en",
+  "teszt_sav": false,
+  "kvota": true,
+  "webConfig": {
+    "apiKey": "AIzaSyAw9teit8cYFK_bBNCap_G2wIg0Eub8YiU",
+    "authDomain": "writerev2.firebaseapp.com",
+    "projectId": "writerev2",
+    "storageBucket": "writerev2.firebasestorage.app",
+    "messagingSenderId": "536484732023",
+    "appId": "1:536484732023:web:49d674b0850223acbbba72"
+  }
+}

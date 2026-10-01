@@ -23,6 +23,7 @@ const { getAuth } = require("firebase-admin/auth");
 const { getStorage } = require("firebase-admin/storage");
 const logger = require("firebase-functions/logger");
 const kifejtos = require("./kifejtos");
+const kornyezet = require("./kornyezet");
 
 initializeApp();
 
@@ -84,13 +85,9 @@ const TARTALEK = {
   elemzes: ["gemini-3.7-flash"]
 };
 
-// Egy helyen, hogy ne kelljen öt függvényben karbantartani.
-const CORS = [
-  "http://127.0.0.1:5500",
-  "http://localhost:5500",
-  "https://writingreview-41e59.web.app",
-  "https://writingreview-41e59.firebaseapp.com"
-];
+// A környezet (pilot/prod) beállításai: functions/kornyezet.js.
+const BEALLITASOK = kornyezet.beallitasok();
+const CORS = BEALLITASOK.cors;
 
 const HIVAS_OPCIOK = { region: REGION, cors: CORS };
 const AI_OPCIOK = { ...HIVAS_OPCIOK, secrets: [GEMINI_API_KEY], timeoutSeconds: 300 };
@@ -1150,12 +1147,10 @@ function pontTablazat(ai, rubrika, modositasok) {
 // Ez az a pont, ahol a diák egyáltalán megláthat bármit: egyszerre
 // írja a tanári visszajelzést és állítja 'elkuldve'-re a státuszt.
 // ══════════════════════════════════════════════════════
-exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
-  const uid = tanar(request);
-
+async function jovahagyasLogika(uid, adat) {
   // szempontok: fogalmazásnál a tanár pontjai szempontonként.
   // kerdesek: kifejtősnél a tanár elemstátusz-felülírásai (pontot nem küldhet).
-  const { beadasId, jegy, szoveg, szempontok, kerdesek } = request.data || {};
+  const { beadasId, jegy, szoveg, szempontok, kerdesek } = adat || {};
   if (!beadasId) throw hiba("invalid-argument", "beadas_id_kell");
   if (!szoveg || !szoveg.trim()) {
     throw hiba("invalid-argument", "visszajelzes_ures");
@@ -1237,6 +1232,10 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
     beadasId, tanar: uid, jegy: tanariJegy, pont: tabla.osszpontszam
   });
   return { siker: true };
+}
+
+exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
+  return jovahagyasLogika(tanar(request), request.data);
 });
 
 // ══════════════════════════════════════════════════════
@@ -1270,6 +1269,8 @@ exports._teszt = {
   EVFOLYAMOK,
   osztalyLetrehozasLogika,
   csatlakozasLogika,
+  jovahagyasLogika,
+  BEALLITASOK,
   kodGeneralas,
   geminiHivas,
   atmenetiHiba,

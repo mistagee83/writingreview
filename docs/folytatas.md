@@ -67,10 +67,10 @@ cd writingreview
 - **Emulátoros tesztek:** a másik gépen, ahol a kétnyelvűségi munka folyt, a Firestore-emulátor
   **nem indult el** (`Firestore Emulator has exited with code 1`; gyanú: túl új Java – Java 26).
   **Java 21-gyel elindul**, és a teljes készlet (341 teszt) lefutott a jegyskála-munka után
-  (`cd tests && npm test`). Ha nálad nem indul, használj Java 17/21-et.
-- **A jegy-elküldés végponttól végpontig nincs tesztelve** (`visszajelzesJovahagyas`): a skála-
-  logikát a `jegyNormalizalas` és a `skalaFeloldas` tesztjei fedik, de a függvény bekötését
-  (skála betöltése, jegy ellenőrzése, tárolás) csak a kód átolvasása. Érdemes emulátoros tesztet írni.
+  (`cd tests && npm test`, most 349 teszt). Ha nálad nem indul, használj Java 17/21-et. Windowson a
+  JAVA_HOME/PATH-ot a Temurin 21 mappájára kell állítani a futtatás idejére.
+- **A jegy-elküldés** (`visszajelzesJovahagyas`) emulátoros tesztet kapott (`tests/functions.test.mjs`,
+  a logika `jovahagyasLogika`-ként kiemelve): skála betöltése, jegy ellenőrzése, tárolás, jogosultság, státusz.
 - **A jegyskála-űrlap és a javító nézet éles kipróbálása** még hátravan (belépéssel): a szerkesztőt
   böngészőben, a lap többi részétől elkülönítve próbáltuk ki.
 - **A mentett rubrika-sablonok nem hordozzák a jegyskálát**, és a skála alapértéke (az utoljára
@@ -98,6 +98,7 @@ cd writingreview
 5. **Két környezet**: a mostani Firebase-projekt marad teszt/pilot, új, különálló projekt a
    nemzetközi éles verziónak (`firebase use` aliasok; külön adatbázis, felhasználók,
    számlázás). Egy kódbázis, két telepítés.
+   **A terv: [`kornyezetek-terv.md`](kornyezetek-terv.md)** (döntések, lépések A–D). Az **A. lépés kódja kész** (a pilotra még nincs deployolva); következő a B. (új projekt a konzolban – a tulajdonos).
 6. **Adatvédelem** (kiskorúak kézírásmintái mennek AI-hoz): adatkezelési tájékoztató,
    adatfeldolgozói megállapodás, **EU-s feldolgozási régió** a modellhez, országspecifikus
    szabályok (GDPR; USA-ban FERPA/COPPA).

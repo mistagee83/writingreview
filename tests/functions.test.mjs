@@ -246,3 +246,119 @@ test("profil nélküli felhasználó is csatlakozhat, 'Névtelen' néven", async
   ).data();
   assert.equal(tag.nev, "Névtelen");
 });
+
+// ══════════════════════════════════════════
+// VISSZAJELZÉS JÓVÁHAGYÁSA (visszajelzesJovahagyas)
+// A diák egyedül itt láthat bármit: a skála betöltése, a jegy
+// ellenőrzése és a tárolás bekötését ellenőrzi végponttól végpontig.
+// ══════════════════════════════════════════
+
+const kodja = async (fn) => {
+  try { await fn(); } catch (e) { return e.details?.kod ?? `?${e.message}`; }
+  return null;
+};
+
+async function beadasFelvetel({ rubrika, statusz = "javitva", ai } = {}) {
+  await firestore.collection("feladatok").doc("f1").set({ tanar_id: "tanar-uid", rubrika: rubrika || {} });
+  const ref = firestore.collection("beadasok").doc("b1");
+  await ref.set({ tanar_id: "tanar-uid", feladat_id: "f1", statusz });
+  await ref.collection("ertekeles").doc("ai").set(ai || {
+    szempontok: [
+      { kulcs: "tartalom", pont: 8, max: 10, megjegyzes: "jó" },
+      { kulcs: "nyelvtan", pont: 6, max: 10, megjegyzes: "közepes" }
+    ]
+  });
+  await ref.collection("ertekeles").doc("tanari").delete();
+  return ref;
+}
+
+const tanariErtekeles = async (ref) => (await ref.collection("ertekeles").doc("tanari").get()).data();
+
+test("jóváhagyás: a tanári értékelés tárolódik és a státusz 'elkuldve' lesz", async () => {
+  const ref = await beadasFelvetel({ rubrika: { szempontok: [{ kulcs: "tartalom", cim: "Tartalom" }] } });
+  const v = await logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 4, szoveg: "  Szép munka  " });
+  assert.deepEqual(v, { siker: true });
+
+  assert.equal((await ref.get()).data().statusz, "elkuldve");
+  const t = await tanariErtekeles(ref);
+  assert.equal(t.jegy, 4);
+  assert.equal(t.szoveg, "Szép munka");
+  assert.equal(t.tanar_id, "tanar-uid");
+  assert.equal(t.osszpontszam, 14);
+  assert.equal(t.max_pontszam, 20);
+  assert.equal(t.szazalek, 70);
+  assert.equal(t.szempontok[0].cim, "Tartalom");
+  assert.ok(t.jovahagyva_at);
+});
+
+test("jóváhagyás: a jegy a feladat skáláján értelmeződik és kanonikus alakban tárolódik", async () => {
+  // A–F skála: a "b" nem szerepel (kisbetű), az "B" igen
+  const ref = await beadasFelvetel({ rubrika: { skala: { tipus: "fokozat", sablon: "af", fokozatok: [
+    { cimke: "F", min: 0 }, { cimke: "C", min: 50 }, { cimke: "B", min: 70 }, { cimke: "A", min: 90 }
+  ] } } });
+  assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 4, szoveg: "x" })), "jegy_ertek");
+  assert.equal((await ref.get()).data().statusz, "javitva", "hibás jegynél nem változhat a státusz");
+  assert.equal((await tanariErtekeles(ref)), undefined, "hibás jegynél nem íródhat értékelés");
+
+  await logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: " B ", szoveg: "x" });
+  const t = await tanariErtekeles(ref);
+  assert.equal(t.jegy, "B");
+  assert.equal(t.jegy_tipus, "fokozat");
+});
+
+test("jóváhagyás: százalékos skálán 0–100 egész a jegy", async () => {
+  const ref = await beadasFelvetel({ rubrika: { skala: { tipus: "szazalek" } } });
+  assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 101, szoveg: "x" })), "jegy_ertek");
+  assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 7.5, szoveg: "x" })), "jegy_ertek");
+  await logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: "85", szoveg: "x" });
+  const t = await tanariErtekeles(ref);
+  assert.equal(t.jegy, 85);
+  assert.equal(t.jegy_tipus, "szazalek");
+});
+
+test("jóváhagyás: jegy nélkül (null) is elküldhető", async () => {
+  const ref = await beadasFelvetel();
+  await logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: null, szoveg: "Csak szöveg" });
+  assert.equal((await tanariErtekeles(ref)).jegy, null);
+});
+
+test("jóváhagyás: a régi (skála nélküli) feladat magyar 1–5 skálát kap", async () => {
+  const ref = await beadasFelvetel({ rubrika: {} });
+  assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 6, szoveg: "x" })), "jegy_ertek");
+  await logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: "5", szoveg: "x" });
+  assert.equal((await tanariErtekeles(ref)).jegy, 5);
+});
+
+test("jóváhagyás: a tanár módosíthatja a szempontpontot, de a határt nem léphetheti át", async () => {
+  const ref = await beadasFelvetel();
+  assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", {
+    beadasId: "b1", szoveg: "x", szempontok: [{ kulcs: "tartalom", pont: 11 }]
+  })), "pont_hatar");
+  assert.equal((await ref.get()).data().statusz, "javitva");
+
+  await logika.jovahagyasLogika("tanar-uid", {
+    beadasId: "b1", szoveg: "x", szempontok: [{ kulcs: "tartalom", pont: 10, megjegyzes: "kiváló" }]
+  });
+  const t = await tanariErtekeles(ref);
+  assert.equal(t.osszpontszam, 16);
+  assert.equal(t.szempontok[0].megjegyzes, "kiváló");
+});
+
+test("jóváhagyás: üres szöveg, hiányzó azonosító, idegen és rossz státuszú beadás elutasítva", async () => {
+  const ref = await beadasFelvetel();
+  const h = (adat, uid = "tanar-uid") => kodja(() => logika.jovahagyasLogika(uid, adat));
+  assert.equal(await h({ jegy: 4, szoveg: "x" }), "beadas_id_kell");
+  assert.equal(await h({ beadasId: "b1", jegy: 4, szoveg: "   " }), "visszajelzes_ures");
+  assert.equal(await h({ beadasId: "nincs", jegy: 4, szoveg: "x" }), "beadas_nincs");
+  assert.equal(await h({ beadasId: "b1", jegy: 4, szoveg: "x" }, "masik-tanar"), "nem_a_te_beadasod");
+
+  await ref.update({ statusz: "feldolgozas" });
+  assert.equal(await h({ beadasId: "b1", jegy: 4, szoveg: "x" }), "statusz_nem_kuldheto");
+  assert.equal((await tanariErtekeles(ref)), undefined);
+});
+
+test("jóváhagyás: már elküldött beadás újra jóváhagyható (javítás)", async () => {
+  const ref = await beadasFelvetel({ statusz: "elkuldve" });
+  await logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 3, szoveg: "Javítva" });
+  assert.equal((await tanariErtekeles(ref)).szoveg, "Javítva");
+});

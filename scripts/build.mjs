@@ -25,6 +25,9 @@ import {
 import { join, dirname, basename, extname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { generalas } from "./kifejtos-kliens.mjs";
+import {
+  ALAP_KORNYEZET, konfigBetoltes, konfigHibak, kornyezetJs, firebaseConfigCsere
+} from "./kornyezet-config.mjs";
 
 const GYOKER = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(GYOKER, "public");
@@ -115,6 +118,22 @@ function hivatkozasAtir(tartalom, regi, uj, aktualisFajl) {
 generalas();
 
 // ══════════════════════════════════════════
+// 0/b. KÖRNYEZET
+// `node scripts/build.mjs --env prod` vagy WR_ENV=prod. Alapból a pilot.
+// A public/ a pilot értékeit hordozza; a dist/-be a kiválasztott
+// környezet konfigja kerül (lásd docs/kornyezetek-terv.md 4.).
+// ══════════════════════════════════════════
+const envArgIdx = process.argv.indexOf("--env");
+const KORNYEZET = (envArgIdx >= 0 ? process.argv[envArgIdx + 1] : process.env.WR_ENV) || ALAP_KORNYEZET;
+const konfig = konfigBetoltes(KORNYEZET);
+const konfigHiba = konfigHibak(konfig, { kitoltott: true });
+if (konfigHiba.length) {
+  console.error(`A(z) ${KORNYEZET} környezet konfigja (config/${KORNYEZET}.json) nem teljes:`);
+  konfigHiba.forEach((h) => console.error("  " + h));
+  process.exit(1);
+}
+
+// ══════════════════════════════════════════
 // 1. TISZTA DIST
 // ══════════════════════════════════════════
 // A maxRetries/retryDelay pont az EPERM/EBUSY esetekre van: a OneDrive
@@ -123,6 +142,15 @@ generalas();
 rmSync(OUT, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 mkdirSync(OUT, { recursive: true });
 cpSync(SRC, OUT, { recursive: true });
+
+// A környezet-függő fájlok felülírása – a hashelés előtt, hogy a hash a végleges tartalomé legyen.
+for (const [fajl, atalakit] of [
+  ["js/kornyezet.js", (src) => kornyezetJs(konfig, src)],
+  ["js/firebase-config.js", (src) => firebaseConfigCsere(src, konfig.webConfig)]
+]) {
+  const f = join(OUT, fajl);
+  writeFileSync(f, atalakit(readFileSync(f, "utf8")));
+}
 
 // ══════════════════════════════════════════
 // 2. HASHELÉS FÜGGŐSÉGI SORRENDBEN
@@ -209,7 +237,7 @@ if (hibak.length) {
 // ══════════════════════════════════════════
 // 5. ÖSSZEGZÉS
 // ══════════════════════════════════════════
-console.log(`dist/ elkészült – ${fajlok(OUT).length} fájl`);
+console.log(`dist/ elkészült (${KORNYEZET}) – ${fajlok(OUT).length} fájl`);
 for (const [regi, uj] of terkep) {
   const kb = (statSync(join(OUT, uj)).size / 1024).toFixed(1);
   console.log(`  ${regi.padEnd(26)} → ${basename(uj).padEnd(34)} ${kb} kB`);
