@@ -20,6 +20,7 @@
 // ══════════════════════════════════════════════════════
 
 import { db, doc, updateDoc } from "./firebase-config.js";
+import { t } from "./i18n.js";
 import { SZAKASZOK, LEPESEK, szakaszLepesei } from "./tura-lepesek.js";
 import { felnyiljon } from "./tura-logika.js";
 
@@ -136,8 +137,8 @@ function villanykorte() {
   gomb.id = "tura-korte";
   gomb.className = "tura-korte";
   gomb.type = "button";
-  gomb.title = "Bemutató: hogyan működik";
-  gomb.setAttribute("aria-label", "Bemutató megnyitása");
+  gomb.title = t("tura.korte_tipp");
+  gomb.setAttribute("aria-label", t("tura.korte_aria"));
   gomb.textContent = "💡";
   gomb.addEventListener("click", menuNyit);
 
@@ -170,15 +171,15 @@ function vazEpit() {
          aria-labelledby="tura-cim" tabindex="-1">
       <div class="tura-fej">
         <span class="tura-szamlalo"></span>
-        <button class="tura-zar" type="button" aria-label="Bemutató bezárása">✕</button>
+        <button class="tura-zar" type="button" aria-label="${esc(t("tura.zar_aria"))}">✕</button>
       </div>
       <h3 id="tura-cim"></h3>
       <div class="tura-torzs"></div>
       <div class="tura-labs">
-        <button class="tura-kihagy" type="button">Bezárom</button>
+        <button class="tura-kihagy" type="button">${esc(t("tura.bezarom"))}</button>
         <div class="tura-nav">
-          <button class="tura-elozo" type="button">← Előző</button>
-          <button class="tura-kovetkezo" type="button">Tovább →</button>
+          <button class="tura-elozo" type="button">${esc(t("tura.elozo"))}</button>
+          <button class="tura-kovetkezo" type="button">${esc(t("tura.tovabb"))}</button>
         </div>
       </div>
     </div>`;
@@ -268,14 +269,11 @@ function menuNyit() {
   v.gyoker.classList.add("nincs-cel");
   v.bubi.classList.add("menu");
   v.labs.hidden = true;
-  v.szamlalo.textContent = "Bemutató";
-  v.cim.textContent = "Mit szeretnél megnézni?";
+  v.szamlalo.textContent = t("tura.szamlalo_menu");
+  v.cim.textContent = t("tura.menu_cim");
 
   v.torzs.innerHTML = `
-    <p class="tura-bevezeto">
-      Négy szakasz, egymástól függetlenül is végignézhető. Mindegyik a
-      valódi felületen mutatja meg, mit kell tenni.
-    </p>
+    <p class="tura-bevezeto">${esc(t("tura.menu_bevezeto"))}</p>
     <div class="tura-szakaszok">
       ${SZAKASZOK.map((sz) => {
         const db = szakaszLepesei(sz.id).length;
@@ -286,20 +284,20 @@ function menuNyit() {
           <span class="tura-szakasz-ikon">${sz.ikon}</span>
           <span class="tura-szakasz-fo">
             <span class="tura-szakasz-cim">
-              ${esc(sz.cim)}${kesz ? ' <span class="tura-pipa" title="Már megnézted">✓</span>' : ""}
+              ${esc(t(sz.cim))}${kesz ? ` <span class="tura-pipa" title="${esc(t("tura.megnezted"))}">✓</span>` : ""}
             </span>
-            <span class="tura-szakasz-kimenet">${esc(sz.kimenet)}</span>
-            <span class="tura-szakasz-meta">${db} lépés</span>
+            <span class="tura-szakasz-kimenet">${esc(t(sz.kimenet))}</span>
+            <span class="tura-szakasz-meta">${esc(t("tura.lepes_db", { db }))}</span>
           </span>
         </button>`;
       }).join("")}
     </div>
     <div class="tura-menu-labs">
       <button class="tura-teljes" type="button" data-akcio="teljes">
-        Mind a négy, sorban
+        ${esc(t("tura.mind_negy"))}
       </button>
       <button class="tura-menu-zar" type="button" data-akcio="kesz">
-        Most nem, köszönöm
+        ${esc(t("tura.most_nem"))}
       </button>
     </div>`;
 
@@ -376,12 +374,13 @@ async function lepesMutat(index) {
 
   v.bubi.classList.remove("menu");
   v.labs.hidden = false;
-  v.szamlalo.textContent = `${szakasz?.ikon || ""} ${szakasz?.cim || ""} · ${sorszam}/${ossz}`;
-  v.cim.textContent = lepes.cim;
-  v.torzs.innerHTML = lepes.szoveg;
+  v.szamlalo.textContent = `${szakasz?.ikon || ""} ${szakasz ? t(szakasz.cim) : ""} · ${sorszam}/${ossz}`;
+  v.cim.textContent = t(lepes.cim);
+  // A szöveg a saját, megbízható szótárunkból jön (nem felhasználói adat)
+  v.torzs.innerHTML = t(lepes.szoveg);
   v.elozo.hidden = index === futas.tol;
-  v.kovetkezo.textContent = index === futas.ig ? "Kész" : "Tovább →";
-  v.kihagy.textContent = "Bezárom";
+  v.kovetkezo.textContent = index === futas.ig ? t("tura.kesz") : t("tura.tovabb");
+  v.kihagy.textContent = t("tura.bezarom");
 
   elhelyez(lepes);
   v.bubi.focus({ preventScroll: true });
@@ -432,25 +431,28 @@ async function szakaszVege() {
   v.gyoker.classList.add("nincs-cel");
   v.bubi.classList.add("menu");
   v.labs.hidden = true;
-  v.szamlalo.textContent = "Szakasz kész";
-  v.cim.textContent = `Kész: ${SZAKASZOK.find((s) => s.id === vegzett)?.cim || "szakasz"}`;
+  const vegzettSzakasz = SZAKASZOK.find((s) => s.id === vegzett);
+  v.szamlalo.textContent = t("tura.szakasz_kesz");
+  v.cim.textContent = t("tura.kesz_cim", {
+    cim: vegzettSzakasz ? t(vegzettSzakasz.cim) : t("tura.szakasz_alap")
+  });
 
   v.torzs.innerHTML = `
     <p class="tura-bevezeto">${esc(
-      SZAKASZOK.find((s) => s.id === vegzett)?.zaro || "Ezt a szakaszt végignézted."
+      vegzettSzakasz ? t(vegzettSzakasz.zaro) : t("tura.zaro_alap")
     )}</p>
     <div class="tura-menu-labs">
       ${kovetkezoSzakasz ? `
         <button class="tura-teljes" type="button"
                 data-akcio="szakasz" data-szakasz="${esc(kovetkezoSzakasz.id)}">
-          ${kovetkezoSzakasz.ikon} Következő: ${esc(kovetkezoSzakasz.cim)}
-          (${szakaszLepesei(kovetkezoSzakasz.id).length} lépés)
+          ${kovetkezoSzakasz.ikon} ${esc(t("tura.kovetkezo", { cim: t(kovetkezoSzakasz.cim) }))}
+          (${esc(t("tura.lepes_db", { db: szakaszLepesei(kovetkezoSzakasz.id).length }))})
         </button>` : ""}
       <button class="tura-menu-zar" type="button" data-akcio="menu">
-        Vissza a menübe
+        ${esc(t("tura.vissza_menu"))}
       </button>
       <button class="tura-menu-zar" type="button" data-akcio="kesz">
-        Befejezem
+        ${esc(t("tura.befejezem"))}
       </button>
     </div>`;
 

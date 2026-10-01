@@ -123,14 +123,17 @@ test("a szerver nem függ a feladatlap meglététől", () => {
 // SZÖVEG ÉS KÓD EGYEZÉSE
 // ══════════════════════════════════════════
 
-test("amit a felület és a bemutató ígér, azt a mentés nem cáfolhatja", () => {
+test("amit a felület és a bemutató ígér, azt a mentés nem cáfolhatja", async () => {
   // Ez a lényegi védelem. A bemutató lépése („Nem kötelező: ha nincs
   // feladatlapod…") és az űrlap címkéje azt állítja, hogy a feltöltés
   // elhagyható. Ha valaki visszateszi a kikényszerítést, az állítás
   // hamis lesz – és ez az egyetlen teszt, ami ezt a szöveg oldalról látja.
-  const lepesek = readFileSync(new URL("js/tura-lepesek.js", PUBLIC), "utf8");
-  const lepes = lepesek.slice(lepesek.indexOf('cel: "#upload-zone"'));
-  assert.match(lepes.slice(0, 700), /Nem kötelező/, "a bemutató nem állítja, hogy opcionális");
+  // A bemutató lépés szövege szótári kulcs: mindkét nyelven ellenőrizzük.
+  const { LEPESEK } = await import("../public/js/tura-lepesek.js");
+  const lepes = LEPESEK.find((l) => l.cel === "#upload-zone");
+  assert.ok(lepes, "nincs bemutató-lépés a feladatlap feltöltéséhez");
+  assert.match(SZOTARAK.hu[lepes.szoveg], /Nem kötelező/, "a bemutató nem állítja, hogy opcionális");
+  assert.match(SZOTARAK.en[lepes.szoveg], /optional/i, "the tour doesn't say it's optional");
 
   const html = readFileSync(new URL("feladatok.html", PUBLIC), "utf8");
   assert.match(html, /Feladatlap \(kép vagy PDF, nem kötelező\)/, "az űrlap címkéje nem jelzi");

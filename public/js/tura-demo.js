@@ -17,7 +17,14 @@
 //     valódi diák dolgozatának.
 // ══════════════════════════════════════════════════════
 
-const JELZO = '<span class="badge tura-jelzo">BEMUTATÓ · nem valódi adat</span>';
+import { t, datumSzoveg } from "./i18n.js";
+
+// A példa dátuma: egy rögzített nap, hogy a bemutató ne változzon naponta
+const DEMO_DATUM = () => datumSzoveg(new Date(2026, 8, 27));
+const DEMO_DATUM_2 = () => datumSzoveg(new Date(2026, 8, 22));
+const DEMO_DATUM_3 = () => datumSzoveg(new Date(2026, 8, 23));
+
+const jelzo = () => `<span class="badge tura-jelzo">${esc(t("tura.demo_jelzo"))}</span>`;
 
 /** HTML-escape – itt csak a saját szövegeinken fut, de maradjon szokás. */
 function esc(ertek) {
@@ -40,7 +47,7 @@ function panel(id, cim, belso) {
   el.innerHTML = `
     <div class="panel-header">
       <h2>${esc(cim)}</h2>
-      ${JELZO}
+      ${jelzo()}
     </div>
     <div class="panel-body">${belso}</div>`;
   fo.insertBefore(el, fo.firstChild);
@@ -66,47 +73,45 @@ const DEMO_KOD = "QRK-7T2M";
  */
 export function osztalyKartya(opciok = {}) {
   const belso = `
-    <p class="halvany">
-      Így jelenik meg egy kész osztály. A tényleges listád ez alatt van.
-    </p>
+    <p class="halvany">${esc(t("tura.demo_osztaly_leiras"))}</p>
     <div class="list-card">
       <div>
-        <h3>9.b angol</h3>
+        <h3>${esc(t("tura.demo_osztaly_nev"))}</h3>
         <div class="list-card-meta">
           <span class="feladat-kod" id="tura-demo-kod-szoveg">${DEMO_KOD}</span>
-          <span>22 diák</span>
-          <span>2026. 09. 27.</span>
-          <span class="badge aktiv">✅ Aktív</span>
+          <span>${esc(t("osztalyok.diak_szam", { db: 22 }))}</span>
+          <span>${DEMO_DATUM()}</span>
+          <span class="badge aktiv">${esc(t("osztalyok.aktiv"))}</span>
         </div>
       </div>
       <div class="list-card-actions">
-        <button class="btn-sm" type="button" id="tura-demo-kod">📋 Kód</button>
-        <button class="btn-sm" type="button" id="tura-demo-nevsor">👥 Névsor</button>
+        <button class="btn-sm" type="button" id="tura-demo-kod">${esc(t("osztalyok.kod_gomb"))}</button>
+        <button class="btn-sm" type="button" id="tura-demo-nevsor">${esc(t("osztalyok.nevsor_gomb"))}</button>
       </div>
     </div>
     <div class="nevsor-box" id="tura-demo-nevsor-lista" hidden>
       <table class="tabla">
-        <thead><tr><th>Név</th><th>Csatlakozott</th><th></th></tr></thead>
+        <thead><tr><th>${esc(t("osztalyok.oszlop_nev"))}</th><th>${esc(t("osztalyok.oszlop_csatlakozott"))}</th><th></th></tr></thead>
         <tbody>
-          <tr><td>Kovács Anna</td><td>2026. 09. 22.</td><td>🗑</td></tr>
-          <tr><td>Nagy Bence</td><td>2026. 09. 22.</td><td>🗑</td></tr>
-          <tr><td>Szabó Dóra</td><td>2026. 09. 23.</td><td>🗑</td></tr>
+          <tr><td>${esc(t("tura.demo_diak1"))}</td><td>${DEMO_DATUM_2()}</td><td>🗑</td></tr>
+          <tr><td>${esc(t("tura.demo_diak2"))}</td><td>${DEMO_DATUM_2()}</td><td>🗑</td></tr>
+          <tr><td>${esc(t("tura.demo_diak3"))}</td><td>${DEMO_DATUM_3()}</td><td>🗑</td></tr>
         </tbody>
       </table>
     </div>`;
 
-  const el = panel("tura-demo-osztaly", "Osztályok", belso);
+  const el = panel("tura-demo-osztaly", t("nav.osztalyok"), belso);
 
   // A másolás itt is működik – hadd lássa, mi kerül a vágólapra
   el.querySelector("#tura-demo-kod").addEventListener("click", async (e) => {
     const gomb = e.currentTarget;
     try {
       await navigator.clipboard.writeText(DEMO_KOD);
-      gomb.textContent = "✓ Másolva";
+      gomb.textContent = t("tura.demo_masolva");
     } catch {
       gomb.textContent = DEMO_KOD;
     }
-    setTimeout(() => { gomb.textContent = "📋 Kód"; }, 2500);
+    setTimeout(() => { gomb.textContent = t("osztalyok.kod_gomb"); }, 2500);
   });
 
   const lista = el.querySelector("#tura-demo-nevsor-lista");
@@ -122,8 +127,8 @@ export function osztalyKartya(opciok = {}) {
 // 3. SZAKASZ – JAVÍTÁSI SOR
 // ══════════════════════════════════════════
 
-const DIAK = "Kovács Anna";
-const FELADAT = "My last holiday – levél";
+const DIAK = () => t("tura.demo_diak1");
+const FELADAT = () => t("tura.demo_feladat");
 
 const ATIRAT =
   "Dear Tom,\n\n" +
@@ -136,55 +141,52 @@ const ATIRAT =
   "What did you do in the summer? Please write me soon.\n\n" +
   "Best wishes,\nAnna";
 
-const SZEMPONTOK = [
-  { kulcs: "tartalom", pont: 9, max: 10, megjegyzes: "Minden kért pontot érint, a zárás is rendben." },
-  { kulcs: "szerkezet", pont: 8, max: 10, megjegyzes: "Világos bekezdések, jó megszólítás és elköszönés." },
-  { kulcs: "szokincs", pont: 7, max: 10, megjegyzes: "Megfelelő szókincs, de sok ismétlés (nice, very)." },
-  { kulcs: "nyelvtan", pont: 5, max: 10, megjegyzes: "Az igeidők keverednek: a múlt idő nem következetes." }
+const SZEMPONTOK = () => [
+  { kulcs: "tartalom", pont: 9, max: 10, megjegyzes: t("tura.demo_sz_tartalom") },
+  { kulcs: "szerkezet", pont: 8, max: 10, megjegyzes: t("tura.demo_sz_szerkezet") },
+  { kulcs: "szokincs", pont: 7, max: 10, megjegyzes: t("tura.demo_sz_szokincs") },
+  { kulcs: "nyelvtan", pont: 5, max: 10, megjegyzes: t("tura.demo_sz_nyelvtan") }
 ];
 
-const HIBAK = [
+const HIBAK = () => [
   {
     kategoria: "nyelvtan", tipus: "past_simple",
     idezet: "Last summer I go to Croatia",
     javaslat: "Last summer I went to Croatia",
-    magyarazat: "Befejezett múlt esemény: past simple kell, nem jelen idő."
+    magyarazat: t("tura.demo_hiba1")
   },
   {
     kategoria: "nyelvtan", tipus: "past_continuous_vs_simple",
     idezet: "every morning we swimming in the sea",
     javaslat: "every morning we swam in the sea",
-    magyarazat: "Ismétlődő múltbeli cselekvés past simple-ben áll."
+    magyarazat: t("tura.demo_hiba2")
   },
   {
     kategoria: "nyelvtan", tipus: "article_a_an",
     idezet: "we went to a island",
     javaslat: "we went to an island",
-    magyarazat: "Magánhangzóval kezdődő szó előtt „an\" a helyes alak."
+    magyarazat: t("tura.demo_hiba3")
   }
 ];
 
 /** A javítási sor egy kártyája – a valódi lista markupjával. */
 export function javitasKartya() {
   const belso = `
-    <p class="halvany">
-      Így jelenik meg egy beadás, amint az AI végzett vele. A tényleges
-      listád ez alatt van.
-    </p>
+    <p class="halvany">${esc(t("tura.demo_javitas_leiras"))}</p>
     <div class="list-card" id="tura-demo-kartya">
       <div>
-        <h3>${esc(DIAK)}</h3>
+        <h3>${esc(DIAK())}</h3>
         <div class="list-card-meta">
-          <span>${esc(FELADAT)}</span>
-          <span>2026. 09. 27.</span>
-          <span class="badge javitva">📝 ellenőrzésre vár</span>
+          <span>${esc(FELADAT())}</span>
+          <span>${DEMO_DATUM()}</span>
+          <span class="badge javitva">${esc(t("statusz.tanar.javitva"))}</span>
         </div>
       </div>
       <div class="list-card-actions">
-        <button class="btn-sm" type="button" id="tura-demo-nyit">Megnyitás</button>
+        <button class="btn-sm" type="button" id="tura-demo-nyit">${esc(t("jav.megnyitas"))}</button>
       </div>
     </div>`;
-  const el = panel("tura-demo-javitas", "Javítási sor", belso);
+  const el = panel("tura-demo-javitas", t("nav.javitas"), belso);
   // A "Megnyitás" itt is működik: a tanár maga is ki tudja nyitni
   el.querySelector("#tura-demo-nyit")
     .addEventListener("click", () => javitasModal());
@@ -204,38 +206,37 @@ export function javitasKartya() {
 export function javitasModal() {
   meglevoTorles("tura-demo-javito");
 
-  const osszes = SZEMPONTOK.reduce((s, sz) => s + sz.pont, 0);
-  const max = SZEMPONTOK.reduce((s, sz) => s + sz.max, 0);
+  const szempontok = SZEMPONTOK();
+  const hibak = HIBAK();
+  const osszes = szempontok.reduce((s, sz) => s + sz.pont, 0);
+  const max = szempontok.reduce((s, sz) => s + sz.max, 0);
   const szazalek = Math.round((osszes / max) * 100);
 
   const belso = `
         <p class="halvany">
-          ${esc(DIAK)} – ${esc(FELADAT)}
+          ${esc(DIAK())} – ${esc(FELADAT())}
         </p>
 
         <div class="m-szekcio" id="tura-demo-fotok">
-          <h4>📷 Beadott fotók</h4>
+          <h4>${esc(t("jav.fotok_cim"))}</h4>
           <div class="kep-sor">${kezirasKep()}${kezirasKep()}</div>
         </div>
 
         <div class="m-szekcio" id="tura-demo-atirat">
-          <h4>✍️ Amit az AI kiolvasott
-            <span class="badge inaktiv">jo olvashatóság</span>
+          <h4>${esc(t("jav.atirat_cim"))}
+            <span class="badge inaktiv">${esc(t("jav.olvashatosag_jo"))}</span>
           </h4>
-          <p class="halvany">
-            Ha ez nem egyezik a fotóval, az AI félreolvasott – ne a diákot
-            hibáztasd.
-          </p>
+          <p class="halvany">${esc(t("jav.atirat_figyelmeztetes"))}</p>
           <pre class="atirat">${esc(ATIRAT)}</pre>
         </div>
 
         <div class="m-szekcio" id="tura-demo-pontok">
-          <h4>🤖 AI értékelés
-            <span class="badge javitva">${osszes}/${max} pont · ${szazalek}%</span>
+          <h4>${esc(t("jav.ai_ertekeles_cim"))}
+            <span class="badge javitva">${esc(t("vj.pont_osszes", { ossz: osszes, max }))} · ${szazalek}%</span>
           </h4>
           <table class="tabla">
-            <thead><tr><th>Szempont</th><th>Pont</th><th>Megjegyzés</th></tr></thead>
-            <tbody>${SZEMPONTOK.map((sz) => `
+            <thead><tr><th>${esc(t("beadas.szempont"))}</th><th>${esc(t("beadas.pont"))}</th><th>${esc(t("vj.megjegyzes"))}</th></tr></thead>
+            <tbody>${szempontok.map((sz) => `
               <tr>
                 <td>${esc(sz.kulcs)}</td>
                 <td><strong>${sz.pont}</strong> / ${sz.max}</td>
@@ -243,9 +244,9 @@ export function javitasModal() {
               </tr>`).join("")}</tbody>
           </table>
 
-          <h4 style="margin-top:1.2rem;">Talált hibák (${HIBAK.length})</h4>
+          <h4 style="margin-top:1.2rem;">${esc(t("jav.talalt_hibak", { db: hibak.length }))}</h4>
           <div class="hiba-lista">
-            ${HIBAK.map((h) => `
+            ${hibak.map((h) => `
               <div class="hiba-elem">
                 <span class="badge inaktiv">${esc(h.kategoria)} · ${esc(h.tipus)}</span>
                 <div><s>${esc(h.idezet)}</s> → <strong>${esc(h.javaslat)}</strong></div>
@@ -255,46 +256,35 @@ export function javitasModal() {
         </div>
 
         <div class="m-szekcio kiemelt" id="tura-demo-visszajelzes">
-          <h4>📧 Visszajelzés a diáknak</h4>
-          <p class="halvany">
-            Ezt – és csak ezt – fogja a diák látni, az elküldés után.
-            Az AI javaslata előre be van írva; szerkeszd bátran.
-          </p>
+          <h4>${esc(t("jav.visszajelzes_cim"))}</h4>
+          <p class="halvany">${esc(t("jav.visszajelzes_leiras"))}</p>
           <div class="form-group">
-            <label for="tura-demo-jegy">Jegy (nem kötelező)</label>
+            <label for="tura-demo-jegy">${esc(t("jav.jegy_label"))}</label>
             <select id="tura-demo-jegy">
-              <option value="">– nincs jegy –</option>
+              <option value="">${esc(t("jav.nincs_jegy"))}</option>
               <option value="5">5</option><option value="4" selected>4</option>
               <option value="3">3</option><option value="2">2</option>
               <option value="1">1</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="tura-demo-szoveg">Szöveges visszajelzés</label>
-            <textarea id="tura-demo-szoveg" rows="5">Kedves Anna!
-
-Nagyon jól felépített levél lett: a megszólítás, a bekezdések és az elköszönés is a helyén van, és minden kért témát érintettél. A nyaralás hangulata átjön, a kérdésed a végén pedig pont olyan, amilyet egy ilyen levélben várunk.
-
-Egy dologra érdemes figyelned: a múlt idő. Néhány helyen jelen időbe csúszott az elbeszélés ("I go", "we swimming"), pedig az egész levél a nyárról szól. Ha legközelebb írás után külön végigolvasod csak az igékre figyelve, a legtöbb ilyen hibát magad is megtalálod.
-
-Szép munka volt!</textarea>
+            <label for="tura-demo-szoveg">${esc(t("jav.szoveg_label"))}</label>
+            <textarea id="tura-demo-szoveg" rows="5">${esc(t("tura.demo_visszajelzes_szoveg"))}</textarea>
           </div>
           <div class="gomb-sor">
             <button class="btn-primary" type="button" id="tura-demo-kuld">
-              📧 Elküldés a diáknak
+              ${esc(t("jav.kuld"))}
             </button>
           </div>
-          <p class="halvany" style="margin-top:0.5rem;">
-            A bemutatóban ez a gomb nem küld semmit.
-          </p>
+          <p class="halvany" style="margin-top:0.5rem;">${esc(t("tura.demo_nem_kuld"))}</p>
         </div>`;
 
-  const el = panel("tura-demo-javito", "Javító felület", belso);
+  const el = panel("tura-demo-javito", t("tura.demo_javito_cim"), belso);
 
   // Semmi ne menjen el véletlenül
   el.querySelector("#tura-demo-kuld").addEventListener("click", (e) => {
     e.preventDefault();
-    e.currentTarget.textContent = "📧 A bemutatóban nem küldünk";
+    e.currentTarget.textContent = t("tura.demo_nem_kuldunk");
     e.currentTarget.disabled = true;
   });
   return el;
@@ -316,9 +306,9 @@ function kezirasKep() {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 160" width="140" height="160">` +
     `<rect width="140" height="160" fill="#fffdf8"/>` +
     `<g fill="#c9c2b4">${vonalak}</g>` +
-    `<text x="14" y="152" font-family="sans-serif" font-size="9" fill="#a09888">példa oldal</text>` +
+    `<text x="14" y="152" font-family="sans-serif" font-size="9" fill="#a09888">${esc(t("tura.demo_pelda_oldal"))}</text>` +
     `</svg>`;
-  return `<img alt="Példa a beadott oldalról" src="data:image/svg+xml;utf8,${encodeURIComponent(svg)}" />`;
+  return `<img alt="${esc(t("tura.demo_kep_alt"))}" src="data:image/svg+xml;utf8,${encodeURIComponent(svg)}" />`;
 }
 
 // ══════════════════════════════════════════
@@ -332,55 +322,51 @@ const ELEMZES_SZEMPONTOK = [
   { kulcs: "tartalom", atlag_pont: 8.6, max_pont: 10, szazalek: 86 }
 ];
 
-const TIPUSHIBAK = [
+// Az AI kódszava (magyar) → a megjelenített szöveg a valódi lapon is ezt használja
+const GYAKORISAG_SZOVEG = {
+  "általános": "elz.gyak_altalanos",
+  "gyakori": "elz.gyak_gyakori",
+  "szórványos": "elz.gyak_szorvanyos"
+};
+
+const TIPUSHIBAK = () => [
   {
-    cim: "A múlt idő nem következetes",
+    cim: t("tura.demo_tipus1_cim"),
     gyakorisag: "általános", kategoria: "nyelvtan",
-    magyarazat: "Az elbeszélés közben jelen időbe csúszik vissza, jellemzően a második bekezdéstől.",
+    magyarazat: t("tura.demo_tipus1_mag"),
     peldak: ["Last summer I go to Croatia", "every morning we swimming in the sea"]
   },
   {
-    cim: "Határozatlan articulus a/an keverése",
+    cim: t("tura.demo_tipus2_cim"),
     gyakorisag: "gyakori", kategoria: "nyelvtan",
-    magyarazat: "Magánhangzóval kezdődő szó előtt „a\" áll „an\" helyett.",
+    magyarazat: t("tura.demo_tipus2_mag"),
     peldak: ["a island", "a interesting book"]
   },
   {
-    cim: "Szegényes melléknévhasználat",
+    cim: t("tura.demo_tipus3_cim"),
     gyakorisag: "gyakori", kategoria: "szokincs",
-    magyarazat: "A „nice\" és a „very good\" ismétlődik ott, ahol pontosabb szó kellene.",
+    magyarazat: t("tura.demo_tipus3_mag"),
     peldak: ["the weather was very nice", "the food was nice"]
   }
 ];
 
-const GYAKORLATOK = [
+const GYAKORLATOK = () => [
   {
-    cim: "Igeidő-vadászat a saját szövegben", idotartam_perc: 15,
-    cel: "A diák maga találja meg az igeidő-csúszásokat.",
-    leiras: "Mindenki visszakapja a saját dolgozatát, és csak az igéket karikázza be. Utána párban kicserélik, és a pár jelöli, hol érzi, hogy nem stimmel az idő. Zárásként 3 mondatot közösen javítunk a táblán."
+    cim: t("tura.demo_gyak1_cim"), idotartam_perc: 15,
+    cel: t("tura.demo_gyak1_cel"),
+    leiras: t("tura.demo_gyak1_leiras")
   },
   {
-    cim: "a / an rendezés", idotartam_perc: 10,
-    cel: "Automatizálni a magánhangzó-szabályt.",
-    leiras: "Húsz szókártya kerül a padra, két kupacba kell rendezni: a vagy an. Hangra döntenek, nem írásképre – itt bukik el az „hour\" és az „university\"."
+    cim: t("tura.demo_gyak2_cim"), idotartam_perc: 10,
+    cel: t("tura.demo_gyak2_cel"),
+    leiras: t("tura.demo_gyak2_leiras")
   },
   {
-    cim: "A „nice\" tilalom", idotartam_perc: 20,
-    cel: "Pontosabb melléknevek aktív használata.",
-    leiras: "Rövid leírást írnak a nyaralásukról, de a nice, good és very szavak tiltottak. Előtte közösen gyűjtünk 10 alternatívát a táblára, azokat használhatják."
+    cim: t("tura.demo_gyak3_cim"), idotartam_perc: 20,
+    cel: t("tura.demo_gyak3_cel"),
+    leiras: t("tura.demo_gyak3_leiras")
   }
 ];
-
-const GENERALO_PROMPT =
-  "Készíts gyakorlósort egy magyar középiskolás angolcsoportnak, B1 szinten.\n\n" +
-  "A csoport konkrét hibái, amikre célozni kell:\n" +
-  "1. A past simple nem következetes: elbeszélés közben jelen időbe csúsznak.\n" +
-  "2. A határozatlan articulus a/an keverése magánhangzó előtt.\n" +
-  "3. Szegényes melléknévhasználat: a \"nice\" és \"very good\" ismétlődik.\n\n" +
-  "Kérek 3 feladatot: (1) hibakeresés egy rövid, szándékosan hibás levélben, " +
-  "(2) mondatátírás jelen időből múlt időbe, (3) melléknév-csere gyakorlat.\n" +
-  "A feladatok nyelve angol legyen, az instrukciókat magyarul írd. " +
-  "Adj megoldókulcsot is.";
 
 function sav(szazalek) {
   const sz = Math.max(0, Math.min(100, Number(szazalek) || 0));
@@ -391,42 +377,39 @@ function sav(szazalek) {
 /** Az elemzés replikája – a valódi lap szekcióival, ugyanabban a sorrendben. */
 export function elemzesDemo() {
   const belso = `
-    <p class="halvany">
-      Ezt kapod, ha egy feladat beadásait osztályszinten átnézeti az AI.
-      Az alábbi szám és szöveg egy 22 fős csoport példaadata.
-    </p>
+    <p class="halvany">${esc(t("tura.demo_elemzes_leiras"))}</p>
 
     <div class="list-card">
       <div>
-        <h3>My last holiday – levél</h3>
+        <h3>${esc(FELADAT())}</h3>
         <div class="list-card-meta">
-          <span>9.b angol</span>
-          <span>22 beadás · 22 kiértékelve</span>
+          <span>${esc(t("tura.demo_osztaly_nev"))}</span>
+          <span>${esc(t("elz.alcim_beadas", { db: 22 }))} · ${esc(t("elz.alcim_kiertekelt", { db: 22 }))}</span>
         </div>
       </div>
       <div class="list-card-actions">
         <button class="btn-sm" type="button" id="tura-demo-elemzes-gomb"
-                title="Osztályszintű elemzés">📊</button>
+                title="${esc(t("fel.tipp_elemzes"))}">📊</button>
       </div>
     </div>
 
     <div class="stats-grid" id="tura-demo-szamok">
       <div class="stat-card">
-        <div class="stat-label">Osztályátlag</div>
+        <div class="stat-label">${esc(t("elz.stat_atlag"))}</div>
         <div class="stat-value">72%</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Kiértékelt dolgozat</div>
+        <div class="stat-label">${esc(t("elz.stat_ertekelt"))}</div>
         <div class="stat-value">22</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Nehezen olvasható</div>
+        <div class="stat-label">${esc(t("elz.stat_nehez"))}</div>
         <div class="stat-value">3</div>
       </div>
     </div>
 
-    <h4 id="tura-demo-szempontok">📊 Szempontonként</h4>
-    <p class="halvany">A legrosszabbul teljesített szemponttal kezdve.</p>
+    <h4 id="tura-demo-szempontok">${esc(t("elz.szempontonkent_cim"))}</h4>
+    <p class="halvany">${esc(t("elz.szempont_leiras"))}</p>
     ${ELEMZES_SZEMPONTOK.map((sz) => `
       <div class="sav-sor">
         <div class="sav-cimke">${esc(sz.kulcs)}</div>
@@ -434,49 +417,43 @@ export function elemzesDemo() {
         <div class="sav-ertek">${sz.atlag_pont}/${sz.max_pont} · ${sz.szazalek}%</div>
       </div>`).join("")}
 
-    <h4 id="tura-demo-tipushibak" style="margin-top:1.4rem;">🔁 Típushibák</h4>
-    <p class="halvany">
-      Jelentés szerint összevonva – a javító AI címkéi elcsúszhatnak, ezért
-      nem a címkék, hanem a tartalmuk alapján csoportosítva.
-    </p>
-    ${TIPUSHIBAK.map((h) => `
+    <h4 id="tura-demo-tipushibak" style="margin-top:1.4rem;">${esc(t("elz.tipushibak_cim"))}</h4>
+    <p class="halvany">${esc(t("elz.tipus_leiras"))}</p>
+    ${TIPUSHIBAK().map((h) => `
       <div class="elem-kartya">
         <h4>
           ${esc(h.cim)}
-          <span class="badge ${h.gyakorisag === "általános" ? "feltoltve" : "javitva"}">${esc(h.gyakorisag)}</span>
+          <span class="badge ${h.gyakorisag === "általános" ? "feltoltve" : "javitva"}">${esc(t(GYAKORISAG_SZOVEG[h.gyakorisag]))}</span>
           <span class="badge inaktiv">${esc(h.kategoria)}</span>
         </h4>
         <p>${esc(h.magyarazat)}</p>
         <ul class="lista-pontok">${h.peldak.map((x) => `<li><em>${esc(x)}</em></li>`).join("")}</ul>
       </div>`).join("")}
 
-    <h4 id="tura-demo-gyakorlatok" style="margin-top:1.4rem;">🎯 Javasolt gyakorlatok</h4>
-    ${GYAKORLATOK.map((g) => `
+    <h4 id="tura-demo-gyakorlatok" style="margin-top:1.4rem;">${esc(t("elz.gyakorlatok_cim"))}</h4>
+    ${GYAKORLATOK().map((g) => `
       <div class="elem-kartya">
-        <h4>${esc(g.cim)} <span class="badge inaktiv">${g.idotartam_perc} perc</span></h4>
-        <p class="halvany"><strong>Cél:</strong> ${esc(g.cel)}</p>
+        <h4>${esc(g.cim)} <span class="badge inaktiv">${esc(t("elz.perc", { db: g.idotartam_perc }))}</span></h4>
+        <p class="halvany"><strong>${esc(t("elz.cel"))}</strong> ${esc(g.cel)}</p>
         <p>${esc(g.leiras)}</p>
       </div>`).join("")}
 
     <div id="tura-demo-prompt" style="margin-top:1.4rem;">
-      <h4>✨ Feladatgeneráló prompt
-        <button class="btn-sm" type="button" id="tura-demo-masol">📋 Másolás</button>
+      <h4>${esc(t("elz.prompt_cim"))}
+        <button class="btn-sm" type="button" id="tura-demo-masol">${esc(t("elz.masolas"))}</button>
       </h4>
-      <p class="halvany">
-        Bemásolhatod bármelyik AI-ba (ChatGPT, Gemini, Claude), és
-        gyakorlósort generál az osztály konkrét hibáira.
-      </p>
-      <pre class="atirat">${esc(GENERALO_PROMPT)}</pre>
+      <p class="halvany">${esc(t("elz.prompt_leiras"))}</p>
+      <pre class="atirat">${esc(t("tura.demo_generalo_prompt"))}</pre>
     </div>`;
 
-  const el = panel("tura-demo-elemzes", "Osztályszintű elemzés", belso);
+  const el = panel("tura-demo-elemzes", t("tura.elemzes_cim"), belso);
 
   // A másolás ITT IS működik: hadd próbálja ki élesben
   el.querySelector("#tura-demo-masol").addEventListener("click", async (e) => {
     const gomb = e.currentTarget;
     try {
-      await navigator.clipboard.writeText(GENERALO_PROMPT);
-      gomb.textContent = "✓ Vágólapra másolva";
+      await navigator.clipboard.writeText(t("tura.demo_generalo_prompt"));
+      gomb.textContent = t("tura.demo_masolva_vagolap");
     } catch {
       // Letiltott vágólap: jelöljük ki, hogy kézzel másolható legyen
       const pre = el.querySelector("pre");
@@ -484,9 +461,9 @@ export function elemzesDemo() {
       r.selectNodeContents(pre);
       window.getSelection()?.removeAllRanges();
       window.getSelection()?.addRange(r);
-      gomb.textContent = "Kijelöltem – Ctrl+C";
+      gomb.textContent = t("tura.demo_kijelolve");
     }
-    setTimeout(() => { gomb.textContent = "📋 Másolás"; }, 2500);
+    setTimeout(() => { gomb.textContent = t("elz.masolas"); }, 2500);
   });
 
   return el;

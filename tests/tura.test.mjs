@@ -51,6 +51,11 @@ if (/from\s+["']\.\/firebase-config\.js["']/.test(demoSzoveg)) {
 
 const { SZAKASZOK, LEPESEK, szakaszLepesei } =
   await import("../public/js/tura-lepesek.js");
+const { SZOTARAK } = await import("../public/js/i18n.js");
+
+// A bemutató szövegei szótári kulcsok; a tartalmi ellenőrzések a lefordított
+// szövegen, MINDEN nyelven futnak (egy hiányzó fordítás a nyers kulcsot mutatná).
+const SZOVEGEK = (kulcs) => Object.entries(SZOTARAK).map(([nyelv, szotar]) => [nyelv, szotar[kulcs]]);
 
 // A bemutató futásidőben rajzolt példaelemei – ezek nincsenek a HTML-ben
 const DEMO_ELOTAG = "#tura-demo";
@@ -98,9 +103,16 @@ test("minden szakasznak van kimenete és záró szövege", () => {
   for (const sz of SZAKASZOK) {
     // A kimenet a menü kártyájának a lényege: ez mondja meg, MIÉRT
     // érdemes belekezdeni. Nélküle a tanár nem tudja, mit kap.
-    assert.ok(sz.kimenet?.length > 20, `${sz.id}: nincs érdemi kimenet`);
-    assert.ok(sz.zaro?.length > 20, `${sz.id}: nincs záró szöveg`);
-    assert.ok(sz.ikon && sz.cim, `${sz.id}: hiányzó ikon vagy cím`);
+    for (const [nyelv, szoveg] of SZOVEGEK(sz.kimenet)) {
+      assert.ok(szoveg?.length > 20, `${sz.id}/${nyelv}: nincs érdemi kimenet`);
+    }
+    for (const [nyelv, szoveg] of SZOVEGEK(sz.zaro)) {
+      assert.ok(szoveg?.length > 20, `${sz.id}/${nyelv}: nincs záró szöveg`);
+    }
+    for (const [nyelv, szoveg] of SZOVEGEK(sz.cim)) {
+      assert.ok(szoveg?.length > 3, `${sz.id}/${nyelv}: nincs cím`);
+    }
+    assert.ok(sz.ikon, `${sz.id}: hiányzó ikon`);
   }
 });
 
@@ -128,16 +140,22 @@ test("a menü nem ír ki időt, csak lépésszámot", () => {
 
   // A lépésszám viszont megmarad a kártyán: az igaz, és abból tudja a
   // tanár, mekkora falatot vállal
-  assert.match(motor, /\$\{db\} lépés<\/span>/, "a kártyáról eltűnt a lépésszám");
+  assert.match(motor, /tura\.lepes_db/, "a kártyáról eltűnt a lépésszám");
+  assert.match(SZOTARAK.hu["tura.lepes_db"], /^\{db\} lépés$/, "a lépésszám felirata megváltozott");
 
   // A nagy gomb szám nélkül
-  assert.match(motor, /Mind a négy, sorban\s*\n/, "a nagy gomb felirata megváltozott");
+  assert.match(motor, /tura\.mind_negy/, "a nagy gomb eltűnt");
+  assert.equal(SZOTARAK.hu["tura.mind_negy"], "Mind a négy, sorban", "a nagy gomb felirata megváltozott");
 });
 
 test("minden lépésnek van címe és szövege", () => {
   for (const l of LEPESEK) {
-    assert.ok(l.cim?.length > 3, `rövid cím: ${l.cim}`);
-    assert.ok(l.szoveg?.length > 30, `rövid szöveg: ${l.cim}`);
+    for (const [nyelv, szoveg] of SZOVEGEK(l.cim)) {
+      assert.ok(szoveg?.length > 3, `${nyelv}: rövid vagy hiányzó cím: ${l.cim}`);
+    }
+    for (const [nyelv, szoveg] of SZOVEGEK(l.szoveg)) {
+      assert.ok(szoveg?.length > 30, `${nyelv}: rövid vagy hiányzó szöveg: ${l.szoveg}`);
+    }
     assert.ok(l.oldal?.endsWith(".html"), `rossz oldal: ${l.oldal}`);
   }
 });
@@ -265,7 +283,9 @@ test("minden létrehozott elem .tura-demo osztályt kap", () => {
 
 test("minden példaelem láthatóan példa", () => {
   // A tanár soha ne higgye valódi diák dolgozatának.
-  assert.match(demoSzoveg, /BEMUTATÓ · nem valódi adat/);
+  assert.match(demoSzoveg, /tura\.demo_jelzo/, "a tura-demo.js nem használja a jelzőt");
+  assert.match(SZOTARAK.hu["tura.demo_jelzo"], /BEMUTATÓ · nem valódi adat/);
+  assert.match(SZOTARAK.en["tura.demo_jelzo"], /not real data/i);
 });
 
 // ══════════════════════════════════════════
