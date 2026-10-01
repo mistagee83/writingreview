@@ -25,15 +25,19 @@ import { initializeApp, applicationDefault } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
-const PROJECT_ID = "writingreview-41e59";
+// A célprojekt: --projekt <id>, vagy a GCLOUD_PROJECT változó; alapból a pilot.
+// A kereskedelmi projektre CSAK kifejezetten megadva fut (--projekt <prod-id>).
+const argv = process.argv.slice(2);
+const pIdx = argv.indexOf("--projekt");
+const PROJECT_ID = (pIdx >= 0 ? argv.splice(pIdx, 2)[1] : null) || process.env.GCLOUD_PROJECT || "writingreview-41e59";
 const ERVENYES_SZEREPEK = ["tanar", "diak"];
 
-const [email, szerep, adminArg] = process.argv.slice(2);
+const [email, szerep, adminArg] = argv;
 
 function hasznalat(hiba) {
   if (hiba) console.error(`\n${hiba}\n`);
   console.error("Használat:");
-  console.error("  node scripts/szerep.mjs <email> <tanar|diak> [admin|nem-admin]\n");
+  console.error("  node scripts/szerep.mjs <email> <tanar|diak> [admin|nem-admin] [--projekt <projekt-id>]\n");
   console.error("Példák:");
   console.error("  node scripts/szerep.mjs tanar@iskola.hu tanar");
   console.error("  node scripts/szerep.mjs tanar@iskola.hu tanar admin");
@@ -48,6 +52,7 @@ if (adminArg !== undefined && !["admin", "nem-admin"].includes(adminArg)) {
   hasznalat(`Érvénytelen harmadik paraméter: "${adminArg}". Lehetséges: admin, nem-admin`);
 }
 
+console.log(`Projekt: ${PROJECT_ID}`);
 initializeApp({ credential: applicationDefault(), projectId: PROJECT_ID });
 
 try {

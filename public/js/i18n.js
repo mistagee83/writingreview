@@ -27,11 +27,12 @@
 // NYELV KIVÁLASZTÁSA
 // 1. a felhasználó választása (localStorage "wr_nyelv"),
 // 2. a böngésző nyelve, ha támogatott (magyar böngésző → magyar),
-// 3. angol.
+// 3. a telepítés alapnyelve (pilot: magyar, prod: angol).
 // ══════════════════════════════════════════════════════
 
 import hu from "./i18n-hu.js";
 import en from "./i18n-en.js";
+import { ALAPNYELV } from "./kornyezet.js";
 
 export const SZOTARAK = { hu, en };
 export const NYELVEK = [
@@ -39,7 +40,8 @@ export const NYELVEK = [
   { kod: "en", nev: "English" }
 ];
 export const ALAP_NYELV = "hu";
-const TARTALEK_NYELV = "en";
+// A telepítés alapnyelve (public/js/kornyezet.js): a pilotban magyar, a kereskedelmi verzióban angol.
+const TARTALEK_NYELV = SZOTARAK[ALAPNYELV] ? ALAPNYELV : "en";
 const KULCS = "wr_nyelv";
 
 function tarol(muvelet) {

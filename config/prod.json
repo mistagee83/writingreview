@@ -1,0 +1,15 @@
+{
+  "kornyezet": "prod",
+  "projekt": "",
+  "alapnyelv": "en",
+  "teszt_sav": false,
+  "kvota": true,
+  "webConfig": {
+    "apiKey": "",
+    "authDomain": "",
+    "projectId": "",
+    "storageBucket": "",
+    "messagingSenderId": "",
+    "appId": ""
+  }
+}

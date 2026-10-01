@@ -1,6 +1,6 @@
 # WritingReview – két környezet: pilot (teszt) és kereskedelmi
 
-*Terv, 2026-10-01. Még nincs megvalósítva. Az állapotról és az indulásról a
+*Terv, 2026-10-01. **Az A. lépés kódja kész** (lásd 7. A), a többi még nincs megvalósítva. Az állapotról és az indulásról a
 [`folytatas.md`](folytatas.md) szól, a működésről a [`mukodesi-leiras.md`](mukodesi-leiras.md).*
 
 ## 1. Döntések (a tulajdonos válaszai)
@@ -91,7 +91,10 @@ Ma **nincs CI**, és a cloud-munkamenetből nem lehet deployolni (nincs hiteles�
 
 ## 7. Lépések (sorrendben)
 
-### A. Környezeti vezetékezés (kicsi, a működést nem változtatja; pilot változatlan)
+### A. Környezeti vezetékezés (kicsi, a működést nem változtatja; pilot változatlan) – **kész, a pilotra még nincs deployolva**
+
+*Megvalósítva:* `config/pilot.json` + `config/prod.json` (a prod web-config üres, a B. lépésben kell kitölteni; addig `--env prod` build és `deploy prod` hibával megáll); `scripts/kornyezet-config.mjs`; `node scripts/build.mjs [--env prod]` (vagy `WR_ENV`); `public/js/kornyezet.js` (a build felülírja a dist-ben; opcionális „TESZT · TEST” sáv – a `teszt_sav` kapcsolóval, ALAPBÓL KI, mert a pilotot a kollégák éles munkára is használják; alapnyelv); `functions/kornyezet.js` + `functions/.env.pilot|.prod` (CORS a projektből és az `ENGEDELYEZETT_DOMAINEK`-ből, `KORNYEZET`, `kvota`); `.firebaserc` `pilot` alias (a `prod` aliast a B. lépésben kell felvenni: `firebase use --add`); `functions/scripts/szerep.mjs --projekt <id>`; `node scripts/deploy.mjs <pilot|prod> [--yes]`; tesztek: `tests/kornyezet.test.mjs`. *Viselkedésváltozás a pilotban:* a nyelvi tartalék (se mentett választás, se hu/en böngésző) magyar lett angol helyett, (a „TESZT” sáv ki van kapcsolva).
+
 - `config/pilot.json`, `config/prod.json`; a build `--env` kapcsolója; a `firebase-config.js` generálása; `kornyezet.js` (alapnyelv, „TESZT” sáv).
 - `.firebaserc` alias-ok; `functions/.env.*` és a CORS a projekt-azonosítóból; a `szerep.mjs` paraméteres.
 - „TESZT” sáv a pilotban; alapnyelv környezetenként.

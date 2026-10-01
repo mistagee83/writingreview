@@ -1,0 +1,15 @@
+{
+  "kornyezet": "pilot",
+  "projekt": "writingreview-41e59",
+  "alapnyelv": "hu",
+  "teszt_sav": false,
+  "kvota": false,
+  "webConfig": {
+    "apiKey": "AIzaSyB7d7ilMAAePfI-v43j-d8XiMwaVUDPQFY",
+    "authDomain": "writingreview-41e59.firebaseapp.com",
+    "projectId": "writingreview-41e59",
+    "storageBucket": "writingreview-41e59.firebasestorage.app",
+    "messagingSenderId": "606013353438",
+    "appId": "1:606013353438:web:10135615d431bf1d47414f"
+  }
+}

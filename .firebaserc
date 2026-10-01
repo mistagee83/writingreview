@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "writingreview-41e59"
+    "default": "writingreview-41e59",
+    "pilot": "writingreview-41e59"
   }
 }
