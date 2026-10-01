@@ -513,11 +513,6 @@ export default {
   "fel.beallitasok": "Beállítások",
   "fel.tantargy": "Tantárgy",
   "fel.tantargy_pelda": "Pl. történelem, kereskedelem",
-  "fel.ponthatarok": "Ponthatárok (%, a jegyjavaslathoz)",
-  "fel.jegy_2": "2-es",
-  "fel.jegy_3": "3-as",
-  "fel.jegy_4": "4-es",
-  "fel.jegy_5": "5-ös",
   "fel.helyes_lathato": "A diák a visszajelzésében lássa a helyes válaszokat",
   "fel.helyes_lathato_tipp": "Kapcsold ki, ha a dolgozatot jövőre is íratni fogod – különben a megoldás kiszivároghat.",
   "fel.reset": "Űrlap törlése",
@@ -664,7 +659,6 @@ export default {
   "kf.ag_alap": "{n}. lehetőség",
   "kf.ag_torles_kerdes": "Törlöd a(z) „{cim}” lehetőséget?",
   "kf.kell_kulcs": "Még nincs megoldókulcs: kattints a „Megoldókulcs készítése” gombra.",
-  "kf.ponthatar_hiba": "A ponthatárok 0 és 100 közötti, növekvő számok legyenek (2-es < 3-as < 4-es < 5-ös).",
   "kf.nincs_kulcs": "Ehhez a feladathoz nem található kulcs – készítsd el újra.",
 
   // ── kifejtos-javitas.js (kérdésenkénti javítás) ──
@@ -744,6 +738,18 @@ export default {
   // ── kimeneti nyelv (a diáknak szóló AI-visszajelzés nyelve) – feladatok.html ──
   "fel.kimenet_label": "A visszajelzés nyelve",
   "fel.kimenet_tipp": "Ezen a nyelven kapja meg a diák az AI-visszajelzést, és ezen készül a tanári elemzés is.",
+  "fel.skala_label": "Jegyskála",
+  "fel.skala_hu15": "Magyar 1–5",
+  "fel.skala_af": "A–F",
+  "fel.skala_szazalek": "Százalék",
+  "fel.skala_egyeni": "Egyéni…",
+  "fel.skala_uj": "＋ Fokozat",
+  "fel.skala_cimke": "Jegy",
+  "fel.skala_min": "Legalább (%)",
+  "fel.skala_torol": "Fokozat törlése",
+  "fel.skala_szazalek_tipp": "A jegy a kerekített százalék lesz (0–100).",
+  "fel.skala_tipp": "Fokozatonként add meg, hány %-tól jár (a legalsó 0%). A javító nézet erre a skálára kínálja a jegyeket, kifejtős dolgozatnál erre javasol is.",
+  "fel.skala_hiba": "A jegyskála hibás: legalább 2 fokozat kell, a jegyek különbözők és legfeljebb 8 karakteresek, a határok 0 és 100 közötti, növekvő számok (a legalsó 0%).",
   "fel.kimenet_hu": "magyar",
   "fel.kimenet_en": "angol",
 

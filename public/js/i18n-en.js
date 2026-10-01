@@ -514,11 +514,6 @@ export default {
   "fel.beallitasok": "Settings",
   "fel.tantargy": "Subject",
   "fel.tantargy_pelda": "e.g. history, commerce",
-  "fel.ponthatarok": "Score thresholds (%, for the grade suggestion)",
-  "fel.jegy_2": "Grade 2",
-  "fel.jegy_3": "Grade 3",
-  "fel.jegy_4": "Grade 4",
-  "fel.jegy_5": "Grade 5",
   "fel.helyes_lathato": "Show the student the correct answers in their feedback",
   "fel.helyes_lathato_tipp": "Turn this off if you will use the test again next year – otherwise the solution may leak.",
   "fel.reset": "Clear the form",
@@ -665,7 +660,6 @@ export default {
   "kf.ag_alap": "Option {n}",
   "kf.ag_torles_kerdes": "Delete the option “{cim}”?",
   "kf.kell_kulcs": "There is no answer key yet: click “Create the answer key”.",
-  "kf.ponthatar_hiba": "The thresholds must be increasing numbers between 0 and 100 (grade 2 < 3 < 4 < 5).",
   "kf.nincs_kulcs": "No key was found for this task – create it again.",
 
   // ── kifejtos-javitas.js (kérdésenkénti javítás) ──
@@ -745,6 +739,18 @@ export default {
   // ── kimeneti nyelv (a diáknak szóló AI-visszajelzés nyelve) – feladatok.html ──
   "fel.kimenet_label": "Language of the feedback",
   "fel.kimenet_tipp": "The student gets the AI feedback in this language, and the class analysis for you is written in it too.",
+  "fel.skala_label": "Grading scale",
+  "fel.skala_hu15": "Hungarian 1–5",
+  "fel.skala_af": "A–F",
+  "fel.skala_szazalek": "Percentage",
+  "fel.skala_egyeni": "Custom…",
+  "fel.skala_uj": "＋ Grade",
+  "fel.skala_cimke": "Grade",
+  "fel.skala_min": "From (%)",
+  "fel.skala_torol": "Remove grade",
+  "fel.skala_szazalek_tipp": "The grade will be the rounded percentage (0–100).",
+  "fel.skala_tipp": "For each grade, enter the percentage it starts at (the lowest is 0%). The review page offers these grades, and for open-answer exams it suggests one from this scale.",
+  "fel.skala_hiba": "The grading scale is invalid: it needs at least 2 grades, the grades must be different and at most 8 characters, and the limits must be increasing numbers between 0 and 100 (the lowest is 0%).",
   "fel.kimenet_hu": "Hungarian",
   "fel.kimenet_en": "English",
 

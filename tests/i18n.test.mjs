@@ -74,7 +74,7 @@ const ATALAKITOTT = [
   "diak.html", "index.html", "beadas.html", "visszajelzes.html",
   "tanar.html", "osztalyok.html", "admin.html", "javitas.html", "elemzes.html", "feladatok.html",
   "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js",
-  "js/kifejtos-urlap.js", "js/kifejtos-javitas.js",
+  "js/kifejtos-urlap.js", "js/kifejtos-javitas.js", "js/skala-urlap.js",
   "js/tura.js", "js/tura-demo.js", "js/tura-lepesek.js"
 ];
 

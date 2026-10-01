@@ -1218,6 +1218,8 @@ exports.visszajelzesJovahagyas = onCall(HIVAS_OPCIOK, async (request) => {
 
   batch.set(beadasRef.collection("ertekeles").doc("tanari"), {
     jegy: tanariJegy,
+    // A megjelenítéshez: százalékos skálán a jegy %-jelet kap
+    jegy_tipus: skala.tipus,
     szoveg: szoveg.trim(),
     ...tabla,
     tanar_id: uid,

@@ -17,7 +17,7 @@
 import { t } from './i18n.js';
 import { esc } from './guard.js';
 import {
-  ELEM_STATUSZOK, kulcsEllenorzes, kifejtosTanariEredmeny, valaszSzovegek
+  ELEM_STATUSZOK, kulcsEllenorzes, kifejtosTanariEredmeny, valaszSzovegek, skalaFeloldas
 } from './kifejtos.js';
 
 // Szótári kulcsok: [státusz, felirat, tipp-kulcs] – a t() megjelenítéskor fordít
@@ -39,7 +39,7 @@ export function kifejtosJavitas({ el, beadas, ai, kulcsAdat, feladat, tanari, on
   const kulcs = kulcsEllenorzes(kulcsAdat);
   const rubrika = feladat?.rubrika || {};
   const opciok = {
-    ponthatarok: rubrika.ponthatarok,
+    skala: skalaFeloldas(rubrika),
     helyesLathato: rubrika.helyes_valaszok_lathatok !== false
   };
   const valaszok = valaszSzovegek({ valaszok: beadas.atirat_valaszok, tablazatok: beadas.atirat_tablazatok });
