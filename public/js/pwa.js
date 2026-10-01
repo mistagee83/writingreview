@@ -19,6 +19,8 @@
 // jövőbeli böngészőben is működik, és sosem hazudik.
 // ══════════════════════════════════════════════════════
 
+import { t } from "./i18n.js";
+
 let telepitesiEsemeny = null;
 
 /** Telepített alkalmazásból nézzük-e? Ilyenkor nincs mit felkínálni. */
@@ -98,8 +100,8 @@ export function telepitoSav({ sav, gomb, tipp }) {
     // Van natív telepítés → a gomb telepít.
     // Nincs → ugyanaz a gomb megmutatja a kézi lépéseket.
     gombEl.textContent = telepitesiEsemeny
-      ? "📲 Telepítés"
-      : "📲 Hogyan telepítem?";
+      ? t("index.telepito_gomb")
+      : t("index.telepito_hogyan");
   }
   gombAllapot();
 

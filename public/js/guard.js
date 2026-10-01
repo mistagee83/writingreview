@@ -11,6 +11,7 @@
 // ══════════════════════════════════════════════════════
 
 import { auth, db, doc, getDoc, onAuthStateChanged, signOut } from "./firebase-config.js";
+import { datumSzoveg } from "./i18n.js";
 
 export const BELEPO_OLDAL = "index.html";
 
@@ -201,7 +202,7 @@ export function esc(ertek) {
   }[ch]));
 }
 
-/** Firestore Timestamp → "2026. 09. 23." formátumú magyar dátum. */
+/** Firestore Timestamp → dátum az aktuális nyelv formátumában. */
 export function datum(ts) {
-  return ts?.toDate ? ts.toDate().toLocaleDateString("hu-HU") : "–";
+  return ts?.toDate ? datumSzoveg(ts.toDate()) : "–";
 }

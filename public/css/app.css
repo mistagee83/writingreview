@@ -80,6 +80,21 @@ body {
 }
 .btn-logout:hover { border-color: var(--accent-on-dark); color: var(--accent-on-dark); }
 
+/* Nyelvválasztó a fejlécben – a kilépés gombbal egy stílusban */
+.nyelvvalaszto {
+  padding: 0.4rem 0.5rem;
+  border: 1.5px solid #444;
+  border-radius: 6px;
+  background: transparent;
+  color: #aaa;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.nyelvvalaszto:hover { border-color: var(--accent-on-dark); color: var(--accent-on-dark); }
+.nyelvvalaszto option { color: #111; background: #fff; }
+
 /* ── LAYOUT + SIDEBAR ── */
 .layout {
   display: grid;

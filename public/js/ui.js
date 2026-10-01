@@ -2,6 +2,8 @@
 // WritingReview – közös UI segédek
 // ══════════════════════════════════════════════════════
 
+import { t, nyelv } from "./i18n.js";
+
 /**
  * Státusz-címkék.
  *
@@ -10,24 +12,25 @@
  * nem szabad "kész"-nek látszania.
  */
 export const STATUSZ_TANAR = {
-  feltoltve:   { cimke: "⏳ Feltöltve",        osztaly: "feltoltve" },
-  folyamatban: { cimke: "⚙️ AI dolgozik",      osztaly: "folyamatban" },
-  javitva:     { cimke: "📝 Ellenőrzésre vár", osztaly: "javitva" },
-  elkuldve:    { cimke: "📧 Elküldve",         osztaly: "elkuldve" },
-  hiba:        { cimke: "⚠️ Hiba",             osztaly: "hiba" }
+  feltoltve:   { kulcs: "statusz.tanar.feltoltve", osztaly: "feltoltve" },
+  folyamatban: { kulcs: "statusz.tanar.folyamatban", osztaly: "folyamatban" },
+  javitva:     { kulcs: "statusz.tanar.javitva", osztaly: "javitva" },
+  elkuldve:    { kulcs: "statusz.tanar.elkuldve", osztaly: "elkuldve" },
+  hiba:        { kulcs: "statusz.tanar.hiba", osztaly: "hiba" }
 };
 
 export const STATUSZ_DIAK = {
-  feltoltve:   { cimke: "⏳ Beadva",                osztaly: "feltoltve" },
-  folyamatban: { cimke: "⚙️ Feldolgozás alatt",     osztaly: "folyamatban" },
-  javitva:     { cimke: "👀 Tanári ellenőrzés alatt", osztaly: "javitva" },
-  elkuldve:    { cimke: "✅ Visszajelzés kész",     osztaly: "elkuldve" },
-  hiba:        { cimke: "⚠️ Hiba – szólj a tanárnak", osztaly: "hiba" }
+  feltoltve:   { kulcs: "statusz.diak.feltoltve", osztaly: "feltoltve" },
+  folyamatban: { kulcs: "statusz.diak.folyamatban", osztaly: "folyamatban" },
+  javitva:     { kulcs: "statusz.diak.javitva", osztaly: "javitva" },
+  elkuldve:    { kulcs: "statusz.diak.elkuldve", osztaly: "elkuldve" },
+  hiba:        { kulcs: "statusz.diak.hiba", osztaly: "hiba" }
 };
 
 export function statuszBadge(statusz, tabla = STATUSZ_TANAR) {
-  const s = tabla[statusz] || { cimke: statusz || "–", osztaly: "inaktiv" };
-  return `<span class="badge ${s.osztaly}">${s.cimke}</span>`;
+  const s = tabla[statusz];
+  const cimke = s ? t(s.kulcs) : (statusz || "–");
+  return `<span class="badge ${s?.osztaly || "inaktiv"}">${cimke}</span>`;
 }
 
 // ── ÜZENETEK ──
@@ -46,24 +49,21 @@ export function uzenetTorles(elemId) {
   el.textContent = "";
 }
 
-/** Callable-hibák magyarítása. */
+/** Callable-hibák szövege az aktuális nyelven. */
 export function hibaSzoveg(e) {
-  const map = {
-    unauthenticated: "Nem vagy bejelentkezve. Lépj be újra.",
-    "permission-denied": "Ehhez nincs jogosultságod.",
-    "not-found": "A keresett elem nem található.",
-    "failed-precondition": "Ez a művelet most nem végezhető el.",
-    "invalid-argument": "Hibás vagy hiányzó adat.",
-    "resource-exhausted": "Túl sok kérés. Próbáld újra kicsit később.",
-    unavailable: "A szolgáltatás nem elérhető. Ellenőrizd az internetet."
-  };
-  // A Function saját magyar üzenete elsőbbséget kap
-  if (e?.message && !/^INTERNAL$/i.test(e.message)) return e.message;
-  return map[e?.code?.replace(/^functions\//, "")] || "Váratlan hiba történt.";
+  // A Function saját üzenete egyelőre MAGYAR, ezért csak magyar felületen
+  // mutatjuk meg (pontosabb, mint az általános kódszöveg). Más nyelven
+  // az általános, lefordított szöveg jelenik meg, amíg a szerver is
+  // üzenetkódokat nem küld.
+  if (nyelv() === "hu" && e?.message && !/^INTERNAL$/i.test(e.message)) return e.message;
+  const kod = e?.code?.replace(/^functions\//, "");
+  const kulcs = `hiba.${kod}`;
+  const ismert = kod && t(kulcs) !== kulcs;
+  return t(ismert ? kulcs : "hiba.ismeretlen");
 }
 
 /** Gomb "dolgozik" állapot – visszaad egy függvényt a visszaállításhoz. */
-export function gombVar(gomb, szoveg = "Dolgozom...") {
+export function gombVar(gomb, szoveg = t("gomb.dolgozom")) {
   const eredeti = gomb.innerHTML;
   gomb.disabled = true;
   gomb.innerHTML = `<span class="spinner inline"></span>${szoveg}`;
@@ -78,9 +78,9 @@ export async function vagolapra(szoveg, gomb) {
   const eredeti = gomb.textContent;
   try {
     await navigator.clipboard.writeText(szoveg);
-    gomb.textContent = "✅ Másolva!";
+    gomb.textContent = t("vagolap.kesz");
   } catch (_) {
-    gomb.textContent = "❌ Nem sikerült";
+    gomb.textContent = t("vagolap.hiba");
   }
   setTimeout(() => { gomb.textContent = eredeti; }, 2000);
 }
