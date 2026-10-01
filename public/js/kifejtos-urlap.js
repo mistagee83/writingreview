@@ -29,8 +29,8 @@ import {
   storage, functions, httpsCallable, serverTimestamp, storageRef, uploadBytes
 } from './firebase-config.js';
 import {
-  ALAP_BEALLITAS, ALAP_PONTHATAROK, KERDES_TIPUSOK,
-  kulcsEllenorzes, szoszedetGyujtes, ponthatarokEllenorzes
+  ALAP_BEALLITAS, KERDES_TIPUSOK,
+  kulcsEllenorzes, szoszedetGyujtes
 } from './kifejtos.js';
 
 // Szótári kulcsok – a t() megjelenítéskor fordít
@@ -477,21 +477,6 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
   $('btn-kerdes-uj').addEventListener('click', kerdesUj);
 
   // ══════════════════════════════════════════
-  // PONTHATÁROK
-  // ══════════════════════════════════════════
-
-  function ponthatarokKitolt(h) {
-    const p = ponthatarokEllenorzes(h);
-    for (const j of [2, 3, 4, 5]) $(`ph-${j}`).value = p[j];
-  }
-
-  function ponthatarokBeolvas() {
-    const h = {};
-    for (const j of [2, 3, 4, 5]) h[j] = Number($(`ph-${j}`).value);
-    return h;
-  }
-
-  // ══════════════════════════════════════════
   // BEOLVASÁS (mentéshez)
   // ══════════════════════════════════════════
 
@@ -507,18 +492,10 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
       return { hiba: kulcsHibaSzoveg(e) };
     }
 
-    const nyersHatarok = ponthatarokBeolvas();
-    const ponthatarok = ponthatarokEllenorzes(nyersHatarok);
-    if ([2, 3, 4, 5].some((j) => ponthatarok[j] !== nyersHatarok[j])) {
-      $('kulcs-reszletek').open = true;
-      return { hiba: t('kf.ponthatar_hiba') };
-    }
-
     return {
       rubrika: {
         mod: 'kifejtos',
         tantargy: $('kf-tantargy').value.trim().slice(0, 60),
-        ponthatarok,
         helyes_valaszok_lathatok: $('kf-helyes-lathato').checked,
         // A NYILVÁNOS rész: a diák látja, hány pontos az egyes kérdés.
         // A kulcs maga külön, csak tanári alkollekcióba megy.
@@ -548,7 +525,6 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
     meta = { model: null, generalva: null, tananyagbol: false, alap: null };
     $('kf-tantargy').value = '';
     $('kf-helyes-lathato').checked = true;
-    ponthatarokKitolt(ALAP_PONTHATAROK);
     $('kulcs-reszletek').open = false;
     ['tananyag-msg', 'kulcs-msg'].forEach(uzenetTorles);
     tananyagRender();
@@ -564,7 +540,6 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
     torles();
     $('kf-tantargy').value = rubrika?.tantargy || '';
     $('kf-helyes-lathato').checked = rubrika?.helyes_valaszok_lathatok !== false;
-    ponthatarokKitolt(rubrika?.ponthatarok);
     kerdesek = structuredClone(kulcsAdat?.kerdesek || []);
     tananyag = structuredClone(kulcsAdat?.tananyag || []);
     meta = {
@@ -578,7 +553,6 @@ export function kifejtosUrlap({ user, feladatlapPath }) {
     if (!kulcsAdat) uzenet('kulcs-msg', t('kf.nincs_kulcs'));
   }
 
-  ponthatarokKitolt(ALAP_PONTHATAROK);
   render();
 
   return { torles, kitolt, beolvas, frissit };

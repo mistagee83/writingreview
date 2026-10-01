@@ -1598,3 +1598,13 @@ button.elem-jel.atnez:hover { outline: 1.5px solid var(--warn); }
 
 /* ── Fotózási tipp (beadas.html) ── */
 .foto-tipp { list-style: none; padding: 0; margin: 0.6rem 0 1rem; display: grid; gap: 0.3rem; font-size: 0.85rem; }
+
+/* ── Jegyskála-szerkesztő (feladat űrlap) ── */
+.skala-sorok { display: grid; gap: 0.4rem; margin-top: 0.6rem; max-width: 420px; }
+.skala-sor { display: grid; grid-template-columns: 6rem auto auto; justify-content: start; gap: 0.5rem; align-items: center; }
+.skala-sor .sk-min { display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.8rem; color: var(--ink); text-transform: none; letter-spacing: 0; }
+.skala-sor input:disabled { background: var(--paper, #f4f1ea); color: var(--muted, #888); }
+.skala-sor input { padding: 0.5rem 0.6rem; }
+.skala-sor .sk-min input { width: 5.5rem; }
+#skala-csoport .btn-sm { margin-top: 0.5rem; }
+#sk-uj[hidden], #sk-szazalek-tipp[hidden], #sk-sorok[hidden] { display: none; }

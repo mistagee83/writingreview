@@ -27,6 +27,15 @@ export const STATUSZ_DIAK = {
   hiba:        { kulcs: "statusz.diak.hiba", osztaly: "hiba" }
 };
 
+/**
+ * A jegy megjelenített alakja. Százalékos skálán a jegy a százalék, ezért
+ * kap %-jelet; a tanári visszajelzés `jegy_tipus` mezője hordozza, hogy
+ * melyik skálán áll (régi visszajelzésnél nincs: fokozat).
+ */
+export function jegyMegjelenit(jegy, tipus) {
+  return tipus === "szazalek" ? `${jegy}%` : String(jegy);
+}
+
 export function statuszBadge(statusz, tabla = STATUSZ_TANAR) {
   const s = tabla[statusz];
   const cimke = s ? t(s.kulcs) : (statusz || "–");

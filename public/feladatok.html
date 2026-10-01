@@ -80,6 +80,20 @@
           <p class="halvany" data-i18n="fel.kimenet_tipp" style="margin-top:0.4rem;">Ezen a nyelven kapja meg a diák az AI-visszajelzést, és ezen készül a tanári elemzés is.</p>
         </div>
 
+        <div class="form-group" id="skala-csoport">
+          <label for="sk-sablon" data-i18n="fel.skala_label">Jegyskála</label>
+          <select id="sk-sablon" style="max-width:240px;">
+            <option value="hu15" data-i18n="fel.skala_hu15">Magyar 1–5</option>
+            <option value="af" data-i18n="fel.skala_af">A–F</option>
+            <option value="szazalek" data-i18n="fel.skala_szazalek">Százalék</option>
+            <option value="egyeni" data-i18n="fel.skala_egyeni">Egyéni…</option>
+          </select>
+          <div id="sk-sorok" class="skala-sorok"></div>
+          <button type="button" class="btn-sm" id="sk-uj" data-i18n="fel.skala_uj">＋ Fokozat</button>
+          <p class="halvany" id="sk-szazalek-tipp" data-i18n="fel.skala_szazalek_tipp" style="margin-top:0.4rem;">A jegy a kerekített százalék lesz (0–100).</p>
+          <p class="halvany" data-i18n="fel.skala_tipp" style="margin-top:0.4rem;">Fokozatonként add meg, hány %-tól jár (a legalsó 0%). A javító nézet erre a skálára kínálja a jegyeket, kifejtős dolgozatnál erre javasol is.</p>
+        </div>
+
         <div class="form-group">
           <label for="f-cim" data-i18n="fel.feladat_cime">Feladat címe</label>
           <input type="text" id="f-cim" placeholder="Pl. Essay writing – My hometown" data-i18n-placeholder="fel.cim_pelda" maxlength="200" />
@@ -244,15 +258,6 @@
               <label for="kf-tantargy" data-i18n="fel.tantargy">Tantárgy</label>
               <input type="text" id="kf-tantargy" maxlength="60" placeholder="Pl. történelem, kereskedelem" data-i18n-placeholder="fel.tantargy_pelda" />
             </div>
-            <div class="form-group">
-              <label data-i18n="fel.ponthatarok">Ponthatárok (%, a jegyjavaslathoz)</label>
-              <div class="ponthatarok">
-                <label><span data-i18n="fel.jegy_2">2-es</span> <input type="number" id="ph-2" min="0" max="100" /></label>
-                <label><span data-i18n="fel.jegy_3">3-as</span> <input type="number" id="ph-3" min="0" max="100" /></label>
-                <label><span data-i18n="fel.jegy_4">4-es</span> <input type="number" id="ph-4" min="0" max="100" /></label>
-                <label><span data-i18n="fel.jegy_5">5-ös</span> <input type="number" id="ph-5" min="0" max="100" /></label>
-              </div>
-            </div>
             <label class="jelolo">
               <input type="checkbox" id="kf-helyes-lathato" checked />
               <span><span data-i18n="fel.helyes_lathato">A diák a visszajelzésében lássa a helyes válaszokat</span>
@@ -301,6 +306,7 @@
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import { atmeretez, tulNagy, meret } from './js/kep.js';
   import { kifejtosUrlap } from './js/kifejtos-urlap.js';
+  import { skalaUrlap, skalaMegjegyzes } from './js/skala-urlap.js';
   import {
     db, storage, functions, httpsCallable, writeBatch,
     collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
@@ -333,6 +339,15 @@
   const kimenetEl = document.getElementById('f-kimenet');
   const alapKimenet = () => (['hu', 'en'].includes(nyelv()) ? nyelv() : 'hu');
   kimenetEl.value = alapKimenet();
+
+  // A jegyskála: mindkét feladattípusnál ugyanaz a szerkesztő
+  const skalaUi = skalaUrlap({
+    sablon: document.getElementById('sk-sablon'),
+    sorok: document.getElementById('sk-sorok'),
+    uj: document.getElementById('sk-uj'),
+    szazalekTipp: document.getElementById('sk-szazalek-tipp')
+  });
+  skalaUi.torles();
 
   const modRadiok = [...document.querySelectorAll('input[name="f-mod"]')];
   const aktualisMod = () => modRadiok.find((r) => r.checked)?.value || 'iras';
@@ -468,6 +483,7 @@
     }
     document.getElementById('r-leiras').value = f.rubrika?.feladat_leiras || '';
     kimenetEl.value = f.rubrika?.kimeneti_nyelv || 'hu';
+    skalaUi.kitolt(f.rubrika);
 
     // A feladatlapot átvesszük – nem kell újra feltölteni
     fajlPath = f.feladatlap?.path || null;
@@ -891,6 +907,9 @@
       }
     }
 
+    const skalaEredmeny = skalaUi.beolvas();
+    if (skalaEredmeny.hiba) { uzenet('form-msg', skalaEredmeny.hiba); return; }
+
     const hataridoStr = document.getElementById('f-hatarido').value;
     const minSzo = Number(document.getElementById('r-min').value) || null;
     const maxSzo = Number(document.getElementById('r-max').value) || null;
@@ -907,7 +926,8 @@
         // A feladat leírása nem része a sablonnak – itt adjuk hozzá
         feladat_leiras: document.getElementById('r-leiras').value.trim(),
         // Nem része a sablonnak: feladatonként állítható
-        kimeneti_nyelv: kimenetEl.value
+        kimeneti_nyelv: kimenetEl.value,
+        skala: skalaEredmeny.skala
       };
       const hatarido = hataridoStr
         ? Timestamp.fromDate(new Date(hataridoStr + 'T23:59:59'))
@@ -966,6 +986,7 @@
           'success');
       }
 
+      skalaMegjegyzes(rubrika.skala);
       urlapTorles();
       panelZar();
     } catch (err) {
@@ -978,6 +999,7 @@
   function urlapTorles() {
     document.getElementById('f-cim').value = '';
     kimenetEl.value = alapKimenet();
+    skalaUi.torles();
     document.getElementById('f-hatarido').value = '';
     document.getElementById('f-fajl').value = '';
     document.getElementById('r-leiras').value = '';

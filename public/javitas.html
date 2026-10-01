@@ -62,8 +62,9 @@
   import { t } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
-  import { statuszBadge, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { statuszBadge, uzenet, uzenetTorles, hibaSzoveg, gombVar, jegyMegjelenit } from './js/ui.js';
   import { kifejtosJavitas } from './js/kifejtos-javitas.js';
+  import { skalaFeloldas } from './js/kifejtos.js';
   import {
     db, storage, functions, httpsCallable,
     collection, doc, getDoc, getDocs,
@@ -136,7 +137,7 @@
       reszek.push(`<span class="badge javitva">${t('jav.pont_badge', { ossz: esc(p.osszpontszam), max: esc(p.max_pontszam) })}` +
         `${p.szazalek != null ? ` · ${esc(p.szazalek)}%` : ''}</span>`);
     }
-    if (tanari?.jegy) reszek.push(`<span class="badge aktiv">${t('jav.jegy_badge', { jegy: esc(tanari.jegy) })}</span>`);
+    if (tanari?.jegy != null) reszek.push(`<span class="badge aktiv">${t('jav.jegy_badge', { jegy: esc(jegyMegjelenit(tanari.jegy, tanari.jegy_tipus)) })}</span>`);
     return reszek.join('');
   }
 
@@ -257,6 +258,22 @@
       const tanariSnap = await getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'tanari'));
       const tanari = tanariSnap.exists() ? tanariSnap.data() : null;
 
+      // A jegy a FELADAT skáláján áll (magyar 1–5, A–F, százalék, egyéni).
+      const skala = skalaFeloldas(f?.rubrika);
+      const jegyMezo = skala.tipus === 'szazalek'
+        ? `<input type="number" id="m-jegy" min="0" max="100" step="1" placeholder="%" style="max-width:140px;" />`
+        : `<select id="m-jegy">
+             <option value="">${t('jav.nincs_jegy')}</option>
+             ${[...skala.fokozatok].reverse()
+               .map((x) => `<option value="${esc(x.cimke)}">${esc(x.cimke)}</option>`).join('')}
+           </select>`;
+      // A kliens a skála saját értékét küldi (a szerver ezt is újra ellenőrzi)
+      const jegyErtek = (str) => {
+        if (str === '') return null;
+        if (skala.tipus === 'szazalek') return Number(str);
+        return skala.fokozatok.find((x) => String(x.cimke) === str)?.cimke ?? null;
+      };
+
       // Kifejtős dolgozat: kérdésenkénti javítás a megoldókulcs szerint.
       // A kulcs csak a tanárnak olvasható alkollekcióban van.
       const kifejtosMod = ai?.mod === 'kifejtos';
@@ -374,11 +391,7 @@
           </div>` : ''}
           <div class="form-group">
             <label for="m-jegy">${t('jav.jegy_label')} <span id="m-jegy-javaslat" class="halvany"></span></label>
-            <select id="m-jegy">
-              <option value="">${t('jav.nincs_jegy')}</option>
-              <option value="5">5</option><option value="4">4</option>
-              <option value="3">3</option><option value="2">2</option><option value="1">1</option>
-            </select>
+            ${jegyMezo}
           </div>
           <div class="form-group">
             <label for="m-szoveg">${t('jav.szoveg_label')}</label>
@@ -394,7 +407,7 @@
 
       // Előtöltés: a már jóváhagyott szöveg, különben az AI javaslata
       document.getElementById('m-szoveg').value = tanari?.szoveg || ai?.diak_szoveg || '';
-      if (tanari?.jegy) document.getElementById('m-jegy').value = String(tanari.jegy);
+      if (tanari?.jegy != null) document.getElementById('m-jegy').value = String(tanari.jegy);
 
       // ── Kifejtős: kérdésenkénti javítás, élő pont és jegyjavaslat ──
       // A jegyet csak addig töltjük elő a javaslattal, amíg a tanár nem
@@ -402,7 +415,7 @@
       let kf = null;
       if (kifejtosMod && kulcsAdat) {
         const jegyEl = document.getElementById('m-jegy');
-        let jegyKezzel = Boolean(tanari?.jegy);
+        let jegyKezzel = tanari?.jegy != null;
         jegyEl.addEventListener('change', () => { jegyKezzel = true; });
         try {
           kf = kifejtosJavitas({
@@ -412,8 +425,9 @@
               document.getElementById('kf-ossz').textContent =
                 `${t('vj.pont_osszes', { ossz: e.osszpontszam, max: e.max_pontszam })}${e.szazalek != null ? ` · ${e.szazalek}%` : ''}`;
               document.getElementById('m-jegy-javaslat').textContent =
-                e.javasolt_jegy ? t('jav.javasolt', { jegy: e.javasolt_jegy }) : '';
-              if (!jegyKezzel && e.javasolt_jegy) jegyEl.value = String(e.javasolt_jegy);
+                e.javasolt_jegy != null
+                  ? t('jav.javasolt', { jegy: jegyMegjelenit(e.javasolt_jegy, skala.tipus) }) : '';
+              if (!jegyKezzel && e.javasolt_jegy != null) jegyEl.value = String(e.javasolt_jegy);
             }
           });
         } catch (err) {
@@ -468,7 +482,7 @@
         try {
           await visszajelzesJovahagyas({
             beadasId,
-            jegy: jegyStr ? Number(jegyStr) : null,
+            jegy: jegyErtek(jegyStr),
             szoveg,
             // Kifejtősnél csak a tanár döntései mennek – a pontot a szerver
             // számolja a kulcsból, ugyanazzal a függvénnyel.

@@ -150,7 +150,11 @@ rubrika: {
     { kulcs: 'szokincs',  cim: 'Szókincs',                      suly: 25 },
     { kulcs: 'nyelvtan',  cim: 'Nyelvhelyesség',                suly: 25 }
   ],
-  egyeb_utasitas: ''         // a tanár szabadszöveges kiegészítése
+  egyeb_utasitas: '',        // a tanár szabadszöveges kiegészítése
+  kimeneti_nyelv: 'hu',      // a visszajelzés nyelve: 'hu' | 'en' (régi feladatnál nincs: hu)
+  skala: { tipus: 'fokozat', fokozatok: [ { cimke: 1, min: 0 }, { cimke: 2, min: 40 } /* … */ ] }
+                             // a jegyskála; régi feladatnál nincs: a ponthatarok-ból magyar 1–5.
+                             // Részletek: mukodesi-leiras.md 7.8
 }
 ```
 
@@ -362,7 +366,9 @@ Amit a tanár jóváhagyott, és amit a diák megkap.
 
 ```js
 {
-  jegy: 4, szoveg: '...',
+  jegy: 4,                      // a feladat skáláján: 1–5 (szám), 'A'–'F' (szöveg) vagy 0–100 (százalék)
+  jegy_tipus: 'fokozat',        // 'fokozat' | 'szazalek' (százaléknál a megjelenítés %-jelet tesz mellé)
+  szoveg: '...',
   szempontok: [                 // a pontozási táblázat, amit a diák lát
     { kulcs: 'nyelvtan', cim: 'Nyelvhelyesség', pont: 8, max: 10, megjegyzes: '...' }
   ],

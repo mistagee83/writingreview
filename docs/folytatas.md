@@ -1,6 +1,6 @@
 # WritingReview – folytatás másik gépen
 
-*Állapot: 2026-10-01. Ez a jegyzet azt írja le, hol tart a projekt, hogyan lehet másik gépen
+*Állapot: 2026-10-01 (a jegyskála-munkával frissítve). Ez a jegyzet azt írja le, hol tart a projekt, hogyan lehet másik gépen
 folytatni, és mi a következő lépés. A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
 
@@ -64,10 +64,18 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
-- **Emulátoros tesztek nem futottak** a kétnyelvűségi munka óta. A Firestore-emulátor azon a
-  gépen, ahol a munka folyt, **nem indult el** (`Firestore Emulator has exited with code 1`,
-  üres napló; gyanú: túl új Java – Java 26 volt). Próbáld Java 17/21-gyel. A deploy ezek
-  nélkül ment ki.
+- **Emulátoros tesztek:** a másik gépen, ahol a kétnyelvűségi munka folyt, a Firestore-emulátor
+  **nem indult el** (`Firestore Emulator has exited with code 1`; gyanú: túl új Java – Java 26).
+  **Java 21-gyel elindul**, és a teljes készlet (341 teszt) lefutott a jegyskála-munka után
+  (`cd tests && npm test`). Ha nálad nem indul, használj Java 17/21-et.
+- **A jegy-elküldés végponttól végpontig nincs tesztelve** (`visszajelzesJovahagyas`): a skála-
+  logikát a `jegyNormalizalas` és a `skalaFeloldas` tesztjei fedik, de a függvény bekötését
+  (skála betöltése, jegy ellenőrzése, tárolás) csak a kód átolvasása. Érdemes emulátoros tesztet írni.
+- **A jegyskála-űrlap és a javító nézet éles kipróbálása** még hátravan (belépéssel): a szerkesztőt
+  böngészőben, a lap többi részétől elkülönítve próbáltuk ki.
+- **A mentett rubrika-sablonok nem hordozzák a jegyskálát**, és a skála alapértéke (az utoljára
+  használt) csak böngészőnként van meg, nem a tanár fiókjához kötve. A GPA-skála nincs.
+- **A bemutató (`tura-demo.js`) javító nézete** továbbra is fix 1–5 jegyeket mutat.
 - **Éles átkattintás nem történt**: belépéssel, valódi Gemini-hívással az angol felület és az
   angol AI-visszajelzés még nincs végigpróbálva. A lapok szkriptjeit csak Node-ban, kitalált
   adatokkal futtattuk.
@@ -82,10 +90,11 @@ cd writingreview
 1. **Éles átkattintás** (15 perc): tanárként belépés → osztály létrehozása → feladat az új
    „A visszajelzés nyelve” mezővel → egy beadás végig (fotó → átirat → AI → jóváhagyás →
    diák nézet). Magyarul és angolul is.
-2. **Emulátoros tesztek megoldása** (Java verzió), majd `cd tests && npm test`.
+2. ~~Emulátoros tesztek~~ – megoldva (Java 21), lásd 5.
 3. **Célpiac eldöntése** – ettől függ a jegyskála, az évfolyam-skála és a jogi környezet.
-4. **Állítható jegyskála** (százalék, A–F, GPA…): jelenleg magyar 1–5, a ponthatárok (2–5) és
-   a javító nézet legördülője erre épül. Ez a legnagyobb hiány a külföldi használathoz.
+4. ~~Állítható jegyskála~~ – kész: feladatonként magyar 1–5, A–F, százalék vagy egyéni
+   fokozatok (`rubrika.skala`, lásd a működési leírás 4.3 és 7.8). Hátra van: GPA, a rubrika-sablon
+   skálája, a tanári fiókhoz kötött alapérték, és az éles kipróbálás (5. pont).
 5. **Két környezet**: a mostani Firebase-projekt marad teszt/pilot, új, különálló projekt a
    nemzetközi éles verziónak (`firebase use` aliasok; külön adatbázis, felhasználók,
    számlázás). Egy kódbázis, két telepítés.

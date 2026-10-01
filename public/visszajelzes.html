@@ -40,7 +40,7 @@
 <script type="module">
   import { t } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
-  import { statuszBadge, STATUSZ_DIAK } from './js/ui.js';
+  import { statuszBadge, STATUSZ_DIAK, jegyMegjelenit } from './js/ui.js';
   import { db, doc, getDoc } from './js/firebase-config.js';
 
   await vedettOldal('diak');
@@ -161,10 +161,10 @@
   }
 
   tartalom.innerHTML = `
-    ${tanari.jegy ? `
+    ${tanari.jegy != null ? `
       <div class="jegy-kartya">
         <div class="jegy-label">${t('vj.jegy')}</div>
-        <div class="jegy-szam">${esc(tanari.jegy)}</div>
+        <div class="jegy-szam">${esc(jegyMegjelenit(tanari.jegy, tanari.jegy_tipus))}</div>
       </div>` : ''}
 
     <div class="panel">
@@ -193,7 +193,7 @@
               <tfoot><tr>
                 <td>${t('vj.osszesen')}</td>
                 <td>${esc(tanari.osszpontszam)} / ${esc(tanari.max_pontszam)}</td>
-                <td>${tanari.szazalek != null ? `${esc(tanari.szazalek)}%` : ''}${tanari.jegy ? t('vj.jegy_kis', { jegy: esc(tanari.jegy) }) : ''}</td>
+                <td>${tanari.szazalek != null ? `${esc(tanari.szazalek)}%` : ''}${tanari.jegy != null ? t('vj.jegy_kis', { jegy: esc(jegyMegjelenit(tanari.jegy, tanari.jegy_tipus)) }) : ''}</td>
               </tr></tfoot>
             </table>
           </div>

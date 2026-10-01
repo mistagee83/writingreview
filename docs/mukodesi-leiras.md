@@ -239,6 +239,7 @@ létrehozás linkjével.
 | A feladat fajtája | két nagy gomb: **✍️ Fogalmazás** / **📝 Kifejtős kérdések**. A tanár választ; nincs AI-felismerés. Mentés után **nem változtatható**. |
 | Feladatlap | kép vagy PDF (JPG, PNG, PDF, max. 10 MB). A képeket a böngésző feltöltés előtt kisebbre méretezi. |
 | A visszajelzés nyelve | **magyar** vagy **angol**. Ezen a nyelven készül a diáknak szóló AI-visszajelzés, a hibamagyarázatok, a szempontcímek (rubrika-javaslatnál) és a tanári osztályelemzés. Alapértéke a tanár felületi nyelve; **feladatonként** mentődik (`rubrika.kimeneti_nyelv`), nem része a rubrika-sablonnak. Régebbi feladatnál nincs ilyen mező: az **magyar**. |
+| Jegyskála | **Magyar 1–5**, **A–F**, **Százalék** vagy **Egyéni…**; mindkét feladattípusnál. Fokozatonként megadható, hány %-tól jár (a legalsó 0%; egyénin a jegyek szabadon nevezhetők, legfeljebb 8 karakter, 2–15 fokozat). A javító nézet erre a skálára kínálja a jegyeket, kifejtős dolgozatnál erre javasol is. Feladatonként mentődik (`rubrika.skala`, lásd 7.8); az utoljára használt skála a következő új feladat alapértéke (böngészőnként). Régi feladatnál nincs ilyen mező: a korábbi ponthatárokból magyar 1–5 lesz. |
 | A feladat leírása | szabad szöveg; a diák látja, és az AI is használja |
 
 #### Fogalmazás – az űrlap és a rubrika
@@ -338,8 +339,9 @@ Fentről lefelé:
      (0 és a szempont maximuma között) és megjegyzés, élő összeggel. A
      szempontok vázát és a maximumokat a tanár nem írhatja át, az összeget a
      szerver számolja.
-   - **Jegy** (1–5 vagy nincs jegy). Kifejtősnél a rendszer javaslatot ír mellé,
-     és addig előtölti, amíg a tanár maga nem választ.
+   - **Jegy** (a feladat skáláján; vagy nincs jegy). Fokozatos skálánál legördülő, százaléknál
+     számmező (0–100). Kifejtősnél a rendszer javaslatot ír mellé, és addig előtölti, amíg a tanár
+     maga nem választ.
    - **Szöveges visszajelzés** – előre kitöltve az AI javaslatával (a feladat
      visszajelzés-nyelvén – 4.3 –, barátságos, konstruktív, az erősségekkel kezdve, pontszám és jegy nélkül);
      már elküldött beadásnál a korábbi szöveg. Szerkeszthető.
@@ -347,8 +349,8 @@ Fentről lefelé:
      az elküldés után is javítható).
 
 **Mi történik az „Elküldésre"?** A szerver ellenőrzi a jogosultságot (csak a
-saját diákod beadását küldheted), hogy a szöveg nem üres és a jegy 1–5 közötti
-egész, majd egyszerre **kiírja a tanári visszajelzést és átállítja a státuszt
+saját diákod beadását küldheted), hogy a szöveg nem üres és a jegy szerepel a feladat
+skáláján, majd egyszerre **kiírja a tanári visszajelzést és átállítja a státuszt
 `elkuldve`-re**. Ettől kezdve a diák látja. Kifejtős dolgozatnál a szerver a
 tanár által **felülírt elemstátuszokból újraszámolja a pontot a kulcsból** – a
 böngésző pontot nem küldhet.
@@ -582,7 +584,7 @@ kulcsgondolat, az a Fogalmazás rubrikás értékelésébe tartozik.
    - **Kérdésenkénti beállítások** (alapérték előre kitöltve): *Rossz sorrend*
      (csak sorrendes kérdésnél), *Szakszóhasználat*, *A részben jó válasz*,
      *Kulcson kívüli tétel* (csak nyílt felsorolásnál) – lásd 7.5.
-   - **Tantárgy**, **ponthatárok** (2/3/4/5-ös, % – alapérték 40/55/70/85),
+   - **Tantárgy** (a ponthatárok helyét a közös **jegyskála** vette át, lásd 4.3 és 7.8),
      **„A diák a visszajelzésében lássa a helyes válaszokat"** kapcsoló (alapból
      be; kapcsold ki, ha a dolgozatot jövőre is íratni fogod, különben a megoldás
      kiszivároghat).
@@ -703,8 +705,29 @@ válasz elfogadható-e, azt a *Szakszóhasználat* beállítás és az AI ítél
 ### 7.8 A jegyjavaslat
 
 A pontos arányból számol (nem a kerekített százalékból: 54,6% nem ér 3-ast egy
-55%-os határnál), a feladat ponthatárai szerint (alap: 2-es ≥ 40%, 3-as ≥ 55%,
-4-es ≥ 70%, 5-ös ≥ 85%, alatta 1-es). A tanár szabadon átírhatja a jegyet.
+55%-os határnál), a feladat **jegyskálája** szerint. A tanár szabadon átírhatja a jegyet.
+
+**A skála** a feladat rubrikájában él (`rubrika.skala`):
+
+```js
+{ sablon?: 'hu15'|'af'|'szazalek',            // csak a felületnek: melyik sablonból indult
+  tipus: 'fokozat',
+  fokozatok: [ { cimke: 1, min: 0 }, { cimke: 2, min: 40 }, ... ] }   // min: % – "legalább ennyi kell"
+// vagy
+{ tipus: 'szazalek' }                         // a jegy a kerekített százalék (0–100)
+```
+
+- A fokozatok a `min` szerint szigorúan növekvők, az első `min` 0 (ez jár, ha semmi más nem ér).
+  A `cimke` szám (1–5) vagy rövid szöveg (A–F, legfeljebb 8 karakter), egyedi (az 1 és az `"1"` ugyanaz).
+  2–15 fokozat lehet. Sablonok: `hu15` (1/2/3/4/5: 0/40/55/70/85%), `af` (F/D/C/B/A: 0/60/70/80/90%), `szazalek`.
+- **Régi feladat** (nincs `skala`): a `rubrika.ponthatarok`-ból (2-es ≥ 40%, 3-as ≥ 55%, 4-es ≥ 70%,
+  5-ös ≥ 85%, alatta 1-es – alapértékek) magyar 1–5 skála épül; ez a szerveren és a böngészőben is
+  ugyanúgy történik (`skalaFeloldas`, `functions/kifejtos.js`). Hibás skála helyett szintén az alap.
+- Az **elküldéskor** a szerver a jegyet a feladat skáláján értelmezi (`jegyNormalizalas`): a skálán
+  nem szereplő jegyet elutasít, és a **skála saját alakját** tárolja (az 1–5-ös jegy továbbra is szám,
+  az A–F-é szöveg, a százaléké egész szám). A tanári visszajelzés a `jegy_tipus` mezőben jegyzi,
+  hogy százalékos skálán áll-e (ekkor a jegy mellé %-jel kerül a megjelenítésben).
+- A skála **fogalmazásnál** csak a jegy-választót adja (az AI ott nem javasol jegyet).
 
 ### 7.9 A javító nézet kifejtős dolgozatnál
 
@@ -1507,14 +1530,14 @@ Csak a működés megértéséhez szükséges; a tárolási technológia lényeg
 | **Felhasználó** | név, e-mail, szerep (tanár/diák/admin), bemutató-állapot | csak saját maga |
 | **Osztály** | név, kód, tanár, aktív/zárt, létszám; tagok (név, e-mail, csatlakozás) | a tanár; a diák a sajátját |
 | **Feladat** | osztály, tanár, cím, határidő, aktív, feladatlap (fájl + link), **rubrika** | a tanár és az osztály diákjai |
-| ↳ rubrika *(fogalmazás)* | nyelv, típus, szint, szószám, szempontok [{kulcs, cím, súly}], AI-kérés, leírás, **kimeneti_nyelv** (`hu`/`en`) | a diák is |
-| ↳ rubrika *(kifejtős)* | mod=`kifejtos`, tantárgy, ponthatárok, „helyes válaszok láthatók", kérdések [{sorszám, max pont}], leírás, **kimeneti_nyelv** | a diák is |
+| ↳ rubrika *(fogalmazás)* | nyelv, típus, szint, szószám, szempontok [{kulcs, cím, súly}], AI-kérés, leírás, **kimeneti_nyelv** (`hu`/`en`), **skala** | a diák is |
+| ↳ rubrika *(kifejtős)* | mod=`kifejtos`, tantárgy, „helyes válaszok láthatók", kérdések [{sorszám, max pont}], leírás, **kimeneti_nyelv**, **skala** | a diák is |
 | **Megoldókulcs** *(kifejtős)* | lásd 7.3; a feltöltött tananyag fájljai | **csak a feladat tanára** |
 | **Elemzés** | a 4.5 szerinti összesítés és AI-szöveg | csak a tanár |
 | **Rubrika-sablon** | név, a rubrika újrahasznosítható része | csak a tulajdonos tanár |
 | **Beadás** | feladat, diák (név másolva), tanár, fotók, **státusz**, átirat, olvashatóság, átíró modell, hibaüzenet; kifejtősnél: válaszok kérdésenként, táblázatcellák | a diák és a tanár |
 | **AI-értékelés** | szempontok/kérdések, pontok, hibák, visszajelzés-javaslat, modell, `javasolt_jegy`, figyelmeztetések | **csak a tanár** |
-| **Tanári visszajelzés** | jegy, szöveg, pontozás (fogalmazás: szempontok; kifejtős: kérdések elemenként), jóváhagyás ideje | a tanár; a diák **csak ha a beadás `elkuldve`** |
+| **Tanári visszajelzés** | jegy, `jegy_tipus`, szöveg, pontozás (fogalmazás: szempontok; kifejtős: kérdések elemenként), jóváhagyás ideje | a tanár; a diák **csak ha a beadás `elkuldve`** |
 
 **Kulcs tervezési döntések:**
 
@@ -1608,11 +1631,12 @@ külön tananyag-feldolgozás kikerült: három AI-hívás helyett egy).
 ### Állapot
 
 - Élesben fut, mobilról is használható (telepíthető alkalmazásként).
-- Automatizált tesztek: az emulátor nélkül futtatható készlet **231** teszt
-  (pontozás, idézet-ellenőrzés, újrapróbálás, promptok, felületi ígéretek, és az
-  új kétnyelvűségi tesztek: 12 + 10). A korábbi, 305-ös összkészlet jogosultsági, függvény- és
-  szabálytesztjei **Firebase-emulátort** igényelnek; ezeket a kétnyelvűségi
-  módosítások után **még nem futtattuk**.
+- Automatizált tesztek: az emulátor nélkül futtatható készlet (pontozás,
+  idézet-ellenőrzés, újrapróbálás, promptok, felületi ígéretek, kétnyelvűségi és
+  jegyskála-tesztek) és a **Firebase-emulátort** igénylő jogosultsági-, függvény- és
+  szabálytesztek együtt **341** tesztet adnak; a jegyskála-munka után mind lefutott (Java 21,
+  `cd tests && npm test`). A `visszajelzesJovahagyas` függvény jegy-ellenőrzését
+  végponttól végpontig nem teszteli semmi (a logikát a `jegyNormalizalas` tesztjei fedik).
 - **Igazi osztállyal még nem próbáltuk.** A fogalmazás útvonalon egyetlen beadás
   futott végig élesben; a kifejtős dolgozat élesben még nem járt valódi
   diákmunkával. A kézírás-felolvasás pontossága, a pontszámok észszerűsége és az
@@ -1635,14 +1659,14 @@ külön tananyag-feldolgozás kikerült: három AI-hívás helyett egy).
 | Nyomtatható feladatlap, A/B csoport | lásd fent |
 | Tananyagtár, kollégák közti megosztás | kivéve az egyszerűsítéskor: a tananyag a feladat kulcsához tartozik |
 | Próbajavítás a létrehozáskor | az ellenőrzés helye a javító nézet |
-| Tanári profilban tárolt ponthatár-alapérték | egyelőre feladatonként állítható |
+| Tanári profilban tárolt jegyskála-alapérték | egyelőre feladatonként állítható; az utoljára használt skálát a böngésző jegyzi meg (nem a fiókhoz kötött) |
 | Word/PowerPoint tananyag | a tanár PDF-be menti |
 | Több feladatot átfogó haladásjelző (javul-e az osztály) | későbbre |
 | Értesítés (e-mail/push) tanári jog kéréséről vagy új beadásról | nincs; a kollégának szólnia kell |
 | Offline beadás | a rendszer hálózatot igényel |
 | Feldolgozási régió megszabása (EU) | tervben; a modell EU-s elérhetőségét előbb ellenőrizni kell |
 | Per-tanár AI-használat mérése | ha többen használják, hasznos lesz |
-| Állítható **jegyskála** (százalék, A–F, GPA…) | a jegy jelenleg magyar 1–5-ös; a ponthatárok (2–5) is erre épülnek |
+| **GPA** (pl. 4.0) és a rubrika-sablonok jegyskálája | az állítható skála kész (4.3, 7.8: magyar 1–5, A–F, százalék, egyéni fokozatok); a GPA más számítás, a mentett rubrika-sablon (`rubrikak`) pedig még nem hordozza a skálát |
 | Más országok **évfolyam-skálája** | a „5-6. évfolyam … érettségi" a magyar iskolarendszer; a célpiac eldöntésekor kell |
 | Harmadik, negyedik felületi nyelv | a váz kész (13.4), de a fordítás és a promptok ellenőrzése munka |
 | Fizetés, előfizetés, használati limit | a program jelenleg nem tartalmaz ilyet |
@@ -1720,7 +1744,7 @@ ha egy kulcs hiányzik (a hiányt a tesztek előbb elkapják).
   szóval, `Névtelen`-ként mentődik, és a diák oldala ezzel az értékkel hasonlít.
   Nemzetközi használat előtt semleges értékre kell cserélni (a szerver ellenőrzésével
   együtt).
-- **A szint-skála és a jegyskála** magyar (lásd 13.5).
+- **A szint-skála** magyar (lásd 13.5); a jegyskála feladatonként állítható (4.3).
 
 ### 13.4 Új nyelv felvétele (ellenőrzőlista)
 
@@ -1740,9 +1764,9 @@ vagy olyan prompt, ami rossz nyelven kér kimenetet.
 
 *(Ezek üzleti és termékdöntések, nem a fordítás részei.)*
 
-- **Jegyskála.** A jegy 1–5 egész szám, a ponthatárok (2-es…5-ös) is erre épülnek,
-  a javító nézet legördülője is. Külföldön százalék, A–F vagy GPA kell, ami
-  állítható skálát jelent (feladatonként vagy tanári profilban).
+- **Jegyskála.** Feladatonként állítható (magyar 1–5, A–F, százalék, egyéni fokozatok; lásd 4.3
+  és 7.8). Hiányzik: a GPA, a skála a mentett rubrika-sablonban, és a tanári profilban tárolt
+  (fiókhoz kötött) alapérték – ma az utoljára használt skálát csak a böngésző jegyzi meg.
 - **Évfolyam-skála.** Az anyanyelvi (magyar) dolgozat „évfolyam" listája a magyar
   iskolarendszerhez kötött. Más országnál más lista kell.
 - **Célpiac.** Konkrét ország még nincs kiválasztva; ettől függ az angol

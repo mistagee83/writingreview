@@ -251,18 +251,127 @@ function ponthatarokEllenorzes(h) {
   return jo ? { 2: szamok[0], 3: szamok[1], 4: szamok[2], 5: szamok[3] } : { ...ALAP_PONTHATAROK };
 }
 
+// ── Jegyskála ─────────────────────────────────────────
+// A feladat rubrikájában (`rubrika.skala`) él:
+//   { tipus: "fokozat", fokozatok: [{ cimke, min }, ...] }
+//       a fokozatok a "min" (% – legalább ennyi kell hozzá) szerint
+//       növekvők, az első min 0 (ez a "ha semmi más nem ér"); a cimke
+//       szám (1–5) vagy rövid szöveg (A–F);
+//   { tipus: "szazalek" }
+//       a "jegy" a kerekített százalék (0–100).
+// A `sablon` mező csak a felületnek jelzi, melyik sablonból indult a skála.
+// Régi feladatnál nincs skála: a `rubrika.ponthatarok` magyar 1–5-ös skálát ad.
+const SKALA_SABLONOK = {
+  hu15: {
+    sablon: "hu15",
+    tipus: "fokozat",
+    fokozatok: [
+      { cimke: 1, min: 0 }, { cimke: 2, min: ALAP_PONTHATAROK[2] }, { cimke: 3, min: ALAP_PONTHATAROK[3] },
+      { cimke: 4, min: ALAP_PONTHATAROK[4] }, { cimke: 5, min: ALAP_PONTHATAROK[5] }
+    ]
+  },
+  af: {
+    sablon: "af",
+    tipus: "fokozat",
+    fokozatok: [
+      { cimke: "F", min: 0 }, { cimke: "D", min: 60 }, { cimke: "C", min: 70 },
+      { cimke: "B", min: 80 }, { cimke: "A", min: 90 }
+    ]
+  },
+  szazalek: { sablon: "szazalek", tipus: "szazalek" }
+};
+const ALAP_SKALA = "hu15";
+const SKALA_FOKOZAT_MIN = 2;
+const SKALA_FOKOZAT_MAX = 15;
+const SKALA_CIMKE_MAX = 8;
+
+/** Mélymásolat, hogy a sablonokat senki ne írhassa át véletlenül. */
+function skalaMasolat(s) {
+  return s.tipus === "szazalek"
+    ? { sablon: s.sablon, tipus: "szazalek" }
+    : { sablon: s.sablon, tipus: "fokozat", fokozatok: s.fokozatok.map((f) => ({ ...f })) };
+}
+
+/**
+ * A skála ellenőrzése. Érvényes → a normalizált skála; különben null
+ * (a hívó dönt: az űrlap hibát mutat, a szerver az alapra esik vissza).
+ */
+function skalaEllenorzes(s) {
+  if (!s || typeof s !== "object") return null;
+  const sablon = typeof s.sablon === "string" ? s.sablon.slice(0, 20) : undefined;
+  if (s.tipus === "szazalek") return { sablon, tipus: "szazalek" };
+  if (s.tipus !== "fokozat" || !Array.isArray(s.fokozatok)) return null;
+  if (s.fokozatok.length < SKALA_FOKOZAT_MIN || s.fokozatok.length > SKALA_FOKOZAT_MAX) return null;
+
+  const fokozatok = [];
+  const latott = new Set();
+  for (const f of s.fokozatok) {
+    if (!f || typeof f !== "object") return null;
+    const min = Number(f.min);
+    if (f.min === "" || f.min === null || !Number.isFinite(min) || min < 0 || min > 100) return null;
+    let cimke = f.cimke;
+    if (typeof cimke === "string") {
+      cimke = cimke.trim();
+      if (!cimke || cimke.length > SKALA_CIMKE_MAX) return null;
+    } else if (!Number.isFinite(cimke)) {
+      return null;
+    }
+    const kulcs = String(cimke);
+    if (latott.has(kulcs)) return null;
+    latott.add(kulcs);
+    fokozatok.push({ cimke, min });
+  }
+  if (fokozatok[0].min !== 0) return null;
+  if (!fokozatok.every((f, i) => i === 0 || f.min > fokozatok[i - 1].min)) return null;
+  return { sablon, tipus: "fokozat", fokozatok };
+}
+
+/**
+ * A feladat tényleges skálája: a rubrika skálája; ennek híján a régi
+ * ponthatárokból épített magyar 1–5; végül az alap (magyar 1–5).
+ */
+function skalaFeloldas(rubrika) {
+  const sajat = skalaEllenorzes(rubrika?.skala);
+  if (sajat) return sajat;
+  const skala = skalaMasolat(SKALA_SABLONOK[ALAP_SKALA]);
+  const h = ponthatarokEllenorzes(rubrika?.ponthatarok);
+  skala.fokozatok.forEach((f) => { if (f.cimke !== 1) f.min = h[f.cimke]; });
+  return skala;
+}
+
+/**
+ * A tanár által megadott jegy a skálán: a skála saját (kanonikus) értéke,
+ * vagy undefined, ha nem szerepel rajta. A szám és a szöveges alak is jó
+ * ("4" ugyanaz, mint 4), a tárolt érték viszont mindig a skáláé.
+ */
+function jegyNormalizalas(jegy, skala) {
+  if (typeof jegy !== "number" && typeof jegy !== "string") return undefined;
+  if (skala.tipus === "szazalek") {
+    const n = typeof jegy === "string" && jegy.trim() === "" ? NaN : Number(jegy);
+    return Number.isInteger(n) && n >= 0 && n <= 100 ? n : undefined;
+  }
+  return skala.fokozatok.find((f) => String(f.cimke) === String(jegy).trim())?.cimke;
+}
+
 /**
  * Jegyjavaslat a pontszámból. A pontos arányt nézzük, nem a kerekített
  * százalékot: 54,6% ne érjen 3-ast 55%-os határnál.
+ *
+ * @param {object} [skala] skála (van `tipus`-a), vagy a régi ponthatárok
+ *   ({2: 40, 3: 55, ...}) – az utóbbi a magyar 1–5-ös skálát adja.
  */
-function jegyJavaslat(pont, max, ponthatarok) {
+function jegyJavaslat(pont, max, skala) {
   if (!(max > 0)) return null;
-  const h = ponthatarokEllenorzes(ponthatarok);
+  const s = skala && typeof skala === "object" && "tipus" in skala
+    ? (skalaEllenorzes(skala) || skalaMasolat(SKALA_SABLONOK[ALAP_SKALA]))
+    : skalaFeloldas({ ponthatarok: skala });
   const sz = (pont / max) * 100;
-  for (const jegy of [5, 4, 3, 2]) {
-    if (sz + 1e-9 >= h[jegy]) return jegy;
+  if (s.tipus === "szazalek") return Math.round(sz);
+  let jegy = s.fokozatok[0].cimke;
+  for (const f of s.fokozatok) {
+    if (sz + 1e-9 >= f.min) jegy = f.cimke;
   }
-  return 1;
+  return jegy;
 }
 
 // ══════════════════════════════════════════════════════
@@ -512,9 +621,9 @@ function elemEllenorzes(kulcsElem, aiElem, valasz) {
  * @param {object} kulcs kulcsEllenorzes() kimenete
  * @param {object} ai az értékelő modell válasza (KIFEJTOS_ERTEKELES_SCHEMA)
  * @param {Map<string,string>} valaszok valaszSzovegek() kimenete
- * @param {object} [ponthatarok]
+ * @param {object} [skala] jegyskála (skalaFeloldas) vagy a régi ponthatárok
  */
-function kifejtosErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
+function kifejtosErtekelesOsszeallitas(kulcs, ai, valaszok, skala) {
   const aiKerdesek = new Map(
     (ai?.kerdesek || []).map((k) => [String(k.sorszam ?? "").trim(), k])
   );
@@ -606,7 +715,7 @@ function kifejtosErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
     osszpontszam,
     max_pontszam: maxPontszam,
     szazalek: maxPontszam > 0 ? Math.round((osszpontszam / maxPontszam) * 100) : null,
-    javasolt_jegy: jegyJavaslat(osszpontszam, maxPontszam, ponthatarok),
+    javasolt_jegy: jegyJavaslat(osszpontszam, maxPontszam, skala),
     hibak,
     figyelmeztetesek,
     diak_szoveg: String(ai?.diak_szoveg ?? "").trim()
@@ -627,7 +736,8 @@ function kifejtosErtekelesOsszeallitas(kulcs, ai, valaszok, ponthatarok) {
  * @param {object} kulcs kulcsEllenorzes() kimenete
  * @param {object} ai az ertekeles/ai dokumentum (kifejtős)
  * @param {Array<{sorszam, elemek?: {id, statusz}[], kulcson_kivul?: {index, elfogadva}[]}>} [modositasok]
- * @param {{ponthatarok?: object, helyesLathato?: boolean}} [opciok]
+ * @param {{skala?: object, ponthatarok?: object, helyesLathato?: boolean}} [opciok]
+ *   a skála a jegyjavaslathoz; ennek híján a régi ponthatárok
  */
 function kifejtosTanariEredmeny(kulcs, ai, modositasok, opciok = {}) {
   const helyesLathato = opciok.helyesLathato !== false;
@@ -723,7 +833,7 @@ function kifejtosTanariEredmeny(kulcs, ai, modositasok, opciok = {}) {
     osszpontszam,
     max_pontszam: maxPontszam,
     szazalek: maxPontszam > 0 ? Math.round((osszpontszam / maxPontszam) * 100) : null,
-    javasolt_jegy: jegyJavaslat(osszpontszam, maxPontszam, opciok.ponthatarok)
+    javasolt_jegy: jegyJavaslat(osszpontszam, maxPontszam, opciok.skala || opciok.ponthatarok)
   };
 }
 
@@ -1431,7 +1541,12 @@ module.exports = {
   idezetEllenorzes,
   sorrendPontozas,
   kerdesPontozas,
+  SKALA_SABLONOK,
+  ALAP_SKALA,
   ponthatarokEllenorzes,
+  skalaEllenorzes,
+  skalaFeloldas,
+  jegyNormalizalas,
   jegyJavaslat,
   kulcsEllenorzes,
   szoszedetGyujtes,
