@@ -1,6 +1,6 @@
 # WritingReview – folytatás másik gépen
 
-*Állapot: 2026-10-02 (pilot + prod; mindkettő deployolva és végigpróbálva, lásd 1. és 5.). Ez a jegyzet azt írja le, hol tart a projekt, hogyan lehet másik gépen
+*Állapot: 2026-10-02 (pilot + prod; mindkettő deployolva és végigpróbálva). Ez a jegyzet azt írja le, hol tart a projekt, hogyan lehet másik gépen
 folytatni, és mi a következő lépés. A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
 
@@ -19,10 +19,9 @@ folytatni, és mi a következő lépés. A program működéséről a
   | Kvóta/előfizetés | nincs | a kód jelzi (`kvota`), **még nincs megvalósítva** |
   | „TESZT” sáv | nincs (a kollégák éles munkára is használják) | nincs |
 
-  **Mindkét környezet a 2026-10-02-i kódon fut** (a pilot megkapta az A. lépés kódját is), és a
-  tulajdonos mindkettőn **végigpróbálta a teljes kört magyarul és angolul** (osztály → feladat →
-  beadás fotóval → AI → jóváhagyás → diák nézete): minden jó. **Kivétel, ami ellenőrizendő:** az
-  utolsó, bekezdés-tagolási javítás (`e87d500`) deployja nem lett rögzítve – lásd 5.
+  **Mindkét környezet a 2026-10-02-i kódon fut** (a `main` `e87d500` commitjáig: minden javítás
+  deployolva a pilotra és a prodra), és a tulajdonos mindkettőn **végigpróbálta a teljes kört
+  magyarul és angolul** (osztály → feladat → beadás fotóval → AI → jóváhagyás → diák nézete): minden jó.
 - **Kétnyelvű (magyar/angol) felület kész**, a teljes felületre: diák és tanári oldalak,
   kifejtős modulok, bemutató. A szerveroldal is: feladatonként állítható visszajelzés-nyelv
   (`rubrika.kimeneti_nyelv`), kódolt szerverhibák.
@@ -111,9 +110,7 @@ cd writingreview
   - a diáknak szóló szöveg **bekezdésekre tagolva** megy ki (`bekezdesekre`, `functions/kifejtos.js`):
     a prompt üres sort kér, a szerver mentés előtt tagol. A régi, már mentett értékeléseket nem
     javítja.
-  - **Deploy-állapot:** a `bekezdesekre` javítás (`e87d500`) deployját ellenőrizd mindkét
-    környezetben: `node scripts/deploy.mjs pilot --only functions`, illetve
-    `node scripts/deploy.mjs prod --yes --only functions`.
+  - **Deploy-állapot:** mind az öt javítás deployolva a pilotra és a prodra is.
 - **Munkaszabály** (a `CLAUDE.md`-ben): hibajavításnál mindig meg kell mondani, melyik környezet
   fut még a régi kóddal, és a párhuzamos kódutat (leveles/kifejtős) is meg kell nézni.
 - **A prod ellenőrzése részben kész.** A teljes kör (osztály → feladat → beadás fotóval → AI →
@@ -156,8 +153,8 @@ cd writingreview
 ## 6. Javasolt következő lépések (sorrendben)
 
 1. **A prod ellenőrző listájának lezárása** (az 5. pont „még nem ellenőriztük” tételei: Storage hely
-   és CORS, költségkeret és riasztás, mentés), és a legutóbbi `bekezdesekre` javítás deployja
-   mindkét környezetben. *(A pilot frissítése és a prod végigpróbálása megtörtént.)*
+   és CORS, költségkeret és riasztás, mentés), 
+   *(A pilot frissítése, a prod végigpróbálása és a javítások deployja megtörtént.)*
 2. **Éles használat figyelése:** a bekezdés-tagolás, az angol vonal visszajelzése valódi
    diákmunkával; a nem magyar kézírás pontossága.
 3. **C. lépés – CI/CD** (`kornyezetek-terv.md` 6.): PR-on tesztek (emulátorral, Java 21),
