@@ -98,7 +98,7 @@ cd writingreview
   (`tests/skala.test.mjs`), de **a pilot és a prod is a régi kódot futtatja, amíg nincs
   deploy** (`node scripts/deploy.mjs pilot` / `prod --yes`, `--only hosting,functions`).
 - **Függő deploy – feladatleírás és jegyjavaslat:** (1) a feladatlap-elemzés `feladat_leiras`
-  mezője azonos nyelven változatlan, más nyelvre E/2-ben készül (leveles: `rubrikaPrompt`,
+  mezője azonos nyelven változatlan, más nyelvre E/2-ben készül (csak az utasítás, olvasmányt nem másol: RECITATION-hiba volt; leveles: `rubrikaPrompt`,
   kifejtős: `kulcsKeszitesPrompt`); (2) a leveles javító nézet jegyjavaslatot mutat a feladat
   skáláján (`public/javitas.html`, élő, a pontokból). Pilot és prod is deploy után kapja.
 - **A prod ellenőrzése nincs végigvíve.** A prodon a belépés, az admin fiók és az oldal működik,

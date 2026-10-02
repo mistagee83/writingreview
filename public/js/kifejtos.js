@@ -1444,10 +1444,11 @@ ${tananyagResz}
 A pontozás szabályairól (számít-e a sorrend, mennyire szigorú a
 szakszóhasználat) NE írj – azokat a tanár állítja be.
 
-A "feladat_leiras" a diákoknak szól (kivetítik), a feladatlap nyelvén:
-ha a lapon van bevezető vagy általános utasítás, azt VÁLTOZATLANUL, szó
-szerint add vissza; ha nincs, 1-2 mondatban, másodikszemélyben (E/2),
-a diákhoz szólva mondd el, miről szól a dolgozat – ne harmadik személyben.
+A "feladat_leiras" a diákoknak szól (kivetítik), a feladatlap nyelvén,
+röviden: a diák teendője. Ha a lapon van bevezető vagy általános utasítás,
+annak megfogalmazását ne változtasd meg; ha nincs, 1-2 mondatban,
+másodikszemélyben (E/2), a diákhoz szólva mondd el, miről szól a dolgozat –
+ne harmadik személyben. Hosszabb szövegrészt a lapról ne másolj át.
 A "cim_javaslat" rövid cím, a "tantargy" a tantárgy neve.`;
 }
 
