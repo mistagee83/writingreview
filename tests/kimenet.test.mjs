@@ -60,8 +60,8 @@ test("rubrika-javaslat: a szempontcímek és a leírás a kért nyelven", () => 
   assert.match(t.rubrikaPrompt("angol", "hu"), /magyar címekkel/);
   const en = t.rubrikaPrompt("angol", "en");
   assert.match(en, /angol címekkel/);
-  assert.match(en, /add angolul/);
-  assert.doesNotMatch(en, /magyar címekkel|add magyarul/);
+  assert.match(en, /mindent angolul adj/);
+  assert.doesNotMatch(en, /magyar címekkel|mindent magyarul adj/);
 });
 
 test("osztályelemzés: az összegzés, a címek és az instrukció a kért nyelven", () => {
@@ -179,11 +179,21 @@ test("minden szerver-hibakódhoz van szöveg mindkét nyelven, és nincs árva k
 test("a feladatleírás: azonos nyelven változatlan, más nyelvre E/2-ben", () => {
   for (const kim of ["hu", "en"]) {
     const p = t.rubrikaPrompt("angol", kim);
-    assert.match(p, /SOHA ne másold át/, kim);
-    assert.doesNotMatch(p, /szó szerint add vissza/, kim);
+    assert.match(p, /ÖSSZEFOGLALVA, 2-4 mondatban/, kim);
+    assert.match(p, /NE hagyd ki/, kim);
     assert.match(p, /másodikszemélyben\s+\(E\/2\)/, kim);
     assert.match(p, /ne harmadik személyben|Soha ne harmadik/, kim);
   }
   assert.match(kf.kulcsKeszitesPrompt("történelem", false), /Hosszabb szövegrészt a lapról ne másolj át/);
   assert.match(kf.kulcsKeszitesPrompt("történelem", false), /másodikszemélyben \(E\/2\)/);
+});
+
+test("minden szabad szöveges mező a kért nyelvet kapja (nincs csendes magyar rész)", () => {
+  const en = t.ertekelesPrompt(feladat("en"), "text");
+  assert.match(en, /KIMENET NYELVE[\s\S]*megjegyzes[\s\S]*erossegek[\s\S]*fejlesztendo[\s\S]*ANGOLUL/);
+  const hu = t.ertekelesPrompt(feladat("hu"), "text");
+  assert.match(hu, /KIMENET NYELVE[\s\S]*MAGYARUL/);
+  const kfEn = kf.kifejtosErtekelesPrompt(
+    { cim: "T", rubrika: { kimeneti_nyelv: "en" } }, { kerdesek: [] }, new Map());
+  assert.match(kfEn, /"magyarazat" angolul/);
 });

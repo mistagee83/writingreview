@@ -636,7 +636,12 @@ ${atirat}
    konstruktív hangnem, 3-5 bekezdés. Kezdd azzal, ami sikerült.
    Ne sorold fel az összes hibát – emeld ki a 2-3 legfontosabbat.
    Ne írj bele pontszámot és jegyet: azt a tanár állapítja meg.
-4. Az "erossegek" és "fejlesztendo" rövid, tömör felsorolások a tanárnak.`;
+4. Az "erossegek" és "fejlesztendo" rövid, tömör felsorolások a tanárnak.
+5. A KIMENET NYELVE: az összes szabad szöveges mező – a szempontonkénti
+   "megjegyzes", a "magyarazat", az "erossegek", a "fejlesztendo" és a
+   "diak_szoveg" – ${kim.hatarozoNagy} készüljön, következetesen, még akkor is, ha
+   a dolgozat más nyelven íródott. Csak az "idezet" és a "javaslat" marad a
+   dolgozat nyelvén (${nyelv}).`;
 }
 
 /**
@@ -667,17 +672,24 @@ ${szintKeres}
   100 legyen – ez csak javaslat, a tanár utólag átskálázhatja (pl. 50
   pontos dolgozatra). A "kulcs" rövid, ékezet nélküli azonosító legyen
   (pl. tartalom, szerkezet, szokincs, nyelvtan).
-- A "feladat_leiras" mezőbe a diák konkrét FELADATA (a teendő, az utasítás)
-  kerül, röviden. Ezt kivetítik a diákoknak, ezért a feladatlap saját
-  utasításaként szóljon hozzájuk. A feladatlap olvasmányát, cikkét, vagy
-  bármely hosszabb szövegrészét SOHA ne másold át, csak magát az utasítást.
-  - Ha a feladatlap nyelve MEGEGYEZIK a kimeneti nyelvvel (${kim.melleknev}), az
-    utasítás megfogalmazását és személyét ne változtasd meg: tartsd meg
-    úgy, ahogy a lapon áll.
-  - Ha a feladatlap MÁS nyelvű, add ${kim.hatarozo}, és másodikszemélyben
-    (E/2) fogalmazd, a diákhoz szólva, ahogy egy feladatlap szokott
-    (pl. "Írj egy levelet…", "Olvastál egy cikket, reagálj rá…").
-    Soha ne harmadik személyben ("A diáknak egy levelet kell írnia…").
+- A "feladat_leiras" mezőbe a diák teljes feladata kerül, úgy, hogy a
+  kivetítve is érthető legyen. Három része van, ebben a sorrendben:
+  1. A HELYZET: a feladatlap bevezetője (pl. kit ír, miért, mi történt).
+  2. A FELADATLAPON SZEREPLŐ SZÖVEG (hirdetés, cikk, levél, e-mail, amire
+     a diák reagál) ÖSSZEFOGLALVA, 2-4 mondatban, a lényeges adatokkal
+     (mi, hol, ki, mit kínálnak, milyen feltétel, kapcsolattartó). Ezt a
+     részt NE hagyd ki: a feladat nélküle nem érthető. Szó szerint, hosszan
+     NE másold át, foglald össze.
+  3. A TEENDŐ: mit kell írni (műfaj, címzett, terjedelem), és a kért
+     tartalmi pontok felsorolva, ahogy a lapon állnak.
+  Ha a feladatlapon nincs ilyen szöveg, a 2. rész elmarad.
+  - Ha a feladatlap nyelve MEGEGYEZIK a kimeneti nyelvvel (${kim.melleknev}), a
+    helyzet és a teendő megfogalmazását és személyét ne változtasd meg
+    (tartsd meg úgy, ahogy a lapon áll), csak a szöveget foglald össze.
+  - Ha a feladatlap MÁS nyelvű, mindent ${kim.hatarozo} adj, és a helyzetet meg
+    a teendőt másodikszemélyben (E/2) fogalmazd, a diákhoz szólva, ahogy egy
+    feladatlap szokott (pl. "Írj egy levelet…", "Olvastál egy cikket,
+    reagálj rá…"). Soha ne harmadik személyben ("A diáknak… kell írnia").
 
 Ha valamit nem lehet kiolvasni a feladatlapból, adj józan
 alapértelmezést – KIVÉVE a szintet: azt inkább hagyd üresen.

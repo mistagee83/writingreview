@@ -1311,6 +1311,7 @@ ${valaszResz}
    levágott részt – ezekért ne büntess.
 5. A "hibak" tömbbe a tartalmi hibákat vedd fel (tévedés, pontatlan
    fogalom, hiányzó elem, rossz sorrend, hiányos kifejtés). Helyesírást ne.
+   A "magyarazat" ${kim.hatarozo} készüljön, az "idezet" a diák nyelvén marad.
 6. Kérdésenként a "visszajelzes" 1-2 mondat a tanárnak, ${kim.hatarozo}.
 7. A "diak_szoveg" a diáknak szóló visszajelzés ${kim.hatarozoNagy}: barátságos,
    konstruktív, 2-4 bekezdés. Kezdd azzal, ami jól sikerült, és emeld ki a
