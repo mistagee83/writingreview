@@ -636,6 +636,8 @@ ${atirat}
    konstruktív hangnem, 3-5 bekezdés. Kezdd azzal, ami sikerült.
    Ne sorold fel az összes hibát – emeld ki a 2-3 legfontosabbat.
    Ne írj bele pontszámot és jegyet: azt a tanár állapítja meg.
+   A bekezdéseket ÜRES SOR válassza el (a szövegben két sortörés), ne
+   egyetlen összefüggő blokkot adj.
 4. Az "erossegek" és "fejlesztendo" rövid, tömör felsorolások a tanárnak.
 5. A KIMENET NYELVE: az összes szabad szöveges mező – a szempontonkénti
    "megjegyzes", a "magyarazat", az "erossegek", a "fejlesztendo" és a
@@ -938,7 +940,7 @@ async function feldolgozBeadas(beadasId) {
       hibak: ertekeles.hibak || [],
       erossegek: ertekeles.erossegek || [],
       fejlesztendo: ertekeles.fejlesztendo || [],
-      diak_szoveg: ertekeles.diak_szoveg || "",
+      diak_szoveg: kifejtos.bekezdesekre(ertekeles.diak_szoveg),
       szoszam: ertekeles.szoszam || null,
       model: ertekelesModell,
       atirat_model: atirasModell,

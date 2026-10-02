@@ -360,6 +360,40 @@ function jegyNormalizalas(jegy, skala) {
 }
 
 /**
+ * A diáknak szóló szöveg bekezdésekre tagolása. A modell néha egyetlen
+ * blokkot ad (a JSON-mezőben a bekezdéshatár "
+
+", amit időnként kihagy).
+ * Ha van üres sor, békén hagyjuk; ha csak sortörések vannak, azokat
+ * bekezdéshatárrá emeljük; ha semmi, a hosszú szöveget mondathatáron
+ * 2-4 nagyjából egyforma bekezdésre vágjuk.
+ */
+function bekezdesekre(szoveg) {
+  const sz = String(szoveg ?? "").replace(/\r\n?/g, "\n").trim();
+  if (!sz) return "";
+  if (/\n\s*\n/.test(sz)) return sz.replace(/\n\s*\n(\s*\n)+/g, "\n\n");
+  if (sz.includes("\n")) return sz.split(/\n+/).map((x) => x.trim()).filter(Boolean).join("\n\n");
+  const CEL = 380;
+  if (sz.length <= CEL * 1.3) return sz;
+  const mondatok = sz.split(/(?<=[.!?…])\s+(?=[\p{Lu}"„'(])/u);
+  if (mondatok.length < 3) return sz;
+  const db = Math.min(4, Math.max(2, Math.round(sz.length / CEL)));
+  const cel = sz.length / db;
+  const bekezdesek = [];
+  let akt = "";
+  for (const m of mondatok) {
+    if (akt && akt.length + m.length / 2 > cel && bekezdesek.length < db - 1) {
+      bekezdesek.push(akt);
+      akt = m;
+    } else {
+      akt = akt ? `${akt} ${m}` : m;
+    }
+  }
+  if (akt) bekezdesek.push(akt);
+  return bekezdesek.join("\n\n");
+}
+
+/**
  * Jegyjavaslat a pontszámból. A pontos arányt nézzük, nem a kerekített
  * százalékot: 54,6% ne érjen 3-ast 55%-os határnál.
  *
@@ -724,7 +758,7 @@ function kifejtosErtekelesOsszeallitas(kulcs, ai, valaszok, skala) {
     javasolt_jegy: jegyJavaslat(osszpontszam, maxPontszam, skala),
     hibak,
     figyelmeztetesek,
-    diak_szoveg: String(ai?.diak_szoveg ?? "").trim()
+    diak_szoveg: bekezdesekre(ai?.diak_szoveg)
   };
 }
 
@@ -1315,7 +1349,9 @@ ${valaszResz}
 6. Kérdésenként a "visszajelzes" 1-2 mondat a tanárnak, ${kim.hatarozo}.
 7. A "diak_szoveg" a diáknak szóló visszajelzés ${kim.hatarozoNagy}: barátságos,
    konstruktív, 2-4 bekezdés. Kezdd azzal, ami jól sikerült, és emeld ki a
-   2-3 legfontosabb hiányt. Ne írj bele pontszámot és jegyet.`;
+   2-3 legfontosabb hiányt. Ne írj bele pontszámot és jegyet.
+   A bekezdéseket ÜRES SOR válassza el (a szövegben két sortörés), ne
+   egyetlen összefüggő blokkot adj.`;
 }
 
 // ══════════════════════════════════════════════════════
@@ -1559,6 +1595,7 @@ export {
   skalaFeloldas,
   jegyNormalizalas,
   jegyJavaslat,
+  bekezdesekre,
   kulcsEllenorzes,
   szoszedetGyujtes,
   valaszSzovegek,

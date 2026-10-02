@@ -197,3 +197,17 @@ test("minden szabad szöveges mező a kért nyelvet kapja (nincs csendes magyar 
     { cim: "T", rubrika: { kimeneti_nyelv: "en" } }, { kerdesek: [] }, new Map());
   assert.match(kfEn, /"magyarazat" angolul/);
 });
+
+test("bekezdesekre(): a diák szövege mindig bekezdésekben megy ki", () => {
+  const hosszu = Array.from({ length: 10 }, (_, i) =>
+    `This is sentence number ${i + 1} of the feedback, and it is fairly long.`).join(" ");
+  const ki = kf.bekezdesekre(hosszu);
+  const reszek = ki.split("\n\n");
+  assert.ok(reszek.length >= 2 && reszek.length <= 4, ki);
+  assert.equal(reszek.join(" "), hosszu, "a szöveg nem változik, csak tagolódik");
+  assert.equal(kf.bekezdesekre("Egy.\n\nKettő."), "Egy.\n\nKettő.");
+  assert.equal(kf.bekezdesekre("Egy.\nKettő."), "Egy.\n\nKettő.");
+  assert.equal(kf.bekezdesekre("Rövid szöveg."), "Rövid szöveg.");
+  assert.equal(kf.bekezdesekre(undefined), "");
+  assert.match(t.ertekelesPrompt(feladat("hu"), "x"), /ÜRES SOR válassza el/);
+});
