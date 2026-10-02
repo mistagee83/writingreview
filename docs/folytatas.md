@@ -1,6 +1,6 @@
 # WritingReview – folytatás másik gépen
 
-*Állapot: 2026-10-01 este (a két környezet szétválasztásával: pilot + prod; frissítve). Ez a jegyzet azt írja le, hol tart a projekt, hogyan lehet másik gépen
+*Állapot: 2026-10-02 (pilot + prod; mindkettő deployolva és végigpróbálva, lásd 1. és 5.). Ez a jegyzet azt írja le, hol tart a projekt, hogyan lehet másik gépen
 folytatni, és mi a következő lépés. A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
 
@@ -19,8 +19,10 @@ folytatni, és mi a következő lépés. A program működéséről a
   | Kvóta/előfizetés | nincs | a kód jelzi (`kvota`), **még nincs megvalósítva** |
   | „TESZT” sáv | nincs (a kollégák éles munkára is használják) | nincs |
 
-  A **pilot éles oldala még a régi kódot futtatja**: az A. lépés (környezeti vezetékezés)
-  után nem volt pilot-deploy. Lásd 6. lépés.
+  **Mindkét környezet a 2026-10-02-i kódon fut** (a pilot megkapta az A. lépés kódját is), és a
+  tulajdonos mindkettőn **végigpróbálta a teljes kört magyarul és angolul** (osztály → feladat →
+  beadás fotóval → AI → jóváhagyás → diák nézete): minden jó. **Kivétel, ami ellenőrizendő:** az
+  utolsó, bekezdés-tagolási javítás (`e87d500`) deployja nem lett rögzítve – lásd 5.
 - **Kétnyelvű (magyar/angol) felület kész**, a teljes felületre: diák és tanári oldalak,
   kifejtős modulok, bemutató. A szerveroldal is: feladatonként állítható visszajelzés-nyelv
   (`rubrika.kimeneti_nyelv`), kódolt szerverhibák.
@@ -93,20 +95,32 @@ cd writingreview
   (hamisítás, visszaélés a kvótával): ehhez kell visszaélés-védelem (pl. e-mail-megerősítés,
   csomaghoz kötött jogosultság, iskolai meghívó/domain, a szerepet kizárólag a szerver állítsa).
   Ez a **D. lépés** része (6. pont), a kvótával és a fizetéssel együtt tervezendő.
-- **Függő deploy – jegyskála mentési hiba:** az egyéni jegyskála mentése `undefined` mező miatt
-  elhasalt (`rubrika.skala.sablon`). A forrásban javítva, regressziós teszttel
-  (`tests/skala.test.mjs`), de **a pilot és a prod is a régi kódot futtatja, amíg nincs
-  deploy** (`node scripts/deploy.mjs pilot` / `prod --yes`, `--only hosting,functions`).
-- **Függő deploy – feladatleírás és jegyjavaslat:** (1) a feladatlap-elemzés `feladat_leiras`
-  mezője azonos nyelven változatlan, más nyelvre E/2-ben készül (csak az utasítás, olvasmányt nem másol: RECITATION-hiba volt; leveles: `rubrikaPrompt`,
-  kifejtős: `kulcsKeszitesPrompt`); (2) a leveles javító nézet jegyjavaslatot mutat a feladat
-  skáláján (`public/javitas.html`, élő, a pontokból). Pilot és prod is deploy után kapja.
-- **A prod ellenőrzése nincs végigvíve.** A prodon a belépés, az admin fiók és az oldal működik,
-  de a teljes kör (osztály → feladat → beadás fotóval → AI → jóváhagyás → diák nézete, magyarul
-  és angolul) **nem lett végigpróbálva**, és nem ellenőriztük: a prod **Storage-bucket helyét**
-  (utólag nem módosítható, EU legyen!), a **Storage CORS-t** (`cors.json`:
-  `gsutil cors set cors.json gs://writerev2.firebasestorage.app`, előtte a címeket nézd meg),
-  a **költségkeretet és riasztást**, a Firestore ütemezett mentését.
+- **Az éles kipróbálás (2026-10-02) során javított hibák** (mind a forrásban, tesztekkel; a
+  `main`-en, commitok: `f54b466`, `b99f2e5`, `88cd7a8`, `e87d500`):
+  - az **egyéni jegyskála mentése** `undefined` mező (`rubrika.skala.sablon`) miatt elhasalt
+    (`tests/skala.test.mjs`);
+  - a **feladatleírás** (`feladat_leiras`) három részből áll: helyzet, a feladatlapon szereplő
+    szöveg (hirdetés, cikk) **összefoglalva**, teendő. Azonos nyelven az utasítás megfogalmazása
+    marad, más nyelvre E/2-ben készül. Olvasmányt nem másol (a „szó szerint add vissza” kérés
+    Gemini `RECITATION`-hibát okozott). Leveles: `rubrikaPrompt`, kifejtős: `kulcsKeszitesPrompt`;
+  - a leveles **javító nézet jegyjavaslatot** mutat a feladat skáláján (élő, a pontokból);
+  - az értékelő prompt **„KIMENET NYELVE”** pontja: a `megjegyzes`, `magyarazat`, `erossegek`,
+    `fejlesztendo` és `diak_szoveg` mind a kért nyelven készül (korábban a tanári rész magyar maradt
+    angol diákszöveg mellett). Ha a tanári rész nyelvét külön kell választani a diákétól, az új
+    beállítás;
+  - a diáknak szóló szöveg **bekezdésekre tagolva** megy ki (`bekezdesekre`, `functions/kifejtos.js`):
+    a prompt üres sort kér, a szerver mentés előtt tagol. A régi, már mentett értékeléseket nem
+    javítja.
+  - **Deploy-állapot:** a `bekezdesekre` javítás (`e87d500`) deployját ellenőrizd mindkét
+    környezetben: `node scripts/deploy.mjs pilot --only functions`, illetve
+    `node scripts/deploy.mjs prod --yes --only functions`.
+- **Munkaszabály** (a `CLAUDE.md`-ben): hibajavításnál mindig meg kell mondani, melyik környezet
+  fut még a régi kóddal, és a párhuzamos kódutat (leveles/kifejtős) is meg kell nézni.
+- **A prod ellenőrzése részben kész.** A teljes kör (osztály → feladat → beadás fotóval → AI →
+  jóváhagyás → diák nézete, magyarul és angolul) **végig lett próbálva**, működik. **Még nem
+  ellenőriztük:** a prod **Storage-bucket helyét** (utólag nem módosítható, EU legyen!), a **Storage
+  CORS-t** (`cors.json`: `gsutil cors set cors.json gs://writerev2.firebasestorage.app`, előtte a
+  címeket nézd meg), a **költségkeretet és riasztást**, a Firestore ütemezett mentését.
 - **Firestore-hely a prodban:** a projekt először véletlenül az USA-ban (`nam5`) kapta az
   `(default)` adatbázist; azt töröltük és `eur3`-mal újra létrehoztuk, **amíg üres volt**. (Egy
   korábbi, `writerev2` nevű üres adatbázist is töröltünk.) Ha új projektet hozol létre, a
@@ -126,14 +140,13 @@ cd writingreview
   JAVA_HOME/PATH-ot a Temurin 21 mappájára kell állítani a futtatás idejére.
 - **A jegy-elküldés** (`visszajelzesJovahagyas`) emulátoros tesztet kapott (`tests/functions.test.mjs`,
   a logika `jovahagyasLogika`-ként kiemelve): skála betöltése, jegy ellenőrzése, tárolás, jogosultság, státusz.
-- **A jegyskála-űrlap és a javító nézet éles kipróbálása** még hátravan (belépéssel): a szerkesztőt
-  böngészőben, a lap többi részétől elkülönítve próbáltuk ki.
+- **A jegyskála-űrlap és a javító nézet** éles kipróbálása megtörtént (egyéni skála mentése, jegyjavaslat
+  a leveles és a kifejtős javításnál).
 - **A mentett rubrika-sablonok nem hordozzák a jegyskálát**, és a skála alapértéke (az utoljára
   használt) csak böngészőnként van meg, nem a tanár fiókjához kötve. A GPA-skála nincs.
 - **A bemutató (`tura-demo.js`) javító nézete** továbbra is fix 1–5 jegyeket mutat.
-- **Éles átkattintás nem történt**: belépéssel, valódi Gemini-hívással az angol felület és az
-  angol AI-visszajelzés még nincs végigpróbálva. A lapok szkriptjeit csak Node-ban, kitalált
-  adatokkal futtattuk.
+- **Éles átkattintás megtörtént** (2026-10-02, pilot és prod, magyar és angol vonal, valódi Gemini-
+  híváson). Nyitva: az angol visszajelzés minőségének értékelése nagyobb mintán, nem magyar kézírás.
 - A `docs/` PDF-je (`WritingReview_mukodesi_leiras.pdf`) elavult és nincs a repóban.
 - A `beadas.hiba` (hibaállapot szövege) technikai, magyar/angol keverék; az AI hibakategóriái
   a javító nézetben nyers kóddal látszanak; a „Névtelen” alapnév magyar adat a profilban.
@@ -142,15 +155,11 @@ cd writingreview
 
 ## 6. Javasolt következő lépések (sorrendben)
 
-1. **A prod végigpróbálása** (smoke teszt, magyarul és angolul): belépés → osztály → feladat →
-   egy beadás végig (fotó → átirat → AI → jóváhagyás → diák nézete), jegyskála. Közben az **5. pont
-   ellenőrző listája** (Storage hely és CORS, költségkeret, mentés). Az első Gemini-hívás a prod
-   kulcsán éles költséggel jár.
-2. **A pilot frissítése az A. lépés kódjával:** `node scripts/deploy.mjs pilot`. **Az első
-   pilot-deployt figyeld**: a `firebase.json` hostingja mostantól hosting-célt (`target: app`)
-   használ, a pilot a saját alapoldalára kötve (`.firebaserc` `targets`). Ami változik a
-   pilotban: a nyelvi tartalék (se mentett nyelv, se hu/en böngésző) magyar lett angol helyett;
-   a CORS a projektből áll össze (ugyanaz a lista). A kollégákat ez nem érinti.
+1. **A prod ellenőrző listájának lezárása** (az 5. pont „még nem ellenőriztük” tételei: Storage hely
+   és CORS, költségkeret és riasztás, mentés), és a legutóbbi `bekezdesekre` javítás deployja
+   mindkét környezetben. *(A pilot frissítése és a prod végigpróbálása megtörtént.)*
+2. **Éles használat figyelése:** a bekezdés-tagolás, az angol vonal visszajelzése valódi
+   diákmunkával; a nem magyar kézírás pontossága.
 3. **C. lépés – CI/CD** (`kornyezetek-terv.md` 6.): PR-on tesztek (emulátorral, Java 21),
    `main`-re automatikus pilot-deploy, verziócímkére prod-deploy kézi jóváhagyással.
 4. **D. lépés – kereskedelmi funkciók** (`kornyezetek-terv.md` 5.): **önkiszolgáló tanári
