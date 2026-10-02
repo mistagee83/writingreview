@@ -93,6 +93,14 @@ cd writingreview
   (hamisítás, visszaélés a kvótával): ehhez kell visszaélés-védelem (pl. e-mail-megerősítés,
   csomaghoz kötött jogosultság, iskolai meghívó/domain, a szerepet kizárólag a szerver állítsa).
   Ez a **D. lépés** része (6. pont), a kvótával és a fizetéssel együtt tervezendő.
+- **Függő deploy – jegyskála mentési hiba:** az egyéni jegyskála mentése `undefined` mező miatt
+  elhasalt (`rubrika.skala.sablon`). A forrásban javítva, regressziós teszttel
+  (`tests/skala.test.mjs`), de **a pilot és a prod is a régi kódot futtatja, amíg nincs
+  deploy** (`node scripts/deploy.mjs pilot` / `prod --yes`, `--only hosting,functions`).
+- **Függő deploy – feladatleírás és jegyjavaslat:** (1) a feladatlap-elemzés `feladat_leiras`
+  mezője azonos nyelven változatlan, más nyelvre E/2-ben készül (leveles: `rubrikaPrompt`,
+  kifejtős: `kulcsKeszitesPrompt`); (2) a leveles javító nézet jegyjavaslatot mutat a feladat
+  skáláján (`public/javitas.html`, élő, a pontokból). Pilot és prod is deploy után kapja.
 - **A prod ellenőrzése nincs végigvíve.** A prodon a belépés, az admin fiók és az oldal működik,
   de a teljes kör (osztály → feladat → beadás fotóval → AI → jóváhagyás → diák nézete, magyarul
   és angolul) **nem lett végigpróbálva**, és nem ellenőriztük: a prod **Storage-bucket helyét**

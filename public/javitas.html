@@ -64,7 +64,7 @@
   import { oldalsav } from './js/nav.js';
   import { statuszBadge, uzenet, uzenetTorles, hibaSzoveg, gombVar, jegyMegjelenit } from './js/ui.js';
   import { kifejtosJavitas } from './js/kifejtos-javitas.js';
-  import { skalaFeloldas } from './js/kifejtos.js';
+  import { skalaFeloldas, jegyJavaslat } from './js/kifejtos.js';
   import {
     db, storage, functions, httpsCallable,
     collection, doc, getDoc, getDocs,
@@ -277,6 +277,7 @@
       // Kifejtős dolgozat: kérdésenkénti javítás a megoldókulcs szerint.
       // A kulcs csak a tanárnak olvasható alkollekcióban van.
       const kifejtosMod = ai?.mod === 'kifejtos';
+      const aiJegy = ai ? jegyJavaslat(ai.osszpontszam, ai.max_pontszam, skala) : null;
       let kulcsAdat = null;
       if (kifejtosMod) {
         const ks = await getDoc(doc(db, 'feladatok', b.feladat_id, 'kulcs', 'aktualis')).catch(() => null);
@@ -333,7 +334,7 @@
         </div>` : ai ? `
         <div class="m-szekcio">
           <h4>${t('jav.ai_ertekeles_cim')}
-            <span class="badge javitva">${t('vj.pont_osszes', { ossz: ai.osszpontszam, max: ai.max_pontszam })}${ai.szazalek != null ? ` · ${ai.szazalek}%` : ''}</span>
+            <span class="badge javitva">${t('vj.pont_osszes', { ossz: ai.osszpontszam, max: ai.max_pontszam })}${ai.szazalek != null ? ` · ${ai.szazalek}%` : ''}${aiJegy != null ? ` · ${esc(jegyMegjelenit(aiJegy, skala.tipus))}` : ''}</span>
           </h4>
           <table class="tabla">
             <thead><tr><th>${t('beadas.szempont')}</th><th>${t('beadas.pont')}</th><th>${t('vj.megjegyzes')}</th></tr></thead>
@@ -412,11 +413,11 @@
       // ── Kifejtős: kérdésenkénti javítás, élő pont és jegyjavaslat ──
       // A jegyet csak addig töltjük elő a javaslattal, amíg a tanár nem
       // választott maga – utána az ő döntése marad.
+      const jegyEl = document.getElementById('m-jegy');
+      let jegyKezzel = tanari?.jegy != null;
+      jegyEl.addEventListener('change', () => { jegyKezzel = true; });
       let kf = null;
       if (kifejtosMod && kulcsAdat) {
-        const jegyEl = document.getElementById('m-jegy');
-        let jegyKezzel = tanari?.jegy != null;
-        jegyEl.addEventListener('change', () => { jegyKezzel = true; });
         try {
           kf = kifejtosJavitas({
             el: document.getElementById('kf-javitas'),
@@ -448,6 +449,11 @@
           max += Number(inp.max) || 0;
         });
         ossz.textContent = `${t('vj.pont_osszes', { ossz: p, max })}${max ? ` · ${Math.round((p / max) * 100)}%` : ''}`;
+        // Jegyjavaslat a feladat skáláján (ugyanúgy, mint a kifejtősnél)
+        const javasolt = jegyJavaslat(p, max, skala);
+        document.getElementById('m-jegy-javaslat').textContent =
+          javasolt != null ? t('jav.javasolt', { jegy: jegyMegjelenit(javasolt, skala.tipus) }) : '';
+        if (!jegyKezzel && javasolt != null) jegyEl.value = String(javasolt);
       };
       torzs.querySelectorAll('.p-pont').forEach((i) => i.addEventListener('input', osszFrissit));
       osszFrissit();

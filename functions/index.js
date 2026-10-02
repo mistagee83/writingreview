@@ -667,8 +667,15 @@ ${szintKeres}
   100 legyen – ez csak javaslat, a tanár utólag átskálázhatja (pl. 50
   pontos dolgozatra). A "kulcs" rövid, ékezet nélküli azonosító legyen
   (pl. tartalom, szerkezet, szokincs, nyelvtan).
-- A "feladat_leiras" mezőbe foglald össze ${kim.hatarozo}, mi a diák konkrét
-  feladata a feladatlap szerint.
+- A "feladat_leiras" mezőbe a diák konkrét feladata kerül. Ezt kivetítik
+  a diákoknak, ezért a feladatlap saját utasításaként szóljon hozzájuk:
+  - Ha a feladatlap nyelve MEGEGYEZIK a kimeneti nyelvvel (${kim.melleknev}), a
+    feladat szövegét VÁLTOZATLANUL, szó szerint add vissza: ne rövidíts, ne
+    foglald össze, ne fogalmazd át.
+  - Ha a feladatlap MÁS nyelvű, fordítsd ${kim.hatarozo}, és másodikszemélyben
+    (E/2) fogalmazd, a diákhoz szólva, ahogy egy feladatlap szokott
+    (pl. "Írj egy levelet…", "Olvastál egy cikket, reagálj rá…").
+    Soha ne harmadik személyben ("A diáknak egy levelet kell írnia…").
 
 Ha valamit nem lehet kiolvasni a feladatlapból, adj józan
 alapértelmezést – KIVÉVE a szintet: azt inkább hagyd üresen.

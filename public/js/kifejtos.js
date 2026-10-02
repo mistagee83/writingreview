@@ -305,7 +305,7 @@ function skalaMasolat(s) {
 function skalaEllenorzes(s) {
   if (!s || typeof s !== "object") return null;
   const sablon = typeof s.sablon === "string" ? s.sablon.slice(0, 20) : undefined;
-  if (s.tipus === "szazalek") return { sablon, tipus: "szazalek" };
+  if (s.tipus === "szazalek") return { ...(sablon && { sablon }), tipus: "szazalek" };
   if (s.tipus !== "fokozat" || !Array.isArray(s.fokozatok)) return null;
   if (s.fokozatok.length < SKALA_FOKOZAT_MIN || s.fokozatok.length > SKALA_FOKOZAT_MAX) return null;
 
@@ -329,7 +329,7 @@ function skalaEllenorzes(s) {
   }
   if (fokozatok[0].min !== 0) return null;
   if (!fokozatok.every((f, i) => i === 0 || f.min > fokozatok[i - 1].min)) return null;
-  return { sablon, tipus: "fokozat", fokozatok };
+  return { ...(sablon && { sablon }), tipus: "fokozat", fokozatok };
 }
 
 /**
@@ -1444,8 +1444,11 @@ ${tananyagResz}
 A pontozás szabályairól (számít-e a sorrend, mennyire szigorú a
 szakszóhasználat) NE írj – azokat a tanár állítja be.
 
-A "feladat_leiras" 1-2 mondatban mondja el a diáknak, miről szól a
-dolgozat. A "cim_javaslat" rövid cím, a "tantargy" a tantárgy neve.`;
+A "feladat_leiras" a diákoknak szól (kivetítik), a feladatlap nyelvén:
+ha a lapon van bevezető vagy általános utasítás, azt VÁLTOZATLANUL, szó
+szerint add vissza; ha nincs, 1-2 mondatban, másodikszemélyben (E/2),
+a diákhoz szólva mondd el, miről szól a dolgozat – ne harmadik személyben.
+A "cim_javaslat" rövid cím, a "tantargy" a tantárgy neve.`;
 }
 
 /**

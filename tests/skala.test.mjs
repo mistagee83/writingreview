@@ -10,7 +10,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { skalaSorokra, skalaSorokbol, sablonNeve } from "../public/js/skala-urlap.js";
-import { SKALA_SABLONOK, skalaFeloldas } from "../public/js/kifejtos.js";
+import { SKALA_SABLONOK, skalaFeloldas, jegyJavaslat } from "../public/js/kifejtos.js";
 
 const sor = (cimke, min) => ({ cimke, min });
 
@@ -69,4 +69,19 @@ test("sablonNeve: felismeri a sablont, minden más egyéni", () => {
   // a sablon átírt határral egyéni
   const modositott = skalaSorokbol("af", skalaSorokra(SKALA_SABLONOK.af).map((s) => (s.cimke === "A" ? sor("A", "95") : s)));
   assert.equal(sablonNeve(modositott.skala), "egyeni");
+});
+
+test("az egyéni skálában nincs undefined mező (a Firestore nem fogadja el)", () => {
+  const nincsUndefined = (o) => Object.values(o).every((v) => v !== undefined);
+  const e = skalaSorokbol("egyeni", [sor("1", "0"), sor("2", "50")]);
+  assert.ok(nincsUndefined(e.skala));
+  assert.ok(!("sablon" in e.skala));
+  const sz = skalaFeloldas({ skala: { tipus: "szazalek" } });
+  assert.ok(nincsUndefined(sz));
+});
+
+test("a leveles javítás jegyjavaslata a feladat skáláján áll (77% → 4)", () => {
+  assert.equal(jegyJavaslat(77, 100, SKALA_SABLONOK.hu15), 4);
+  assert.equal(jegyJavaslat(77, 100, SKALA_SABLONOK.af), "C");
+  assert.equal(jegyJavaslat(77, 100, { tipus: "szazalek" }), 77);
 });
