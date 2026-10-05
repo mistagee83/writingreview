@@ -59,7 +59,7 @@
 </div>
 
 <script type="module">
-  import { t } from './js/i18n.js';
+  import { t, vanKulcs } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { statuszBadge, uzenet, uzenetTorles, hibaSzoveg, gombVar, jegyMegjelenit } from './js/ui.js';
@@ -126,6 +126,13 @@
     return eredmenyCache[kulcs];
   }
 
+  // A kódolt szerverhiba (pl. elfogyott az AI-keret) a felület nyelvén;
+  // kód nélkül (régi vagy technikai hiba) a mentett szöveg.
+  function beadasHibaSzoveg(b) {
+    const kulcs = `szerver.${b.hiba_kod}`;
+    return b.hiba_kod && vanKulcs(kulcs) ? t(kulcs, b.hiba_adat || {}) : b.hiba;
+  }
+
   function eredmenyBadge(e) {
     if (!e) return '';
     const { ai, tanari } = e;
@@ -179,7 +186,7 @@
                 ${b.atirat_olvashatosag === 'gyenge'
                   ? `<span class="badge inaktiv">${t('jav.nehezen_olvashato')}</span>` : ''}
               </div>
-              ${b.hiba ? `<p class="hiba-szoveg">${esc(b.hiba)}</p>` : ''}
+              ${b.hiba ? `<p class="hiba-szoveg">${esc(beadasHibaSzoveg(b))}</p>` : ''}
             </div>
             <div class="list-card-actions">
               <button class="btn-sm" data-akcio="nyit" data-id="${esc(d.id)}">${t('jav.megnyitas')}</button>
