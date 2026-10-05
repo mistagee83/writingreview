@@ -534,6 +534,8 @@ export default {
   "fel.feladatlap_iras": "Feladatlap (kép vagy PDF, nem kötelező)",
   "fel.feladatlap_kifejtos": "Feladatlap – a dolgozat kérdései (kép vagy PDF)",
   "fel.kattints_fajl": "<strong>Kattints ide</strong> vagy húzd ide a fájlt",
+  "fel.beillesztes_tipp": "Képet a vágólapról is beilleszthetsz (Ctrl+V).",
+  "fel.beillesztes_csere": "Lecseréled a feladatlapot a vágólapról beillesztett képpel? Új AI-elemzés indul, ami átírhatja az űrlap mezőit.",
   "fel.fajltipus": "JPG, PNG, PDF – max. 10MB",
   "fel.feltoltes_nelkul": "Feltöltés nélkül a rubrikát kézzel add meg – ilyenkor nem indul AI-elemzés.",
   "fel.fajl_hint": "A meglévő feladatlap megmarad. Csak akkor tölts fel újat, ha cserélni akarod.",

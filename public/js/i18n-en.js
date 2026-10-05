@@ -535,6 +535,8 @@ export default {
   "fel.feladatlap_iras": "Worksheet (image or PDF, optional)",
   "fel.feladatlap_kifejtos": "Worksheet – the test's questions (image or PDF)",
   "fel.kattints_fajl": "<strong>Click here</strong> or drag the file here",
+  "fel.beillesztes_tipp": "You can also paste an image from the clipboard (Ctrl+V).",
+  "fel.beillesztes_csere": "Replace the worksheet with the image pasted from the clipboard? A new AI analysis will start and may overwrite the form fields.",
   "fel.fajltipus": "JPG, PNG, PDF – max. 10 MB",
   "fel.feltoltes_nelkul": "Without an upload, enter the rubric by hand – no AI analysis will run.",
   "fel.fajl_hint": "The existing worksheet is kept. Only upload a new one if you want to replace it.",

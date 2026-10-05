@@ -36,7 +36,7 @@ AI-feldolgozás, egyéni domain. **Éles gyerekadat előtt az adatvédelmi kérd
 A D. lépés új funkciói a pilotra ne hassanak (a kvóta a környezeti konfigon át, `kvota`).
 Nagyobb munka, tervezéssel kezdd: `kornyezetek-terv.md` 5.
 
-## 0/c. AI-használat mérése és admin nézet (2026-10-05) – kód kész, DEPLOYOLATLAN
+## 0/c. AI-használat mérése és admin nézet (2026-10-05) – **pilotra deployolva (14b97eb)**, prodra még nem
 
 A kvóta előtti lépés: **mérni kell, mennyibe kerül egy dolgozat**, mert a csomagárak csak mért adatból
 számolhatók. Mindkét környezetben fut, korlát nélkül.
@@ -48,7 +48,7 @@ számolhatók. Mindkét környezetben fut, korlát nélkül.
   összesítés, bontások és egy csomagár-**számoló**. Lásd `mukodesi-leiras.md` 4.7.
 - **Deploy-hatás:** új Firestore-szabály (`ai_hasznalat`: kliensnek tiltva), módosított függvények, új
   függvény (`aiHasznalatJelentes`), új lap. **Pilot** (a mérésért): `node scripts/deploy.mjs pilot --only
-  hosting,functions,firestore:rules`. **Prod:** címkés kiadással. Amíg nincs deployolva, a környezet nem mér.
+  hosting,functions,firestore:rules`. **Prod:** címkés kiadással. A pilotra 2026-10-05-én kiment (hosting, functions, `firestore:rules`); a prodon addig nem mér, amíg nincs új címkés kiadás. A `gemini-3.7-flash` ára ugyanannyi, mint a 3.8-é (a tulajdonos megerősítése), így nincs ismeretlen árú modell.
 - A **havi kvóta** (egységek, csomagok, admin csomagválasztó) kész, de **még nem kiadásra szánt**: a
   `kvota-wip` ágon van (egy WIP commit). A mért számok után folytatjuk (egység, csomagméretek, szerkeszthető
   csomagok az admin felületen).

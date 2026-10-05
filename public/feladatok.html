@@ -119,6 +119,7 @@
             <div class="upload-icon">📄</div>
             <p data-i18n-html="fel.kattints_fajl"><strong>Kattints ide</strong> vagy húzd ide a fájlt</p>
             <p data-i18n="fel.fajltipus">JPG, PNG, PDF – max. 10MB</p>
+            <p data-i18n="fel.beillesztes_tipp">Képet a vágólapról is beilleszthetsz (Ctrl+V).</p>
             <p data-i18n="fel.feltoltes_nelkul">Feltöltés nélkül a rubrikát kézzel add meg – ilyenkor nem indul AI-elemzés.</p>
           </div>
           <div class="upload-preview" id="upload-preview">
@@ -230,9 +231,10 @@
             <label data-i18n="fel.tananyag_label">Tananyag (nem kötelező)</label>
             <p class="halvany" data-i18n="fel.tananyag_leiras">Amiből a diákok tanultak – ebből készül a megoldókulcs. Ha nincs, az AI a
               saját tudásából dolgozik. PDF vagy kép, legfeljebb 5 fájl.</p>
-            <div class="upload-zone kicsi">
+            <div class="upload-zone kicsi" id="tananyag-zona">
               <input type="file" id="tananyag-fajl" accept="image/*,.pdf" multiple aria-label="Tananyag feltöltése" data-i18n-aria="fel.tananyag_aria" />
               <p data-i18n-html="fel.tananyag_kattints">📚 <strong>Kattints ide</strong> vagy húzd ide a tananyagot</p>
+              <p data-i18n="fel.beillesztes_tipp">Képet a vágólapról is beilleszthetsz (Ctrl+V).</p>
             </div>
             <ul class="fajl-lista" id="tananyag-lista"></ul>
             <div class="msg" id="tananyag-msg"></div>
@@ -306,6 +308,7 @@
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import { atmeretez, tulNagy, meret } from './js/kep.js';
   import { kifejtosUrlap } from './js/kifejtos-urlap.js';
+  import { beillesztesBekotes } from './js/beillesztes.js';
   import { skalaUrlap, skalaMegjegyzes } from './js/skala-urlap.js';
   import {
     db, storage, functions, httpsCallable, writeBatch,
@@ -878,6 +881,19 @@
     } finally {
       tolt.classList.remove('show');
     }
+  });
+
+  // ══════════════════════════════════════════
+  // KÉP BEILLESZTÉSE (Ctrl+V): ugyanazt az utat járja, mint a kiválasztott fájl
+  // ══════════════════════════════════════════
+  beillesztesBekotes({
+    feladatlapZona: document.getElementById('upload-zone'),
+    tananyagZona: document.getElementById('tananyag-zona'),
+    feladatlapMezo: document.getElementById('f-fajl'),
+    tananyagMezo: document.getElementById('tananyag-fajl'),
+    kifejtos: () => aktualisMod() === 'kifejtos',
+    vanFeladatlap: () => Boolean(fajlPath),
+    csereMehet: () => confirm(t('fel.beillesztes_csere'))
   });
 
   // ══════════════════════════════════════════
