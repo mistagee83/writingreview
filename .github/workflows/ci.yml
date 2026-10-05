@@ -1,0 +1,43 @@
+# Tesztek és build. PR-on és a main-re érkezéskor önállóan fut; a prod-folyamat
+# is ezt hívja (workflow_call), hogy deploy csak zöld tesztek után menjen.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  teszt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            functions/package-lock.json
+            tests/package-lock.json
+
+      # A Firestore-emulátornak Java 21 kell (újabb Javával nem indul)
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm install -g firebase-tools
+      - run: npm ci --prefix functions
+      - run: npm ci --prefix tests
+
+      - name: Build (pilot konfig)
+        run: node scripts/build.mjs
+
+      - name: Tesztek (emulátorral)
+        run: npm test --prefix tests
