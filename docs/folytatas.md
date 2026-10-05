@@ -1,8 +1,40 @@
 # WritingReview – folytatás másik gépen
 
-*Állapot: 2026-10-02 (pilot + prod; mindkettő deployolva és végigpróbálva). Ez a jegyzet azt írja le, hol tart a projekt, hogyan lehet másik gépen
+*Állapot: 2026-10-05 (pilot + prod élesben, végigpróbálva; CI/CD kész). Ez a jegyzet azt írja le, hol tart a projekt, hogyan lehet másik gépen
 folytatni, és mi a következő lépés. A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
+
+## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
+
+**Kész és élesben van** (pilot és prod is; a `main` a GitHubon a `976ecd9`-nél és az azt követő
+jegyzet-commitnál tart, a prod a `v1.0.0` címkén fut):
+
+- az éles kipróbálás hibái javítva és deployolva: egyéni jegyskála mentése, a feladatleírás (helyzet +
+  cikk összefoglalva + teendő, E/2), jegyjavaslat a leveles javításnál, a visszajelzés minden mezője a
+  kért nyelven, a diák szövege bekezdésekre tagolva (részletek az 5. pontban);
+- a prod ellenőrző lista lezárva (EU-s tárhely, CORS, Firestore-mentés, költségkeret; a számlázás
+  egy számlán, lásd 5.);
+- **CI/CD kész**: tesztek PR-on és `main`-en; prod-kiadás címkére, kézi jóváhagyással
+  ([`ci-cd.md`](ci-cd.md)). A pilot szándékosan kézi deploy (a kollégák éles munkára használják,
+  funkcióban nem bővül).
+
+**Másik gépen mire figyelj:**
+
+- A prod kiadása **már nem a saját terminálodról megy**: `git tag vX.Y.Z && git push origin vX.Y.Z`,
+  majd a GitHubon (Actions) jóváhagyod. A tesztek a GitHubon futnak (Java 21), helyben nem kell
+  emulátor, ha csak kiadsz.
+- Helyi emulátoros tesztekhez Java 21 kell (a Java 26 nem jó); lásd 2.
+- A `gcloud` és a `firebase` CLI belépését (`hudenagymail@gmail.com`) a másik gépen újra el kell
+  végezni. Git Bash-ben a beillesztés **Shift+Insert**, nem Ctrl+V.
+- A Claude (MI) a prod éles beavatkozásait (deploy, IAM, titkok olvasása) a munkamenetben nem
+  futtathatja; ezeket te végzed a saját terminálodon.
+
+**Következő lépés:** a **D. lépés – kereskedelmi funkciók** (6. pont): érdemes a **tanári
+önregisztrációval** kezdeni (a legközvetlenebb akadály a külső tanárok bevonása előtt), visszaélés-
+védelemmel (diák nem szerezhet tanári jogot); utána kvóta/csomagok, fizetés, jogi dokumentumok, EU-s
+AI-feldolgozás, egyéni domain. **Éles gyerekadat előtt az adatvédelmi kérdéseket tisztázni kell.**
+A D. lépés új funkciói a pilotra ne hassanak (a kvóta a környezeti konfigon át, `kvota`).
+Nagyobb munka, tervezéssel kezdd: `kornyezetek-terv.md` 5.
 
 ## 1. Hol tart most
 
@@ -22,6 +54,9 @@ folytatni, és mi a következő lépés. A program működéséről a
   **Mindkét környezet a 2026-10-02-i kódon fut** (a `main` `e87d500` commitjáig: minden javítás
   deployolva a pilotra és a prodra), és a tulajdonos mindkettőn **végigpróbálta a teljes kört
   magyarul és angolul** (osztály → feladat → beadás fotóval → AI → jóváhagyás → diák nézete): minden jó.
+- **CI/CD működik** (GitHub Actions): a `main`-re és a PR-okra lefutnak a tesztek; a prod-kiadás
+  verziócímkére, kézi jóváhagyással megy (a `prod` environment védi, a címkék szabálya: Tag `v*`).
+  Hitelesítés: Workload Identity Federation a `writerev2` `github-deploy` szolgáltatásfiókjával.
 - **Kétnyelvű (magyar/angol) felület kész**, a teljes felületre: diák és tanári oldalak,
   kifejtős modulok, bemutató. A szerveroldal is: feladatonként állítható visszajelzés-nyelv
   (`rubrika.kimeneti_nyelv`), kódolt szerverhibák.
@@ -64,6 +99,7 @@ cd writingreview
 | Tesztek emulátorral | `cd tests && npm test` (Firestore-emulátor, **Java** kell – lásd 5.) |
 | Build | `node scripts/build.mjs` (a `dist/`-et csinálja; a deploy is lefuttatja) |
 | A kifejtős kliensmodul újragenerálása | `node scripts/kifejtos-kliens.mjs` (a `public/js/kifejtos.js` GENERÁLT, a `functions/kifejtos.js`-ből; **ne szerkeszd kézzel**) |
+| Prod kiadás (CI/CD) | **verziócímkével:** `git tag v1.0.1 && git push origin v1.0.1` → tesztek → **kézi jóváhagyás a GitHubon** (Actions → Review deployments) → deploy a prodra. Lásd [`ci-cd.md`](ci-cd.md). A pilotra nincs automatikus deploy |
 | Deploy | **`node scripts/deploy.mjs pilot [--only ...]`** és **`node scripts/deploy.mjs prod --yes [--only ...]`** (a prod `--yes` nélkül nem megy). Ez köti össze a buildet (`WR_ENV`) és a projektet; sima `firebase deploy` a pilotra menne, de nem a prod konfiggal épülne. Részek: `--only hosting`, `--only functions`, `--only firestore:rules,firestore:indexes,storage` (a szabályok/indexek csak ha változtak) |
 | Build adott környezetre | `node scripts/build.mjs [--env prod]` (alapból pilot; a dist-be a `config/<env>.json` kerül) |
 | Első admin / szerep kinevezése | `cd functions && node scripts/szerep.mjs email@x.hu tanar admin --projekt <projekt-id>` (előtte `gcloud auth application-default login`; `--projekt` nélkül a **pilot**) |
@@ -161,8 +197,9 @@ cd writingreview
 1. *(A prod ellenőrző listája lezárva, a költségkeret is.)*
 2. **Éles használat figyelése:** a bekezdés-tagolás, az angol vonal visszajelzése valódi
    diákmunkával; a nem magyar kézírás pontossága.
-3. **C. lépés – CI/CD** (`kornyezetek-terv.md` 6.): PR-on tesztek (emulátorral, Java 21),
-   `main`-re automatikus pilot-deploy, verziócímkére prod-deploy kézi jóváhagyással.
+3. ~~**C. lépés – CI/CD**~~ **kész** (2026-10-05): `ci.yml` (tesztek PR-on és `main`-en, emulátorral),
+   `prod.yml` (címkére, jóváhagyással, `main`-ről); az első kiadás a `v1.0.0` volt, sikeres. A pilot
+   szándékosan kézi deploy marad. Beállítás és kiadás: [`ci-cd.md`](ci-cd.md).
 4. **D. lépés – kereskedelmi funkciók** (`kornyezetek-terv.md` 5.): **önkiszolgáló tanári
    regisztráció** (a kézi szerepátállítás helyett, lásd 5.), kvóta és csomagok, fizetés,
    jogi dokumentumok, **EU-s AI-feldolgozás** (a Gemini API helyett regionális végpont?),
