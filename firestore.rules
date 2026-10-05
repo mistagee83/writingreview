@@ -61,9 +61,16 @@ service cloud.firestore {
 
       // Regisztrációkor mindenki diák. A szerepet csak a szerver (claim +
       // tükör) állíthatja át.
+      // A tanari_kerelem jelzi, hogy a fiók tanári regisztrációval jött létre;
+      // ez önmagában NEM ad jogot: a tanariRegisztracio Function ellenőrzi
+      // (megerősített e-mail, nincs diákmúlt), és csak az állítja át a szerepet.
+      // Csak létrehozáskor írható (az update lent nem engedi), így egy
+      // meglévő diákfiók utólag nem kérhet tanári jogot.
       allow create: if sajat(uid)
         && request.resource.data.szerep == 'diak'
-        && request.resource.data.keys().hasOnly(['nev', 'email', 'szerep', 'letrehozva']);
+        && request.resource.data.keys().hasOnly(['nev', 'email', 'szerep', 'letrehozva', 'tanari_kerelem'])
+        && (!('tanari_kerelem' in request.resource.data)
+            || request.resource.data.tanari_kerelem == true);
 
       // A nevét átírhatja, a szerepét és az emailjét nem.
       // A tura_* mezők a beépített bemutató állapotát tartják (látott

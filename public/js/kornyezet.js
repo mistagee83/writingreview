@@ -13,6 +13,10 @@
 export const KORNYEZET = "pilot";
 export const ALAPNYELV = "hu";
 export const KVOTA = false;
+// Önkiszolgáló tanári regisztráció (a regisztrációs űrlap „Tanár vagyok” választója).
+// A szerver ugyanezt a KORNYEZET-ből dönti el (functions/kornyezet.js), ezért a
+// kettőnek egyeznie kell – a tests/kornyezet.test.mjs ellenőrzi.
+export const TANARI_ONREGISZTRACIO = false;
 export const TESZT_SAV = false;
 
 // A „TESZT” sáv: a pilot-telepítést jelöli, hogy ne tévesszék össze az

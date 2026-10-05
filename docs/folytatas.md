@@ -36,6 +36,25 @@ AI-feldolgozás, egyéni domain. **Éles gyerekadat előtt az adatvédelmi kérd
 A D. lépés új funkciói a pilotra ne hassanak (a kvóta a környezeti konfigon át, `kvota`).
 Nagyobb munka, tervezéssel kezdd: `kornyezetek-terv.md` 5.
 
+## 0/b. Tanári önregisztráció (2026-10-05) – kód kész, DEPLOYOLATLAN
+
+A D. lépés első része a `main`-en van (commit még nincs), **egyik környezetre sincs deployolva**:
+
+- Regisztrációs űrlap: „Diák vagyok / Tanár vagyok” választó **csak a prodban** (`tanari_onregisztracio`
+  a `config/*.json`-ban). Tanárnál megerősített e-mail kell; a tanári jogot a `tanariRegisztracio`
+  Function adja (megerősített e-mail + `tanari_kerelem` + nincs diákmúlt). Részletek:
+  `mukodesi-leiras.md` (Szerepek), `kornyezetek-terv.md` 5.0.
+- **Deploy-hatás:** a **prod** deployán (címke) a tanári regisztráció **azonnal éles lesz** – kvóta
+  nélkül, mert a kvóta még nincs megépítve; ez a tulajdonos döntése (a regisztrációs cím nincs
+  reklámozva). A **pilot** deployán a Firestore-szabály és a függvény frissül, de a pilotban a
+  választó rejtve van, a függvény pedig elutasít (`onregisztracio_ki`): a pilot viselkedése változatlan.
+  A prod deploy **tartalmaz szabályváltozást** is (`firestore:rules`), a függvény új: `tanariRegisztracio`.
+- **Prod-teendő a konzolon (a tulajdonosé):** Authentication → Templates → *Email address
+  verification*: a levél feladója/szövege/nyelve itt szabható (a kód a felület nyelvét küldi el). Az
+  Authentication engedélyezett domainjei között a prod cím már szerepel (B. lépés).
+- **Nyitott:** kvóta/próbacsomag (5.1), eldobható e-mail-címek elleni védelem (a megerősítés csak a
+  cím birtoklását bizonyítja), iskolai meghívó/domain. A kvótáig a prod nyilvános kiadása nem javasolt.
+
 ## 1. Hol tart most
 
 - **Két telepítés, egy kódbázis** (lásd [`kornyezetek-terv.md`](kornyezetek-terv.md)):

@@ -35,6 +35,7 @@ export function konfigHibak(cfg, { kitoltott = false } = {}) {
   if (!NYELVEK.includes(cfg?.alapnyelv)) hibak.push("alapnyelv: hu vagy en");
   if (typeof cfg?.teszt_sav !== "boolean") hibak.push("teszt_sav: logikai érték kell");
   if (typeof cfg?.kvota !== "boolean") hibak.push("kvota: logikai érték kell");
+  if (typeof cfg?.tanari_onregisztracio !== "boolean") hibak.push("tanari_onregisztracio: logikai érték kell");
   if (typeof cfg?.projekt !== "string") hibak.push("projekt: szöveg kell");
   const wc = cfg?.webConfig;
   for (const k of WEB_KONFIG_KULCSOK) {
@@ -56,6 +57,7 @@ export function kornyezetJs(cfg, sablon) {
     KORNYEZET: JSON.stringify(cfg.kornyezet),
     ALAPNYELV: JSON.stringify(cfg.alapnyelv),
     KVOTA: JSON.stringify(cfg.kvota),
+    TANARI_ONREGISZTRACIO: JSON.stringify(cfg.tanari_onregisztracio),
     TESZT_SAV: JSON.stringify(cfg.teszt_sav)
   };
   let ki = sablon;

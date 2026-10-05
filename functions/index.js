@@ -144,7 +144,11 @@ const HIBA_SZOVEG = {
   nincs_kiertekelt: () => "Ehhez a feladathoz még nincs kiértékelt beadás.",
   kulcs_feladatlap_kell: () => "A kulcshoz feladatlap kell – töltsd fel előbb.",
   max_tananyag: (p) => `Legfeljebb ${p.max} tananyag-fájl tölthető fel.`,
-  kulcs_meret: () => "A feladatlap és a tananyag együtt túl nagy (legfeljebb 14 MB). Hagyd el a tananyag felesleges részeit."
+  kulcs_meret: () => "A feladatlap és a tananyag együtt túl nagy (legfeljebb 14 MB). Hagyd el a tananyag felesleges részeit.",
+  onregisztracio_ki: () => "Az önálló tanári regisztráció ebben a környezetben nincs bekapcsolva.",
+  email_nincs_megerositve: () => "Előbb erősítsd meg az e-mail-címedet a kapott levélben.",
+  tanari_kerelem_hianyzik: () => "Ez a fiók nem tanári regisztrációval jött létre. Regisztrálj új fiókot tanárként.",
+  mar_diak_hasznalo: () => "Ez a fiók már diákként használatban van, ezért tanári jogot nem kaphat."
 };
 
 /** Kódolt HttpsError: magyar üzenet + details.kod a kliens fordításához. */
@@ -1293,6 +1297,7 @@ exports._teszt = {
   osztalyLetrehozasLogika,
   csatlakozasLogika,
   jovahagyasLogika,
+  tanariRegisztracioLogika,
   BEALLITASOK,
   kodGeneralas,
   geminiHivas,
@@ -1571,6 +1576,80 @@ exports.szerepBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
       throw hiba("not-found", "nincs_felhasznalo");
     }
     logger.error("szerepBeallitas hiba", { cel: uid, hiba: e.message });
+    throw belsoHiba(e);
+  }
+});
+
+// ── ÖNKISZOLGÁLÓ TANÁRI REGISZTRÁCIÓ ──
+// A tanári szerepet kizárólag ez a szerveroldali lépés adhatja meg magának
+// a felhasználó; a kliens csak kéri. Feltételek (mind kell):
+//   1. a környezetben be van kapcsolva (prod; a pilotban az admin ad szerepet),
+//   2. az e-mail-címe MEGERŐSÍTETT – az Auth-rekordból olvassuk, nem a tokenből,
+//      mert a token a megerősítés után még elavult lehet,
+//   3. a fiók tanári regisztrációval jött létre (felhasznalok.tanari_kerelem:
+//      a szabályok csak létrehozáskor engedik írni, utólag nem), tehát egy
+//      korábbi diákfiók nem léptetheti elő magát,
+//   4. még nem használta diákként (nem tagja osztálynak).
+// Ismételt hívás ártalmatlan: aki már tanár, változatlanul az marad.
+// Az `authKliens` paraméter (getUser, setCustomUserClaims) a tesztek miatt
+// cserélhető; élesben a firebase-admin Auth-ja.
+async function tanariRegisztracioLogika(firestore, authKliens, uid, beallitasok) {
+  if (!beallitasok.tanariOnregisztracio) {
+    throw hiba("failed-precondition", "onregisztracio_ki");
+  }
+
+  let user;
+  try {
+    user = await authKliens.getUser(uid);
+  } catch (e) {
+    if (e.code === "auth/user-not-found") throw hiba("not-found", "nincs_felhasznalo");
+    throw e;
+  }
+
+  const profilRef = firestore.collection("felhasznalok").doc(uid);
+
+  if (user.customClaims?.szerep === "tanar") {
+    // Egy korábbi, félbemaradt hívás után a tükör lemaradhatott.
+    await profilRef.set({ szerep: "tanar" }, { merge: true });
+    return { szerep: "tanar", mar_tanar: true };
+  }
+
+  if (!user.email || !user.emailVerified) {
+    throw hiba("failed-precondition", "email_nincs_megerositve");
+  }
+
+  const profil = (await profilRef.get()).data();
+  if (profil?.tanari_kerelem !== true) {
+    logger.warn("Tanári regisztráció tanári kérelem nélkül", { uid });
+    throw hiba("permission-denied", "tanari_kerelem_hianyzik");
+  }
+
+  const osztalyaim = await profilRef.collection("osztalyaim").limit(1).get();
+  if (!osztalyaim.empty) {
+    logger.warn("Tanári regisztráció diákként használt fiókkal", { uid });
+    throw hiba("permission-denied", "mar_diak_hasznalo");
+  }
+
+  // Claim-összefűzés: az admin jelző (ha lenne) megmarad.
+  await authKliens.setCustomUserClaims(
+    uid, claimOsszefuzes(user.customClaims, { szerep: "tanar" })
+  );
+  await profilRef.set(
+    { szerep: "tanar", tanar_regisztralt: FieldValue.serverTimestamp() },
+    { merge: true }
+  );
+
+  logger.info("Önkiszolgáló tanári regisztráció", { uid });
+  return { szerep: "tanar", mar_tanar: false };
+}
+
+exports.tanariRegisztracio = onCall(HIVAS_OPCIOK, async (request) => {
+  const uid = belepve(request);
+  try {
+    return await tanariRegisztracioLogika(db(), getAuth(), uid, BEALLITASOK);
+  } catch (e) {
+    if (e instanceof HttpsError) throw e;
+    logger.error("tanariRegisztracio hiba", { uid, hiba: e.message });
     throw belsoHiba(e);
   }
 });

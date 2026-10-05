@@ -123,6 +123,61 @@ test("a diák NEM írhatja át a saját email címét", async () => {
   );
 });
 
+// ── ÖNKISZOLGÁLÓ TANÁRI REGISZTRÁCIÓ ──
+// A tanari_kerelem csak jelzés a regisztrációkor; a tanári jogot kizárólag a
+// tanariRegisztracio Function adja. A kliens semmiképp nem lehet tanár.
+
+const UJ = "uj-felhasznalo-uid";
+const ujFelh = () => env.authenticatedContext(UJ).firestore();
+const ujProfil = (extra = {}) => ({
+  nev: "Új Tanár", email: "uj@iskola.hu", szerep: "diak", letrehozva: new Date(), ...extra
+});
+
+test("regisztrációkor kérhető a tanári regisztráció jelzése, de a profil diák marad", async () => {
+  await assertSucceeds(
+    setDoc(doc(ujFelh(), "felhasznalok", UJ), ujProfil({ tanari_kerelem: true }))
+  );
+});
+
+test("a tanari_kerelem csak igaz lehet", async () => {
+  await assertFails(
+    setDoc(doc(ujFelh(), "felhasznalok", UJ), ujProfil({ tanari_kerelem: false }))
+  );
+  await assertFails(
+    setDoc(doc(ujFelh(), "felhasznalok", UJ), ujProfil({ tanari_kerelem: "igen" }))
+  );
+});
+
+test("regisztrációkor a profilba nem írható közvetlenül a tanári szerep", async () => {
+  await assertFails(
+    setDoc(doc(ujFelh(), "felhasznalok", UJ), ujProfil({ szerep: "tanar", tanari_kerelem: true }))
+  );
+});
+
+test("regisztrációkor nem írhatók be a szerver mezői (tanar_regisztralt)", async () => {
+  await assertFails(
+    setDoc(doc(ujFelh(), "felhasznalok", UJ), ujProfil({ tanar_regisztralt: new Date() }))
+  );
+});
+
+test("a meglévő diák utólag NEM kérhet tanári regisztrációt (a jelzés csak létrehozáskor írható)", async () => {
+  await assertFails(
+    updateDoc(doc(diak(), "felhasznalok", DIAK), { tanari_kerelem: true })
+  );
+});
+
+test("a tanari_kerelem utólag nem is törölhető/módosítható a kliensről", async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "felhasznalok", UJ), ujProfil({ tanari_kerelem: true }));
+  });
+  await assertFails(
+    updateDoc(doc(ujFelh(), "felhasznalok", UJ), { tanari_kerelem: false })
+  );
+  await assertFails(
+    updateDoc(doc(ujFelh(), "felhasznalok", UJ), { szerep: "tanar" })
+  );
+});
+
 // ── A BEMUTATÓ ÁLLAPOTA ──
 // A saját profiljában tárolja, hogy látta-e már a bemutatót. Enélkül
 // minden gépen újra felnyílna, de a mező NEM lehet szabad tárhely.

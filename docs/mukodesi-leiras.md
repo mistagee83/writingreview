@@ -140,7 +140,9 @@ Két fül: **Belépés** és **Regisztráció**.
 
 - **E-mail + jelszó** vagy **Google-fiók**. Regisztrációnál kötelező a teljes
   név (a Google-nál a fiók neve jön), a jelszó legalább 6 karakter.
-- **Mindenki diákként regisztrál.** Sikeres belépés után a szerep szerint
+- **Mindenki diákként regisztrál** – kivéve a kereskedelmi (prod) telepítésben, ahol a
+  regisztrációs fülön **„Diák vagyok / Tanár vagyok”** választó van (alapérték: diák; a
+  pilotban nincs). Lásd lent: *Szerepek*. Sikeres belépés után a szerep szerint
   irányít át: diák → *Feladataim*, tanár → *Főoldal*.
 - A hibák érthető üzenetek a felület nyelvén (hibás jelszó, már regisztrált
   e-mail, túl sok próbálkozás, hálózati hiba, blokkolt felugró ablak…).
@@ -160,10 +162,29 @@ Két fül: **Belépés** és **Regisztráció**.
 | **tanár** | osztályt és feladatot hoz létre, a saját diákjai beadásait látja, javít, elemzést kér |
 | **admin** | tanár mellett szerepeket oszt (külön jelző, nem külön szerep) |
 
-**Tanárrá az admin nevezi ki** a *Szerepkezelés* oldalon (lásd 4.6); ez az
+**Tanárrá az admin nevezi ki** a *Szerepkezelés* oldalon (lásd 4.6) – a pilotban ez az
 egyetlen út. Az első admint egy parancssoros szkripttel kell kinevezni. A
 szerepváltás a felhasználó következő oldalbetöltésekor lép érvénybe; ha mégsem,
 ki- és belépés után biztosan.
+
+**Önkiszolgáló tanári regisztráció (csak prod).** A „Tanár vagyok” választással
+regisztráló felhasználó profilja `tanari_kerelem: true` jelzést kap (ezt a szabályok
+csak létrehozáskor engedik írni), majd a következők történnek:
+
+1. E-mail+jelszó esetén megerősítő levelet kap (a felület nyelvén); a lap addig a
+   „Erősítsd meg az e-mail-címed” nézetet mutatja (újraküldés, kilépés lehetséges).
+   Google-fióknál az e-mail eleve megerősített.
+2. A megerősítés után a kliens a `tanariRegisztracio` függvényt hívja. A **szerver**
+   ellenőrzi: a környezetben be van-e kapcsolva, az Auth-rekordban megerősített-e az
+   e-mail, van-e `tanari_kerelem` a profilban, és hogy a fiók nem lett-e már diákként
+   használva (osztály tagja). Csak ezután állítja a `szerep: 'tanar'` claimet (az
+   admin jelzőt megőrizve) és a Firestore-tükröt.
+3. A kliens új tokent kér, és a tanári főoldalra lép.
+
+Megszakadt regisztráció után (bezárt lap) a belépés ugyanebbe a nézetbe visz vissza.
+A meglévő diákfiókok nem léptethetők elő önállóan (nincs `tanari_kerelem`); nekik
+az admin marad, vagy új e-mail-címmel új, tanári fiók. A kvótát és a próbacsomagot
+ez a lépés még nem érinti (lásd `kornyezetek-terv.md` 5.1).
 
 Minden védett oldal belépéskor ellenőrzi a szerepet: rossz szereppel a saját
 kezdőlapra irányít; ha a fiók tanárként szerepel, de a jogosultság még nincs

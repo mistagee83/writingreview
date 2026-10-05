@@ -4,6 +4,7 @@
   "alapnyelv": "hu",
   "teszt_sav": false,
   "kvota": false,
+  "tanari_onregisztracio": false,
   "webConfig": {
     "apiKey": "AIzaSyB7d7ilMAAePfI-v43j-d8XiMwaVUDPQFY",
     "authDomain": "writingreview-41e59.firebaseapp.com",

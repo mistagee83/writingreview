@@ -35,6 +35,9 @@ function beallitasok(env = process.env) {
     projekt,
     // A kvóta csak a kereskedelmi verzióban él (a pilot nem korlátoz).
     kvota: kornyezet === "prod",
+    // Az önkiszolgáló tanári regisztráció ugyanígy csak a kereskedelmi verzióban él;
+    // a pilotban a tanári szerepet továbbra is az admin adja.
+    tanariOnregisztracio: kornyezet === "prod",
     cors: corsLista(projekt, env.ENGEDELYEZETT_DOMAINEK)
   };
 }

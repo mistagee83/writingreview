@@ -111,6 +111,19 @@ body.auth-page {
 }
 .tab-btn.active { background: var(--ink); color: #fff; }
 
+/* ── REGISZTRÁCIÓ: diák / tanár választó (csak ott látszik, ahol be van kapcsolva) ── */
+.szerep-valaszto { margin-bottom: 0; }
+.szerep-valaszto .tab-btn[aria-checked="true"] { background: var(--ink); color: #fff; }
+
+/* ── TANÁRI REGISZTRÁCIÓ: e-mail-megerősítés ── */
+.megerosites h3 { font-size: 1.1rem; margin-bottom: 0.6rem; }
+.megerosites p { color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.2rem; }
+.megerosites .btn-google { margin-top: 0.6rem; }
+.megerosites .btn-kilepes {
+  display: block; margin: 1rem auto 0; background: none; border: none;
+  color: var(--muted); font: inherit; font-size: 0.85rem; text-decoration: underline; cursor: pointer;
+}
+
 /* ── FORM: a belépő oldalon teljes szélességű gombok ── */
 .auth-card .form-group { margin-bottom: 1rem; }
 .auth-card .btn-primary {

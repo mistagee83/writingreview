@@ -42,6 +42,7 @@ export {
   signOut,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   signInWithPopup,
   getRedirectResult
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";

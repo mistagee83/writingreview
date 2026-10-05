@@ -55,12 +55,25 @@ test("a kereskedelmi verzió jellemzői: angol alapnyelv és kvóta; a pilot mag
   assert.equal(prod.kvota, true);
 });
 
+test("az önkiszolgáló tanári regisztráció csak a kereskedelmi verzióban él, a kliens és a szerver egyezően", () => {
+  assert.equal(pilot.tanari_onregisztracio, false);
+  assert.equal(prod.tanari_onregisztracio, true);
+  // a szerver ugyanazt dönti el a KORNYEZET-ből, mint a kliens konfigja
+  assert.equal(beallitasok({ KORNYEZET: "pilot" }).tanariOnregisztracio, pilot.tanari_onregisztracio);
+  assert.equal(beallitasok({ KORNYEZET: "prod" }).tanariOnregisztracio, prod.tanari_onregisztracio);
+  // ismeretlen/hiányzó környezet → pilot → kikapcsolva (a biztonságos irány)
+  assert.equal(beallitasok({}).tanariOnregisztracio, false);
+  // a public/ (helyi előnézet, pilot) kikapcsolva
+  assert.match(publikus("kornyezet.js"), /export const TANARI_ONREGISZTRACIO = false;/);
+});
+
 test("a konfig-ellenőrzés elkapja a hibás értékeket", () => {
   const rossz = structuredClone(pilot);
   rossz.alapnyelv = "de";
   rossz.kvota = "igen";
+  rossz.tanari_onregisztracio = 1;
   delete rossz.webConfig.appId;
-  assert.equal(konfigHibak(rossz).length, 3);
+  assert.equal(konfigHibak(rossz).length, 4);
 
   const eltero = structuredClone(pilot);
   eltero.webConfig.projectId = "masik-projekt";
@@ -91,6 +104,7 @@ test("a prod konfig a kornyezet.js és a firebase-config.js megfelelő részeit 
   assert.match(k, /export const KORNYEZET = "prod";/);
   assert.match(k, /export const ALAPNYELV = "en";/);
   assert.match(k, /export const KVOTA = true;/);
+  assert.match(k, /export const TANARI_ONREGISZTRACIO = true;/);
   assert.match(k, /export const TESZT_SAV = false;/);
 
   const fc = firebaseConfigCsere(publikus("firebase-config.js"), kesz.webConfig);

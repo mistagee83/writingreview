@@ -4,6 +4,7 @@
   "alapnyelv": "en",
   "teszt_sav": false,
   "kvota": true,
+  "tanari_onregisztracio": true,
   "webConfig": {
     "apiKey": "AIzaSyAw9teit8cYFK_bBNCap_G2wIg0Eub8YiU",
     "authDomain": "writerev2.firebaseapp.com",
