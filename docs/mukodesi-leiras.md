@@ -438,9 +438,16 @@ a „Kulcs készítése” gombra (megoldókulcs), és az osztályelemzéskor.
 **Az oldal.** Hónap szerint: hívásszám, becsült költség (USD), költség egy dolgozatra (leveles, kifejtős,
 összesen), műveletek, modellek, tanárok és a legdrágább feladatok szerinti bontás. A költséget a
 `functions/ai-hasznalat.js` **ár-táblája** adja a tokenekből (USD / 1 M token; ismeretlen modellnél üres,
-és az oldal jelzi). A **számoló** a mért átlagból megmondja, mennyibe kerül egy csomag, mekkora az árrés,
-és hány dolgozatnál nulla az árrés; az árfolyamok és az ár-szorzó átírhatók (a 3.8 Flash ára a kód
-kommentje szerint 2027-01-01-től duplázódik). A fizetési szolgáltató díja és az áfa nincs benne.
+és az oldal jelzi). A **számoló** a mért átlagból dolgozik, és két dolgot ad: (1) a **beírt csomagár eredményét** (AI-költség, fizetési díj,
+nettó bevétel, árrés, nullpont), és (2) egy **ajánlott csomagárat a célárréshez**, csomagméretenként (10–500 dolgozat).
+Modell: a vevő a bruttó (áfás) árat fizeti; nettó bevétel = bruttó / (1 + áfa); a fizetési díj a teljes összegből
+megy (díj% + fix); árrés = nettó − díj − AI-költség. Az ajánlott ár = (fix + AI-költség) / ((1 − célárrés)/(1 + áfa) − díj%),
+felfelé kerekítve 0,5 €-ra. A Stripe magyarországi alapdíjai előre beállítva (standard EGT-s kártya 1,5% + 85 Ft,
+prémium EGT-s 2,8%, brit 2,5%, nem EGT-s 3,15%, előfizetés-kezelés +0,7%, valutaváltás +2%; forrás: stripe.com/en-hu/pricing,
+2026-10), de mind átírható; az áfa alapértéke 27%. Az árfolyamok és az ár-szorzó is átírhatók (a 3.8 Flash ára a kód kommentje
+szerint 2027-01-01-től duplázódik). A képletek a `public/js/arszamolo.js`-ben vannak, tesztelve (`tests/arszamolo.test.mjs`).
+**Nincs benne:** az ingyenes csomagok költsége, a nem kihasznált keret (az javít rajta), hosting, könyvelés, működési költség;
+az EU-s áfa a vevő országa szerint változhat – könyvelővel egyeztetni kell.
 
 ---
 
