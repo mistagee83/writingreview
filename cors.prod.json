@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["https://writing-review.web.app", "https://writing-review.firebaseapp.com"],
+    "method": ["GET", "POST", "PUT", "DELETE"],
+    "maxAgeSeconds": 3600
+  }
+]

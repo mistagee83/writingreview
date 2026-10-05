@@ -113,11 +113,17 @@ cd writingreview
   - **Deploy-állapot:** mind az öt javítás deployolva a pilotra és a prodra is.
 - **Munkaszabály** (a `CLAUDE.md`-ben): hibajavításnál mindig meg kell mondani, melyik környezet
   fut még a régi kóddal, és a párhuzamos kódutat (leveles/kifejtős) is meg kell nézni.
-- **A prod ellenőrzése részben kész.** A teljes kör (osztály → feladat → beadás fotóval → AI →
-  jóváhagyás → diák nézete, magyarul és angolul) **végig lett próbálva**, működik. **Még nem
-  ellenőriztük:** a prod **Storage-bucket helyét** (utólag nem módosítható, EU legyen!), a **Storage
-  CORS-t** (`cors.json`: `gsutil cors set cors.json gs://writerev2.firebasestorage.app`, előtte a
-  címeket nézd meg), a **költségkeretet és riasztást**, a Firestore ütemezett mentését.
+- **A prod ellenőrzése kész** (2026-10-05). A teljes kör végig lett próbálva. Ellenőrizve: a
+  **Storage-bucket** EU-ban van (`europe-central2`), a **Storage CORS** csak a két prod címet engedi
+  (`cors.prod.json`; a pilot `cors.json`-ja `*`), a Firestore-on **pont-időbeli visszaállítás** és
+  **törlésvédelem** be van kapcsolva, **napi mentés** fut 14 napos megőrzéssel, a **költségkeret és
+  riasztás** beállítva (a tulajdonos állítása, a konzolon).
+- **Számlázás:** a prod költségei egy számlán vannak: **„Writing review_commercial”**
+  (`01C3E4-FF8451-46A92E`) alatt a `writerev2` (Firebase) és a `gen-lang-client-0529329642`
+  („Writing-review”, **ebben van a Gemini API-kulcs**, az AI-hívások költsége ide megy). A pilot
+  (`writingreview-41e59`) a „Firebase Payment” számlán van (`01509C-259013-0B3D6E`). A Gemini
+  költsége annak a projektnek a számláján jelenik meg, amelyben a kulcs létrejött, nem a
+  Firebase-projekten.
 - **Firestore-hely a prodban:** a projekt először véletlenül az USA-ban (`nam5`) kapta az
   `(default)` adatbázist; azt töröltük és `eur3`-mal újra létrehoztuk, **amíg üres volt**. (Egy
   korábbi, `writerev2` nevű üres adatbázist is töröltünk.) Ha új projektet hozol létre, a
@@ -152,9 +158,7 @@ cd writingreview
 
 ## 6. Javasolt következő lépések (sorrendben)
 
-1. **A prod ellenőrző listájának lezárása** (az 5. pont „még nem ellenőriztük” tételei: Storage hely
-   és CORS, költségkeret és riasztás, mentés), 
-   *(A pilot frissítése, a prod végigpróbálása és a javítások deployja megtörtént.)*
+1. *(A prod ellenőrző listája lezárva, a költségkeret is.)*
 2. **Éles használat figyelése:** a bekezdés-tagolás, az angol vonal visszajelzése valódi
    diákmunkával; a nem magyar kézírás pontossága.
 3. **C. lépés – CI/CD** (`kornyezetek-terv.md` 6.): PR-on tesztek (emulátorral, Java 21),
