@@ -24,6 +24,7 @@ const { getStorage } = require("firebase-admin/storage");
 const logger = require("firebase-functions/logger");
 const kifejtos = require("./kifejtos");
 const kornyezet = require("./kornyezet");
+const aiHasznalat = require("./ai-hasznalat");
 
 initializeApp();
 
@@ -260,7 +261,8 @@ async function geminiKeres(modell, parts, schema) {
   }
 
   try {
-    return JSON.parse(szoveg);
+    // A tokenszámot is visszaadjuk (usageMetadata): a költség mérése ebből jön.
+    return { eredmeny: JSON.parse(szoveg), hasznalat: aiHasznalat.hasznalatKinyeres(json) };
   } catch (_) {
     // responseSchema mellett ez nem szokott előfordulni, de ha mégis,
     // legyen értelmezhető a hibanapló.
@@ -281,15 +283,18 @@ async function geminiKeres(modell, parts, schema) {
  * kell átírni.
  *
  * @param {string} lepes 'atiras' | 'ertekeles' | 'rubrika'
- * @returns {Promise<{eredmeny: object, modell: string}>} a válasz és az,
- *   hogy VÉGÜL melyik modell adta – tartalékra váltás esetén nem a fő
- *   modellt kell elmenteni, különben hamis lenne a nyomonkövetés
+ * @param {{tanar_id, muvelet, feladat_id?, beadas_id?, mod?}} [kontextus] kell az
+ *   AI-használat mérésének (ai_hasznalat); nélküle nem készül rekord
+ * @returns {Promise<{eredmeny: object, modell: string, hasznalat: object}>} a válasz,
+ *   az, hogy VÉGÜL melyik modell adta – tartalékra váltás esetén nem a fő
+ *   modellt kell elmenteni, különben hamis lenne a nyomonkövetés –, és a tokenszámok
  */
-async function geminiHivas(lepes, parts, schema) {
+async function geminiHivas(lepes, parts, schema, kontextus) {
   const { kiserlet: KISERLET, varakozasok: VARAKOZASOK } = UJRAPROBA;
 
   const modellek = [MODELLEK[lepes], ...(TARTALEK[lepes] || [])];
   let utolso;
+  let probalkozas = 0;
 
   for (const modell of modellek) {
     for (let i = 0; i < KISERLET; i++) {
@@ -297,7 +302,10 @@ async function geminiHivas(lepes, parts, schema) {
         if (i > 0 || modell !== modellek[0]) {
           logger.info("Gemini újrapróbálkozás", { lepes, modell, kiserlet: i + 1 });
         }
-        return { eredmeny: await geminiKeres(modell, parts, schema), modell };
+        probalkozas++;
+        const { eredmeny, hasznalat } = await geminiKeres(modell, parts, schema);
+        await aiHasznalatNaplo(kontextus, { modell, fo_modell: modellek[0], hasznalat, probalkozas, parts });
+        return { eredmeny, modell, hasznalat };
       } catch (e) {
         utolso = e;
         if (!e.atmeneti) throw e;   // véglegesnek tűnő hibát ne ismételjünk
@@ -316,6 +324,22 @@ async function geminiHivas(lepes, parts, schema) {
   }
 
   throw utolso;
+}
+
+/**
+ * Egy Gemini-hívás tokenszámának rögzítése (ai_hasznalat). SOHA nem dobhat
+ * hibát: a mérés hibája nem akadályozhatja meg a javítást. Kontextus nélkül
+ * (pl. tesztek) nem ír semmit.
+ */
+async function aiHasznalatNaplo(kontextus, adat, firestore = null) {
+  if (!kontextus?.muvelet) return;
+  try {
+    const rekord = aiHasznalat.rekordKeszites({ ...adat, kontextus, kornyezet: BEALLITASOK.kornyezet });
+    logger.info("AI-használat", rekord);
+    await (firestore || db()).collection("ai_hasznalat").add({ ...rekord, ido: FieldValue.serverTimestamp() });
+  } catch (e) {
+    logger.error("Az AI-használat rögzítése nem sikerült", { hiba: e.message });
+  }
 }
 
 /** Storage-fájl → base64 + mimeType. */
@@ -845,7 +869,8 @@ exports.feladatlapElemzes = onCall(AI_OPCIOK, async (request) => {
     const { eredmeny: rubrika, modell } = await geminiHivas(
       'rubrika',
       [{ text: rubrikaPrompt(nyelvTipp, request.data?.kimenetiNyelv) }, await fajlBase64(path)],
-      rubrikaSchema(nyelvTipp)
+      rubrikaSchema(nyelvTipp),
+      { tanar_id: uid, muvelet: "feladatlap" }
     );
 
     // A szintet a VISSZAADOTT nyelv skáláján ellenőrizzük: ha az AI más
@@ -904,7 +929,8 @@ async function feldolgozBeadas(beadasId) {
   const { eredmeny: atiratValasz, modell: atirasModell } = await geminiHivas(
     'atiras',
     [{ text: atiratPrompt(nyelve(feladat.rubrika)) }, ...kepek],
-    ATIRAT_SCHEMA
+    ATIRAT_SCHEMA,
+    { tanar_id: beadas.tanar_id, muvelet: "beadas_atiras", mod: "leveles", feladat_id: beadas.feladat_id, beadas_id: beadasId }
   );
 
   const atirat = (atiratValasz.atirat || "").trim();
@@ -925,7 +951,8 @@ async function feldolgozBeadas(beadasId) {
   const { eredmeny: ertekeles, modell: ertekelesModell } = await geminiHivas(
     'ertekeles',
     [{ text: ertekelesPrompt({ ...feladat }, atirat) }],
-    ERTEKELES_SCHEMA
+    ERTEKELES_SCHEMA,
+    { tanar_id: beadas.tanar_id, muvelet: "beadas_ertekeles", mod: "leveles", feladat_id: beadas.feladat_id, beadas_id: beadasId }
   );
 
   // Az összpontszámot mi számoljuk – ne a modell aritmetikájára bízzuk.
@@ -981,7 +1008,8 @@ async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths) {
   const { eredmeny: atiras, modell: atirasModell } = await geminiHivas(
     "atiras",
     [{ text: kifejtos.kifejtosAtiratPrompt(kulcs, szoszedet) }, ...kepek],
-    kifejtos.KIFEJTOS_ATIRAT_SCHEMA
+    kifejtos.KIFEJTOS_ATIRAT_SCHEMA,
+    { tanar_id: feladat.tanar_id, muvelet: "beadas_atiras", mod: "kifejtos", feladat_id: feladatRef.id, beadas_id: beadasRef.id }
   );
 
   const atirat = kifejtos.atiratOsszefuzes(atiras);
@@ -1013,7 +1041,8 @@ async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths) {
   const { eredmeny: ai, modell: ertekelesModell } = await geminiHivas(
     "ertekeles",
     [{ text: kifejtos.kifejtosErtekelesPrompt(feladat, kulcs, valaszok) }],
-    kifejtos.KIFEJTOS_ERTEKELES_SCHEMA
+    kifejtos.KIFEJTOS_ERTEKELES_SCHEMA,
+    { tanar_id: feladat.tanar_id, muvelet: "beadas_ertekeles", mod: "kifejtos", feladat_id: feladatRef.id, beadas_id: beadasRef.id }
   );
 
   const ertekeles = kifejtos.kifejtosErtekelesOsszeallitas(
@@ -1298,6 +1327,8 @@ exports._teszt = {
   csatlakozasLogika,
   jovahagyasLogika,
   tanariRegisztracioLogika,
+  aiHasznalatNaplo,
+  aiHasznalatJelentesLogika,
   BEALLITASOK,
   kodGeneralas,
   geminiHivas,
@@ -1654,6 +1685,48 @@ exports.tanariRegisztracio = onCall(HIVAS_OPCIOK, async (request) => {
   }
 });
 
+// ── AI-HASZNÁLAT ÉS KÖLTSÉG (admin) ──
+// A nyers rekordokat (ai_hasznalat) a szabályok senkinek nem engedik; az
+// admin az összesítést látja. Lásd functions/ai-hasznalat.js.
+const JELENTES_MAX_REKORD = 20000;
+
+async function aiHasznalatJelentesLogika(firestore, honapKulcs, most = new Date()) {
+  const h = aiHasznalat.honapHatarok(honapKulcs, most);
+  const snap = await firestore.collection("ai_hasznalat")
+    .where("ido", ">=", h.tol).where("ido", "<", h.ig)
+    .orderBy("ido").limit(JELENTES_MAX_REKORD).get();
+  const rekordok = snap.docs.map((d) => d.data());
+
+  const egyediek = (mezo) => [...new Set(rekordok.map((r) => r[mezo]).filter(Boolean))];
+  const tanarIdk = egyediek("tanar_id");
+  const feladatIdk = egyediek("feladat_id");
+  const [tanarDocs, feladatDocs] = await Promise.all([
+    tanarIdk.length ? firestore.getAll(...tanarIdk.map((id) => firestore.collection("felhasznalok").doc(id))) : [],
+    feladatIdk.length ? firestore.getAll(...feladatIdk.map((id) => firestore.collection("feladatok").doc(id))) : []
+  ]);
+  const nevek = { tanarok: {}, feladatok: {} };
+  tanarDocs.forEach((d) => { nevek.tanarok[d.id] = { nev: d.data()?.nev, email: d.data()?.email }; });
+  feladatDocs.forEach((d) => { nevek.feladatok[d.id] = { cim: d.data()?.cim }; });
+
+  return {
+    honap: h.kulcs,
+    rekord_db: rekordok.length,
+    csonkolt: snap.size >= JELENTES_MAX_REKORD,
+    ...aiHasznalat.jelentesOsszeallitas(rekordok, nevek)
+  };
+}
+
+exports.aiHasznalatJelentes = onCall(HIVAS_OPCIOK, async (request) => {
+  admin(request);
+  try {
+    return await aiHasznalatJelentesLogika(db(), request.data?.honap);
+  } catch (e) {
+    if (e instanceof HttpsError) throw e;
+    logger.error("aiHasznalatJelentes hiba", { hiba: e.message });
+    throw belsoHiba(e);
+  }
+});
+
 // ══════════════════════════════════════════════════════
 // 10. OSZTÁLYSZINTŰ ELEMZÉS EGY FELADATRA
 //
@@ -1898,7 +1971,8 @@ exports.feladatElemzes = onCall(
     const { eredmeny, modell } = await geminiHivas(
       "elemzes",
       [{ text: prompt || elemzesPrompt(feladat, agg) }],
-      schema
+      schema,
+      { tanar_id: uid, muvelet: "elemzes", feladat_id: feladatId }
     );
 
     // A hibaMinta nem kell a kliensnek: nagy, és a példák a tipushibakban
@@ -1992,7 +2066,9 @@ exports.kulcsKeszites = onCall(
       if (vanTananyag) {
         reszek.push({ text: "=== TANANYAG ===" }, ...(await Promise.all(tananyag.map(fajlBase64))));
       }
-      ({ eredmeny, modell } = await geminiHivas("rubrika", reszek, kifejtos.KULCS_JAVASLAT_SCHEMA));
+      ({ eredmeny, modell } = await geminiHivas(
+        "rubrika", reszek, kifejtos.KULCS_JAVASLAT_SCHEMA, { tanar_id: uid, muvelet: "kulcs" }
+      ));
     } catch (e) {
       logger.error("kulcsKeszites hiba", { uid, hiba: e.message });
       throw belsoHiba(e, "ai_hiba");

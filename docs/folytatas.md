@@ -36,9 +36,31 @@ AI-feldolgozás, egyéni domain. **Éles gyerekadat előtt az adatvédelmi kérd
 A D. lépés új funkciói a pilotra ne hassanak (a kvóta a környezeti konfigon át, `kvota`).
 Nagyobb munka, tervezéssel kezdd: `kornyezetek-terv.md` 5.
 
-## 0/b. Tanári önregisztráció (2026-10-05) – kód kész, DEPLOYOLATLAN
+## 0/c. AI-használat mérése és admin nézet (2026-10-05) – kód kész, DEPLOYOLATLAN
 
-A D. lépés első része a `main`-en van (commit még nincs), **egyik környezetre sincs deployolva**:
+A kvóta előtti lépés: **mérni kell, mennyibe kerül egy dolgozat**, mert a csomagárak csak mért adatból
+számolhatók. Mindkét környezetben fut, korlát nélkül.
+
+- Minden Gemini-hívás tokenszáma az `ai_hasznalat` gyűjteménybe kerül (`functions/ai-hasznalat.js`,
+  `aiHasznalatNaplo` az `index.js`-ben); a `geminiHivas()` 4. paramétere a kontextus (tanár, művelet,
+  feladat, beadás, mód). Új AI-hívóhelynél a kontextus kötelező (teszt védi: `tests/ai-hasznalat.test.mjs`).
+- Új admin oldal: **📈 AI-használat** (`public/ai-hasznalat.html`, callable: `aiHasznalatJelentes`) –
+  összesítés, bontások és egy csomagár-**számoló**. Lásd `mukodesi-leiras.md` 4.7.
+- **Deploy-hatás:** új Firestore-szabály (`ai_hasznalat`: kliensnek tiltva), módosított függvények, új
+  függvény (`aiHasznalatJelentes`), új lap. **Pilot** (a mérésért): `node scripts/deploy.mjs pilot --only
+  hosting,functions,firestore:rules`. **Prod:** címkés kiadással. Amíg nincs deployolva, a környezet nem mér.
+- A **havi kvóta** (egységek, csomagok, admin csomagválasztó) kész, de **még nem kiadásra szánt**: a
+  `kvota-wip` ágon van (egy WIP commit). A mért számok után folytatjuk (egység, csomagméretek, szerkeszthető
+  csomagok az admin felületen).
+- Az első mérés: a 10 fős tesztóra a pilotban (valódi dolgozatok). Mérés előtt a pilotot deployolni kell.
+
+## 0/b. Tanári önregisztráció (2026-10-05) – kód kész, **prodra deployolva (v1.1.0)**
+
+A D. lépés első része a `main`-en van (commit `6cd81c9`), a **prodra a `v1.1.0` címkével kiment**
+(2026-10-05), a **pilotra nincs deployolva** (ott nincs is rá szükség, a választó rejtve van).
+**Eltérés:** a GitHub `prod` environmentjén **nincs „Required reviewers”**, ezért a kiadás
+jóváhagyás nélkül ment ki. A `docs/ci-cd.md` szerint kellene (Settings → Environments → prod →
+Required reviewers); ezt a tulajdonos állíthatja be.
 
 - Regisztrációs űrlap: „Diák vagyok / Tanár vagyok” választó **csak a prodban** (`tanari_onregisztracio`
   a `config/*.json`-ban). Tanárnál megerősített e-mail kell; a tanári jogot a `tanariRegisztracio`

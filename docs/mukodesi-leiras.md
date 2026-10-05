@@ -421,6 +421,27 @@ maradhatna a rendszer); a listában „⏳ belépés kell" jelzi, ha valakinek a
 jogosultsága még a régi (elavult token). A felhasználók listáját csak ez a
 felület éri el.
 
+### 4.7 AI-használat és költség (admin)
+
+*Admin menü → 📈 AI-használat. Mindkét telepítésen (pilot és prod) működik; csak mér, semmit nem korlátoz.*
+
+**Mit mér.** Minden Gemini-hívásról egy rekord készül az `ai_hasznalat` gyűjteménybe: melyik tanár,
+melyik művelet, melyik modell, és hány token ment (bemenet, kimenet, gondolkodás), a kép- és
+bájtszám, az újrapróbálkozások száma, és hogy tartalék modell dolgozott-e. A rekord **nem tartalmaz
+diákmunkát vagy szöveget**, csak azonosítókat és számokat. A mérés hibája sosem akadályozza a
+javítást. A rekordokat kliens nem éri el, az admin csak az összesítést látja.
+
+**Hány hívás van?** Beadásonként **2** (átírás a fotóról + értékelés a szövegből), egy javítási futás ennyi.
+Egy-egy hívás: a leveles feladat létrehozásakor a feladatlap-feltöltésnél (rubrika-javaslat), a kifejtősnél
+a „Kulcs készítése” gombra (megoldókulcs), és az osztályelemzéskor.
+
+**Az oldal.** Hónap szerint: hívásszám, becsült költség (USD), költség egy dolgozatra (leveles, kifejtős,
+összesen), műveletek, modellek, tanárok és a legdrágább feladatok szerinti bontás. A költséget a
+`functions/ai-hasznalat.js` **ár-táblája** adja a tokenekből (USD / 1 M token; ismeretlen modellnél üres,
+és az oldal jelzi). A **számoló** a mért átlagból megmondja, mennyibe kerül egy csomag, mekkora az árrés,
+és hány dolgozatnál nulla az árrés; az árfolyamok és az ár-szorzó átírhatók (a 3.8 Flash ára a kód
+kommentje szerint 2027-01-01-től duplázódik). A fizetési szolgáltató díja és az áfa nincs benne.
+
 ---
 
 ## 5. A diák felülete

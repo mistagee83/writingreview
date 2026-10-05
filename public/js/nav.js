@@ -23,7 +23,8 @@ const MENU = [
 // Csak adminnak jelenik meg
 const ADMIN_MENU = [
   { label: "nav.adminisztracio" },
-  { href: "admin.html", ikon: "🔑", cim: "nav.szerepkezeles" }
+  { href: "admin.html", ikon: "🔑", cim: "nav.szerepkezeles" },
+  { href: "ai-hasznalat.html", ikon: "📈", cim: "nav.ai_hasznalat" }
 ];
 
 /**

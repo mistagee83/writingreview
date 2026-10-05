@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="aih.oldalcim">WritingReview – AI-használat</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.admin_fejlec">🔑 Admin &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
+  </div>
+</div>
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main">
+    <div class="page-header">
+      <h1 data-i18n="aih.cim">AI-használat és költség</h1>
+      <p data-i18n="aih.alcim">A Gemini-hívások tokenjei és becsült költsége. Csak mérés: semmit nem korlátoz.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-body">
+        <div class="code-input-row">
+          <label for="honap" style="margin:0;align-self:center;" data-i18n="aih.honap">Hónap</label>
+          <input type="month" id="honap" style="max-width:190px;" />
+          <button class="btn-sm" id="btn-frissit" data-i18n="admin.frissites">🔄 Frissítés</button>
+        </div>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+
+    <div id="tartalom"><div class="empty-state bare"><div class="spinner"></div></div></div>
+
+    <div class="panel" id="szamolo-panel" style="display:none;">
+      <div class="panel-header"><h2 data-i18n="aih.szamolo_cim">🧮 Számoló: mennyi legyen a csomag ára?</h2></div>
+      <div class="panel-body">
+        <p class="halvany" data-i18n="aih.szamolo_leiras">A fenti, mért átlagból számol. Az árfolyamok és az ár-szorzó átírhatók.</p>
+        <div class="szamolo-racs">
+          <div class="form-group">
+            <label for="sz-tipus" data-i18n="aih.sz_tipus">Dolgozat típusa</label>
+            <select id="sz-tipus">
+              <option value="mind" data-i18n="aih.tipus_mind">Mind</option>
+              <option value="leveles" data-i18n="aih.tipus_leveles">Leveles</option>
+              <option value="kifejtos" data-i18n="aih.tipus_kifejtos">Kifejtős</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="sz-ar" data-i18n="aih.sz_ar">Csomag ára (EUR)</label>
+            <input type="number" id="sz-ar" value="5" min="0" step="0.5" />
+          </div>
+          <div class="form-group">
+            <label for="sz-db" data-i18n="aih.sz_db">Dolgozat a csomagban</label>
+            <input type="number" id="sz-db" value="100" min="1" step="10" />
+          </div>
+          <div class="form-group">
+            <label for="sz-szorzo" data-i18n="aih.sz_szorzo">Ár-szorzó (pl. 2 = áremelés)</label>
+            <input type="number" id="sz-szorzo" value="1" min="0.1" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label for="sz-usdeur" data-i18n="aih.sz_usdeur">1 USD = ? EUR</label>
+            <input type="number" id="sz-usdeur" value="0.92" min="0.1" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label for="sz-eurhuf" data-i18n="aih.sz_eurhuf">1 EUR = ? Ft</label>
+            <input type="number" id="sz-eurhuf" value="390" min="1" step="1" />
+          </div>
+        </div>
+        <label class="szamolo-pipa">
+          <input type="checkbox" id="sz-tanari" checked />
+          <span data-i18n="aih.sz_tanari">Számoljam bele a tanári műveleteket is (feladat, kulcs, elemzés)?</span>
+        </label>
+        <p class="halvany" id="sz-tanari-arany"></p>
+        <div id="sz-eredmeny" class="stats-grid" style="margin-top:1rem;"></div>
+        <p class="halvany" data-i18n="aih.sz_figyelmeztetes">A fizetési szolgáltató díja, az áfa és a többi költség nincs benne.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { t, nyelv } from './js/i18n.js';
+  import { vedettOldal, esc } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { uzenet, uzenetTorles, hibaSzoveg } from './js/ui.js';
+  import { functions, httpsCallable } from './js/firebase-config.js';
+
+  // Tanári szerep ÉS admin claim is kell
+  await vedettOldal('tanar', { admin: true });
+  oldalsav('ai-hasznalat.html', { admin: true });
+
+  const jelentes = httpsCallable(functions, 'aiHasznalatJelentes');
+  const honapEl = document.getElementById('honap');
+  const tartalom = document.getElementById('tartalom');
+  let adat = null;
+
+  // A hónap alapértéke: az aktuális (helyi idő szerint; a szerver UTC-ben csoportosít,
+  // a hónapváltás körüli órák eltérése itt elhanyagolható).
+  const most = new Date();
+  honapEl.value = `${most.getFullYear()}-${String(most.getMonth() + 1).padStart(2, '0')}`;
+
+  // ── FORMÁZÁS ──
+  const szam = (n) => Number(n || 0).toLocaleString(nyelv());
+  function usd(x) {
+    if (x === null || x === undefined) return '–';
+    const tizedes = x < 1 ? 4 : 2;
+    return x.toLocaleString(nyelv(), { style: 'currency', currency: 'USD', minimumFractionDigits: tizedes, maximumFractionDigits: tizedes });
+  }
+  const eur = (x) => x.toLocaleString(nyelv(), { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const ft = (x) => `${Math.round(x).toLocaleString(nyelv())} Ft`;
+  const szazalek = (x) => `${x.toLocaleString(nyelv(), { maximumFractionDigits: 0 })}%`;
+
+  function tabla(fejlec, sorok) {
+    return `<div class="tabla-gorgeto"><table class="tabla">
+      <thead><tr>${fejlec.map((f) => `<th>${f}</th>`).join('')}</tr></thead>
+      <tbody>${sorok.map((s) => `<tr>${s.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+  const panel = (cim, torzs) => `<div class="panel"><div class="panel-header"><h2>${cim}</h2></div>
+    <div class="panel-body flush">${torzs}</div></div>`;
+  const tipusNev = (mod) => (mod === 'leveles' || mod === 'kifejtos' ? t(`aih.tipus_${mod}`) : '–');
+  const muveletNev = (m) => {
+    const kulcs = `aih.m_${m}`;
+    return t(kulcs) !== kulcs ? t(kulcs) : esc(m);
+  };
+
+  // ── BETÖLTÉS ──
+  async function betolt() {
+    uzenetTorles('msg');
+    tartalom.innerHTML = `<div class="empty-state bare"><div class="spinner"></div></div>`;
+    try {
+      const { data } = await jelentes({ honap: honapEl.value });
+      adat = data;
+      rajzol();
+    } catch (e) {
+      adat = null;
+      tartalom.innerHTML = `<div class="empty-state bare"><p>${esc(hibaSzoveg(e))}</p></div>`;
+      document.getElementById('szamolo-panel').style.display = 'none';
+    }
+  }
+
+  function rajzol() {
+    const j = adat;
+    const szamolo = document.getElementById('szamolo-panel');
+    if (j.osszes.hivas === 0) {
+      tartalom.innerHTML = `<div class="empty-state bare"><p>${t('aih.ures')}</p></div>`;
+      szamolo.style.display = 'none';
+      return;
+    }
+    szamolo.style.display = '';
+    if (j.osszes.ismeretlen_ar_hivas > 0) {
+      uzenet('msg', t('aih.ismeretlen_ar', { db: j.osszes.ismeretlen_ar_hivas }), 'error');
+    }
+    if (j.csonkolt) uzenet('msg', t('aih.csonkolt'), 'error');
+
+    const atlag = j.beadas.mind.atlag_koltseg_usd;
+    const kartyak = `<div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">${t('aih.stat_hivas')}</div><div class="stat-value kicsi">${szam(j.osszes.hivas)}</div></div>
+      <div class="stat-card"><div class="stat-label">${t('aih.stat_koltseg')}</div><div class="stat-value kicsi accent">${usd(j.osszes.koltseg_usd)}</div></div>
+      <div class="stat-card"><div class="stat-label">${t('aih.stat_dolgozat')}</div><div class="stat-value kicsi">${usd(atlag)}</div></div>
+      <div class="stat-card"><div class="stat-label">${t('aih.stat_token')}</div>
+        <div class="stat-value kicsi">${szam(j.osszes.prompt)} / ${szam(j.osszes.kimenet + j.osszes.gondolkodas)}</div></div>
+    </div>`;
+
+    const dolgozat = panel(t('aih.dolgozat_cim'),
+      `<p class="halvany" style="padding:0 1.5rem;">${t('aih.dolgozat_leiras')}</p>` +
+      tabla([t('aih.oszlop_tipus'), t('aih.oszlop_futas'), t('aih.oszlop_atlag_futas'), t('aih.oszlop_osszeg')],
+        ['mind', 'leveles', 'kifejtos'].map((k) => [
+          t(`aih.tipus_${k}`), szam(j.beadas[k].futas_db), usd(j.beadas[k].atlag_koltseg_usd), usd(j.beadas[k].koltseg_usd)
+        ])));
+
+    const muveletek = panel(t('aih.muvelet_cim'),
+      tabla([t('aih.oszlop_muvelet'), t('aih.oszlop_hivas'), t('aih.oszlop_bemenet'), t('aih.oszlop_kimenet'), t('aih.oszlop_atlag_hivas'), t('aih.oszlop_koltseg')],
+        j.muvelet.map((m) => [muveletNev(m.muvelet), szam(m.hivas), szam(m.prompt), szam(m.kimenet + m.gondolkodas), usd(m.atlag_koltseg_usd), usd(m.koltseg_usd)])));
+
+    const modellek = panel(t('aih.modell_cim'),
+      tabla([t('aih.oszlop_modell'), t('aih.oszlop_hivas'), t('aih.oszlop_koltseg')],
+        j.modell.map((m) => [esc(m.modell), szam(m.hivas), m.ismert_ar ? usd(m.koltseg_usd) : `<em>${t('aih.nincs_ar')}</em>`])));
+
+    const tanarok = panel(t('aih.tanar_cim'),
+      tabla([t('aih.oszlop_tanar'), t('aih.oszlop_futas'), t('aih.oszlop_hivas'), t('aih.oszlop_koltseg')],
+        j.tanar.map((x) => [esc(x.nev || x.email || x.tanar_id), szam(x.futas_db), szam(x.hivas), usd(x.koltseg_usd)])));
+
+    const feladatok = panel(t('aih.feladat_cim'),
+      tabla([t('aih.oszlop_feladat'), t('aih.oszlop_tipus'), t('aih.oszlop_futas'), t('aih.oszlop_atlag_dolgozat'), t('aih.oszlop_koltseg')],
+        j.feladat.map((f) => [esc(f.cim || f.feladat_id), tipusNev(f.mod), szam(f.futas_db), usd(f.atlag_futas_usd), usd(f.koltseg_usd)])));
+
+    tartalom.innerHTML = kartyak + dolgozat + muveletek + modellek + tanarok + feladatok;
+    szamol();
+  }
+
+  // ── SZÁMOLÓ ──
+  // A mért átlagköltségből (USD/dolgozat) csomagár-képet ad. Nem ment semmit.
+  function szamol() {
+    const eredmeny = document.getElementById('sz-eredmeny');
+    if (!adat) return;
+    const num = (id) => Number(document.getElementById(id).value) || 0;
+    const tipus = document.getElementById('sz-tipus').value;
+    const atlagUsd = adat.beadas[tipus]?.atlag_koltseg_usd;
+    if (atlagUsd === null || atlagUsd === undefined) {
+      eredmeny.innerHTML = `<p class="halvany">${t('aih.sz_nincs_adat')}</p>`;
+      document.getElementById('sz-tanari-arany').textContent = '';
+      return;
+    }
+
+    // A tanári műveletek (feladatlap, kulcs, elemzés) költsége a dolgozatjavításéhoz viszonyítva.
+    const beadasUsd = adat.beadas.mind.koltseg_usd;
+    const tanariArany = beadasUsd > 0 ? Math.max(0, adat.osszes.koltseg_usd - beadasUsd) / beadasUsd : 0;
+    document.getElementById('sz-tanari-arany').textContent = t('aih.sz_tanari_arany', { szazalek: Math.round(tanariArany * 100) });
+    const toldat = document.getElementById('sz-tanari').checked ? 1 + tanariArany : 1;
+
+    const ar = num('sz-ar');
+    const db = Math.max(1, num('sz-db'));
+    const koltsegEur = atlagUsd * num('sz-szorzo') * num('sz-usdeur') * toldat;   // egy dolgozat
+    const csomagKoltseg = koltsegEur * db;
+    const arres = ar - csomagKoltseg;
+    const egyensuly = koltsegEur > 0 ? Math.floor(ar / koltsegEur) : null;
+    const eurhuf = num('sz-eurhuf');
+
+    const kartya = (cimke, ertek, extra = '') => `<div class="stat-card"><div class="stat-label">${cimke}</div>
+      <div class="stat-value kicsi${extra}">${ertek}</div></div>`;
+    eredmeny.innerHTML =
+      kartya(t('aih.sz_eredmeny_koltseg'), `${eur(koltsegEur)} <small>(${ft(koltsegEur * eurhuf)})</small>`) +
+      kartya(t('aih.sz_eredmeny_csomag'), `${eur(csomagKoltseg)} <small>(${ft(csomagKoltseg * eurhuf)})</small>`) +
+      kartya(t('aih.sz_eredmeny_arres'), `${eur(arres)}${ar > 0 ? ` <small>(${szazalek((arres / ar) * 100)})</small>` : ''}`, arres < 0 ? ' accent' : '') +
+      kartya(t('aih.sz_eredmeny_egyensuly'), egyensuly === null ? '–' : szam(egyensuly));
+  }
+
+  document.getElementById('btn-frissit').addEventListener('click', betolt);
+  honapEl.addEventListener('change', betolt);
+  for (const id of ['sz-tipus', 'sz-ar', 'sz-db', 'sz-szorzo', 'sz-usdeur', 'sz-eurhuf', 'sz-tanari']) {
+    document.getElementById(id).addEventListener('input', szamol);
+  }
+
+  betolt();
+</script>
+</body>
+</html>

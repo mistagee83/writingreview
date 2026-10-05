@@ -178,6 +178,18 @@ test("a tanari_kerelem utólag nem is törölhető/módosítható a kliensről",
   );
 });
 
+// ── AI-HASZNÁLAT NAPLÓ ──
+test("az ai_hasznalat naplót kliens sem olvashatja, sem írhatja (tanár és diák sem)", async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "ai_hasznalat", "r1"), { tanar_id: TANAR, muvelet: "elemzes" });
+  });
+  for (const kontextus of [tanar(), diak(), nemBelepett()]) {
+    await assertFails(getDoc(doc(kontextus, "ai_hasznalat", "r1")));
+    await assertFails(setDoc(doc(kontextus, "ai_hasznalat", "r2"), { tanar_id: TANAR, muvelet: "elemzes" }));
+    await assertFails(getDocs(collection(kontextus, "ai_hasznalat")));
+  }
+});
+
 // ── A BEMUTATÓ ÁLLAPOTA ──
 // A saját profiljában tárolja, hogy látta-e már a bemutatót. Enélkül
 // minden gépen újra felnyílna, de a mező NEM lehet szabad tárhely.

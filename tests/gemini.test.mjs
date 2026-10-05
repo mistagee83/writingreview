@@ -190,3 +190,45 @@ test("a hibaüzenet tartalmazza a modell nevét", async () => {
     new RegExp(t.MODELLEK.ertekeles.replace(/\./g, "\\."))
   );
 });
+
+// ══════════════════════════════════════════
+// Tokenszám (AI-használat mérése)
+// ══════════════════════════════════════════
+
+test("a hívás visszaadja a tokenszámokat a usageMetadata-ból", async () => {
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: JSON.stringify({ ok: 1 }) }] } }],
+      usageMetadata: { promptTokenCount: 1200, candidatesTokenCount: 150, thoughtsTokenCount: 800, totalTokenCount: 2150 }
+    })
+  });
+  const r = await t.geminiHivas("ertekeles", [], {});
+  assert.deepEqual(r.hasznalat, { prompt: 1200, kimenet: 150, gondolkodas: 800, ossz: 2150 });
+});
+
+test("usageMetadata nélküli válasz sem hiba: a tokenszámok 0", async () => {
+  globalThis.fetch = async () => OK_VALASZ({ ok: true });
+  const r = await t.geminiHivas("atiras", [], {});
+  assert.deepEqual(r.hasznalat, { prompt: 0, kimenet: 0, gondolkodas: 0, ossz: 0 });
+});
+
+test("a mérés hibája nem akadályozza a javítást: a rögzítés sosem dob", async () => {
+  const hibasAdatbazis = { collection: () => ({ add: async () => { throw new Error("nincs adatbázis"); } }) };
+  const adat = { modell: "m", fo_modell: "m", hasznalat: { prompt: 1, kimenet: 1, gondolkodas: 0, ossz: 2 }, probalkozas: 1, parts: [] };
+  await assert.doesNotReject(() => t.aiHasznalatNaplo({ tanar_id: "t", muvelet: "beadas_atiras" }, adat, hibasAdatbazis));
+  // kontextus nélkül (vagy művelet nélkül) nem is próbál írni
+  let irt = false;
+  const figyelo = { collection: () => ({ add: async () => { irt = true; } }) };
+  await t.aiHasznalatNaplo(undefined, adat, figyelo);
+  await t.aiHasznalatNaplo({ tanar_id: "t" }, adat, figyelo);
+  assert.equal(irt, false);
+  // kontextussal ír, és a rekord időbélyeget kap
+  let rekord;
+  const rogzito = { collection: (nev) => ({ add: async (r) => { rekord = { nev, ...r }; } }) };
+  await t.aiHasznalatNaplo({ tanar_id: "t", muvelet: "elemzes", feladat_id: "f" }, adat, rogzito);
+  assert.equal(rekord.nev, "ai_hasznalat");
+  assert.equal(rekord.muvelet, "elemzes");
+  assert.ok(rekord.ido, "időbélyeg");
+});

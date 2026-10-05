@@ -45,7 +45,7 @@ async function torolMindent() {
     const sajat = await d.ref.collection("osztalyaim").get();
     await Promise.all(sajat.docs.map((x) => x.ref.delete()));
   }
-  for (const koll of ["osztalyok", "kodok", "felhasznalok"]) {
+  for (const koll of ["osztalyok", "kodok", "felhasznalok", "ai_hasznalat", "feladatok"]) {
     const snap = await firestore.collection(koll).get();
     await Promise.all(snap.docs.map((d) => d.ref.delete()));
   }
@@ -471,4 +471,63 @@ test("tanári regisztráció: ismételt hívás ártalmatlan, és a lemaradt tü
 
 test("tanári regisztráció: nem létező Auth-felhasználó → nincs_felhasznalo", async () => {
   assert.equal(await kodja(() => tanariReg(hamisAuth(null))), "nincs_felhasznalo");
+});
+
+// ══════════════════════════════════════════
+// AI-HASZNÁLAT MÉRÉSE: rögzítés és jelentés
+// ══════════════════════════════════════════
+
+const ADAT = (prompt, kimenet, gondolkodas = 0) => ({
+  modell: "gemini-3.8-flash", fo_modell: "gemini-3.8-flash", probalkozas: 1,
+  hasznalat: { prompt, kimenet, gondolkodas, ossz: prompt + kimenet + gondolkodas },
+  parts: [{ text: "x" }, { inline_data: { mime_type: "image/jpeg", data: "AAAA" } }]
+});
+
+test("mérés: a hívás rekordot hagy az ai_hasznalat gyűjteményben (tartalom nélkül)", async () => {
+  await logika.aiHasznalatNaplo(
+    { tanar_id: "tanar-uid", muvelet: "beadas_atiras", mod: "leveles", feladat_id: "f1", beadas_id: "b1" },
+    ADAT(1000, 200, 300)
+  );
+  const snap = await firestore.collection("ai_hasznalat").get();
+  assert.equal(snap.size, 1);
+  const r = snap.docs[0].data();
+  assert.equal(r.tanar_id, "tanar-uid");
+  assert.equal(r.muvelet, "beadas_atiras");
+  assert.equal(r.prompt, 1000);
+  assert.equal(r.gondolkodas, 300);
+  assert.equal(r.kep_db, 1);
+  assert.ok(r.ido, "szerver-időbélyeg");
+  assert.equal(r.kornyezet, "pilot", "a tesztkörnyezetben pilot a KORNYEZET alapértéke");
+});
+
+test("mérés: a jelentés a hónap rekordjaiból összesít, a más hónapét kihagyja, a neveket feloldja", async () => {
+  await firestore.collection("felhasznalok").doc("tanar-uid").set({ nev: "Tanár Tamás", email: "t@x.hu", szerep: "tanar" });
+  await firestore.collection("feladatok").doc("f1").set({ cim: "Levél a barátnak", tanar_id: "tanar-uid" });
+
+  const rogzit = (muvelet, adat, ido, extra = {}) => firestore.collection("ai_hasznalat").add({
+    tanar_id: "tanar-uid", muvelet, mod: "leveles", feladat_id: "f1", beadas_id: "b1",
+    modell: "gemini-3.8-flash", prompt: adat.prompt, kimenet: adat.kimenet, gondolkodas: adat.gondolkodas || 0,
+    ido, ...extra
+  });
+  await rogzit("beadas_atiras", { prompt: 10000, kimenet: 500 }, new Date("2026-10-03T10:00:00Z"));
+  await rogzit("beadas_ertekeles", { prompt: 2000, kimenet: 900, gondolkodas: 2000 }, new Date("2026-10-03T10:00:30Z"));
+  await rogzit("beadas_atiras", { prompt: 99999, kimenet: 9999 }, new Date("2026-09-30T23:59:59Z"));   // szeptember
+  await rogzit("beadas_atiras", { prompt: 99999, kimenet: 9999 }, new Date("2026-11-01T00:00:00Z"));   // november
+
+  const j = await logika.aiHasznalatJelentesLogika(firestore, "2026-10");
+  assert.equal(j.honap, "2026-10");
+  assert.equal(j.rekord_db, 2, "csak az októberi rekordok");
+  assert.equal(j.csonkolt, false);
+  assert.equal(j.beadas.mind.futas_db, 1);
+  assert.equal(j.tanar[0].nev, "Tanár Tamás");
+  assert.equal(j.feladat[0].cim, "Levél a barátnak");
+  const ar = { be: 0.75, ki: 3.75 };
+  const vart = (10000 * ar.be + 500 * ar.ki + 2000 * ar.be + (900 + 2000) * ar.ki) / 1e6;
+  assert.ok(Math.abs(j.osszes.koltseg_usd - vart) < 1e-9, `${j.osszes.koltseg_usd} != ${vart}`);
+
+  const szept = await logika.aiHasznalatJelentesLogika(firestore, "2026-09");
+  assert.equal(szept.rekord_db, 1);
+  const ures = await logika.aiHasznalatJelentesLogika(firestore, "2025-01");
+  assert.equal(ures.rekord_db, 0);
+  assert.equal(ures.osszes.hivas, 0);
 });

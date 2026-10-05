@@ -270,6 +270,15 @@ service cloud.firestore {
       }
     }
 
+    // ══════════════════════════════════════════
+    // AI-HASZNÁLAT (mérés)
+    // Hívásonkénti tokenszám-napló: csak a szerver írja, és csak az admin
+    // látja, összesítve (aiHasznalatJelentes Function). Kliensről elérhetetlen.
+    // ══════════════════════════════════════════
+    match /ai_hasznalat/{id} {
+      allow read, write: if false;
+    }
+
     // Minden más: tiltott (a Firestore alapból is így működik,
     // ez csak emlékeztető).
   }
