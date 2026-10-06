@@ -259,9 +259,9 @@ const kodja = async (fn) => {
 };
 
 async function beadasFelvetel({ rubrika, statusz = "javitva", ai } = {}) {
-  await firestore.collection("feladatok").doc("f1").set({ tanar_id: "tanar-uid", rubrika: rubrika || {} });
+  await firestore.collection("feladatok").doc("f1").set({ tanar_id: "tanar-uid", osztaly_id: "o1", rubrika: rubrika || {} });
   const ref = firestore.collection("beadasok").doc("b1");
-  await ref.set({ tanar_id: "tanar-uid", feladat_id: "f1", statusz });
+  await ref.set({ tanar_id: "tanar-uid", feladat_id: "f1", osztaly_id: "o1", statusz });
   await ref.collection("ertekeles").doc("ai").set(ai || {
     szempontok: [
       { kulcs: "tartalom", pont: 8, max: 10, megjegyzes: "jó" },
@@ -530,4 +530,75 @@ test("mérés: a jelentés a hónap rekordjaiból összesít, a más hónapét k
   const ures = await logika.aiHasznalatJelentesLogika(firestore, "2025-01");
   assert.equal(ures.rekord_db, 0);
   assert.equal(ures.osszes.hivas, 0);
+});
+
+
+// ── A beadás hivatkozásainak ellenőrzése (audit 1. kör, 2026-10-06) ──
+// A beadást a kliens írja, ezért a szerver nem bízik a tanar_id-ban, a
+// feladat osztályában és a képutakban (az Admin SDK nem ismeri a Storage-szabályokat).
+
+const rendes = () => ({
+  beadas: {
+    diak_id: "diak-uid", osztaly_id: "o1", tanar_id: "tanar-uid", feladat_id: "f1",
+    kep_paths: ["beadasok/diak-uid/b1/1_dolgozat.jpg", "beadasok/diak-uid/b1/2_dolgozat.jpg"]
+  },
+  feladat: { osztaly_id: "o1", tanar_id: "tanar-uid" }
+});
+
+test("beadás-összerendelés: a szabályos beadás átmegy", () => {
+  const { beadas, feladat } = rendes();
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), null);
+});
+
+test("beadás-összerendelés: idegen Storage-útvonal elutasítva (másik diák, tananyag, más beadás)", () => {
+  for (const ut of [
+    "beadasok/masik-diak/x1/1.jpg",
+    "tananyagok/tanar-uid/123_anyag.pdf",
+    "feladatlapok/tanar-uid/123_lap.jpg",
+    "beadasok/diak-uid/masik-beadas/1.jpg",
+    "beadasok/diak-uid/b1/",
+    "beadasok/diak-uid/b1/../../masik-diak/x/1.jpg"
+  ]) {
+    const { beadas, feladat } = rendes();
+    beadas.kep_paths = ["beadasok/diak-uid/b1/1.jpg", ut];
+    assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "kep_ut_idegen", ut);
+  }
+});
+
+test("beadás-összerendelés: nem szöveg képút, üres és hiányzó lista elutasítva", () => {
+  for (const kep_paths of [[42], [null], [{ a: 1 }], "beadasok/diak-uid/b1/1.jpg", [], undefined]) {
+    const { beadas, feladat } = rendes();
+    beadas.kep_paths = kep_paths;
+    assert.notEqual(logika.beadasOsszerendeles("b1", beadas, feladat), null, JSON.stringify(kep_paths));
+  }
+});
+
+test("beadás-összerendelés: hamis tanár, másik osztály, hiányzó feladat elutasítva", () => {
+  let { beadas, feladat } = rendes();
+  beadas.tanar_id = "masik-tanar";
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "tanar_nem_egyezik");
+  ({ beadas, feladat } = rendes());
+  feladat.osztaly_id = "masik-osztaly";
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "osztaly_nem_egyezik");
+  ({ beadas } = rendes());
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, undefined), "feladat_nincs");
+  // mindkét oldalon hiányzó mező nem számít egyezésnek
+  ({ beadas, feladat } = rendes());
+  delete beadas.osztaly_id; delete feladat.osztaly_id;
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "osztaly_nem_egyezik");
+});
+
+test("jóváhagyás: hamis tanar_id-jú beadást az idegen tanár nem hagyhat jóvá", async () => {
+  const ref = await beadasFelvetel();
+  // a beadást a kliens hamisította: a feladat másik tanáré
+  await firestore.collection("feladatok").doc("f1").update({ tanar_id: "valodi-tanar" });
+  assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 4, szoveg: "x" })), "nem_a_te_beadasod");
+  assert.equal((await ref.get()).data().statusz, "javitva");
+  assert.equal(await tanariErtekeles(ref), undefined);
+});
+
+test("jóváhagyás: másik osztály feladatára hivatkozó beadás elutasítva", async () => {
+  await beadasFelvetel();
+  await firestore.collection("feladatok").doc("f1").update({ osztaly_id: "masik-osztaly" });
+  assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 4, szoveg: "x" })), "nem_a_te_beadasod");
 });

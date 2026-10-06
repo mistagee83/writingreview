@@ -39,6 +39,10 @@ service cloud.firestore {
       return tanar() && osztaly(osztalyId).tanar_id == request.auth.uid;
     }
 
+    function feladatAdat(feladatId) {
+      return get(/databases/$(database)/documents/feladatok/$(feladatId)).data;
+    }
+
     function osztalyTag(osztalyId) {
       return belepve()
         && exists(/databases/$(database)/documents/osztalyok/$(osztalyId)/tagok/$(request.auth.uid));
@@ -239,10 +243,21 @@ service cloud.firestore {
 
       // A diák a sajátját adja be, kötelezően 'feltoltve' státusszal,
       // és csak olyan osztályba, aminek tagja.
+      // A feladat, az osztály és a tanár összetartozását a szabály kényszeríti
+      // (a kliens ezeket maga írja, de nem hamisíthatja); lezárt feladatra
+      // nem lehet beadni. A képutak szerveroldali ellenőrzését lásd:
+      // functions/index.js, beadasOsszerendeles (a szabály listát nem járhat be).
       allow create: if belepve()
+        && request.resource.data.keys().hasOnly(['feladat_id', 'osztaly_id', 'diak_id',
+             'diak_nev', 'tanar_id', 'kep_paths', 'statusz', 'atirat', 'hiba',
+             'letrehozva', 'frissitve'])
         && request.resource.data.diak_id == request.auth.uid
         && request.resource.data.statusz == 'feltoltve'
         && osztalyTag(request.resource.data.osztaly_id)
+        && request.resource.data.feladat_id is string
+        && feladatAdat(request.resource.data.feladat_id).osztaly_id == request.resource.data.osztaly_id
+        && feladatAdat(request.resource.data.feladat_id).tanar_id == request.resource.data.tanar_id
+        && feladatAdat(request.resource.data.feladat_id).aktiv == true
         && request.resource.data.kep_paths is list
         && request.resource.data.kep_paths.size() > 0
         && request.resource.data.kep_paths.size() <= 10;

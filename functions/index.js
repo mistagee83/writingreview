@@ -342,6 +342,30 @@ async function aiHasznalatNaplo(kontextus, adat, firestore = null) {
   }
 }
 
+/**
+ * A beadás dokumentumot a kliens hozza létre, ezért a benne lévő hivatkozásokban
+ * nem bízunk: a feladatnak ugyanahhoz az osztályhoz és tanárhoz kell tartoznia,
+ * a képek pedig a diák saját feltöltési mappájából valók. Különben egy hamis
+ * beadással idegen Storage-fájl olvastatható ki (az Admin SDK nem ismeri a
+ * Storage-szabályokat), vagy más tanár nevében lehetne beadni/jóváhagyni.
+ * Hibakódot ad vissza (vagy null, ha rendben van); a letöltés és az AI-hívás előtt hívandó.
+ */
+const KEP_UT_MAX_HOSSZ = 500;
+function beadasOsszerendeles(beadasId, beadas, feladat) {
+  const szoveg = (v) => typeof v === "string" && v.length > 0;
+  if (!feladat) return "feladat_nincs";
+  if (!szoveg(beadas.osztaly_id) || beadas.osztaly_id !== feladat.osztaly_id) return "osztaly_nem_egyezik";
+  if (!szoveg(beadas.tanar_id) || beadas.tanar_id !== feladat.tanar_id) return "tanar_nem_egyezik";
+  if (!szoveg(beadas.diak_id)) return "diak_hianyzik";
+  const elotag = `beadasok/${beadas.diak_id}/${beadasId}/`;
+  const utak = beadas.kep_paths;
+  if (!Array.isArray(utak) || utak.length === 0) return "kep_nincs";
+  const rossz = utak.some((u) =>
+    !szoveg(u) || u.length > KEP_UT_MAX_HOSSZ || !u.startsWith(elotag)
+    || u.length === elotag.length || u.includes(".."));
+  return rossz ? "kep_ut_idegen" : null;
+}
+
 /** Storage-fájl → base64 + mimeType. */
 async function fajlBase64(path) {
   const file = getStorage().bucket().file(path);
@@ -907,8 +931,14 @@ async function feldolgozBeadas(beadasId) {
 
   if (!feladat.rubrika) throw new Error("A feladathoz nincs rubrika.");
 
-  const kepPaths = beadas.kep_paths || [];
-  if (kepPaths.length === 0) throw new Error("Nincs feltöltött kép.");
+  // Letöltés és AI-hívás előtt: a kliens írta hivatkozások ellenőrzése.
+  const osszerendeles = beadasOsszerendeles(beadasId, beadas, feladat);
+  if (osszerendeles) {
+    logger.warn("Érvénytelen beadás-összerendelés", { beadasId, ok: osszerendeles });
+    throw new Error("A beadás adatai nem egyeznek a feladattal.");
+  }
+
+  const kepPaths = beadas.kep_paths;
 
   await beadasRef.update({
     statusz: "folyamatban",
@@ -1232,6 +1262,12 @@ async function jovahagyasLogika(uid, adat) {
     beadasRef.collection("ertekeles").doc("ai").get(),
     firestore.collection("feladatok").doc(beadas.feladat_id).get()
   ]);
+  // A beadás tanar_id-ját a kliens írta: a jóváhagyó csak a feladat valódi
+  // tanára lehet (különben idegen feladat kulcsa kerülne a visszajelzésbe).
+  if (feladatSnap.data()?.tanar_id !== uid
+      || feladatSnap.data()?.osztaly_id !== beadas.osztaly_id) {
+    throw hiba("permission-denied", "nem_a_te_beadasod");
+  }
   // A jegy a FELADAT skáláján értelmezett (magyar 1–5, A–F, százalék…);
   // a tárolt érték a skála saját alakja, nem a kliens által küldött.
   const skala = kifejtos.skalaFeloldas(feladatSnap.data()?.rubrika);
@@ -1326,6 +1362,7 @@ exports._teszt = {
   osztalyLetrehozasLogika,
   csatlakozasLogika,
   jovahagyasLogika,
+  beadasOsszerendeles,
   tanariRegisztracioLogika,
   aiHasznalatNaplo,
   aiHasznalatJelentesLogika,

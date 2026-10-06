@@ -188,6 +188,14 @@ cd writingreview
     a prompt üres sort kér, a szerver mentés előtt tagol. A régi, már mentett értékeléseket nem
     javítja.
   - **Deploy-állapot:** mind az öt javítás deployolva a pilotra és a prodra is.
+- **Külső audit, 1. kör (2026-10-06) – javítva a forrásban, DEPLOY MÉG NEM TÖRTÉNT (pilot és prod is a régi kóddal fut):**
+  a beadás (`beadasok`) hivatkozásait a kliens írja, és nem volt ellenőrizve. (1) A `kep_paths` idegen Storage-útvonalat
+  tartalmazhatott, amit a szerver Admin SDK-val letöltött és átírt; (2) a `tanar_id`/`feladat_id` hamisítható volt (idegen
+  tanár hagyhatta jóvá, másik osztály feladatát lehetett használni); lezárt feladatra a szabály nem tiltotta a beadást.
+  Javítás: `firestore.rules` (`beadasok` create: feladat–osztály–tanár egyezés, `aktiv`, mezőlista), `functions/index.js`
+  (`beadasOsszerendeles`: képutak és összerendelés a letöltés előtt; a jóváhagyás csak a feladat tanárának), tesztek:
+  `tests/rules.test.mjs`, `tests/functions.test.mjs`. **Deploy:** `firestore:rules` + `functions`, pilotra és prodra is.
+  Nyitott (alacsony): a „diákmúlt” a tanári önregisztrációnál csak a jelenlegi tagságot nézi (`audit/ellenorzes/kor-1.md`).
 - **Munkaszabály** (a `CLAUDE.md`-ben): hibajavításnál mindig meg kell mondani, melyik környezet
   fut még a régi kóddal, és a párhuzamos kódutat (leveles/kifejtős) is meg kell nézni.
 - **A prod ellenőrzése kész** (2026-10-05). A teljes kör végig lett próbálva. Ellenőrizve: a
