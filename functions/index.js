@@ -21,6 +21,7 @@ const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
 const { getStorage } = require("firebase-admin/storage");
+const { randomUUID } = require("node:crypto");
 const logger = require("firebase-functions/logger");
 const kifejtos = require("./kifejtos");
 const kornyezet = require("./kornyezet");
@@ -271,19 +272,22 @@ async function geminiKeres(modell, parts, schema, gondolkodas) {
     throw e;
   }
 
+  // A tokenszámot is visszaadjuk (usageMetadata): a költség mérése ebből jön.
+  // Hibás válasznál is rögzítjük (e.hasznalat): a kérés lefutott, a tokenek elfogytak.
+  const hasznalat = aiHasznalat.hasznalatKinyeres(json);
+
   const szoveg = json.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!szoveg) {
     const ok = json.candidates?.[0]?.finishReason || "ismeretlen ok";
-    throw new Error(`A Gemini (${modell}) nem adott választ (${ok}).`);
+    throw Object.assign(new Error(`A Gemini (${modell}) nem adott választ (${ok}).`), { hasznalat });
   }
 
   try {
-    // A tokenszámot is visszaadjuk (usageMetadata): a költség mérése ebből jön.
-    return { eredmeny: JSON.parse(szoveg), hasznalat: aiHasznalat.hasznalatKinyeres(json) };
+    return { eredmeny: JSON.parse(szoveg), hasznalat };
   } catch (_) {
     // responseSchema mellett ez nem szokott előfordulni, de ha mégis,
     // legyen értelmezhető a hibanapló.
-    throw new Error(`A Gemini válasza nem érvényes JSON: ${szoveg.slice(0, 200)}`);
+    throw Object.assign(new Error(`A Gemini válasza nem érvényes JSON: ${szoveg.slice(0, 200)}`), { hasznalat });
   }
 }
 
@@ -325,6 +329,9 @@ async function geminiHivas(lepes, parts, schema, kontextus) {
         return { eredmeny, modell, hasznalat };
       } catch (e) {
         utolso = e;
+        if (e.hasznalat) {
+          await aiHasznalatNaplo(kontextus, { modell, fo_modell: modellek[0], hasznalat: e.hasznalat, probalkozas, parts });
+        }
         if (!e.atmeneti) throw e;   // véglegesnek tűnő hibát ne ismételjünk
         if (i < KISERLET - 1) {
           const ms = VARAKOZASOK[i] + Math.floor(Math.random() * 1000);
@@ -381,6 +388,24 @@ function beadasOsszerendeles(beadasId, beadas, feladat) {
     !szoveg(u) || u.length > KEP_UT_MAX_HOSSZ || !u.startsWith(elotag)
     || u.length === elotag.length || u.includes(".."));
   return rossz ? "kep_ut_idegen" : null;
+}
+
+/**
+ * A beadás képei együtt: a szabály 10 × 10 MiB-ot enged, a Gemini inline kérésének
+ * mérete viszont korlátos (~20 MB, base64-ben 4/3-szoros). A kliens 1500 px-re
+ * kicsinyít, tehát ez csak a hamis/szokatlan kérést fogja meg – a letöltés ELŐTT.
+ */
+const KEP_OSSZ_MAX = 14 * 1024 * 1024;
+async function kepekBetoltese(utak) {
+  const bucket = getStorage().bucket();
+  const meretek = await Promise.all(utak.map(async (u) => {
+    const [meta] = await bucket.file(u).getMetadata();
+    return Number(meta.size) || 0;
+  }));
+  if (meretek.reduce((a, b) => a + b, 0) > KEP_OSSZ_MAX) {
+    throw new Error("A feltöltött fájlok együtt túl nagyok (legfeljebb 14 MB).");
+  }
+  return Promise.all(utak.map(fajlBase64));
 }
 
 /** Storage-fájl → base64 + mimeType. */
@@ -936,7 +961,58 @@ exports.feladatlapElemzes = onCall(AI_OPCIOK, async (request) => {
 // Kétlépéses: átírás → a szöveg értékelése.
 // ══════════════════════════════════════════════════════
 
-async function feldolgozBeadas(beadasId) {
+// A feldolgozás „foglalása”: a trigger legalább egyszeri kézbesítésű, a tanár dupla
+// kattintása is két futást indíthat – a foglalás tranzakcióban dönt, hogy melyik fut.
+// A foglalás a `frissitve` időbélyeg után FOGLALAS_LEJARAT_MS-szel lejár (megszakadt
+// futás után a tanár újrafuttathat); a futás minden írása a `futas_id`-hez kötött,
+// így egy elavult futás nem írhat felül újabb állapotot.
+const FOGLALAS_LEJARAT_MS = 10 * 60 * 1000;
+
+function foglalasLejart(adat, most = Date.now()) {
+  const t = adat?.frissitve?.toMillis?.();
+  return !t || most - t > FOGLALAS_LEJARAT_MS;
+}
+
+/** @returns {Promise<string|null>} a futásazonosító; null, ha nem foglalható (más fut, vagy nem az induló állapot). */
+async function beadasFoglalas(firestore, beadasRef, { csakFeltoltve = false } = {}) {
+  const futasId = randomUUID();
+  const sikerult = await firestore.runTransaction(async (tx) => {
+    const snap = await tx.get(beadasRef);
+    if (!snap.exists) return false;
+    const adat = snap.data();
+    if (csakFeltoltve && adat.statusz !== "feltoltve") return false;
+    if (adat.statusz === "folyamatban" && !foglalasLejart(adat)) return false;
+    tx.update(beadasRef, {
+      statusz: "folyamatban",
+      hiba: null,
+      futas_id: futasId,
+      frissitve: FieldValue.serverTimestamp()
+    });
+    return true;
+  });
+  return sikerult ? futasId : null;
+}
+
+const elavultFutas = () => Object.assign(
+  new Error("A feldolgozást egy újabb futás átvette."), { elavult: true }
+);
+
+/** Írás előtt: még ez a futás a beadás gazdája? (Az írások nem atomiak vele, de szűk az ablak.) */
+async function futasEllenorzes(beadasRef, futasId) {
+  const snap = await beadasRef.get();
+  if (snap.data()?.futas_id !== futasId) throw elavultFutas();
+}
+
+/** A beadás frissítése tranzakcióban, csak ha a futás még a gazdája. */
+async function futasFrissites(beadasRef, futasId, mezok) {
+  await db().runTransaction(async (tx) => {
+    const snap = await tx.get(beadasRef);
+    if (snap.data()?.futas_id !== futasId) throw elavultFutas();
+    tx.update(beadasRef, mezok);
+  });
+}
+
+async function feldolgozBeadas(beadasId, opciok = {}) {
   const firestore = db();
   const beadasRef = firestore.collection("beadasok").doc(beadasId);
 
@@ -959,22 +1035,32 @@ async function feldolgozBeadas(beadasId) {
 
   const kepPaths = beadas.kep_paths;
 
-  await beadasRef.update({
-    statusz: "folyamatban",
-    hiba: null,
-    frissitve: FieldValue.serverTimestamp()
-  });
+  const futasId = await beadasFoglalas(firestore, beadasRef, opciok);
+  if (!futasId) {
+    logger.info("A beadás feldolgozása nem foglalható (már fut, vagy nem induló állapot)", { beadasId });
+    return { kihagyva: true };
+  }
 
+  // A hiba mentéséhez a hívó a futásazonosítót is megkapja (hibaraAllit).
+  try {
+    return await feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat, feladatRef: feladatSnap.ref, kepPaths, futasId });
+  } catch (e) {
+    e.futasId = futasId;
+    throw e;
+  }
+}
+
+async function feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat, feladatRef, kepPaths, futasId }) {
   // Kifejtős dolgozat: más átírás, más értékelés, a pontot a kód adja.
   // A hiányzó mód a régi (íráskészség) útvonal – az változatlan.
   if (kifejtos.feladatMod(feladat.rubrika) === "kifejtos") {
-    return await feldolgozKifejtos(beadasRef, feladatSnap.ref, feladat, kepPaths);
+    return await feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths, futasId);
   }
 
   // ── 1. lépés: átírás ──
   // Külön lépés, hogy a tanár lássa, mit olvasott ki az AI – e nélkül
   // nem lehet megállapítani, hogy a diák hibázott vagy az AI félreolvasott.
-  const kepek = await Promise.all(kepPaths.map(fajlBase64));
+  const kepek = await kepekBetoltese(kepPaths);
   const { eredmeny: atiratValasz, modell: atirasModell } = await geminiHivas(
     'atiras',
     [{ text: atiratPrompt(nyelve(feladat.rubrika)) }, ...kepek],
@@ -985,7 +1071,7 @@ async function feldolgozBeadas(beadasId) {
   const atirat = (atiratValasz.atirat || "").trim();
   if (!atirat) throw new Error("Az átírás üres szöveget adott.");
 
-  await beadasRef.update({
+  await futasFrissites(beadasRef, futasId, {
     atirat,
     atirat_olvashatosag: atiratValasz.olvashatosag || null,
     atirat_megjegyzes: atiratValasz.megjegyzes || null,
@@ -1004,11 +1090,13 @@ async function feldolgozBeadas(beadasId) {
     { tanar_id: beadas.tanar_id, muvelet: "beadas_ertekeles", mod: "leveles", feladat_id: beadas.feladat_id, beadas_id: beadasId }
   );
 
-  // Az összpontszámot mi számoljuk – ne a modell aritmetikájára bízzuk.
-  const szempontok = ertekeles.szempontok || [];
-  const osszpontszam = szempontok.reduce((s, sz) => s + (Number(sz.pont) || 0), 0);
-  const maxPontszam = szempontok.reduce((s, sz) => s + (Number(sz.max) || 0), 0);
+  // Az összpontszámot mi számoljuk – ne a modell aritmetikájára bízzuk, és a
+  // szempontokat/maximumokat a tanár rubrikájához kötjük (az AI kimenete nem megbízható).
+  const szempontok = szempontokTisztitas(ertekeles.szempontok, feladat.rubrika, { hianyHiba: true });
+  const osszpontszam = szempontok.reduce((s, sz) => s + sz.pont, 0);
+  const maxPontszam = szempontok.reduce((s, sz) => s + sz.max, 0);
 
+  await futasEllenorzes(beadasRef, futasId);
   await firestore
     .collection("beadasok").doc(beadasId)
     .collection("ertekeles").doc("ai")
@@ -1027,7 +1115,7 @@ async function feldolgozBeadas(beadasId) {
       generalva: FieldValue.serverTimestamp()
     });
 
-  await beadasRef.update({
+  await futasFrissites(beadasRef, futasId, {
     statusz: "javitva",
     frissitve: FieldValue.serverTimestamp()
   });
@@ -1039,7 +1127,7 @@ async function feldolgozBeadas(beadasId) {
 // ── KIFEJTŐS DOLGOZAT ──
 // Terv: docs/kifejtos-mod-terv.md. A tiszta függvények a kifejtos.js-ben.
 
-async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths) {
+async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths, futasId) {
   // A kulcs külön, csak tanári alkollekcióban van: a feladat dokumentumát
   // a diák olvashatja, a kulcs viszont maga a megoldás.
   const kulcsSnap = await feladatRef.collection("kulcs").doc("aktualis").get();
@@ -1053,7 +1141,7 @@ async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths) {
     : kifejtos.szoszedetGyujtes(kulcs);
 
   // ── 1. lépés: kérdésenkénti átírás ──
-  const kepek = await Promise.all(kepPaths.map(fajlBase64));
+  const kepek = await kepekBetoltese(kepPaths);
   const { eredmeny: atiras, modell: atirasModell } = await geminiHivas(
     "atiras",
     [{ text: kifejtos.kifejtosAtiratPrompt(kulcs, szoszedet) }, ...kepek],
@@ -1064,7 +1152,7 @@ async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths) {
   const atirat = kifejtos.atiratOsszefuzes(atiras);
   if (!atirat) throw new Error("Az átírás üres szöveget adott.");
 
-  await beadasRef.update({
+  await futasFrissites(beadasRef, futasId, {
     atirat,
     atirat_valaszok: (atiras.valaszok || []).map((v) => ({
       kerdes: String(v.kerdes ?? ""),
@@ -1098,6 +1186,7 @@ async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths) {
     kulcs, ai, valaszok, kifejtos.skalaFeloldas(feladat.rubrika)
   );
 
+  await futasEllenorzes(beadasRef, futasId);
   await beadasRef.collection("ertekeles").doc("ai").set({
     ...ertekeles,
     model: ertekelesModell,
@@ -1105,7 +1194,7 @@ async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths) {
     generalva: FieldValue.serverTimestamp()
   });
 
-  await beadasRef.update({
+  await futasFrissites(beadasRef, futasId, {
     statusz: "javitva",
     frissitve: FieldValue.serverTimestamp()
   });
@@ -1120,13 +1209,20 @@ async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths) {
 }
 
 /** Hibakezelés: a státusz 'hiba' lesz, olvasható üzenettel. */
-async function hibaraAllit(beadasId, e) {
+async function hibaraAllit(beadasId, e, futasId = null) {
   logger.error("Beadás feldolgozási hiba", { beadasId, hiba: e.message });
   try {
-    await db().collection("beadasok").doc(beadasId).update({
-      statusz: "hiba",
-      hiba: e.message,
-      frissitve: FieldValue.serverTimestamp()
+    const ref = db().collection("beadasok").doc(beadasId);
+    await db().runTransaction(async (tx) => {
+      const adat = (await tx.get(ref)).data();
+      if (!adat) return;
+      // Elavult futás hibája ne írjon felül újabb állapotot; foglalás nélküli (korai)
+      // hiba se írja felül a másik, még élő futás állapotát.
+      if (futasId ? adat.futas_id !== futasId : (adat.statusz === "folyamatban" && !foglalasLejart(adat))) {
+        logger.warn("A hibastátusz nem íródik (másik futás a gazda)", { beadasId });
+        return;
+      }
+      tx.update(ref, { statusz: "hiba", hiba: e.message, frissitve: FieldValue.serverTimestamp() });
     });
   } catch (masodlagos) {
     logger.error("A hibastátusz mentése sem sikerült", { beadasId, hiba: masodlagos.message });
@@ -1156,9 +1252,10 @@ exports.beadasFeldolgozas = onDocumentCreated(
   async (event) => {
     const beadasId = event.params.beadasId;
     try {
-      await feldolgozBeadas(beadasId);
+      // Csak az induló állapotból: egy duplán kézbesített esemény hatástalan.
+      await feldolgozBeadas(beadasId, { csakFeltoltve: true });
     } catch (e) {
-      await hibaraAllit(beadasId, e);
+      await hibaraAllit(beadasId, e, e.futasId);
     }
   }
 );
@@ -1180,18 +1277,54 @@ exports.beadasUjrafuttatas = onCall(
     if (beadasSnap.data().tanar_id !== uid) {
       throw hiba("permission-denied", "nem_a_te_beadasod");
     }
-    if (beadasSnap.data().statusz === "folyamatban") {
+    if (beadasSnap.data().statusz === "folyamatban" && !foglalasLejart(beadasSnap.data())) {
       throw hiba("failed-precondition", "beadas_folyamatban");
     }
 
+    let eredmeny;
     try {
-      return { siker: true, ...(await feldolgozBeadas(beadasId)) };
+      eredmeny = await feldolgozBeadas(beadasId);
     } catch (e) {
-      await hibaraAllit(beadasId, e);
+      await hibaraAllit(beadasId, e, e.futasId);
       throw belsoHiba(e, "ai_hiba");
     }
+    // A foglalás tranzakcióban dől el: ha közben másik futás vette át, nincs mit tenni.
+    if (eredmeny.kihagyva) throw hiba("failed-precondition", "beadas_folyamatban");
+    return { siker: true, ...eredmeny };
   }
 );
+
+/**
+ * Az AI szempontonkénti pontjai a tanár rubrikájához kötve. Az AI kimenete (és a
+ * diák szövege, ami a promptba kerül) nem megbízható: a maximumot a rubrika adja
+ * (`suly`), a pont véges és 0..max közé szorított, kulcsonként egy tétel, ismeretlen
+ * kulcsot eldobunk. Hiányzó szempont: hianyHiba esetén hiba (új feldolgozás), különben
+ * 0 pont (a már mentett értékelések jóváhagyásánál nem akadályozhatjuk a tanárt).
+ * Rubrika-szempontok nélkül (nincs mihez kötni) csak a számokat szorítjuk.
+ */
+function szempontokTisztitas(aiSzempontok, rubrika, { hianyHiba = false } = {}) {
+  const lista = Array.isArray(aiSzempontok) ? aiSzempontok.filter((x) => x && typeof x === "object") : [];
+  const veges = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const szoveg = (v) => String(v ?? "").slice(0, 2000);
+  const rubrikaSz = (rubrika?.szempontok || []).filter((sz) => sz && typeof sz.kulcs === "string");
+
+  if (rubrikaSz.length === 0) {
+    return lista.map((x) => {
+      const max = Math.max(0, veges(x.max));
+      return { kulcs: String(x.kulcs ?? ""), pont: Math.min(max, Math.max(0, veges(x.pont))), max, megjegyzes: szoveg(x.megjegyzes) };
+    });
+  }
+
+  return rubrikaSz.map((sz) => {
+    const max = Math.max(0, veges(sz.suly));
+    const x = lista.find((a) => a.kulcs === sz.kulcs);
+    if (!x) {
+      if (hianyHiba) throw new Error(`Az AI-értékelésből hiányzik a(z) „${sz.kulcs}” szempont – futtasd újra.`);
+      return { kulcs: sz.kulcs, pont: 0, max, megjegyzes: "" };
+    }
+    return { kulcs: sz.kulcs, pont: Math.min(max, Math.max(0, veges(x.pont))), max, megjegyzes: szoveg(x.megjegyzes) };
+  });
+}
 
 /**
  * A diáknak kimenő pontozási táblázat.
@@ -1314,7 +1447,10 @@ async function jovahagyasLogika(uid, adat) {
     });
   } else if (aiSnap.exists) {
     try {
-      tabla = pontTablazat(aiSnap.data(), feladatSnap.data()?.rubrika, szempontok);
+      // A korábban mentett AI-adatot is a rubrikához kötjük (az AI maximumai nem megbízhatók).
+      const rubrika = feladatSnap.data()?.rubrika;
+      const ai = { ...aiSnap.data(), szempontok: szempontokTisztitas(aiSnap.data().szempontok, rubrika) };
+      tabla = pontTablazat(ai, rubrika, szempontok);
     } catch (e) {
       throw hibaAtvezet("invalid-argument", e);
     }
@@ -1384,6 +1520,11 @@ exports._teszt = {
   csatlakozasLogika,
   jovahagyasLogika,
   beadasOsszerendeles,
+  beadasFoglalas,
+  foglalasLejart,
+  hibaraAllit,
+  szempontokTisztitas,
+  FOGLALAS_LEJARAT_MS,
   tanariRegisztracioLogika,
   aiHasznalatNaplo,
   aiHasznalatJelentesLogika,

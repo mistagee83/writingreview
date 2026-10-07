@@ -223,6 +223,15 @@ cd writingreview
   (`beadasOsszerendeles`: képutak és összerendelés a letöltés előtt; a jóváhagyás csak a feladat tanárának), tesztek:
   `tests/rules.test.mjs`, `tests/functions.test.mjs`. **Deploy:** `firestore:rules` + `functions`, pilotra és prodra is.
   Nyitott (alacsony): a „diákmúlt” a tanári önregisztrációnál csak a jelenlegi tagságot nézi (`audit/ellenorzes/kor-1.md`).
+- **Külső audit, 2. kör, A csomag (2026-10-07) – javítva a forrásban, DEPLOY MÉG NEM TÖRTÉNT (pilot és prod is a régi kóddal fut):**
+  (1)+(2) a beadás feldolgozása tranzakciós **foglalással** indul (`beadasFoglalas`, `futas_id`): a duplikált trigger-esemény és a
+  tanári dupla kattintás nem indít második futást, az elavult futás nem ír felül újabb állapotot, a 10 percnél régebbi `folyamatban`
+  állapot (megszakadt futás) újrafuttatható; (3) a leveles pontozás a tanár rubrikájához kötött (`szempontokTisztitas`: ismert
+  kulcsok, a maximum a rubrikából, a pont 0..max), a jóváhagyás a már mentett AI-adatot is ide szorítja; (5) hibás AI-válasznál is
+  naplózódik a tokenhasználat; a beadás képeinek összmérete a letöltés előtt korlátozott (14 MB). **Deploy:** csak `functions`,
+  pilotra és prodra is. Nyitott: a 2. kör [4] pontja (több beadás ugyanarra a feladatra – determinisztikus beadás-azonosító, kliens
+  + szabály + hosting), a prompt injection pilotos kipróbálása, az osztályelemzés adatforrása leveles feladatnál (termékdöntés).
+  Lásd `audit/ellenorzes/kor-2.md`.
 - **Munkaszabály** (a `CLAUDE.md`-ben): hibajavításnál mindig meg kell mondani, melyik környezet
   fut még a régi kóddal, és a párhuzamos kódutat (leveles/kifejtős) is meg kell nézni.
 - **A prod ellenőrzése kész** (2026-10-05). A teljes kör végig lett próbálva. Ellenőrizve: a

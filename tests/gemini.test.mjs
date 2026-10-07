@@ -288,3 +288,24 @@ test("a mérés hibája nem akadályozza a javítást: a rögzítés sosem dob",
   assert.equal(rekord.muvelet, "elemzes");
   assert.ok(rekord.ido, "időbélyeg");
 });
+
+
+test("hibás válasznál (nem JSON, üres szöveg) a hibán ott a tokenadat a mérés számára", async () => {
+  globalThis.fetch = async () => ({
+    ok: true, status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: "ez nem json" }] } }],
+      usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 20, totalTokenCount: 120 }
+    })
+  });
+  await assert.rejects(() => t.geminiKeres("m", [], {}), (e) => e.hasznalat?.ossz === 120 && /nem érvényes JSON/.test(e.message));
+
+  globalThis.fetch = async () => ({
+    ok: true, status: 200,
+    json: async () => ({
+      candidates: [{ finishReason: "SAFETY" }],
+      usageMetadata: { promptTokenCount: 50, totalTokenCount: 50 }
+    })
+  });
+  await assert.rejects(() => t.geminiKeres("m", [], {}), (e) => e.hasznalat?.prompt === 50 && /SAFETY/.test(e.message));
+});
