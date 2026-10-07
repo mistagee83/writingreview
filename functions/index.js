@@ -86,6 +86,21 @@ const TARTALEK = {
   elemzes: ["gemini-3.7-flash"]
 };
 
+// ── GONDOLKODÁSI SZINT LÉPÉSENKÉNT ──
+// A gondolkodási (thinking) tokenek kimenetként számlázódnak, és az első éles
+// mérésben (13 dolgozat) a költség nagy része a kimenet+gondolkodás volt: az
+// átírás hívásonként ~2900 ilyen tokent használt egy ~150 szavas levélnél.
+// A kézírás felolvasása lényegében OCR, nem kell hozzá hosszú gondolkodás.
+// A "low" a legalacsonyabb szint, amit a 3.8 és a 3.7 Flash is elfogad (kikapcsolni
+// nem lehet, a "minimal" csak a Flash-Lite-on érvényes), és mindhárom
+// átírás-modellen érvényes – a tartalék-láncban sem dob 400-as hibát.
+// Ami itt nincs felsorolva, az a modell alapértelmezését kapja (medium).
+// Az értékelést (pontozás) szándékosan nem vesszük vissza, amíg nincs
+// összehasonlító mérés: ott a gondolkodás számíthat a pontosságra.
+const GONDOLKODAS = {
+  atiras: "low"
+};
+
 // A környezet (pilot/prod) beállításai: functions/kornyezet.js.
 const BEALLITASOK = kornyezet.beallitasok();
 const CORS = BEALLITASOK.cors;
@@ -225,7 +240,7 @@ function atmenetiHiba(httpStatus, hiba) {
 }
 
 /** Egyetlen Gemini-kérés, újrapróbálkozás nélkül. */
-async function geminiKeres(modell, parts, schema) {
+async function geminiKeres(modell, parts, schema, gondolkodas) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${modell}:generateContent?key=${GEMINI_API_KEY.value()}`;
 
   const response = await fetch(url, {
@@ -236,7 +251,9 @@ async function geminiKeres(modell, parts, schema) {
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: schema,
-        temperature: 0.2
+        temperature: 0.2,
+        // Szint nélkül a mező nem megy ki: a modell alapértelmezése érvényes.
+        ...(gondolkodas ? { thinkingConfig: { thinkingLevel: gondolkodas } } : {})
       }
     })
   });
@@ -303,7 +320,7 @@ async function geminiHivas(lepes, parts, schema, kontextus) {
           logger.info("Gemini újrapróbálkozás", { lepes, modell, kiserlet: i + 1 });
         }
         probalkozas++;
-        const { eredmeny, hasznalat } = await geminiKeres(modell, parts, schema);
+        const { eredmeny, hasznalat } = await geminiKeres(modell, parts, schema, GONDOLKODAS[lepes]);
         await aiHasznalatNaplo(kontextus, { modell, fo_modell: modellek[0], hasznalat, probalkozas, parts });
         return { eredmeny, modell, hasznalat };
       } catch (e) {
@@ -617,6 +634,8 @@ látható. A dolgozat nyelve: ${nyelv}.
 - Ha egy szó olvashatatlan, jelöld így: [?]
 - Ha egy szó bizonytalan, írd le a legjobb tippet, utána [?]
 - A bekezdéseket és sortöréseket tartsd meg.
+- Az áthúzott (kihúzott, kisatírozott) szöveget hagyd ki, mintha ott sem
+  lenne. Ne írd be, és ne tegyél a helyére semmilyen jelölőt vagy megjegyzést.
 - Ha több kép van, azok egy dolgozat egymást követő oldalai.
 
 Az olvashatosag mezőben értékeld, mennyire volt olvasható a kézírás.`;
@@ -1346,6 +1365,8 @@ exports._teszt = {
   elemzesAggregalas,
   elemzesPrompt,
   atiratPrompt,
+  ATIRAT_SCHEMA,
+  geminiKeres,
   ertekelesPrompt,
   rubrikaPrompt,
   rubrikaSchema,
@@ -1372,7 +1393,8 @@ exports._teszt = {
   atmenetiHiba,
   UJRAPROBA,
   MODELLEK,
-  TARTALEK
+  TARTALEK,
+  GONDOLKODAS
 };
 
 // ══════════════════════════════════════════════════════

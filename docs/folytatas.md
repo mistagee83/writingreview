@@ -49,6 +49,33 @@ számolhatók. Mindkét környezetben fut, korlát nélkül.
 - **Deploy-hatás:** új Firestore-szabály (`ai_hasznalat`: kliensnek tiltva), módosított függvények, új
   függvény (`aiHasznalatJelentes`), új lap. **Pilot** (a mérésért): `node scripts/deploy.mjs pilot --only
   hosting,functions,firestore:rules`. **Prod:** címkés kiadással. A pilotra 2026-10-05-én kiment (hosting, functions, `firestore:rules`); a prodon addig nem mér, amíg nincs új címkés kiadás. A `gemini-3.7-flash` ára ugyanannyi, mint a 3.8-é (a tulajdonos megerősítése), így nincs ismeretlen árú modell.
+- **Az első éles mérés (pilot, 13 dolgozat, 1 rövid levél-feladat):** ~$0,022 / dolgozat (átírás ~$0,012 +
+  értékelés ~$0,010; a tanári oldal +8%). A költség nagy része a kimenet+gondolkodás tokenje (átírás:
+  ~2900 / hívás egy ~150 szavas levélnél). A kifejtős mód és a többoldalas beadás még nincs mérve.
+- **Gondolkodási szint (2026-10-06, kód kész; a PILOTRA deployolva (functions), a PRODRA még NEM):** az átírás
+  (`geminiHivas("atiras")`, leveles és kifejtős egyaránt) `thinkingConfig.thinkingLevel: "low"`-val megy
+  (`GONDOLKODAS` az `index.js`-ben; teszt: `tests/gemini.test.mjs`). A 3.8/3.7 Flash alapértelmezése
+  `medium`, kikapcsolni nem lehet, a `minimal` csak a Flash-Lite-on érvényes. Az értékelés, rubrika és
+  elemzés változatlan. **Deploy:** a pilotra kiment (`node scripts/deploy.mjs pilot --only functions`,
+  mind a 14 függvény frissült); a prod címkés kiadással (és ott a mérés is csak ezzel indul). **Utána ellenőrizni:** az átírás pontossága a
+  mintadolgozatokon (rosszabb félreolvasás?), és az admin nézeten a „Submission: transcription (photo)”
+  átlaga ($0,0119-hez képest). Az értékelés gondolkodásának csökkentése csak összehasonlító mérés után.
+- **Offline mérés 4 valódi levélen (2026-10-06, 2 szint × 2 futás):** `low` ~74–82%-kal olcsóbb átírásnál, a
+  felismerés nem rosszabb, és hűségesebb a diák hibáihoz (a `medium` csendben javít: „actualy”→„actually”).
+  A leveles átírás promptja nem tiltotta az áthúzott szöveget: `low`-nál élő szövegként vagy „[áthúzva: …]”
+  jelölővel került az átiratba. **Javítva** (a prompt kihagyatja, jelölő nélkül; a kifejtős promptban már
+  megvolt), újramérve: a jelölők és a kihúzott szavak eltűntek. **Ismert maradék:** a `low` a 2. levélen
+  mindkét futásban kihagyta a „lazy” szót (egy kihúzott szó mellett). A prompt-javítás és a
+  gondolkodási szint **a pilotra deployolva** (2026-10-06, functions, mind a 14); a **prodon egyik sincs**
+  (címkés kiadás kell, és ott a mérés is csak azzal indul).
+- **Átírás-összehasonlító szkript (offline, meglévő fotókon):** `scripts/atiras-osszehasonlitas.mjs`
+  (teszt: `tests/atiras-osszehasonlitas.test.mjs`). Ugyanazokat a fotókat átírja `medium` és `low` szinttel
+  (az éles `geminiKeres`-sel, prompttal, sémával; Firebase-t nem érint), kiírja a költséget és a szó-szintű
+  eltérést, a „zajt” (a viszonyítás 2. futása) is. **Melyik olvas jobban:** ehhez a fotó mellé `<név>.txt` kell, a
+  diák szövegével szó szerint, hibákkal együtt – ilyenkor szintenkénti hibaarányt is számol. A fotók a `tests/dolgozatok/` alá menjenek (gitignore-olt).
+  Futtatás: `$env:GEMINI_API_KEY = (firebase functions:secrets:access GEMINI_API_KEY --project pilot)`, majd
+  `node scripts/atiras-osszehasonlitas.mjs tests/dolgozatok/levelek`. Az app 1500 px-re kicsinyít feltöltéskor;
+  ezt a szkript `sharp`-pal utánozza (`cd tests && npm i --no-save sharp`).
 - A **havi kvóta** (egységek, csomagok, admin csomagválasztó) kész, de **még nem kiadásra szánt**: a
   `kvota-wip` ágon van (egy WIP commit). A mért számok után folytatjuk (egység, csomagméretek, szerkeszthető
   csomagok az admin felületen).

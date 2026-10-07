@@ -192,6 +192,62 @@ test("a hibaüzenet tartalmazza a modell nevét", async () => {
 });
 
 // ══════════════════════════════════════════
+// Gondolkodási szint (költség)
+// ══════════════════════════════════════════
+
+/** Rögzíti a kimenő kérések generationConfig-ját; a válasz mindig sikeres. */
+function configFigyelo() {
+  const configok = [];
+  globalThis.fetch = async (url, opts) => {
+    configok.push({ modell: modellUrlbol(url), config: JSON.parse(opts.body).generationConfig });
+    return OK_VALASZ({ ok: true });
+  };
+  return configok;
+}
+
+test("az átírás (OCR) alacsony gondolkodási szinttel megy – a leveles és a kifejtős is ezt a lépést hívja", async () => {
+  const configok = configFigyelo();
+  await t.geminiHivas("atiras", [], {});
+  assert.equal(configok.length, 1);
+  assert.deepEqual(configok[0].config.thinkingConfig, { thinkingLevel: "low" });
+  // a többi beállítás érintetlen
+  assert.equal(configok[0].config.temperature, 0.2);
+  assert.equal(configok[0].config.responseMimeType, "application/json");
+});
+
+test("az átírás tartalék modelljei is megkapják a szintet (a 'low' mindháromnál érvényes)", async () => {
+  const configok = [];
+  globalThis.fetch = async (url, opts) => {
+    const modell = modellUrlbol(url);
+    configok.push({ modell, config: JSON.parse(opts.body).generationConfig });
+    // a fő modell és az első tartalék elhasal, a legutolsó sikerül
+    return modell === t.TARTALEK.atiras.at(-1) ? OK_VALASZ({ ok: true }) : HIBA_VALASZ(503, HIGH_DEMAND, "UNAVAILABLE");
+  };
+  await t.geminiHivas("atiras", [], {});
+  const modellek = new Set(configok.map((c) => c.modell));
+  assert.deepEqual([...modellek], [t.MODELLEK.atiras, ...t.TARTALEK.atiras]);
+  for (const c of configok) {
+    assert.deepEqual(c.config.thinkingConfig, { thinkingLevel: "low" }, c.modell);
+  }
+});
+
+test("az értékelés, a rubrika és az elemzés NEM kap gondolkodási beállítást (alapértelmezés marad)", async () => {
+  for (const lepes of ["ertekeles", "rubrika", "elemzes"]) {
+    const configok = configFigyelo();
+    await t.geminiHivas(lepes, [], {});
+    assert.ok(!("thinkingConfig" in configok[0].config), lepes);
+  }
+});
+
+test("a beállított gondolkodási szintek mind olyanok, amit a használt modellek elfogadnak", () => {
+  // Ha a "minimal"-t valaki felveszi az átíráshoz, a 3.8/3.7 Flash 400-ast dob – ez a teszt jelez.
+  for (const [lepes, szint] of Object.entries(t.GONDOLKODAS)) {
+    assert.ok(["low", "medium", "high"].includes(szint), `${lepes}: ${szint}`);
+    assert.ok(lepes in t.MODELLEK, `${lepes} ismeretlen lépés`);
+  }
+});
+
+// ══════════════════════════════════════════
 // Tokenszám (AI-használat mérése)
 // ══════════════════════════════════════════
 
