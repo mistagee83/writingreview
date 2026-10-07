@@ -117,7 +117,7 @@ Ma **nincs CI**, és a cloud-munkamenetből nem lehet deployolni (nincs hiteles�
 2. **Firestore-hely: jól válaszd meg, utólag nem módosítható** (a pilot `eur3`-at használ; EU célpiacra az is jó, vagy egy konkrét EU-régió). Storage-bucket EU-ban, Functions: `europe-west1`.
 3. Auth: e-mail/jelszó és Google bekapcsolása, engedélyezett domainek.
 4. `GEMINI_API_KEY` secret beállítása a projektben (külön kulcs, külön kvótával).
-5. `firebase deploy --project prod` (szabályok, indexek, Storage-szabály, functions, hosting); a Storage CORS alkalmazása (`cors.json`).
+5. `node scripts/deploy.mjs prod --yes` (szabályok, indexek, Storage-szabály, functions, hosting); a Storage CORS alkalmazása (`cors.json`).
 6. Az első admin kinevezése (`szerep.mjs`, `gcloud auth application-default login` után).
 7. **Smoke teszt:** belépés, osztály, feladat, egy beadás végig (magyarul és angolul is), a jegyskála, a diák nézete.
 

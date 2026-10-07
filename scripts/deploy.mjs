@@ -11,7 +11,7 @@
 // ══════════════════════════════════════════════════════
 
 import { spawnSync } from "node:child_process";
-import { KORNYEZETEK, konfigBetoltes, konfigHibak } from "./kornyezet-config.mjs";
+import { KORNYEZETEK, konfigBetoltes, konfigHibak, celProjekt, deployParameterHiba } from "./kornyezet-config.mjs";
 
 const [kornyezet, ...tovabbi] = process.argv.slice(2);
 if (!KORNYEZETEK.includes(kornyezet)) {
@@ -19,7 +19,11 @@ if (!KORNYEZETEK.includes(kornyezet)) {
   process.exit(1);
 }
 
-const hibak = konfigHibak(konfigBetoltes(kornyezet), { kitoltott: true });
+// A konfig fájlja a kért környezethez és a .firebaserc szerinti projekthez kötött:
+// egy átmásolt/felcserélt config/prod.json nem mehet ki.
+const hibak = konfigHibak(konfigBetoltes(kornyezet), {
+  kitoltott: true, elvartKornyezet: kornyezet, celProjekt: celProjekt(kornyezet)
+});
 if (hibak.length) {
   console.error(`A(z) ${kornyezet} konfigja nem teljes (config/${kornyezet}.json):`);
   hibak.forEach((h) => console.error("  " + h));
@@ -28,6 +32,12 @@ if (hibak.length) {
 
 const yes = tovabbi.includes("--yes");
 const parameterek = tovabbi.filter((p) => p !== "--yes");
+const rossz = parameterek.map(deployParameterHiba).filter(Boolean);
+if (rossz.length) {
+  console.error("Nem adható tovább a firebase deploy-nak:");
+  rossz.forEach((h) => console.error("  " + h));
+  process.exit(1);
+}
 if (kornyezet === "prod" && !yes) {
   console.error("A prod éles környezet: add meg a --yes kapcsolót, ha biztosan telepíteni akarsz.");
   process.exit(1);

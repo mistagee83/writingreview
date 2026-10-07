@@ -248,6 +248,20 @@ cd writingreview
   **Deploy:** `hosting` + `firestore:rules`, pilotra és prodra is (a B csomag deployával együtt javasolt, egy kiadásban).
   Nyitott: a 3. kör [2] (késő AI-kulcs másik feladatlaphoz, tanári űrlap) és [7] (guard-üzenetek, 404 és offline lap kétnyelvűsége);
   opcionális: Content-Security-Policy fejléc (`firebase.json`; inline szkriptek miatt óvatosan). Lásd `audit/ellenorzes/kor-3.md`.
+- **Külső audit, 4. kör, D csomag (2026-10-07) – javítva a forrásban; a build/deploy eszközök és a workflow-k változtak, élő rendszer nem érintett:**
+  (1) a build a környezetet a `WR_ENV` mellett a Firebase CLI által a predeploy hooknak átadott célprojektből (`GCLOUD_PROJECT`) is
+  veszi, és az ellentmondást megtagadja – egy közvetlen `firebase deploy --project prod` sem épülhet pilot konfiggal (és fordítva);
+  (2) a konfig fájlja a kért környezethez és a `.firebaserc` szerinti projekthez kötött (a `build.mjs` és a `deploy.mjs` is ellenőrzi:
+  egy átmásolt/felcserélt `config/prod.json` nem mehet ki); a `deploy.mjs` elutasítja a `--project/-P/--config/--token/--account`
+  kapcsolót és a shell-metakaraktereket tartalmazó paramétert; a workflow-k a Firebase CLI **15.17.0** verzióját telepítik.
+  **Teendő a tulajdonosra (prod IAM, a `writerev2` projektben):** a Workload Identity provider feltételét szűkíteni kell a `prod`
+  environmentre – a javítás a `docs/ci-cd.md` receptjében van, de a már létező providert át kell állítani:
+  `gcloud iam workload-identity-pools providers update-oidc github --project writerev2 --location=global --workload-identity-pool=github
+  --attribute-condition="assertion.repository=='mistagee83/writingreview' && assertion.sub=='repo:mistagee83/writingreview:environment:prod'"`
+  (az első címkés kiadás igazolja, hogy a deploy továbbra is átmegy; hiba esetén a feltétel visszaállítható). A `prod` GitHub environmentre
+  a „Required reviewers” beállítása továbbra is a tulajdonosra vár (v1.1.0 jóváhagyás nélkül ment ki). Nyitott: a régi címke újrafuttatása
+  (rollback) szándékos-e; a GitHub Actions action-ök commit SHA-ra rögzítése; a Storage CORS tényleges alkalmazása (`cors.prod.json`).
+  Lásd `audit/ellenorzes/kor-4.md`.
 - **Munkaszabály** (a `CLAUDE.md`-ben): hibajavításnál mindig meg kell mondani, melyik környezet
   fut még a régi kóddal, és a párhuzamos kódutat (leveles/kifejtős) is meg kell nézni.
 - **A prod ellenőrzése kész** (2026-10-05). A teljes kör végig lett próbálva. Ellenőrizve: a

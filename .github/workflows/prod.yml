@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: 24
 
-      - run: npm install -g firebase-tools
+      - run: npm install -g firebase-tools@15.17.0
       - run: npm ci --prefix functions
 
       - uses: google-github-actions/auth@v2
