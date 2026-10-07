@@ -92,6 +92,10 @@ beforeEach(async () => {
   });
 });
 
+const FELADATLAP = {
+  path: `feladatlapok/${TANAR}/123_lap.jpg`,
+  url: "https://firebasestorage.googleapis.com/v0/b/proj.appspot.com/o/lap.jpg?alt=media&token=abc"
+};
 // A beadás azonosítója kötött: <feladat_id>_<diak_uid>
 const ujId = (feladat = FELADAT, uid = DIAK) => `${feladat}_${uid}`;
 
@@ -322,9 +326,56 @@ test("a tanár létrehozhat feladatot a saját osztályába", async () => {
     setDoc(doc(tanar(), "feladatok", "uj-feladat"), {
       osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Letter writing",
       aktiv: true, hatarido: null, rubrika: { tipus: "levél" },
-      feladatlap: {}, letrehozva: new Date()
+      feladatlap: FELADATLAP, letrehozva: new Date()
     })
   );
+});
+
+// ── Külső audit 3. kör: a tanár által írt, a diák felületén megjelenő mezők ──
+const ujFeladat = (felul = {}) => ({
+  osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Letter writing",
+  aktiv: true, hatarido: null, rubrika: { tipus: "levél" }, letrehozva: new Date(), ...felul
+});
+
+test("feladat: a szószámhatár csak szám vagy null lehet (HTML/szöveg nem)", async () => {
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", "f-ok1"), ujFeladat({ rubrika: { min_szo: 100, max_szo: 180 } })));
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", "f-ok2"), ujFeladat({ rubrika: { min_szo: null, max_szo: null } })));
+  for (const rossz of ['<img src=x onerror=alert(1)>', "120", { a: 1 }, [1], -5, 1e9]) {
+    await assertFails(setDoc(doc(tanar(), "feladatok", "f-rossz"), ujFeladat({ rubrika: { min_szo: rossz, max_szo: 180 } })));
+    await assertFails(setDoc(doc(tanar(), "feladatok", "f-rossz"), ujFeladat({ rubrika: { min_szo: 100, max_szo: rossz } })));
+  }
+});
+
+test("feladat: a szószám szerkesztéskor sem lehet szöveg", async () => {
+  await assertFails(updateDoc(doc(tanar(), "feladatok", FELADAT), { rubrika: { min_szo: "<b>x</b>", max_szo: 5 } }));
+  await assertSucceeds(updateDoc(doc(tanar(), "feladatok", FELADAT), { rubrika: { min_szo: 50, max_szo: 90 } }));
+});
+
+test("feladat: a feladatlap csak a tanár saját feltöltése és Storage-URL lehet", async () => {
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", "f-lap"), ujFeladat({ feladatlap: FELADATLAP })));
+  for (const rossz of [
+    { ...FELADATLAP, url: "javascript:alert(1)" },
+    { ...FELADATLAP, url: "https://evil.example/lap.jpg" },
+    { ...FELADATLAP, url: "http://firebasestorage.googleapis.com/x" },
+    { ...FELADATLAP, path: "feladatlapok/masik-tanar-uid/123_lap.jpg" },
+    { ...FELADATLAP, path: "beadasok/diak-uid/b/1.jpg" },
+    { ...FELADATLAP, extra: 1 },
+    {}, "szöveg"
+  ]) {
+    await assertFails(setDoc(doc(tanar(), "feladatok", "f-lap"), ujFeladat({ feladatlap: rossz })));
+  }
+});
+
+test("feladat: a feladatlap cserélhető szerkesztéskor (saját feltöltésre), idegenre nem", async () => {
+  const uj = { ...FELADATLAP, path: `feladatlapok/${TANAR}/456_uj.jpg` };
+  await assertSucceeds(updateDoc(doc(tanar(), "feladatok", FELADAT), { feladatlap: uj }));
+  await assertFails(updateDoc(doc(tanar(), "feladatok", FELADAT), { feladatlap: { ...uj, url: "javascript:alert(1)" } }));
+  await assertFails(updateDoc(doc(tanar(), "feladatok", FELADAT), { feladatlap: { ...uj, path: "feladatlapok/masik-tanar-uid/x.jpg" } }));
+});
+
+test("feladat: a régi (nem szabványos) feladatlap-rekord szerkeszthető marad, ha a feladatlap nem változik", async () => {
+  // a fixture feladata `https://x` URL-t tárol: a cím átírása nem érintheti
+  await assertSucceeds(updateDoc(doc(tanar(), "feladatok", FELADAT), { cim: "Új cím" }));
 });
 
 // A feladatlap (kép/PDF) NEM kötelező: a tanár magától is összeállíthat

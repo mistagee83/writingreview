@@ -306,6 +306,7 @@
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { biztonsagosUrl } from './js/biztonsag.js';
   import { atmeretez, tulNagy, meret } from './js/kep.js';
   import { kifejtosUrlap } from './js/kifejtos-urlap.js';
   import { beillesztesBekotes } from './js/beillesztes.js';
@@ -953,14 +954,22 @@
         // A szabály csak ezeket a mezőket engedi módosítani – az
         // osztaly_id és a tanar_id szándékosan nem változtatható.
         const feladatRef = doc(db, 'feladatok', szerkesztesId);
+        const mezok = { cim, hatarido, rubrika };
+        // A feladatlap cseréje (a szerkesztő ígéri): az új path/url is mentődik.
+        if (fajlPath) {
+          mezok.feladatlap = {
+            path: fajlPath,
+            url: fajlUrl || await getDownloadURL(storageRef(storage, fajlPath))
+          };
+        }
         if (kifejtos) {
           // A feladat és a kulcs együtt változik, vagy egyik sem.
           const batch = writeBatch(db);
-          batch.update(feladatRef, { cim, hatarido, rubrika });
+          batch.update(feladatRef, mezok);
           batch.set(doc(db, 'feladatok', szerkesztesId, 'kulcs', 'aktualis'), kifejtos.kulcs);
           await batch.commit();
         } else {
-          await updateDoc(feladatRef, { cim, hatarido, rubrika });
+          await updateDoc(feladatRef, mezok);
         }
         uzenet('form-msg', kifejtos ? t('fel.mentve_kulcs') : t('fel.mentve_rubrika'), 'success');
       } else {
@@ -1082,7 +1091,7 @@
     // Chrome/Edge beépített nézője érti, a többi böngésző figyelmen kívül
     // hagyja.
     const lap = document.getElementById('v-lap');
-    const url = f.feladatlap?.url;
+    const url = biztonsagosUrl(f.feladatlap?.url);
     const pdf = /\.pdf$/i.test(f.feladatlap?.path || '');
     const lapHtml = !url ? '' : pdf
       ? `<iframe src="${esc(url)}#toolbar=0&navpanes=0&view=FitH" title="${esc(t('fel.v_lap_cim'))}"></iframe>`

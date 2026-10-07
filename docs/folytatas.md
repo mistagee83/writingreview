@@ -238,6 +238,16 @@ cd writingreview
   azonosítójú beadást létrehozhat). **Deploy-sorrend: a `firestore:rules` és a `hosting` EGYÜTT megy ki** (a régi, gyorsítótárazott
   kliens véletlen azonosítóval próbálna beadni, amit az új szabály elutasít, amíg a service worker frissül). Pilot: `node scripts/deploy.mjs
   pilot --only hosting,firestore:rules`; prod: címkés kiadás.
+- **Külső audit, 3. kör, C csomag (2026-10-07) – javítva a forrásban, DEPLOY MÉG NEM TÖRTÉNT (pilot és prod is a régi kóddal fut):**
+  (1) **tárolt XSS**: a tanár által írt `rubrika.min_szo/max_szo` escape nélkül került a diák feladatlistájába (`diak.html`) – most
+  `esc()` védi, és a szabály csak számot/`null`-t enged; (+) a **feladatlap URL-je** nem ellenőrzött sémájú volt (`javascript:` a diák
+  linkjében) – a kliens csak `https` Storage-URL-t renderel (`public/js/biztonsag.js`), a szabály a `feladatlap` mezőt típusozza (a tanár
+  saját `feladatlapok/<uid>/` útja + `firebasestorage.googleapis.com` URL); (5) a feladatlap cseréje szerkesztéskor mostantól mentődik
+  (szabály + kliens); (4) feltöltés alatt a képlista zárolt és másolatból dolgozik (nem maradhat ki oldal); (3) a javítóablak
+  kérésazonosítót használ (lassú korábbi lekérés nem írja felül az újabbat); (6) a PWA-regisztráció a load után is elindul.
+  **Deploy:** `hosting` + `firestore:rules`, pilotra és prodra is (a B csomag deployával együtt javasolt, egy kiadásban).
+  Nyitott: a 3. kör [2] (késő AI-kulcs másik feladatlaphoz, tanári űrlap) és [7] (guard-üzenetek, 404 és offline lap kétnyelvűsége);
+  opcionális: Content-Security-Policy fejléc (`firebase.json`; inline szkriptek miatt óvatosan). Lásd `audit/ellenorzes/kor-3.md`.
 - **Munkaszabály** (a `CLAUDE.md`-ben): hibajavításnál mindig meg kell mondani, melyik környezet
   fut még a régi kóddal, és a párhuzamos kódutat (leveles/kifejtős) is meg kell nézni.
 - **A prod ellenőrzése kész** (2026-10-05). A teljes kör végig lett próbálva. Ellenőrizve: a

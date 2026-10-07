@@ -43,6 +43,29 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/feladatok/$(feladatId)).data;
     }
 
+    // Szám vagy null (a szószámhatárok): egy tanár által írt mező a diák felületén
+    // jelenik meg, ezért nem lehet benne szöveg/HTML (audit 3. kör).
+    function szamVagyNull(v) {
+      return v == null || (v is number && v >= 0 && v <= 100000);
+    }
+
+    function rubrikaMezokOk(r) {
+      return r is map
+        && szamVagyNull(r.get('min_szo', null))
+        && szamVagyNull(r.get('max_szo', null));
+    }
+
+    // A feladatlap: a tanár saját feltöltése, tokenes Storage-letöltési URL-lel
+    // (a diák linkként kapja meg: nem lehet javascript: vagy idegen séma).
+    function feladatlapOk(f) {
+      return f is map
+        && f.keys().hasOnly(['path', 'url'])
+        && f.path is string
+        && f.path.matches('feladatlapok/' + request.auth.uid + '/[^/]+')
+        && f.url is string
+        && f.url.matches('https://firebasestorage\\.googleapis\\.com/.*');
+    }
+
     function osztalyTag(osztalyId) {
       return belepve()
         && exists(/databases/$(database)/documents/osztalyok/$(osztalyId)/tagok/$(request.auth.uid));
@@ -155,14 +178,19 @@ service cloud.firestore {
       allow create: if tanar()
         && request.resource.data.tanar_id == request.auth.uid
         && sajatOsztaly(request.resource.data.osztaly_id)
-        && request.resource.data.rubrika is map
+        && rubrikaMezokOk(request.resource.data.rubrika)
+        && (!('feladatlap' in request.resource.data) || feladatlapOk(request.resource.data.feladatlap))
         && request.resource.data.cim is string
         && request.resource.data.cim.size() > 0
         && request.resource.data.cim.size() <= 200;
 
       allow update: if tanar()
         && resource.data.tanar_id == request.auth.uid
-        && csakEzekValtoznak(['cim', 'aktiv', 'hatarido', 'rubrika']);
+        && csakEzekValtoznak(['cim', 'aktiv', 'hatarido', 'rubrika', 'feladatlap'])
+        && (!('rubrika' in request.resource.data) || rubrikaMezokOk(request.resource.data.rubrika))
+        // csak ha a feladatlap változik: a régi (nem szabványos) rekord szerkeszthető marad
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['feladatlap'])
+            || feladatlapOk(request.resource.data.feladatlap));
 
       allow delete: if tanar() && resource.data.tanar_id == request.auth.uid;
 

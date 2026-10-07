@@ -236,18 +236,26 @@
   const modal = document.getElementById('modal');
   const torzs = document.getElementById('m-torzs');
 
-  document.getElementById('m-bezar').addEventListener('click', () => modal.classList.remove('show'));
-  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+  // Megnyitás-azonosító: egy lassú, korábbi lekérés nem írhatja felül az újabbat,
+  // és a bezárás érvényteleníti a függőben lévőket.
+  let megnyitasSzam = 0;
+  const bezar = () => { megnyitasSzam++; modal.classList.remove('show'); };
+  document.getElementById('m-bezar').addEventListener('click', bezar);
+  modal.addEventListener('click', (e) => { if (e.target === modal) bezar(); });
 
   async function megnyit(beadasId) {
+    const sorszam = ++megnyitasSzam;
+    const elavult = () => sorszam !== megnyitasSzam;
     modal.classList.add('show');
     torzs.innerHTML = `<div class="empty-state bare"><div class="spinner"></div></div>`;
 
     try {
       const bSnap = await getDoc(doc(db, 'beadasok', beadasId));
+      if (elavult()) return;
       if (!bSnap.exists()) { torzs.innerHTML = `<p>${t('jav.nem_talalhato')}</p>`; return; }
       const b = bSnap.data();
       const f = await feladatCim(b.feladat_id);
+      if (elavult()) return;
 
       document.getElementById('m-cim').textContent =
         `${b.diak_nev || t('jav.nevtelen')} – ${f?.cim || t('jav.torolt_feladat')}`;
@@ -257,6 +265,7 @@
 
       const tanariSnap = await getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'tanari'));
       const tanari = tanariSnap.exists() ? tanariSnap.data() : null;
+      if (elavult()) return;
 
       // A jegy a FELADAT skáláján áll (magyar 1–5, A–F, százalék, egyéni).
       const skala = skalaFeloldas(f?.rubrika);
@@ -296,6 +305,7 @@
         (b.kep_paths || []).map((p) =>
           getDownloadURL(storageRef(storage, p)).catch(() => null))
       );
+      if (elavult()) return;
 
       torzs.innerHTML = `
         <div class="m-szekcio">
@@ -506,6 +516,7 @@
 
     } catch (e) {
       console.error(e);
+      if (elavult()) return;
       torzs.innerHTML = `<p>${t('jav.modal_hiba', { ok: esc(e.message) })}</p>`;
     }
   }
