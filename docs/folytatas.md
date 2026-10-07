@@ -7,7 +7,7 @@ folytatni, és mi a következő lépés. A program működéséről a
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 
 **Kész és élesben van** (pilot és prod is; a `main` a GitHubon a `976ecd9`-nél és az azt követő
-jegyzet-commitnál tart, a prod a `v1.0.0` címkén fut):
+jegyzet-commitnál tart, a prod a `v1.3.0` címkén fut, 2026-10-07):
 
 - az éles kipróbálás hibái javítva és deployolva: egyéni jegyskála mentése, a feladatleírás (helyzet +
   cikk összefoglalva + teendő, E/2), jegyjavaslat a leveles javításnál, a visszajelzés minden mezője a
@@ -36,7 +36,7 @@ AI-feldolgozás, egyéni domain. **Éles gyerekadat előtt az adatvédelmi kérd
 A D. lépés új funkciói a pilotra ne hassanak (a kvóta a környezeti konfigon át, `kvota`).
 Nagyobb munka, tervezéssel kezdd: `kornyezetek-terv.md` 5.
 
-## 0/c. AI-használat mérése és admin nézet (2026-10-05) – **pilotra deployolva (14b97eb)**, prodra még nem
+## 0/c. AI-használat mérése és admin nézet (2026-10-05) – **pilotra deployolva (14b97eb)**, prodra a `v1.3.0`-val kiment
 
 A kvóta előtti lépés: **mérni kell, mennyibe kerül egy dolgozat**, mert a csomagárak csak mért adatból
 számolhatók. Mindkét környezetben fut, korlát nélkül.
@@ -52,7 +52,7 @@ számolhatók. Mindkét környezetben fut, korlát nélkül.
 - **Az első éles mérés (pilot, 13 dolgozat, 1 rövid levél-feladat):** ~$0,022 / dolgozat (átírás ~$0,012 +
   értékelés ~$0,010; a tanári oldal +8%). A költség nagy része a kimenet+gondolkodás tokenje (átírás:
   ~2900 / hívás egy ~150 szavas levélnél). A kifejtős mód és a többoldalas beadás még nincs mérve.
-- **Gondolkodási szint (2026-10-06, kód kész; a PILOTRA deployolva (functions), a PRODRA még NEM):** az átírás
+- **Gondolkodási szint (2026-10-06, kód kész; a PILOTRA deployolva (functions), a PRODRA a `v1.3.0`-val kiment):** az átírás
   (`geminiHivas("atiras")`, leveles és kifejtős egyaránt) `thinkingConfig.thinkingLevel: "low"`-val megy
   (`GONDOLKODAS` az `index.js`-ben; teszt: `tests/gemini.test.mjs`). A 3.8/3.7 Flash alapértelmezése
   `medium`, kikapcsolni nem lehet, a `minimal` csak a Flash-Lite-on érvényes. Az értékelés, rubrika és
@@ -66,7 +66,7 @@ számolhatók. Mindkét környezetben fut, korlát nélkül.
   jelölővel került az átiratba. **Javítva** (a prompt kihagyatja, jelölő nélkül; a kifejtős promptban már
   megvolt), újramérve: a jelölők és a kihúzott szavak eltűntek. **Ismert maradék:** a `low` a 2. levélen
   mindkét futásban kihagyta a „lazy” szót (egy kihúzott szó mellett). A prompt-javítás és a
-  gondolkodási szint **a pilotra deployolva** (2026-10-06, functions, mind a 14); a **prodon egyik sincs**
+  gondolkodási szint **a pilotra deployolva** (2026-10-06, functions, mind a 14); **a prodra a `v1.3.0`-val (2026-10-07) kiment**
   (címkés kiadás kell, és ott a mérés is csak azzal indul).
 - **Átírás-összehasonlító szkript (offline, meglévő fotókon):** `scripts/atiras-osszehasonlitas.mjs`
   (teszt: `tests/atiras-osszehasonlitas.test.mjs`). Ugyanazokat a fotókat átírja `medium` és `low` szinttel
