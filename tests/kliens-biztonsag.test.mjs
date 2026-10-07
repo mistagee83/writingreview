@@ -104,7 +104,11 @@ test("beadas.html: a feltöltés másolatból dolgozik, és közben a lista nem 
 
 // ── Javítóablak: a korábbi lekérés nem írhatja felül az újabbat ──
 test("javitas.html: a megnyitás kérésazonosítót használ, a bezárás érvényteleníti", () => {
-  const src = forras("javitas.html");
+  // A kikommentezett védelem nem védelem: a megjegyzéseket előbb eltávolítjuk
+  // (a `//` csak sor elején / szóköz után, hogy az URL-eket ne vágja le).
+  const src = forras("javitas.html")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|\s)\/\/.*$/gm, "$1");
   assert.match(src, /const sorszam = \+\+megnyitasSzam;/);
   assert.match(src, /const bezar = \(\) => \{ megnyitasSzam\+\+;/);
   assert.ok((src.match(/if \(elavult\(\)\) return;/g) || []).length >= 5, "nem minden await után van ellenőrzés");

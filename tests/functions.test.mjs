@@ -103,23 +103,41 @@ test("20 osztály létrehozása után is minden kód egyedi", async () => {
 });
 
 test("már létező kód nem írható felül (a tranzakció újrapróbál)", async () => {
-  // Minden lehetséges kódot "foglaltnak" jelölünk, egy kivétellel:
-  // így a ciklus kényszerűen ütközik, majd talál egy szabadot.
-  const elsoKod = logika.kodGeneralas();
-  await firestore.collection("kodok").doc(elsoKod).set({ osztaly_id: "idegen-osztaly" });
+  // A generátor először a foglalt kódot adja, csak másodszor egy szabadot –
+  // így az ütközésvédő ág ténylegesen lefut.
+  const foglaltKod = "AAA-AAAA";
+  const szabadKod = "BBB-BBBB";
+  await firestore.collection("kodok").doc(foglaltKod).set({ osztaly_id: "idegen-osztaly" });
+  const sor = [foglaltKod, szabadKod];
+  let hivasok = 0;
 
   const { osztalyId, kod } = await logika.osztalyLetrehozasLogika(
-    firestore, "tanar-uid", "Ütközés teszt"
+    firestore, "tanar-uid", "Ütközés teszt", () => { hivasok++; return sor.shift(); }
   );
 
-  assert.notEqual(kod, elsoKod, "nem használhatta fel a foglalt kódot");
+  assert.equal(hivasok, 2, "az ütközésvédő ág nem futott le");
+  assert.equal(kod, szabadKod, "nem a szabad kódot kapta");
 
   // A foglalt kód továbbra is az idegen osztályra mutat
-  const foglalt = (await firestore.collection("kodok").doc(elsoKod).get()).data();
+  const foglalt = (await firestore.collection("kodok").doc(foglaltKod).get()).data();
   assert.equal(foglalt.osztaly_id, "idegen-osztaly", "felülírta a foglalt kódot");
 
   const ujKod = (await firestore.collection("kodok").doc(kod).get()).data();
   assert.equal(ujKod.osztaly_id, osztalyId);
+});
+
+test("ha minden próbált kód foglalt: resource-exhausted, részleges írás nélkül", async () => {
+  await firestore.collection("kodok").doc("AAA-AAAA").set({ osztaly_id: "idegen-osztaly" });
+  const osztalyokElotte = (await firestore.collection("osztalyok").get()).size;
+  const kodokElotte = (await firestore.collection("kodok").get()).size;
+
+  await assert.rejects(
+    logika.osztalyLetrehozasLogika(firestore, "tanar-uid", "Telt ház", () => "AAA-AAAA"),
+    (e) => e.code === "resource-exhausted"
+  );
+
+  assert.equal((await firestore.collection("osztalyok").get()).size, osztalyokElotte);
+  assert.equal((await firestore.collection("kodok").get()).size, kodokElotte);
 });
 
 // ══════════════════════════════════════════

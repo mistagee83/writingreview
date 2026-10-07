@@ -799,12 +799,12 @@ Egy kitalált szint rosszabb, mint a semmi, mert az értékelés ahhoz mér.`;
 // Azért Function, mert a kód egyediségét a kodok/ nyilvántartóval
 // tranzakciósan kell biztosítani – a kliens ezt nem tudja megtenni.
 // ══════════════════════════════════════════════════════
-async function osztalyLetrehozasLogika(firestore, uid, nev) {
+async function osztalyLetrehozasLogika(firestore, uid, nev, kodGenerator = kodGeneralas) {
   const osztalyRef = firestore.collection("osztalyok").doc();
 
   // Ütközés esetén új kóddal próbálkozunk.
   for (let kiserlet = 0; kiserlet < 10; kiserlet++) {
-    const kod = kodGeneralas();
+    const kod = kodGenerator();
     try {
       await firestore.runTransaction(async (tx) => {
         const kodRef = firestore.collection("kodok").doc(kod);

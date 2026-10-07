@@ -189,6 +189,7 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **Külső audit 5. kör (tesztek):** a gyenge tesztek javítva; új `storage.test.mjs` (Storage-emulátor az `npm test`-ben) és `callable-jogosultsag.test.mjs`. **A Storage-teszt szabályhézagot talált:** létező fájl felülírása átment a `create` szabályon; a `storage.rules` `create` ágai most `resource == null`-t kérnek. **Pilot és prod a régi Storage-szabállyal fut – `firebase deploy --only storage` kell mindkettőre** (a felhasználó kérésére). Részletek: `audit/ellenorzes/kor-5.md`.
 - **A tanári regisztráció kézi, és a kereskedelmi verzióban így nem működhet.** Ma mindenki
   **diákként** regisztrál (`index.html`), a tanári szerepet egy **admin** adja meg: a
   Felhasználók oldalon a „Tanárrá” gombbal (`szerepBeallitas`), vagy a `szerep.mjs` szkripttel.

@@ -48,7 +48,8 @@ service firebase.storage {
     match /feladatlapok/{tanarUid}/{fajl} {
       allow read: if belepve() && request.auth.uid == tanarUid;
 
-      allow create: if tanar()
+      allow create: if resource == null
+        && tanar()
         && request.auth.uid == tanarUid
         && kepVagyPdf()
         && maxTizMega();
@@ -66,7 +67,8 @@ service firebase.storage {
     match /tananyagok/{tanarUid}/{fajl} {
       allow read: if tanar() && request.auth.uid == tanarUid;
 
-      allow create: if tanar()
+      allow create: if resource == null
+        && tanar()
         && request.auth.uid == tanarUid
         && kepVagyPdf()
         && maxTizMega();
@@ -82,7 +84,8 @@ service firebase.storage {
       // értékelődik – ez rendben van, a tanár csak létező beadást nézhet.
       allow read: if sajatDiak(diakUid) || beadasTanara(beadasId);
 
-      allow create: if belepve()
+      allow create: if resource == null
+        && belepve()
         && request.auth.uid == diakUid
         && kepVagyPdf()
         && maxTizMega();

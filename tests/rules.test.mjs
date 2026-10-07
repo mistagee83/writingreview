@@ -418,21 +418,23 @@ test("a feladatlap nélküli feladat szerkeszthető", async () => {
   );
 });
 
+// Az `ujFeladat` fixtúra (fent) minden más szempontból érvényes (feladatlap
+// nélkül): a negatív tesztekben egyetlen mező tér el, így az elutasítás oka egyértelmű.
+test("a tanár létrehozhat feladatot a saját osztályába (kontroll)", async () => {
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", "uj-feladat-kontroll"), ujFeladat()));
+});
+
 test("a tanár NEM hozhat létre feladatot más osztályába", async () => {
+  // Csak az osztály idegen: a tanar_id a hívóé.
   await assertFails(
-    setDoc(doc(tanar2(), "feladatok", "uj-feladat"), {
-      osztaly_id: OSZTALY, tanar_id: TANAR2, cim: "Idegen",
-      aktiv: true, hatarido: null, rubrika: {}, feladatlap: {}, letrehozva: new Date()
-    })
+    setDoc(doc(tanar2(), "feladatok", "uj-feladat"), ujFeladat({ tanar_id: TANAR2 }))
   );
 });
 
 test("a feladat tanar_id-je nem hamisítható más tanárra", async () => {
+  // Csak a tanar_id hamis: az osztály a hívó saját osztálya.
   await assertFails(
-    setDoc(doc(tanar2(), "feladatok", "uj-feladat"), {
-      osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Hamisított",
-      aktiv: true, hatarido: null, rubrika: {}, feladatlap: {}, letrehozva: new Date()
-    })
+    setDoc(doc(tanar(), "feladatok", "uj-feladat"), ujFeladat({ tanar_id: TANAR2 }))
   );
 });
 
