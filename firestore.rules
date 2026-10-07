@@ -243,6 +243,9 @@ service cloud.firestore {
 
       // A diák a sajátját adja be, kötelezően 'feltoltve' státusszal,
       // és csak olyan osztályba, aminek tagja.
+      // Egy diák egy feladatra egyszer adhat be: az azonosító kötött
+      // (<feladat_id>_<diak_uid>), így a második létrehozás magától elhasal (update tiltott).
+      // A korábbi, véletlen azonosítójú beadások érintetlenek.
       // A feladat, az osztály és a tanár összetartozását a szabály kényszeríti
       // (a kliens ezeket maga írja, de nem hamisíthatja); lezárt feladatra
       // nem lehet beadni. A képutak szerveroldali ellenőrzését lásd:
@@ -255,6 +258,7 @@ service cloud.firestore {
         && request.resource.data.statusz == 'feltoltve'
         && osztalyTag(request.resource.data.osztaly_id)
         && request.resource.data.feladat_id is string
+        && beadasId == request.resource.data.feladat_id + '_' + request.auth.uid
         && feladatAdat(request.resource.data.feladat_id).osztaly_id == request.resource.data.osztaly_id
         && feladatAdat(request.resource.data.feladat_id).tanar_id == request.resource.data.tanar_id
         && feladatAdat(request.resource.data.feladat_id).aktiv == true

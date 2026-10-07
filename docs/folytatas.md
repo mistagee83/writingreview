@@ -232,6 +232,12 @@ cd writingreview
   pilotra és prodra is. Nyitott: a 2. kör [4] pontja (több beadás ugyanarra a feladatra – determinisztikus beadás-azonosító, kliens
   + szabály + hosting), a prompt injection pilotos kipróbálása, az osztályelemzés adatforrása leveles feladatnál (termékdöntés).
   Lásd `audit/ellenorzes/kor-2.md`.
+- **Külső audit, 2. kör, B csomag (2026-10-07) – javítva a forrásban, DEPLOY MÉG NEM TÖRTÉNT (pilot és prod is a régi kóddal fut):**
+  a beadás azonosítója kötött: `<feladat_id>_<diak_uid>` (`firestore.rules`, `public/beadas.html`), így egy diák egy feladatra csak
+  egyszer adhat be (a második létrehozás elhasal). A régi, véletlen azonosítójú beadások érintetlenek (egy ilyen diák még egy új
+  azonosítójú beadást létrehozhat). **Deploy-sorrend: a `firestore:rules` és a `hosting` EGYÜTT megy ki** (a régi, gyorsítótárazott
+  kliens véletlen azonosítóval próbálna beadni, amit az új szabály elutasít, amíg a service worker frissül). Pilot: `node scripts/deploy.mjs
+  pilot --only hosting,firestore:rules`; prod: címkés kiadás.
 - **Munkaszabály** (a `CLAUDE.md`-ben): hibajavításnál mindig meg kell mondani, melyik környezet
   fut még a régi kóddal, és a párhuzamos kódutat (leveles/kifejtős) is meg kell nézni.
 - **A prod ellenőrzése kész** (2026-10-05). A teljes kör végig lett próbálva. Ellenőrizve: a

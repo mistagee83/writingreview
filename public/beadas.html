@@ -264,13 +264,16 @@
 
     const vissza = gombVar(btnBead, t('beadas.feltoltes_folyamat'));
     try {
-      const beadasRef = doc(collection(db, 'beadasok'));
+      // Kötött azonosító: feladatonként egy beadás diákonként (a szabály kényszeríti).
+      const beadasRef = doc(db, 'beadasok', `${feladatId}_${user.uid}`);
       const kepPaths = [];
 
       for (let i = 0; i < fajlok.length; i++) {
         btnBead.innerHTML =
           `<span class="spinner inline"></span>${t('beadas.oldal_haladas', { i: i + 1, ossz: fajlok.length })}`;
-        const path = `beadasok/${user.uid}/${beadasRef.id}/${i + 1}_${fajlok[i].name}`;
+        // Az időbélyeg miatt egy félbemaradt feltöltés után az újrapróba nem ütközik a
+        // Storage „nem felülírható” szabályával.
+        const path = `beadasok/${user.uid}/${beadasRef.id}/${i + 1}_${Date.now()}_${fajlok[i].name}`;
         await uploadBytes(storageRef(storage, path), fajlok[i]);
         kepPaths.push(path);
       }
