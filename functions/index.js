@@ -25,6 +25,7 @@ const { randomUUID } = require("node:crypto");
 const logger = require("firebase-functions/logger");
 const kifejtos = require("./kifejtos");
 const kornyezet = require("./kornyezet");
+const kvota = require("./kvota");
 const aiHasznalat = require("./ai-hasznalat");
 
 initializeApp();
@@ -165,7 +166,10 @@ const HIBA_SZOVEG = {
   onregisztracio_ki: () => "Az önálló tanári regisztráció ebben a környezetben nincs bekapcsolva.",
   email_nincs_megerositve: () => "Előbb erősítsd meg az e-mail-címedet a kapott levélben.",
   tanari_kerelem_hianyzik: () => "Ez a fiók nem tanári regisztrációval jött létre. Regisztrálj új fiókot tanárként.",
-  mar_diak_hasznalo: () => "Ez a fiók már diákként használatban van, ezért tanári jogot nem kaphat."
+  mar_diak_hasznalo: () => "Ez a fiók már diákként használatban van, ezért tanári jogot nem kaphat.",
+  kvota_elfogyott: (p) => `Elfogyott a havi AI-keret (${p.hasznalt} / ${p.limit} egység). A keret a hónap elején megújul.`,
+  kvota_elfogyott_egyszeri: (p) => `Elfogyott az ingyenes AI-keret (${p.hasznalt} / ${p.limit} egység). Folytatáshoz fizetős csomag kell.`,
+  csomag_ervenytelen: (p) => `Ismeretlen csomag: ${p.csomag}`
 };
 
 /** Kódolt HttpsError: magyar üzenet + details.kod a kliens fordításához. */
@@ -207,6 +211,78 @@ function tanar(request) {
     throw hiba("permission-denied", "tanar_kell");
   }
   return uid;
+}
+
+// ══════════════════════════════════════════════════════
+// TANÁRONKÉNTI HAVI AI-KVÓTA (csak prod; a számok: functions/kvota.js)
+//
+// A használat a tanár alatt számolódik: tanarok/{uid}/hasznalat/{ÉÉÉÉ-HH}
+// { egyseg }, a csomag a tanarok/{uid}.csomag mezőben (hiányzó → ingyenes).
+// Mindkettőt csak a szerver írja. A diák beadása is a TANÁR keretéből fogy.
+//
+// Menete: foglalás (tranzakció) → AI-hívás → hibánál visszaadás. Így a
+// sikertelen hívás nem fogyaszt, és két párhuzamos kérés sem léphet túl a
+// kereten (a Gemini-hívás előtt dől el, nem utána).
+// ══════════════════════════════════════════════════════
+
+/**
+ * Egységek lefoglalása a tanár havi keretéből.
+ * @returns foglalás-bizonylat a visszaadáshoz, vagy null, ha a kvóta ki van kapcsolva
+ */
+async function kvotaFoglalas(firestore, uid, muvelet, beallitasok = BEALLITASOK, most = new Date()) {
+  if (!beallitasok.kvota) return null;
+  const koltseg = kvota.EGYSEG_KOLTSEG[muvelet];
+  if (!koltseg) throw new Error(`Ismeretlen AI-művelet a kvótában: ${muvelet}`);
+
+  const tanarRef = firestore.collection("tanarok").doc(uid);
+  let kulcs;
+
+  await firestore.runTransaction(async (tx) => {
+    // A használat-dokumentum a csomagtól függ (egyszeri: állandó, havi: a hónap), ezért előbb a csomag.
+    const tanarSnap = await tx.get(tanarRef);
+    const csomag = kvota.csomagNev(tanarSnap.data()?.csomag);
+    kulcs = kvota.hasznalatKulcs(csomag, most);
+    const hasznalatRef = tanarRef.collection("hasznalat").doc(kulcs);
+    const hasznalatSnap = await tx.get(hasznalatRef);
+    const d = kvota.kvotaDontes({ csomag, hasznalt: hasznalatSnap.data()?.egyseg, koltseg });
+    if (!d.engedett) {
+      logger.warn("AI-keret elfogyott", { uid, csomag, muvelet, hasznalt: d.hasznalt, limit: d.limit });
+      // Másik kód az egyszeri keretnél: ott nincs megújulás, a szöveg más.
+      const adat = { hasznalt: d.hasznalt, limit: d.limit, csomag };
+      if (kvota.idoszak(csomag) === "egyszeri") throw hiba("resource-exhausted", "kvota_elfogyott_egyszeri", adat);
+      throw hiba("resource-exhausted", "kvota_elfogyott", adat);
+    }
+    tx.set(hasznalatRef, { egyseg: FieldValue.increment(koltseg), frissitve: FieldValue.serverTimestamp() }, { merge: true });
+  // Egy osztály beadásai egyszerre érkeznek, mind ugyanarra a számlálóra: az alapértelmezett 5
+  // újrapróbálás ütközésnél kevés (a beadás ilyenkor hibaállapotba kerülne, pedig lenne keret).
+  }, { maxAttempts: 30 });
+  return { uid, kulcs, koltseg };
+}
+
+/** Egy sikertelen művelet egységeinek visszaadása (a hiba nem a tanár hibája). */
+async function kvotaVisszaadas(firestore, foglalas) {
+  if (!foglalas) return;
+  await firestore.collection("tanarok").doc(foglalas.uid).collection("hasznalat").doc(foglalas.kulcs)
+    .set({ egyseg: FieldValue.increment(-foglalas.koltseg) }, { merge: true });
+}
+
+/** Lefoglal, lefuttatja az AI-műveletet, és hibánál visszaadja az egységet. */
+async function kvotaval(uid, muvelet, fn, beallitasok = BEALLITASOK) {
+  const firestore = db();
+  const foglalas = await kvotaFoglalas(firestore, uid, muvelet, beallitasok);
+  try {
+    const eredmeny = await fn();
+    // A beadás-feldolgozás "kihagyva"-t ad, ha másik futás már fut: az nem volt AI-munka.
+    if (eredmeny?.kihagyva) {
+      await kvotaVisszaadas(firestore, foglalas)
+        .catch((m) => logger.error("A kvóta visszaadása nem sikerült", { uid, hiba: m.message }));
+    }
+    return eredmeny;
+  } catch (e) {
+    await kvotaVisszaadas(firestore, foglalas)
+      .catch((m) => logger.error("A kvóta visszaadása nem sikerült", { uid, hiba: m.message }));
+    throw e;
+  }
 }
 
 /**
@@ -934,12 +1010,12 @@ exports.feladatlapElemzes = onCall(AI_OPCIOK, async (request) => {
   }
 
   try {
-    const { eredmeny: rubrika, modell } = await geminiHivas(
+    const { eredmeny: rubrika, modell } = await kvotaval(uid, "feladatlap", async () => geminiHivas(
       'rubrika',
       [{ text: rubrikaPrompt(nyelvTipp, request.data?.kimenetiNyelv) }, await fajlBase64(path)],
       rubrikaSchema(nyelvTipp),
       { tanar_id: uid, muvelet: "feladatlap" }
-    );
+    ));
 
     // A szintet a VISSZAADOTT nyelv skáláján ellenőrizzük: ha az AI más
     // nyelvet látott a feladatlapon, mint amit a tanár jelölt, a szint
@@ -951,6 +1027,7 @@ exports.feladatlapElemzes = onCall(AI_OPCIOK, async (request) => {
 
     return { rubrika, suly_osszeg: sulyOsszeg, model: modell };
   } catch (e) {
+    if (e instanceof HttpsError) throw e;   // pl. elfogyott a keret: a kódolt hiba marad
     logger.error("feladatlapElemzes hiba", { uid, path, hiba: e.message });
     throw belsoHiba(e, "ai_hiba");
   }
@@ -985,6 +1062,8 @@ async function beadasFoglalas(firestore, beadasRef, { csakFeltoltve = false } = 
     tx.update(beadasRef, {
       statusz: "folyamatban",
       hiba: null,
+      hiba_kod: null,
+      hiba_adat: null,
       futas_id: futasId,
       frissitve: FieldValue.serverTimestamp()
     });
@@ -1012,7 +1091,19 @@ async function futasFrissites(beadasRef, futasId, mezok) {
   });
 }
 
+/**
+ * Egy beadás javítása a TANÁR AI-keretéből (a diák nem fizet). A keretet a foglalás
+ * (beadasFoglalas) ELŐTT foglaljuk le: ha elfogyott, a beadás állapota érintetlen
+ * marad (egy már kijavított dolgozat nem esik vissza hibára az újrafuttatás miatt).
+ * Ha a feldolgozás elhasal, vagy a foglalás nem sikerült (kihagyva), az egység visszakerül.
+ */
 async function feldolgozBeadas(beadasId, opciok = {}) {
+  const snap = await db().collection("beadasok").doc(beadasId).get();
+  if (!snap.exists) throw new Error("A beadás nem található.");
+  return kvotaval(snap.data().tanar_id, "beadas", () => feldolgozBeadasBelso(beadasId, opciok));
+}
+
+async function feldolgozBeadasBelso(beadasId, opciok = {}) {
   const firestore = db();
   const beadasRef = firestore.collection("beadasok").doc(beadasId);
 
@@ -1222,7 +1313,15 @@ async function hibaraAllit(beadasId, e, futasId = null) {
         logger.warn("A hibastátusz nem íródik (másik futás a gazda)", { beadasId });
         return;
       }
-      tx.update(ref, { statusz: "hiba", hiba: e.message, frissitve: FieldValue.serverTimestamp() });
+      // A kódolt hiba (pl. elfogyott a keret) kódját is mentjük: a javító nézet
+      // ebből a saját nyelvén írja ki.
+      tx.update(ref, {
+        statusz: "hiba",
+        hiba: e.message,
+        hiba_kod: e.details?.kod || null,
+        hiba_adat: e.details || null,
+        frissitve: FieldValue.serverTimestamp()
+      });
     });
   } catch (masodlagos) {
     logger.error("A hibastátusz mentése sem sikerült", { beadasId, hiba: masodlagos.message });
@@ -1285,7 +1384,11 @@ exports.beadasUjrafuttatas = onCall(
     try {
       eredmeny = await feldolgozBeadas(beadasId);
     } catch (e) {
+      // Elfogyott keretnél a beadás állapota érintetlen marad (egy már kijavított
+      // dolgozat ne essen vissza hibára attól, hogy az újrafuttatás nem fér a keretbe).
+      if (e instanceof HttpsError && String(e.details?.kod || "").startsWith("kvota_elfogyott")) throw e;
       await hibaraAllit(beadasId, e, e.futasId);
+      if (e instanceof HttpsError) throw e;
       throw belsoHiba(e, "ai_hiba");
     }
     // A foglalás tranzakcióban dől el: ha közben másik futás vette át, nincs mit tenni.
@@ -1521,11 +1624,17 @@ exports._teszt = {
   jovahagyasLogika,
   beadasOsszerendeles,
   beadasFoglalas,
+  feldolgozBeadas,
   foglalasLejart,
   hibaraAllit,
   szempontokTisztitas,
   FOGLALAS_LEJARAT_MS,
   tanariRegisztracioLogika,
+  kvotaFoglalas,
+  kvotaVisszaadas,
+  kvotaval,
+  kvotaAllapotLogika,
+  csomagBeallitasLogika,
   aiHasznalatNaplo,
   aiHasznalatJelentesLogika,
   BEALLITASOK,
@@ -1715,6 +1824,21 @@ exports.felhasznalokListaja = onCall(HIVAS_OPCIOK, async (request) => {
     db().collection("felhasznalok").get()
   ]);
 
+  // Csomag és e havi használat (csak ahol a kvóta él).
+  const csomagok = {};
+  const hasznalatok = {};
+  if (BEALLITASOK.kvota) {
+    const tanarok = authLista.users.filter((u) => u.customClaims?.szerep === "tanar");
+    const tanarSnap = tanarok.length ? await db().getAll(...tanarok.map((u) => db().collection("tanarok").doc(u.uid))) : [];
+    tanarSnap.forEach((s) => { csomagok[s.id] = kvota.csomagNev(s.data()?.csomag); });
+    // A használat-dokumentum a csomagtól függ (egyszeri: "osszes", havi: a hónap).
+    const hasznalatSnap = tanarok.length
+      ? await db().getAll(...tanarok.map((u) => db().collection("tanarok").doc(u.uid)
+          .collection("hasznalat").doc(kvota.hasznalatKulcs(csomagok[u.uid]))))
+      : [];
+    hasznalatSnap.forEach((s) => { hasznalatok[s.ref.parent.parent.id] = Math.max(0, s.data()?.egyseg || 0); });
+  }
+
   const nevek = {};
   profilok.docs.forEach((d) => {
     nevek[d.id] = {
@@ -1738,12 +1862,20 @@ exports.felhasznalokListaja = onCall(HIVAS_OPCIOK, async (request) => {
       (nevek[u.uid]?.tukorSzerep || "diak") !== (u.customClaims?.szerep || "diak") ||
       (nevek[u.uid]?.tukorAdmin === true) !== (u.customClaims?.admin === true),
     letrehozva: u.metadata?.creationTime || null,
-    utolso_belepes: u.metadata?.lastSignInTime || null
+    utolso_belepes: u.metadata?.lastSignInTime || null,
+    // csak tanárnál és csak ott, ahol a kvóta él
+    csomag: csomagok[u.uid] ?? null,
+    hasznalt: hasznalatok[u.uid] ?? null
   }));
 
   felhasznalok.sort((a, b) => a.nev.localeCompare(b.nev, "hu"));
 
-  return { felhasznalok, csonkolt: authLista.pageToken != null };
+  return {
+    felhasznalok,
+    csonkolt: authLista.pageToken != null,
+    kvota: BEALLITASOK.kvota,
+    csomagok: Object.fromEntries(Object.entries(kvota.CSOMAGOK).map(([nev, c]) => [nev, { keret: c.keret, idoszak: c.idoszak }]))
+  };
 });
 
 // ── SZEREP BEÁLLÍTÁSA ──
@@ -1811,6 +1943,50 @@ exports.szerepBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
   }
 });
 
+// ── CSOMAG ÉS KERET ──
+
+/** A tanár havi kerete és eddigi használata (a megjelenítéshez). */
+async function kvotaAllapotLogika(firestore, uid, beallitasok = BEALLITASOK, most = new Date()) {
+  if (!beallitasok.kvota) return { kvota: false };
+  const tanarRef = firestore.collection("tanarok").doc(uid);
+  const tanarSnap = await tanarRef.get();
+  const csomag = kvota.csomagNev(tanarSnap.data()?.csomag);
+  const hasznalatSnap = await tanarRef.collection("hasznalat").doc(kvota.hasznalatKulcs(csomag, most)).get();
+  return {
+    kvota: true,
+    csomag,
+    limit: kvota.keret(csomag),
+    hasznalt: Math.max(0, hasznalatSnap.data()?.egyseg || 0),
+    idoszak: kvota.idoszak(csomag),
+    // havi csomagnál az időszak kulcsa; egyszerinél nincs
+    honap: kvota.idoszak(csomag) === "havi" ? kvota.honapKulcs(most) : null
+  };
+}
+
+exports.kvotaAllapot = onCall(HIVAS_OPCIOK, async (request) => {
+  return kvotaAllapotLogika(db(), tanar(request));
+});
+
+/** Admin: egy tanár csomagjának beállítása (fizetésig ez az egyetlen út). */
+async function csomagBeallitasLogika(firestore, uid, csomag) {
+  if (!uid) throw hiba("invalid-argument", "felhasznalo_id_kell");
+  if (!Object.hasOwn(kvota.CSOMAGOK, csomag)) {
+    throw hiba("invalid-argument", "csomag_ervenytelen", { csomag: String(csomag) });
+  }
+  await firestore.collection("tanarok").doc(uid).set(
+    { csomag, csomag_modositva: FieldValue.serverTimestamp() }, { merge: true }
+  );
+  return { uid, csomag };
+}
+
+exports.csomagBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
+  const adminUid = admin(request);
+  const { uid, csomag } = request.data || {};
+  const eredmeny = await csomagBeallitasLogika(db(), uid, csomag);
+  logger.info("Csomag módosítva", { cel: uid, csomag, admin_uid: adminUid });
+  return eredmeny;
+});
+
 // ── ÖNKISZOLGÁLÓ TANÁRI REGISZTRÁCIÓ ──
 // A tanári szerepet kizárólag ez a szerveroldali lépés adhatja meg magának
 // a felhasználó; a kliens csak kéri. Feltételek (mind kell):
@@ -1869,6 +2045,12 @@ async function tanariRegisztracioLogika(firestore, authKliens, uid, beallitasok)
     { szerep: "tanar", tanar_regisztralt: FieldValue.serverTimestamp() },
     { merge: true }
   );
+
+  // Alapcsomag az új tanárnak. A create() nem írja felül a meglévő csomagot
+  // (pl. ha az admin már adott egyet), azaz újraregisztrációnál sem romlik.
+  await firestore.collection("tanarok").doc(uid)
+    .create({ csomag: kvota.ALAP_CSOMAG, letrehozva: FieldValue.serverTimestamp() })
+    .catch((e) => { if (e.code !== 6 && !/ALREADY_EXISTS/.test(String(e.message))) throw e; });
 
   logger.info("Önkiszolgáló tanári regisztráció", { uid });
   return { szerep: "tanar", mar_tanar: false };
@@ -2168,12 +2350,12 @@ exports.feladatElemzes = onCall(
       schema = kifejtos.KIFEJTOS_ELEMZES_SCHEMA;
     }
 
-    const { eredmeny, modell } = await geminiHivas(
+    const { eredmeny, modell } = await kvotaval(uid, "elemzes", () => geminiHivas(
       "elemzes",
       [{ text: prompt || elemzesPrompt(feladat, agg) }],
       schema,
       { tanar_id: uid, muvelet: "elemzes", feladat_id: feladatId }
-    );
+    ));
 
     // A hibaMinta nem kell a kliensnek: nagy, és a példák a tipushibakban
     // már benne vannak.
@@ -2258,18 +2440,21 @@ exports.kulcsKeszites = onCall(
 
     let eredmeny, modell;
     try {
-      const reszek = [
-        { text: kifejtos.kulcsKeszitesPrompt(tantargyTisztitva, vanTananyag) },
-        { text: "=== FELADATLAP ===" },
-        await fajlBase64(feladatlapPath)
-      ];
-      if (vanTananyag) {
-        reszek.push({ text: "=== TANANYAG ===" }, ...(await Promise.all(tananyag.map(fajlBase64))));
-      }
-      ({ eredmeny, modell } = await geminiHivas(
-        "rubrika", reszek, kifejtos.KULCS_JAVASLAT_SCHEMA, { tanar_id: uid, muvelet: "kulcs" }
-      ));
+      ({ eredmeny, modell } = await kvotaval(uid, "kulcs", async () => {
+        const reszek = [
+          { text: kifejtos.kulcsKeszitesPrompt(tantargyTisztitva, vanTananyag) },
+          { text: "=== FELADATLAP ===" },
+          await fajlBase64(feladatlapPath)
+        ];
+        if (vanTananyag) {
+          reszek.push({ text: "=== TANANYAG ===" }, ...(await Promise.all(tananyag.map(fajlBase64))));
+        }
+        return geminiHivas(
+          "rubrika", reszek, kifejtos.KULCS_JAVASLAT_SCHEMA, { tanar_id: uid, muvelet: "kulcs" }
+        );
+      }));
     } catch (e) {
+      if (e instanceof HttpsError) throw e;   // pl. elfogyott a keret
       logger.error("kulcsKeszites hiba", { uid, hiba: e.message });
       throw belsoHiba(e, "ai_hiba");
     }

@@ -52,6 +52,11 @@
         <div class="stat-label" data-i18n="tanar.stat_diakok">Összes diák</div>
         <div class="stat-value" id="stat-diakok">–</div>
       </a>
+      <!-- Havi AI-keret: csak ott látszik, ahol a kvóta él (prod). -->
+      <div class="stat-card" id="kvota-kartya" style="display:none;">
+        <div class="stat-label" data-i18n="tanar.stat_keret">AI-keret (e hónap)</div>
+        <div class="stat-value" id="stat-keret">–</div>
+      </div>
     </div>
 
     <div class="modules-grid">
@@ -82,8 +87,9 @@
 <script type="module">
   import { vedettOldal } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
+  import { t } from './js/i18n.js';
   import {
-    db, collection, getDocs, query, where
+    db, collection, getDocs, query, where, functions, httpsCallable
   } from './js/firebase-config.js';
 
   // Az oldalsáv a hitelesítés UTÁN rendereljük: onnan tudjuk, admin-e a
@@ -117,7 +123,29 @@
     }
   }
 
+  // A havi AI-keret (egység): a limit a csomagtól függ, null = korlátlan.
+  async function keret() {
+    try {
+      const { data } = await httpsCallable(functions, 'kvotaAllapot')();
+      if (!data.kvota) return;   // pilot: nincs korlát, nincs kártya
+      kiir('stat-keret', `${data.hasznalt} / ${data.limit ?? '∞'}`);
+      // Az ingyenes keret egyszeri (nem újul meg): a felirat is ezt mondja.
+      if (data.idoszak === 'egyszeri') {
+        const cimke = document.querySelector('#kvota-kartya .stat-label');
+        cimke.setAttribute('data-i18n', 'tanar.stat_keret_egyszeri');
+        cimke.textContent = t('tanar.stat_keret_egyszeri');
+      }
+      document.getElementById('kvota-kartya').style.display = '';
+      if (data.limit !== null && data.hasznalt >= data.limit) {
+        document.getElementById('stat-keret').classList.add('accent');
+      }
+    } catch (e) {
+      console.error('Keret lekérdezési hiba:', e);   // a kártya rejtve marad
+    }
+  }
+
   statisztika();
+  keret();
 </script>
 </body>
 </html>

@@ -82,9 +82,20 @@ számolhatók. Mindkét környezetben fut, korlát nélkül.
   Futtatás: `$env:GEMINI_API_KEY = (firebase functions:secrets:access GEMINI_API_KEY --project pilot)`, majd
   `node scripts/atiras-osszehasonlitas.mjs tests/dolgozatok/levelek`. Az app 1500 px-re kicsinyít feltöltéskor;
   ezt a szkript `sharp`-pal utánozza (`cd tests && npm i --no-save sharp`).
-- A **havi kvóta** (egységek, csomagok, admin csomagválasztó) kész, de **még nem kiadásra szánt**: a
-  `kvota-wip` ágon van (egy WIP commit). A mért számok után folytatjuk (egység, csomagméretek, szerkeszthető
-  csomagok az admin felületen).
+- **AI-kvóta (2026-10-09, a `kvota-wip` ágon, a `main`-nel összefésülve; NINCS a `main`-en, nincs deployolva):**
+  csak a **prodon** él (`kvota` kapcsoló a `functions/.env.<környezet>`-ben; a pilotban ki van kapcsolva, ott
+  semmi nem korlátozódik és semmi nem íródik – teszt védi). Csomagok (`functions/kvota.js`, egy helyen):
+  **`ingyenes` 20 egység EGYSZERI** (nem újul meg; az önkiszolgáló tanári regisztráció alapcsomagja),
+  **`alap` 150 egység/hó**, **`korlatlan`** (csak az admin adhatja). Terv: alap ~€7/hó; nagyobb csomag
+  (500) szándékosan nincs – ha valakinek elfogy a 150, az adat az árazáshoz (egy sor hozzáadás). Egység: beadás
+  1, feladatlap-javaslat 1, osztályelemzés 1, kifejtős kulcs 2 (a kulcs költsége nincs mérve). Menete: foglalás
+  tranzakcióban a beadás-foglalás ELŐTT (elfogyott keretnél a beadás állapota érintetlen), hibánál és
+  „kihagyva”-nál visszaadás. A kód a használatot `tanarok/{uid}/hasznalat/{osszes|ÉÉÉÉ-HH}` alá írja.
+  Új szerver-hibakód: `kvota_elfogyott_egyszeri`. **Hiányzik:** fizetés (Stripe; addig az admin állítja a
+  csomagot a Felhasználók oldalon), az ingyenes keret elfogyása utáni „fizess” felület, jogi dokumentumok,
+  EU-s AI-feldolgozás. **Teszt:** `tests/kvota.test.mjs` (tiszta), `tests/kvota-adatbazis.test.mjs` (emulátor –
+  ezt az MI nem tudta futtatni, mert a környezetében az emulátor nem indul el; **futtasd a saját
+  terminálodból: `cd tests && npm test`**, Java 21-gyel, lásd 2.).
 - Az első mérés: a 10 fős tesztóra a pilotban (valódi dolgozatok). Mérés előtt a pilotot deployolni kell.
 
 ## 0/b. Tanári önregisztráció (2026-10-05) – kód kész, **prodra deployolva (v1.1.0)**

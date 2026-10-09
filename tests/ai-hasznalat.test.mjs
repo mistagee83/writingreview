@@ -186,7 +186,8 @@ test("a feladatok listája legfeljebb 25 sor", () => {
 
 test("minden Gemini-hívóhely kontextust ad át (különben kimarad a mérésből)", () => {
   const forras = readFileSync(new URL("../functions/index.js", import.meta.url), "utf8");
-  const hivasok = [...forras.matchAll(/await geminiHivas\(/g)].length;
+  // Három alak: közvetlen, kvotaval()-on belüli nyíl-függvény, és return (kulcskészítés).
+  const hivasok = [...forras.matchAll(/await geminiHivas\(|=> geminiHivas\(|return geminiHivas\(/g)].length;
   const muveletek = [...forras.matchAll(/muvelet: "(\w+)"/g)].map((m) => m[1]);
   assert.equal(hivasok, 7, "a geminiHivas() hívóhelyeinek száma változott – nézd át a mérést");
   assert.equal(muveletek.length, hivasok, "minden hívóhelynek van műveletneve");

@@ -26,9 +26,9 @@ const MINDEN_KAPUS = {
   belepes: ["osztalyhozCsatlakozas", "nevModositas", "tanariRegisztracio"],
   tanar: [
     "osztalyLetrehozas", "feladatlapElemzes", "beadasUjrafuttatas",
-    "visszajelzesJovahagyas", "diakEltavolitas", "feladatElemzes", "kulcsKeszites"
+    "visszajelzesJovahagyas", "diakEltavolitas", "feladatElemzes", "kulcsKeszites", "kvotaAllapot"
   ],
-  admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes"]
+  admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas"]
 };
 
 async function kod(nev, request) {
