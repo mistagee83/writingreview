@@ -7,7 +7,7 @@ folytatni, és mi a következő lépés. A program működéséről a
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 
 **Kész és élesben van** (pilot és prod is; a `main` a GitHubon a `976ecd9`-nél és az azt követő
-jegyzet-commitnál tart, a prod a `v1.3.0` címkén fut, 2026-10-07):
+jegyzet-commitnál tart, a prod a `v1.4.0` címkén fut, 2026-10-09 (AI-kvóta)):
 
 - az éles kipróbálás hibái javítva és deployolva: egyéni jegyskála mentése, a feladatleírás (helyzet +
   cikk összefoglalva + teendő, E/2), jegyjavaslat a leveles javításnál, a visszajelzés minden mezője a
@@ -82,7 +82,7 @@ számolhatók. Mindkét környezetben fut, korlát nélkül.
   Futtatás: `$env:GEMINI_API_KEY = (firebase functions:secrets:access GEMINI_API_KEY --project pilot)`, majd
   `node scripts/atiras-osszehasonlitas.mjs tests/dolgozatok/levelek`. Az app 1500 px-re kicsinyít feltöltéskor;
   ezt a szkript `sharp`-pal utánozza (`cd tests && npm i --no-save sharp`).
-- **AI-kvóta (2026-10-09, a `kvota-wip` ágon, a `main`-nel összefésülve; NINCS a `main`-en, nincs deployolva):**
+- **AI-kvóta (2026-10-09, a `main`-en; a PRODRA kiment a `v1.4.0` címkével, a pilotban ki van kapcsolva):**
   csak a **prodon** él (`kvota` kapcsoló a `functions/.env.<környezet>`-ben; a pilotban ki van kapcsolva, ott
   semmi nem korlátozódik és semmi nem íródik – teszt védi). Csomagok (`functions/kvota.js`, egy helyen):
   **`ingyenes` 20 egység EGYSZERI** (nem újul meg; az önkiszolgáló tanári regisztráció alapcsomagja),
