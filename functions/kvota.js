@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════
-// Tanáronkénti havi AI-kvóta – a tiszta (adatbázis nélküli) része
+// Tanáronkénti AI-kvóta – a tiszta (adatbázis nélküli) része
 //
 // Mértékegység az „AI-egység”: minden AI-művelet fix egységet fogyaszt
 // (EGYSEG_KOLTSEG), a tanár havonta a csomagja szerinti egységet használhatja
@@ -22,21 +22,24 @@ const EGYSEG_KOLTSEG = {
 };
 
 /**
- * Csomagok: a havi egységkeret (null = korlátlan).
+ * Csomagok: a keret egységben (null = korlátlan), és az időszak:
+ *   "egyszeri" – összesen ennyi, soha nem újul meg (az ingyenes kipróbálás),
+ *   "havi"     – minden hónap elején újraindul.
  * `ingyenes` az önkiszolgáló tanári regisztrációval létrejövő fiók alapcsomagja,
  * és az is, ami a csomag nélküli (régi) tanárra érvényes, ha a kvóta él.
- * A `korlatlan` az üzemeltető által kézzel adott csomag (pl. belső tesztfiók).
+ * A `korlatlan` az üzemeltető által kézzel adott csomag (pl. belső tesztfiók);
+ * eladásra szánt "korlátlan" csomagnak is legyen magas, véges határa (költségvédelem).
+ * Több/nagyobb csomag később egy sor hozzáadás (az admin csomagválasztó a táblát listázza).
  */
 const CSOMAGOK = {
-  ingyenes: { havi: 20 },
-  alap: { havi: 150 },
-  profi: { havi: 600 },
-  korlatlan: { havi: null }
+  ingyenes: { keret: 20, idoszak: "egyszeri" },
+  alap: { keret: 150, idoszak: "havi" },
+  korlatlan: { keret: null, idoszak: "havi" }
 };
 
 const ALAP_CSOMAG = "ingyenes";
 
-/** A hónap kulcsa (UTC): a használat dokumentum azonosítója. */
+/** A hónap kulcsa (UTC). */
 function honapKulcs(datum = new Date()) {
   return `${datum.getUTCFullYear()}-${String(datum.getUTCMonth() + 1).padStart(2, "0")}`;
 }
@@ -46,9 +49,22 @@ function csomagNev(nev) {
   return Object.hasOwn(CSOMAGOK, nev) ? nev : ALAP_CSOMAG;
 }
 
-/** A csomag havi kerete; null = korlátlan. */
-function havikeret(nev) {
-  return CSOMAGOK[csomagNev(nev)].havi;
+/** A csomag kerete; null = korlátlan. */
+function keret(nev) {
+  return CSOMAGOK[csomagNev(nev)].keret;
+}
+
+/** "egyszeri" vagy "havi". */
+function idoszak(nev) {
+  return CSOMAGOK[csomagNev(nev)].idoszak;
+}
+
+/**
+ * A használat-dokumentum azonosítója (tanarok/{uid}/hasznalat/{kulcs}): az egyszeri
+ * csomagnál egyetlen, állandó dokumentum ("osszes"), a havinál a hónap kulcsa.
+ */
+function hasznalatKulcs(nev, datum = new Date()) {
+  return idoszak(nev) === "egyszeri" ? "osszes" : honapKulcs(datum);
 }
 
 /**
@@ -56,9 +72,9 @@ function havikeret(nev) {
  * @returns {{engedett: boolean, limit: number|null, hasznalt: number}}
  */
 function kvotaDontes({ csomag, hasznalt, koltseg }) {
-  const limit = havikeret(csomag);
+  const limit = keret(csomag);
   const mar = Number.isFinite(hasznalt) && hasznalt > 0 ? hasznalt : 0;
   return { engedett: limit === null || mar + koltseg <= limit, limit, hasznalt: mar };
 }
 
-module.exports = { EGYSEG_KOLTSEG, CSOMAGOK, ALAP_CSOMAG, honapKulcs, csomagNev, havikeret, kvotaDontes };
+module.exports = { EGYSEG_KOLTSEG, CSOMAGOK, ALAP_CSOMAG, honapKulcs, csomagNev, keret, idoszak, hasznalatKulcs, kvotaDontes };

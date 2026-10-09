@@ -28,15 +28,32 @@ test("ismeretlen vagy hiányzó csomag az alapcsomag, sosem a korlátlan", () =>
   assert.equal(k.csomagNev("__proto__"), "ingyenes");
   assert.equal(k.csomagNev("toString"), "ingyenes");
   assert.equal(k.csomagNev("alap"), "alap");
-  assert.equal(k.havikeret("valami"), k.CSOMAGOK.ingyenes.havi);
-  assert.equal(k.havikeret("korlatlan"), null);
+  assert.equal(k.keret("valami"), k.CSOMAGOK.ingyenes.keret);
+  assert.equal(k.keret("korlatlan"), null);
 });
 
-test("a csomagok kerete növekvő, és az ingyenes véges", () => {
-  const { ingyenes, alap, profi } = k.CSOMAGOK;
-  assert.ok(Number.isInteger(ingyenes.havi) && ingyenes.havi > 0);
-  assert.ok(ingyenes.havi < alap.havi && alap.havi < profi.havi);
+test("a csomagok: az ingyenes véges és egyszeri (nem újul meg), a fizetős havi és nagyobb", () => {
+  const { ingyenes, alap } = k.CSOMAGOK;
+  assert.equal(ingyenes.keret, 20);
+  assert.equal(ingyenes.idoszak, "egyszeri");
+  assert.equal(alap.keret, 150);
+  assert.equal(alap.idoszak, "havi");
+  assert.ok(Number.isInteger(ingyenes.keret) && ingyenes.keret > 0 && ingyenes.keret < alap.keret);
   assert.equal(k.ALAP_CSOMAG, "ingyenes");
+  for (const [nev, c] of Object.entries(k.CSOMAGOK)) {
+    assert.ok(["egyszeri", "havi"].includes(c.idoszak), `${nev}: ismeretlen időszak`);
+  }
+});
+
+test("a használat kulcsa: az ingyenesnél állandó (nem nullázódik hónapváltáskor), a havinál a hónap", () => {
+  const okt = new Date("2026-10-31T23:59:59Z");
+  const nov = new Date("2026-11-01T00:00:00Z");
+  assert.equal(k.hasznalatKulcs("ingyenes", okt), "osszes");
+  assert.equal(k.hasznalatKulcs("ingyenes", nov), "osszes", "az ingyenes keret nem újul meg");
+  assert.equal(k.hasznalatKulcs("alap", okt), "2026-10");
+  assert.equal(k.hasznalatKulcs("alap", nov), "2026-11", "a fizetős keret havonta újraindul");
+  assert.equal(k.hasznalatKulcs(undefined, nov), "osszes", "csomag nélküli tanár = ingyenes");
+  assert.equal(k.idoszak("valami"), "egyszeri");
 });
 
 test("a műveletek ára pozitív egész egység", () => {
@@ -46,7 +63,7 @@ test("a műveletek ára pozitív egész egység", () => {
 });
 
 test("a döntés: pontosan a keretig engedett, utána nem", () => {
-  const limit = k.CSOMAGOK.ingyenes.havi;
+  const limit = k.CSOMAGOK.ingyenes.keret;
   assert.equal(k.kvotaDontes({ csomag: "ingyenes", hasznalt: 0, koltseg: 1 }).engedett, true);
   assert.equal(k.kvotaDontes({ csomag: "ingyenes", hasznalt: limit - 1, koltseg: 1 }).engedett, true, "az utolsó egység még belefér");
   assert.equal(k.kvotaDontes({ csomag: "ingyenes", hasznalt: limit, koltseg: 1 }).engedett, false);
@@ -65,7 +82,7 @@ test("a döntés: korlátlan csomagnál mindig engedett; rossz használat-érté
 
 test("minden AI-művelet a kvótán át megy: a táblázat és a hívóhelyek egyeznek", () => {
   const forras = readFileSync(new URL("../functions/index.js", import.meta.url), "utf8");
-  const hivasok = new Set([...forras.matchAll(/kvotaval\(\s*[^,()]+,\s*"(\w+)"/g)].map((m) => m[1]));
+  const hivasok = new Set([...forras.matchAll(/kvotaval\(\s*[^,]+?,\s*"(\w+)"/g)].map((m) => m[1]));
   assert.deepEqual([...hivasok].sort(), Object.keys(k.EGYSEG_KOLTSEG).sort(),
     "új AI-művelet felvételekor a kvotaval()-t és az EGYSEG_KOLTSEG-et is bővíteni kell");
 });

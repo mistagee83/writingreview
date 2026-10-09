@@ -10,14 +10,25 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import {
-  KORNYEZETEK, WEB_KONFIG_KULCSOK, konfigBetoltes, konfigHibak, kornyezetJs, firebaseConfigCsere
+  KORNYEZETEK, WEB_KONFIG_KULCSOK, konfigBetoltes, konfigHibak, kornyezetJs, firebaseConfigCsere,
+  kornyezetValasztas, celProjekt, deployParameterHiba
 } from "../scripts/kornyezet-config.mjs";
 
 const require = createRequire(new URL("../functions/package.json", import.meta.url));
 const { corsLista, beallitasok } = require("./kornyezet.js");
+
+// A build a környezetet a WR_ENV-ből / a Firebase CLI célprojektjéből (GCLOUD_PROJECT) is
+// veszi: az emulátoros futtatás (firebase emulators:exec) ezt a pilotra állítja, ezért a
+// build-próbák tiszta környezetet kapnak.
+const tisztaKornyezet = () => {
+  const env = { ...process.env };
+  delete env.GCLOUD_PROJECT;
+  delete env.WR_ENV;
+  return env;
+};
 
 const pilot = konfigBetoltes("pilot");
 const prod = konfigBetoltes("prod");
@@ -37,7 +48,7 @@ test("a pilot teljesen kitöltött; a prod a B. lépésig üres lehet, de akkor 
   assert.deepEqual(konfigHibak(pilot, { kitoltott: true }), []);
   const prodKesz = konfigHibak(prod, { kitoltott: true }).length === 0;
   const r = spawnSync(process.execPath, ["scripts/build.mjs", "--env", "prod"], {
-    cwd: new URL("..", import.meta.url), encoding: "utf8"
+    cwd: new URL("..", import.meta.url), encoding: "utf8", env: tisztaKornyezet()
   });
   // Kitöltetlen prod konfignál a build nem mehet át (különben üres Firebase-config kerülne ki).
   if (!prodKesz) assert.notEqual(r.status, 0);
@@ -121,7 +132,7 @@ test("az i18n az alapnyelvet a telepítés konfigjából veszi", () => {
 
 test("a pilot build dist-je a pilot Firebase-configját és alapnyelvét kapja", () => {
   const r = spawnSync(process.execPath, ["scripts/build.mjs"], {
-    cwd: new URL("..", import.meta.url), encoding: "utf8"
+    cwd: new URL("..", import.meta.url), encoding: "utf8", env: tisztaKornyezet()
   });
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /dist\/ elkészült \(pilot\)/);
@@ -182,4 +193,75 @@ test("a prod egyéni hosting-oldala (és a firebaseapp címe) a CORS-ban szerepe
   assert.ok(cors.includes(`https://${oldal}.web.app`));
   assert.ok(cors.includes(`https://${oldal}.firebaseapp.com`));
   assert.ok(cors.includes(`https://${prod.projekt}.web.app`), "az alapoldal is marad");
+});
+
+
+// ── Külső audit 4. kör: a build/deploy környezet-kötése ──
+
+test("környezetválasztás: a kért környezet és a Firebase célprojektje nem mondhat ellent", () => {
+  // prod célprojekt + WR_ENV nélkül: a prod konfig épül (a közvetlen `firebase deploy --project prod` is)
+  assert.equal(kornyezetValasztas({ gcloudProjekt: prod.projekt }), "prod");
+  assert.equal(kornyezetValasztas({ gcloudProjekt: pilot.projekt }), "pilot");
+  // egyező kérés
+  assert.equal(kornyezetValasztas({ wrEnv: "prod", gcloudProjekt: prod.projekt }), "prod");
+  assert.equal(kornyezetValasztas({ arg: "pilot", wrEnv: "prod" }), "pilot", "a --env erősebb a WR_ENV-nél");
+  // ellentmondás: prodra telepítés pilot kéréssel, és fordítva
+  assert.throws(() => kornyezetValasztas({ wrEnv: "pilot", gcloudProjekt: prod.projekt }), /célprojekt/);
+  assert.throws(() => kornyezetValasztas({ arg: "prod", gcloudProjekt: pilot.projekt }), /célprojekt/);
+  // ismeretlen célprojekt / ismeretlen környezet
+  assert.throws(() => kornyezetValasztas({ gcloudProjekt: "valami-mas" }), /egyik környezet/);
+  assert.throws(() => kornyezetValasztas({ arg: "staging" }), /Ismeretlen környezet/);
+  // helyi build célprojekt nélkül: pilot
+  assert.equal(kornyezetValasztas({}), "pilot");
+});
+
+test("a build a célprojekttel ellentmondó kérésre leáll, célprojekt alapján a prodot építi", () => {
+  const fut = (env) => spawnSync(process.execPath, ["scripts/build.mjs"], {
+    cwd: new URL("..", import.meta.url), encoding: "utf8", env: { ...tisztaKornyezet(), ...env }
+  });
+  const ellentmondas = fut({ WR_ENV: "pilot", GCLOUD_PROJECT: prod.projekt });
+  assert.notEqual(ellentmondas.status, 0, "a prodra szánt build pilot kéréssel nem mehet");
+  assert.match(ellentmondas.stderr, /célprojekt/);
+  // A tényleges kimenet: a prod célprojekt WR_ENV nélkül is a prod Firebase-configot kapja.
+  // A dist/ fájlnevei hash-eltek; a végén a pilot buildet állítjuk vissza (a dist ne maradjon prodon).
+  try {
+    const prodBuild = fut({ GCLOUD_PROJECT: prod.projekt });
+    assert.equal(prodBuild.status, 0, prodBuild.stderr);
+    const js = new URL("../dist/js/", import.meta.url);
+    const dist = (elo) => readFileSync(new URL(readdirSync(js).find((f) => f.startsWith(elo)), js), "utf8");
+    const fc = dist("firebase-config.");
+    assert.ok(fc.includes(prod.webConfig.projectId) && !fc.includes(pilot.webConfig.projectId),
+      "a prod célprojekt pilot Firebase-configgal épült");
+    assert.match(dist("kornyezet."), /export const KORNYEZET = "prod";/);
+  } finally {
+    assert.equal(fut({ WR_ENV: "pilot" }).status, 0);
+  }
+});
+
+test("konfig-kötés: az átmásolt/felcserélt konfig elutasítva a kért környezetre és a .firebaserc szerint", () => {
+  // helyes párok
+  for (const k of KORNYEZETEK) {
+    const c = konfigBetoltes(k);
+    assert.deepEqual(konfigHibak(c, { kitoltott: true, elvartKornyezet: k, celProjekt: celProjekt(k) }), []);
+  }
+  // a pilot konfig a prod fájl helyén (érvényes, de nem prod)
+  const hibak = konfigHibak(pilot, { kitoltott: true, elvartKornyezet: "prod", celProjekt: celProjekt("prod") });
+  assert.ok(hibak.some((h) => /kornyezet/.test(h)), "a környezet-név eltérés nem jelzett");
+  assert.ok(hibak.some((h) => /Firebase célprojekt/.test(h)), "a projekt-eltérés nem jelzett");
+  // helyes környezetnév, de az aliastól eltérő (belül egyező) projekt
+  const masProjekt = { ...prod, projekt: "masik-projekt", webConfig: { ...prod.webConfig, projectId: "masik-projekt" } };
+  assert.ok(konfigHibak(masProjekt, { kitoltott: true, elvartKornyezet: "prod", celProjekt: celProjekt("prod") }).length > 0);
+  // a .firebaserc aliasai a konfigok projektjeire mutatnak
+  assert.equal(celProjekt("prod"), prod.projekt);
+  assert.equal(celProjekt("pilot"), pilot.projekt);
+});
+
+test("deploy-paraméterek: a célprojektet/konfigot felülíró kapcsolók és a shell-metakarakterek tiltva", () => {
+  for (const jo of ["--only", "hosting,functions,firestore:rules", "functions:szerepBeallitas", "--force", "--dry-run"]) {
+    assert.equal(deployParameterHiba(jo), null, jo);
+  }
+  for (const rossz of ["--project", "--project=prod", "-P", "--config", "--config=x.json", "--token", "--account",
+    "hosting & echo x", "hosting;rm", "$(whoami)", "a|b", "`x`", ">out", "\"x\""]) {
+    assert.notEqual(deployParameterHiba(rossz), null, rossz);
+  }
 });

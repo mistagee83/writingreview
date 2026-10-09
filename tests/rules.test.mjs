@@ -92,6 +92,13 @@ beforeEach(async () => {
   });
 });
 
+const FELADATLAP = {
+  path: `feladatlapok/${TANAR}/123_lap.jpg`,
+  url: "https://firebasestorage.googleapis.com/v0/b/proj.appspot.com/o/lap.jpg?alt=media&token=abc"
+};
+// A beadás azonosítója kötött: <feladat_id>_<diak_uid>
+const ujId = (feladat = FELADAT, uid = DIAK) => `${feladat}_${uid}`;
+
 // ── Kontextusok ──
 const diak = () => env.authenticatedContext(DIAK, { szerep: "diak" }).firestore();
 const diak2 = () => env.authenticatedContext(DIAK2, { szerep: "diak" }).firestore();
@@ -176,6 +183,18 @@ test("a tanari_kerelem utólag nem is törölhető/módosítható a kliensről",
   await assertFails(
     updateDoc(doc(ujFelh(), "felhasznalok", UJ), { szerep: "tanar" })
   );
+});
+
+// ── AI-HASZNÁLAT NAPLÓ ──
+test("az ai_hasznalat naplót kliens sem olvashatja, sem írhatja (tanár és diák sem)", async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "ai_hasznalat", "r1"), { tanar_id: TANAR, muvelet: "elemzes" });
+  });
+  for (const kontextus of [tanar(), diak(), nemBelepett()]) {
+    await assertFails(getDoc(doc(kontextus, "ai_hasznalat", "r1")));
+    await assertFails(setDoc(doc(kontextus, "ai_hasznalat", "r2"), { tanar_id: TANAR, muvelet: "elemzes" }));
+    await assertFails(getDocs(collection(kontextus, "ai_hasznalat")));
+  }
 });
 
 // ── A BEMUTATÓ ÁLLAPOTA ──
@@ -307,9 +326,56 @@ test("a tanár létrehozhat feladatot a saját osztályába", async () => {
     setDoc(doc(tanar(), "feladatok", "uj-feladat"), {
       osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Letter writing",
       aktiv: true, hatarido: null, rubrika: { tipus: "levél" },
-      feladatlap: {}, letrehozva: new Date()
+      feladatlap: FELADATLAP, letrehozva: new Date()
     })
   );
+});
+
+// ── Külső audit 3. kör: a tanár által írt, a diák felületén megjelenő mezők ──
+const ujFeladat = (felul = {}) => ({
+  osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Letter writing",
+  aktiv: true, hatarido: null, rubrika: { tipus: "levél" }, letrehozva: new Date(), ...felul
+});
+
+test("feladat: a szószámhatár csak szám vagy null lehet (HTML/szöveg nem)", async () => {
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", "f-ok1"), ujFeladat({ rubrika: { min_szo: 100, max_szo: 180 } })));
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", "f-ok2"), ujFeladat({ rubrika: { min_szo: null, max_szo: null } })));
+  for (const rossz of ['<img src=x onerror=alert(1)>', "120", { a: 1 }, [1], -5, 1e9]) {
+    await assertFails(setDoc(doc(tanar(), "feladatok", "f-rossz"), ujFeladat({ rubrika: { min_szo: rossz, max_szo: 180 } })));
+    await assertFails(setDoc(doc(tanar(), "feladatok", "f-rossz"), ujFeladat({ rubrika: { min_szo: 100, max_szo: rossz } })));
+  }
+});
+
+test("feladat: a szószám szerkesztéskor sem lehet szöveg", async () => {
+  await assertFails(updateDoc(doc(tanar(), "feladatok", FELADAT), { rubrika: { min_szo: "<b>x</b>", max_szo: 5 } }));
+  await assertSucceeds(updateDoc(doc(tanar(), "feladatok", FELADAT), { rubrika: { min_szo: 50, max_szo: 90 } }));
+});
+
+test("feladat: a feladatlap csak a tanár saját feltöltése és Storage-URL lehet", async () => {
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", "f-lap"), ujFeladat({ feladatlap: FELADATLAP })));
+  for (const rossz of [
+    { ...FELADATLAP, url: "javascript:alert(1)" },
+    { ...FELADATLAP, url: "https://evil.example/lap.jpg" },
+    { ...FELADATLAP, url: "http://firebasestorage.googleapis.com/x" },
+    { ...FELADATLAP, path: "feladatlapok/masik-tanar-uid/123_lap.jpg" },
+    { ...FELADATLAP, path: "beadasok/diak-uid/b/1.jpg" },
+    { ...FELADATLAP, extra: 1 },
+    {}, "szöveg"
+  ]) {
+    await assertFails(setDoc(doc(tanar(), "feladatok", "f-lap"), ujFeladat({ feladatlap: rossz })));
+  }
+});
+
+test("feladat: a feladatlap cserélhető szerkesztéskor (saját feltöltésre), idegenre nem", async () => {
+  const uj = { ...FELADATLAP, path: `feladatlapok/${TANAR}/456_uj.jpg` };
+  await assertSucceeds(updateDoc(doc(tanar(), "feladatok", FELADAT), { feladatlap: uj }));
+  await assertFails(updateDoc(doc(tanar(), "feladatok", FELADAT), { feladatlap: { ...uj, url: "javascript:alert(1)" } }));
+  await assertFails(updateDoc(doc(tanar(), "feladatok", FELADAT), { feladatlap: { ...uj, path: "feladatlapok/masik-tanar-uid/x.jpg" } }));
+});
+
+test("feladat: a régi (nem szabványos) feladatlap-rekord szerkeszthető marad, ha a feladatlap nem változik", async () => {
+  // a fixture feladata `https://x` URL-t tárol: a cím átírása nem érintheti
+  await assertSucceeds(updateDoc(doc(tanar(), "feladatok", FELADAT), { cim: "Új cím" }));
 });
 
 // A feladatlap (kép/PDF) NEM kötelező: a tanár magától is összeállíthat
@@ -352,21 +418,23 @@ test("a feladatlap nélküli feladat szerkeszthető", async () => {
   );
 });
 
+// Az `ujFeladat` fixtúra (fent) minden más szempontból érvényes (feladatlap
+// nélkül): a negatív tesztekben egyetlen mező tér el, így az elutasítás oka egyértelmű.
+test("a tanár létrehozhat feladatot a saját osztályába (kontroll)", async () => {
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", "uj-feladat-kontroll"), ujFeladat()));
+});
+
 test("a tanár NEM hozhat létre feladatot más osztályába", async () => {
+  // Csak az osztály idegen: a tanar_id a hívóé.
   await assertFails(
-    setDoc(doc(tanar2(), "feladatok", "uj-feladat"), {
-      osztaly_id: OSZTALY, tanar_id: TANAR2, cim: "Idegen",
-      aktiv: true, hatarido: null, rubrika: {}, feladatlap: {}, letrehozva: new Date()
-    })
+    setDoc(doc(tanar2(), "feladatok", "uj-feladat"), ujFeladat({ tanar_id: TANAR2 }))
   );
 });
 
 test("a feladat tanar_id-je nem hamisítható más tanárra", async () => {
+  // Csak a tanar_id hamis: az osztály a hívó saját osztálya.
   await assertFails(
-    setDoc(doc(tanar2(), "feladatok", "uj-feladat"), {
-      osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Hamisított",
-      aktiv: true, hatarido: null, rubrika: {}, feladatlap: {}, letrehozva: new Date()
-    })
+    setDoc(doc(tanar(), "feladatok", "uj-feladat"), ujFeladat({ tanar_id: TANAR2 }))
   );
 });
 
@@ -624,10 +692,10 @@ test("a tanár törölheti a saját sablonját, idegen nem", async () => {
 
 test("a diák beadhatja a sajátját 'feltoltve' státusszal", async () => {
   await assertSucceeds(
-    setDoc(doc(diak(), "beadasok", "uj-beadas"), {
+    setDoc(doc(diak(), "beadasok", ujId()), {
       feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK,
       diak_nev: "Diák Dóra", tanar_id: TANAR,
-      kep_paths: ["beadasok/diak-uid/uj-beadas/1.jpg"],
+      kep_paths: [`beadasok/diak-uid/${ujId()}/1.jpg`],
       statusz: "feltoltve", atirat: null, hiba: null,
       letrehozva: new Date(), frissitve: new Date()
     })
@@ -636,10 +704,10 @@ test("a diák beadhatja a sajátját 'feltoltve' státusszal", async () => {
 
 test("a diák NEM adhat be 'elkuldve' státusszal (jegyet nem hamisíthat)", async () => {
   await assertFails(
-    setDoc(doc(diak(), "beadasok", "uj-beadas"), {
+    setDoc(doc(diak(), "beadasok", ujId()), {
       feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK,
       diak_nev: "Diák Dóra", tanar_id: TANAR,
-      kep_paths: ["beadasok/diak-uid/uj-beadas/1.jpg"],
+      kep_paths: [`beadasok/diak-uid/${ujId()}/1.jpg`],
       statusz: "elkuldve", atirat: null, hiba: null,
       letrehozva: new Date(), frissitve: new Date()
     })
@@ -648,7 +716,7 @@ test("a diák NEM adhat be 'elkuldve' státusszal (jegyet nem hamisíthat)", asy
 
 test("a diák NEM adhat be más diák nevében", async () => {
   await assertFails(
-    setDoc(doc(diak(), "beadasok", "uj-beadas"), {
+    setDoc(doc(diak(), "beadasok", ujId()), {
       feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK2,
       diak_nev: "Más", tanar_id: TANAR,
       kep_paths: ["beadasok/x/1.jpg"], statusz: "feltoltve",
@@ -659,7 +727,7 @@ test("a diák NEM adhat be más diák nevében", async () => {
 
 test("kívülálló diák NEM adhat be az osztály feladatára", async () => {
   await assertFails(
-    setDoc(doc(diak2(), "beadasok", "uj-beadas"), {
+    setDoc(doc(diak2(), "beadasok", ujId(FELADAT, DIAK2)), {
       feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK2,
       diak_nev: "Kívülálló", tanar_id: TANAR,
       kep_paths: ["beadasok/x/1.jpg"], statusz: "feltoltve",
@@ -670,13 +738,70 @@ test("kívülálló diák NEM adhat be az osztály feladatára", async () => {
 
 test("kép nélküli beadás elutasítva", async () => {
   await assertFails(
-    setDoc(doc(diak(), "beadasok", "uj-beadas"), {
+    setDoc(doc(diak(), "beadasok", ujId()), {
       feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK,
       diak_nev: "Diák Dóra", tanar_id: TANAR,
       kep_paths: [], statusz: "feltoltve",
       atirat: null, hiba: null, letrehozva: new Date(), frissitve: new Date()
     })
   );
+});
+
+// A beadás hivatkozásait a kliens írja – a szabály kényszeríti az összetartozást
+// (audit 1. kör, 2026-10-06).
+const ujBeadas = (felul = {}) => ({
+  feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK,
+  diak_nev: "Diák Dóra", tanar_id: TANAR,
+  kep_paths: [`beadasok/diak-uid/${ujId()}/1.jpg`],
+  statusz: "feltoltve", atirat: null, hiba: null,
+  letrehozva: new Date(), frissitve: new Date(),
+  ...felul
+});
+
+test("beadás: hamis tanar_id elutasítva (idegen tanár nevére nem adható be)", async () => {
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas({ tanar_id: TANAR2 })));
+});
+
+test("beadás: a feladat másik osztályé, mint a megadott osztály_id – elutasítva", async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "feladatok", "idegen-feladat"), {
+      osztaly_id: "masik-osztaly", tanar_id: TANAR2, cim: "Idegen", aktiv: true, rubrika: {}
+    });
+  });
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId("idegen-feladat")), ujBeadas({ feladat_id: "idegen-feladat" })));
+  // a feladat tanárát és osztályát is hamisítva: az osztály tagsága ekkor hasal el
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId("idegen-feladat")),
+    ujBeadas({ feladat_id: "idegen-feladat", osztaly_id: "masik-osztaly", tanar_id: TANAR2 })));
+});
+
+test("beadás: nem létező feladat elutasítva; nem string feladat_id is", async () => {
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId("nincs-ilyen")), ujBeadas({ feladat_id: "nincs-ilyen" })));
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId(42)), ujBeadas({ feladat_id: 42 })));
+});
+
+test("beadás: lezárt (nem aktív) feladatra nem lehet beadni", async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "feladatok", FELADAT), { aktiv: false }, { merge: true });
+  });
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas()));
+});
+
+test("beadás: ismeretlen (extra) mező elutasítva", async () => {
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas({ jegy: 5 })));
+});
+
+test("beadás: kötött azonosító – véletlen azonosítóval nem hozható létre", async () => {
+  await assertFails(setDoc(doc(diak(), "beadasok", "veletlen-azonosito"), ujBeadas()));
+});
+
+test("beadás: másik diák azonosítójával (vagy másik feladatéval) nem hozható létre", async () => {
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId(FELADAT, DIAK2)), ujBeadas()));
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId("masik-feladat")), ujBeadas()));
+});
+
+test("beadás: ugyanarra a feladatra másodszor nem adhat be (a második létrehozás elhasal)", async () => {
+  await assertSucceeds(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas()));
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas()));
 });
 
 test("a diák NEM állíthatja át a saját beadása státuszát", async () => {

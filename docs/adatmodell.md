@@ -297,6 +297,8 @@ feladatlaphoz tartozik, nem újrahasznosítható.
 
 ### `beadasok/{beadasId}`
 
+*Az azonosító kötött: `<feladat_id>_<diak_uid>` (a szabály kényszeríti), így egy diák egy feladatra egyszer adhat be. A korábbi beadások azonosítója véletlen volt, ezek érintetlenek.*
+
 | mező | típus | megjegyzés |
 |---|---|---|
 | `feladat_id` | string | |

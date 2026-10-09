@@ -26,7 +26,7 @@ import { join, dirname, basename, extname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { generalas } from "./kifejtos-kliens.mjs";
 import {
-  ALAP_KORNYEZET, konfigBetoltes, konfigHibak, kornyezetJs, firebaseConfigCsere
+  konfigBetoltes, konfigHibak, kornyezetJs, firebaseConfigCsere, kornyezetValasztas, celProjekt
 } from "./kornyezet-config.mjs";
 
 const GYOKER = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -123,10 +123,24 @@ generalas();
 // A public/ a pilot értékeit hordozza; a dist/-be a kiválasztott
 // környezet konfigja kerül (lásd docs/kornyezetek-terv.md 4.).
 // ══════════════════════════════════════════
+// A Firebase CLI a predeploy hooknak átadja a célprojektet (GCLOUD_PROJECT): egy közvetlen
+// `firebase deploy --project prod` így sem épülhet pilot konfiggal (és a kettő nem mondhat ellent).
 const envArgIdx = process.argv.indexOf("--env");
-const KORNYEZET = (envArgIdx >= 0 ? process.argv[envArgIdx + 1] : process.env.WR_ENV) || ALAP_KORNYEZET;
+let KORNYEZET;
+try {
+  KORNYEZET = kornyezetValasztas({
+    arg: envArgIdx >= 0 ? process.argv[envArgIdx + 1] : "",
+    wrEnv: process.env.WR_ENV,
+    gcloudProjekt: process.env.GCLOUD_PROJECT
+  });
+} catch (e) {
+  console.error(e.message);
+  process.exit(1);
+}
 const konfig = konfigBetoltes(KORNYEZET);
-const konfigHiba = konfigHibak(konfig, { kitoltott: true });
+const konfigHiba = konfigHibak(konfig, {
+  kitoltott: true, elvartKornyezet: KORNYEZET, celProjekt: celProjekt(KORNYEZET)
+});
 if (konfigHiba.length) {
   console.error(`A(z) ${KORNYEZET} környezet konfigja (config/${KORNYEZET}.json) nem teljes:`);
   konfigHiba.forEach((h) => console.error("  " + h));

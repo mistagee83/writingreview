@@ -87,6 +87,7 @@
 <script type="module">
   import { vedettOldal } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
+  import { t } from './js/i18n.js';
   import {
     db, collection, getDocs, query, where, functions, httpsCallable
   } from './js/firebase-config.js';
@@ -128,6 +129,12 @@
       const { data } = await httpsCallable(functions, 'kvotaAllapot')();
       if (!data.kvota) return;   // pilot: nincs korlát, nincs kártya
       kiir('stat-keret', `${data.hasznalt} / ${data.limit ?? '∞'}`);
+      // Az ingyenes keret egyszeri (nem újul meg): a felirat is ezt mondja.
+      if (data.idoszak === 'egyszeri') {
+        const cimke = document.querySelector('#kvota-kartya .stat-label');
+        cimke.setAttribute('data-i18n', 'tanar.stat_keret_egyszeri');
+        cimke.textContent = t('tanar.stat_keret_egyszeri');
+      }
       document.getElementById('kvota-kartya').style.display = '';
       if (data.limit !== null && data.hasznalt >= data.limit) {
         document.getElementById('stat-keret').classList.add('accent');

@@ -170,7 +170,7 @@
               </span>
               ${f.admin ? `<span class="badge javitva">${t('admin.admin_jelzo')}</span>` : ''}
               ${csomagos
-                ? `<span class="badge inaktiv">${t('admin.keret_hasznalat', { hasznalt: f.hasznalt ?? 0, limit: csomagok[f.csomag] ?? '∞' })}</span>`
+                ? `<span class="badge inaktiv">${t('admin.keret_hasznalat', { hasznalt: f.hasznalt ?? 0, limit: csomagok[f.csomag]?.keret ?? '∞' })}</span>`
                 : ''}
               ${f.tukor_eltero
                 ? `<span class="badge feltoltve" title="${t('admin.belepes_kell_tipp')}">${t('admin.belepes_kell')}</span>`
@@ -180,8 +180,8 @@
           <div class="list-card-actions">
             ${csomagos ? `
             <select class="csomag-valaszto" data-uid="${esc(f.uid)}" data-nev="${esc(f.nev)}" aria-label="${t('admin.csomag')}">
-              ${Object.entries(csomagok).map(([nev, havi]) =>
-                `<option value="${esc(nev)}" ${nev === f.csomag ? 'selected' : ''}>${t(`admin.csomag_${nev}`)}${havi === null ? '' : ` (${havi})`}</option>`
+              ${Object.entries(csomagok).map(([nev, c]) =>
+                `<option value="${esc(nev)}" ${nev === f.csomag ? 'selected' : ''}>${t(`admin.csomag_${nev}`)}${c.keret === null ? '' : ` (${c.keret}${c.idoszak === 'havi' ? t('admin.havonta') : ''})`}</option>`
               ).join('')}
             </select>` : ''}
             <button class="btn-sm" data-akcio="szerep"

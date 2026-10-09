@@ -51,11 +51,16 @@ export function swRegisztracio() {
   const biztonsagos = window.isSecureContext;
   if (!biztonsagos) return;
 
-  window.addEventListener("load", () => {
+  const regisztral = () => {
     navigator.serviceWorker.register("/sw.js").catch((e) => {
       console.warn("A service worker nem jegyződött be:", e.message);
     });
-  });
+  };
+
+  // A védett lapokon a guard dinamikusan, az auth betöltése UTÁN hívja: ilyenkor a
+  // `load` már lefutott, és egy új listener soha nem kapna eseményt.
+  if (document.readyState === "complete") regisztral();
+  else window.addEventListener("load", regisztral, { once: true });
 }
 
 // ══════════════════════════════════════════

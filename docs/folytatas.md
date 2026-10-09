@@ -7,7 +7,7 @@ folytatni, és mi a következő lépés. A program működéséről a
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 
 **Kész és élesben van** (pilot és prod is; a `main` a GitHubon a `976ecd9`-nél és az azt követő
-jegyzet-commitnál tart, a prod a `v1.0.0` címkén fut):
+jegyzet-commitnál tart, a prod a `v1.3.0` címkén fut, 2026-10-07):
 
 - az éles kipróbálás hibái javítva és deployolva: egyéni jegyskála mentése, a feladatleírás (helyzet +
   cikk összefoglalva + teendő, E/2), jegyjavaslat a leveles javításnál, a visszajelzés minden mezője a
@@ -36,9 +36,75 @@ AI-feldolgozás, egyéni domain. **Éles gyerekadat előtt az adatvédelmi kérd
 A D. lépés új funkciói a pilotra ne hassanak (a kvóta a környezeti konfigon át, `kvota`).
 Nagyobb munka, tervezéssel kezdd: `kornyezetek-terv.md` 5.
 
-## 0/b. Tanári önregisztráció (2026-10-05) – kód kész, DEPLOYOLATLAN
+## 0/c. AI-használat mérése és admin nézet (2026-10-05) – **pilotra deployolva (14b97eb)**, prodra a `v1.3.0`-val kiment
 
-A D. lépés első része a `main`-en van (commit még nincs), **egyik környezetre sincs deployolva**:
+A kvóta előtti lépés: **mérni kell, mennyibe kerül egy dolgozat**, mert a csomagárak csak mért adatból
+számolhatók. Mindkét környezetben fut, korlát nélkül.
+
+- Minden Gemini-hívás tokenszáma az `ai_hasznalat` gyűjteménybe kerül (`functions/ai-hasznalat.js`,
+  `aiHasznalatNaplo` az `index.js`-ben); a `geminiHivas()` 4. paramétere a kontextus (tanár, művelet,
+  feladat, beadás, mód). Új AI-hívóhelynél a kontextus kötelező (teszt védi: `tests/ai-hasznalat.test.mjs`).
+- Új admin oldal: **📈 AI-használat** (`public/ai-hasznalat.html`, callable: `aiHasznalatJelentes`) –
+  összesítés, bontások és egy csomagár-**számoló**. Lásd `mukodesi-leiras.md` 4.7.
+- **Deploy-hatás:** új Firestore-szabály (`ai_hasznalat`: kliensnek tiltva), módosított függvények, új
+  függvény (`aiHasznalatJelentes`), új lap. **Pilot** (a mérésért): `node scripts/deploy.mjs pilot --only
+  hosting,functions,firestore:rules`. **Prod:** címkés kiadással. A pilotra 2026-10-05-én kiment (hosting, functions, `firestore:rules`); a prodon addig nem mér, amíg nincs új címkés kiadás. A `gemini-3.7-flash` ára ugyanannyi, mint a 3.8-é (a tulajdonos megerősítése), így nincs ismeretlen árú modell.
+- **Az első éles mérés (pilot, 13 dolgozat, 1 rövid levél-feladat):** ~$0,022 / dolgozat (átírás ~$0,012 +
+  értékelés ~$0,010; a tanári oldal +8%). A költség nagy része a kimenet+gondolkodás tokenje (átírás:
+  ~2900 / hívás egy ~150 szavas levélnél). A kifejtős mód és a többoldalas beadás még nincs mérve.
+- **Gondolkodási szint (2026-10-06, kód kész; a PILOTRA deployolva (functions), a PRODRA a `v1.3.0`-val kiment):** az átírás
+  (`geminiHivas("atiras")`, leveles és kifejtős egyaránt) `thinkingConfig.thinkingLevel: "low"`-val megy
+  (`GONDOLKODAS` az `index.js`-ben; teszt: `tests/gemini.test.mjs`). A 3.8/3.7 Flash alapértelmezése
+  `medium`, kikapcsolni nem lehet, a `minimal` csak a Flash-Lite-on érvényes. Az értékelés, rubrika és
+  elemzés változatlan. **Deploy:** a pilotra kiment (`node scripts/deploy.mjs pilot --only functions`,
+  mind a 14 függvény frissült); a prod címkés kiadással (és ott a mérés is csak ezzel indul). **Utána ellenőrizni:** az átírás pontossága a
+  mintadolgozatokon (rosszabb félreolvasás?), és az admin nézeten a „Submission: transcription (photo)”
+  átlaga ($0,0119-hez képest). Az értékelés gondolkodásának csökkentése csak összehasonlító mérés után.
+- **Offline mérés 4 valódi levélen (2026-10-06, 2 szint × 2 futás):** `low` ~74–82%-kal olcsóbb átírásnál, a
+  felismerés nem rosszabb, és hűségesebb a diák hibáihoz (a `medium` csendben javít: „actualy”→„actually”).
+  A leveles átírás promptja nem tiltotta az áthúzott szöveget: `low`-nál élő szövegként vagy „[áthúzva: …]”
+  jelölővel került az átiratba. **Javítva** (a prompt kihagyatja, jelölő nélkül; a kifejtős promptban már
+  megvolt), újramérve: a jelölők és a kihúzott szavak eltűntek. **Ismert maradék:** a `low` a 2. levélen
+  mindkét futásban kihagyta a „lazy” szót (egy kihúzott szó mellett). A prompt-javítás és a
+  gondolkodási szint **a pilotra deployolva** (2026-10-06, functions, mind a 14); **a prodra a `v1.3.0`-val (2026-10-07) kiment**
+  (címkés kiadás kell, és ott a mérés is csak azzal indul).
+- **Éles igazolás a pilotban (2026-10-09, 7 új dolgozat a deploy után):** átírás $0,0119 → **$0,0036** / hívás
+  (−70%, kimenet+gondolkodás ~2900 → ~700 token), az értékelés változatlan ($0,0102). Dolgozatonként
+  ~$0,022 → **~$0,014**; az értékelés most a költség ~74%-a. A tulajdonos szerint az átiratok jók, nem
+  lényegesen rosszabbak. A számoló kevert átlagból dolgozik (régi+új), ezért az ajánlott 100 dolgozatos ár
+  €8,50 → €7,50; kb. 20–30 új beadás után lesz pontos. **Következő lehetséges lépés:** az értékelés
+  gondolkodásának visszavétele – csak pontszám-összehasonlító mérés után (az értékelés megy a diákhoz).
+- **Átírás-összehasonlító szkript (offline, meglévő fotókon):** `scripts/atiras-osszehasonlitas.mjs`
+  (teszt: `tests/atiras-osszehasonlitas.test.mjs`). Ugyanazokat a fotókat átírja `medium` és `low` szinttel
+  (az éles `geminiKeres`-sel, prompttal, sémával; Firebase-t nem érint), kiírja a költséget és a szó-szintű
+  eltérést, a „zajt” (a viszonyítás 2. futása) is. **Melyik olvas jobban:** ehhez a fotó mellé `<név>.txt` kell, a
+  diák szövegével szó szerint, hibákkal együtt – ilyenkor szintenkénti hibaarányt is számol. A fotók a `tests/dolgozatok/` alá menjenek (gitignore-olt).
+  Futtatás: `$env:GEMINI_API_KEY = (firebase functions:secrets:access GEMINI_API_KEY --project pilot)`, majd
+  `node scripts/atiras-osszehasonlitas.mjs tests/dolgozatok/levelek`. Az app 1500 px-re kicsinyít feltöltéskor;
+  ezt a szkript `sharp`-pal utánozza (`cd tests && npm i --no-save sharp`).
+- **AI-kvóta (2026-10-09, a `kvota-wip` ágon, a `main`-nel összefésülve; NINCS a `main`-en, nincs deployolva):**
+  csak a **prodon** él (`kvota` kapcsoló a `functions/.env.<környezet>`-ben; a pilotban ki van kapcsolva, ott
+  semmi nem korlátozódik és semmi nem íródik – teszt védi). Csomagok (`functions/kvota.js`, egy helyen):
+  **`ingyenes` 20 egység EGYSZERI** (nem újul meg; az önkiszolgáló tanári regisztráció alapcsomagja),
+  **`alap` 150 egység/hó**, **`korlatlan`** (csak az admin adhatja). Terv: alap ~€7/hó; nagyobb csomag
+  (500) szándékosan nincs – ha valakinek elfogy a 150, az adat az árazáshoz (egy sor hozzáadás). Egység: beadás
+  1, feladatlap-javaslat 1, osztályelemzés 1, kifejtős kulcs 2 (a kulcs költsége nincs mérve). Menete: foglalás
+  tranzakcióban a beadás-foglalás ELŐTT (elfogyott keretnél a beadás állapota érintetlen), hibánál és
+  „kihagyva”-nál visszaadás. A kód a használatot `tanarok/{uid}/hasznalat/{osszes|ÉÉÉÉ-HH}` alá írja.
+  Új szerver-hibakód: `kvota_elfogyott_egyszeri`. **Hiányzik:** fizetés (Stripe; addig az admin állítja a
+  csomagot a Felhasználók oldalon), az ingyenes keret elfogyása utáni „fizess” felület, jogi dokumentumok,
+  EU-s AI-feldolgozás. **Teszt:** `tests/kvota.test.mjs` (tiszta), `tests/kvota-adatbazis.test.mjs` (emulátor –
+  ezt az MI nem tudta futtatni, mert a környezetében az emulátor nem indul el; **futtasd a saját
+  terminálodból: `cd tests && npm test`**, Java 21-gyel, lásd 2.).
+- Az első mérés: a 10 fős tesztóra a pilotban (valódi dolgozatok). Mérés előtt a pilotot deployolni kell.
+
+## 0/b. Tanári önregisztráció (2026-10-05) – kód kész, **prodra deployolva (v1.1.0)**
+
+A D. lépés első része a `main`-en van (commit `6cd81c9`), a **prodra a `v1.1.0` címkével kiment**
+(2026-10-05), a **pilotra nincs deployolva** (ott nincs is rá szükség, a választó rejtve van).
+**Eltérés:** a GitHub `prod` environmentjén **nincs „Required reviewers”**, ezért a kiadás
+jóváhagyás nélkül ment ki. A `docs/ci-cd.md` szerint kellene (Settings → Environments → prod →
+Required reviewers); ezt a tulajdonos állíthatja be.
 
 - Regisztrációs űrlap: „Diák vagyok / Tanár vagyok” választó **csak a prodban** (`tanari_onregisztracio`
   a `config/*.json`-ban). Tanárnál megerősített e-mail kell; a tanári jogot a `tanariRegisztracio`
@@ -140,6 +206,7 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **Külső audit 5. kör (tesztek):** a gyenge tesztek javítva; új `storage.test.mjs` (Storage-emulátor az `npm test`-ben) és `callable-jogosultsag.test.mjs`. **A Storage-teszt szabályhézagot talált:** létező fájl felülírása átment a `create` szabályon; a `storage.rules` `create` ágai most `resource == null`-t kérnek. **A Storage-szabály deployolva: pilot és prod is (2026-10-07, `--only storage`).** Részletek: `audit/ellenorzes/kor-5.md`.
 - **A tanári regisztráció kézi, és a kereskedelmi verzióban így nem működhet.** Ma mindenki
   **diákként** regisztrál (`index.html`), a tanári szerepet egy **admin** adja meg: a
   Felhasználók oldalon a „Tanárrá” gombbal (`szerepBeallitas`), vagy a `szerep.mjs` szkripttel.
@@ -166,6 +233,53 @@ cd writingreview
     a prompt üres sort kér, a szerver mentés előtt tagol. A régi, már mentett értékeléseket nem
     javítja.
   - **Deploy-állapot:** mind az öt javítás deployolva a pilotra és a prodra is.
+- **Külső audit, 1. kör (2026-10-06) – javítva a forrásban, DEPLOY MÉG NEM TÖRTÉNT (pilot és prod is a régi kóddal fut):**
+  a beadás (`beadasok`) hivatkozásait a kliens írja, és nem volt ellenőrizve. (1) A `kep_paths` idegen Storage-útvonalat
+  tartalmazhatott, amit a szerver Admin SDK-val letöltött és átírt; (2) a `tanar_id`/`feladat_id` hamisítható volt (idegen
+  tanár hagyhatta jóvá, másik osztály feladatát lehetett használni); lezárt feladatra a szabály nem tiltotta a beadást.
+  Javítás: `firestore.rules` (`beadasok` create: feladat–osztály–tanár egyezés, `aktiv`, mezőlista), `functions/index.js`
+  (`beadasOsszerendeles`: képutak és összerendelés a letöltés előtt; a jóváhagyás csak a feladat tanárának), tesztek:
+  `tests/rules.test.mjs`, `tests/functions.test.mjs`. **Deploy:** `firestore:rules` + `functions`, pilotra és prodra is.
+  Nyitott (alacsony): a „diákmúlt” a tanári önregisztrációnál csak a jelenlegi tagságot nézi (`audit/ellenorzes/kor-1.md`).
+- **Külső audit, 2. kör, A csomag (2026-10-07) – javítva a forrásban, DEPLOY MÉG NEM TÖRTÉNT (pilot és prod is a régi kóddal fut):**
+  (1)+(2) a beadás feldolgozása tranzakciós **foglalással** indul (`beadasFoglalas`, `futas_id`): a duplikált trigger-esemény és a
+  tanári dupla kattintás nem indít második futást, az elavult futás nem ír felül újabb állapotot, a 10 percnél régebbi `folyamatban`
+  állapot (megszakadt futás) újrafuttatható; (3) a leveles pontozás a tanár rubrikájához kötött (`szempontokTisztitas`: ismert
+  kulcsok, a maximum a rubrikából, a pont 0..max), a jóváhagyás a már mentett AI-adatot is ide szorítja; (5) hibás AI-válasznál is
+  naplózódik a tokenhasználat; a beadás képeinek összmérete a letöltés előtt korlátozott (14 MB). **Deploy:** csak `functions`,
+  pilotra és prodra is. Nyitott: a 2. kör [4] pontja (több beadás ugyanarra a feladatra – determinisztikus beadás-azonosító, kliens
+  + szabály + hosting), a prompt injection pilotos kipróbálása, az osztályelemzés adatforrása leveles feladatnál (termékdöntés).
+  Lásd `audit/ellenorzes/kor-2.md`.
+- **Külső audit, 2. kör, B csomag (2026-10-07) – javítva a forrásban, DEPLOY MÉG NEM TÖRTÉNT (pilot és prod is a régi kóddal fut):**
+  a beadás azonosítója kötött: `<feladat_id>_<diak_uid>` (`firestore.rules`, `public/beadas.html`), így egy diák egy feladatra csak
+  egyszer adhat be (a második létrehozás elhasal). A régi, véletlen azonosítójú beadások érintetlenek (egy ilyen diák még egy új
+  azonosítójú beadást létrehozhat). **Deploy-sorrend: a `firestore:rules` és a `hosting` EGYÜTT megy ki** (a régi, gyorsítótárazott
+  kliens véletlen azonosítóval próbálna beadni, amit az új szabály elutasít, amíg a service worker frissül). Pilot: `node scripts/deploy.mjs
+  pilot --only hosting,firestore:rules`; prod: címkés kiadás.
+- **Külső audit, 3. kör, C csomag (2026-10-07) – javítva a forrásban, DEPLOY MÉG NEM TÖRTÉNT (pilot és prod is a régi kóddal fut):**
+  (1) **tárolt XSS**: a tanár által írt `rubrika.min_szo/max_szo` escape nélkül került a diák feladatlistájába (`diak.html`) – most
+  `esc()` védi, és a szabály csak számot/`null`-t enged; (+) a **feladatlap URL-je** nem ellenőrzött sémájú volt (`javascript:` a diák
+  linkjében) – a kliens csak `https` Storage-URL-t renderel (`public/js/biztonsag.js`), a szabály a `feladatlap` mezőt típusozza (a tanár
+  saját `feladatlapok/<uid>/` útja + `firebasestorage.googleapis.com` URL); (5) a feladatlap cseréje szerkesztéskor mostantól mentődik
+  (szabály + kliens); (4) feltöltés alatt a képlista zárolt és másolatból dolgozik (nem maradhat ki oldal); (3) a javítóablak
+  kérésazonosítót használ (lassú korábbi lekérés nem írja felül az újabbat); (6) a PWA-regisztráció a load után is elindul.
+  **Deploy:** `hosting` + `firestore:rules`, pilotra és prodra is (a B csomag deployával együtt javasolt, egy kiadásban).
+  Nyitott: a 3. kör [2] (késő AI-kulcs másik feladatlaphoz, tanári űrlap) és [7] (guard-üzenetek, 404 és offline lap kétnyelvűsége);
+  opcionális: Content-Security-Policy fejléc (`firebase.json`; inline szkriptek miatt óvatosan). Lásd `audit/ellenorzes/kor-3.md`.
+- **Külső audit, 4. kör, D csomag (2026-10-07) – javítva a forrásban; a build/deploy eszközök és a workflow-k változtak, élő rendszer nem érintett:**
+  (1) a build a környezetet a `WR_ENV` mellett a Firebase CLI által a predeploy hooknak átadott célprojektből (`GCLOUD_PROJECT`) is
+  veszi, és az ellentmondást megtagadja – egy közvetlen `firebase deploy --project prod` sem épülhet pilot konfiggal (és fordítva);
+  (2) a konfig fájlja a kért környezethez és a `.firebaserc` szerinti projekthez kötött (a `build.mjs` és a `deploy.mjs` is ellenőrzi:
+  egy átmásolt/felcserélt `config/prod.json` nem mehet ki); a `deploy.mjs` elutasítja a `--project/-P/--config/--token/--account`
+  kapcsolót és a shell-metakaraktereket tartalmazó paramétert; a workflow-k a Firebase CLI **15.17.0** verzióját telepítik.
+  **Teendő a tulajdonosra (prod IAM, a `writerev2` projektben):** a Workload Identity provider feltételét szűkíteni kell a `prod`
+  environmentre – a javítás a `docs/ci-cd.md` receptjében van, de a már létező providert át kell állítani:
+  `gcloud iam workload-identity-pools providers update-oidc github --project writerev2 --location=global --workload-identity-pool=github
+  --attribute-condition="assertion.repository=='mistagee83/writingreview' && assertion.sub=='repo:mistagee83/writingreview:environment:prod'"`
+  (az első címkés kiadás igazolja, hogy a deploy továbbra is átmegy; hiba esetén a feltétel visszaállítható). A `prod` GitHub environmentre
+  a „Required reviewers” beállítása továbbra is a tulajdonosra vár (v1.1.0 jóváhagyás nélkül ment ki). Nyitott: a régi címke újrafuttatása
+  (rollback) szándékos-e; a GitHub Actions action-ök commit SHA-ra rögzítése; a Storage CORS tényleges alkalmazása (`cors.prod.json`).
+  Lásd `audit/ellenorzes/kor-4.md`.
 - **Munkaszabály** (a `CLAUDE.md`-ben): hibajavításnál mindig meg kell mondani, melyik környezet
   fut még a régi kóddal, és a párhuzamos kódutat (leveles/kifejtős) is meg kell nézni.
 - **A prod ellenőrzése kész** (2026-10-05). A teljes kör végig lett próbálva. Ellenőrizve: a

@@ -17,6 +17,7 @@ process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
 // SZÁNDÉKOSAN más projekt-azonosító, mint a rules.test.mjs-ben: az
 // ottani clearFirestore() különben kitörölné az itteni adatokat.
 process.env.GCLOUD_PROJECT = "wr-functions-teszt";
+process.env.GEMINI_API_KEY = "teszt-kulcs";
 
 // A require-t a functions/ könyvtárhoz kötjük, hogy a firebase-admin
 // a functions/node_modules-ból oldódjon fel, normál csomag-feloldással.
@@ -45,7 +46,7 @@ async function torolMindent() {
     const sajat = await d.ref.collection("osztalyaim").get();
     await Promise.all(sajat.docs.map((x) => x.ref.delete()));
   }
-  for (const koll of ["osztalyok", "kodok", "felhasznalok"]) {
+  for (const koll of ["osztalyok", "kodok", "felhasznalok", "ai_hasznalat", "feladatok"]) {
     const snap = await firestore.collection(koll).get();
     await Promise.all(snap.docs.map((d) => d.ref.delete()));
   }
@@ -102,23 +103,41 @@ test("20 osztály létrehozása után is minden kód egyedi", async () => {
 });
 
 test("már létező kód nem írható felül (a tranzakció újrapróbál)", async () => {
-  // Minden lehetséges kódot "foglaltnak" jelölünk, egy kivétellel:
-  // így a ciklus kényszerűen ütközik, majd talál egy szabadot.
-  const elsoKod = logika.kodGeneralas();
-  await firestore.collection("kodok").doc(elsoKod).set({ osztaly_id: "idegen-osztaly" });
+  // A generátor először a foglalt kódot adja, csak másodszor egy szabadot –
+  // így az ütközésvédő ág ténylegesen lefut.
+  const foglaltKod = "AAA-AAAA";
+  const szabadKod = "BBB-BBBB";
+  await firestore.collection("kodok").doc(foglaltKod).set({ osztaly_id: "idegen-osztaly" });
+  const sor = [foglaltKod, szabadKod];
+  let hivasok = 0;
 
   const { osztalyId, kod } = await logika.osztalyLetrehozasLogika(
-    firestore, "tanar-uid", "Ütközés teszt"
+    firestore, "tanar-uid", "Ütközés teszt", () => { hivasok++; return sor.shift(); }
   );
 
-  assert.notEqual(kod, elsoKod, "nem használhatta fel a foglalt kódot");
+  assert.equal(hivasok, 2, "az ütközésvédő ág nem futott le");
+  assert.equal(kod, szabadKod, "nem a szabad kódot kapta");
 
   // A foglalt kód továbbra is az idegen osztályra mutat
-  const foglalt = (await firestore.collection("kodok").doc(elsoKod).get()).data();
+  const foglalt = (await firestore.collection("kodok").doc(foglaltKod).get()).data();
   assert.equal(foglalt.osztaly_id, "idegen-osztaly", "felülírta a foglalt kódot");
 
   const ujKod = (await firestore.collection("kodok").doc(kod).get()).data();
   assert.equal(ujKod.osztaly_id, osztalyId);
+});
+
+test("ha minden próbált kód foglalt: resource-exhausted, részleges írás nélkül", async () => {
+  await firestore.collection("kodok").doc("AAA-AAAA").set({ osztaly_id: "idegen-osztaly" });
+  const osztalyokElotte = (await firestore.collection("osztalyok").get()).size;
+  const kodokElotte = (await firestore.collection("kodok").get()).size;
+
+  await assert.rejects(
+    logika.osztalyLetrehozasLogika(firestore, "tanar-uid", "Telt ház", () => "AAA-AAAA"),
+    (e) => e.code === "resource-exhausted"
+  );
+
+  assert.equal((await firestore.collection("osztalyok").get()).size, osztalyokElotte);
+  assert.equal((await firestore.collection("kodok").get()).size, kodokElotte);
 });
 
 // ══════════════════════════════════════════
@@ -259,9 +278,9 @@ const kodja = async (fn) => {
 };
 
 async function beadasFelvetel({ rubrika, statusz = "javitva", ai } = {}) {
-  await firestore.collection("feladatok").doc("f1").set({ tanar_id: "tanar-uid", rubrika: rubrika || {} });
+  await firestore.collection("feladatok").doc("f1").set({ tanar_id: "tanar-uid", osztaly_id: "o1", rubrika: rubrika || {} });
   const ref = firestore.collection("beadasok").doc("b1");
-  await ref.set({ tanar_id: "tanar-uid", feladat_id: "f1", statusz });
+  await ref.set({ tanar_id: "tanar-uid", feladat_id: "f1", osztaly_id: "o1", statusz });
   await ref.collection("ertekeles").doc("ai").set(ai || {
     szempontok: [
       { kulcs: "tartalom", pont: 8, max: 10, megjegyzes: "jó" },
@@ -275,7 +294,9 @@ async function beadasFelvetel({ rubrika, statusz = "javitva", ai } = {}) {
 const tanariErtekeles = async (ref) => (await ref.collection("ertekeles").doc("tanari").get()).data();
 
 test("jóváhagyás: a tanári értékelés tárolódik és a státusz 'elkuldve' lesz", async () => {
-  const ref = await beadasFelvetel({ rubrika: { szempontok: [{ kulcs: "tartalom", cim: "Tartalom" }] } });
+  const ref = await beadasFelvetel({ rubrika: { szempontok: [
+    { kulcs: "tartalom", cim: "Tartalom", suly: 10 }, { kulcs: "nyelvtan", cim: "Nyelvtan", suly: 10 }
+  ] } });
   const v = await logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 4, szoveg: "  Szép munka  " });
   assert.deepEqual(v, { siker: true });
 
@@ -471,4 +492,268 @@ test("tanári regisztráció: ismételt hívás ártalmatlan, és a lemaradt tü
 
 test("tanári regisztráció: nem létező Auth-felhasználó → nincs_felhasznalo", async () => {
   assert.equal(await kodja(() => tanariReg(hamisAuth(null))), "nincs_felhasznalo");
+});
+
+// ══════════════════════════════════════════
+// AI-HASZNÁLAT MÉRÉSE: rögzítés és jelentés
+// ══════════════════════════════════════════
+
+const ADAT = (prompt, kimenet, gondolkodas = 0) => ({
+  modell: "gemini-3.8-flash", fo_modell: "gemini-3.8-flash", probalkozas: 1,
+  hasznalat: { prompt, kimenet, gondolkodas, ossz: prompt + kimenet + gondolkodas },
+  parts: [{ text: "x" }, { inline_data: { mime_type: "image/jpeg", data: "AAAA" } }]
+});
+
+test("mérés: a hívás rekordot hagy az ai_hasznalat gyűjteményben (tartalom nélkül)", async () => {
+  await logika.aiHasznalatNaplo(
+    { tanar_id: "tanar-uid", muvelet: "beadas_atiras", mod: "leveles", feladat_id: "f1", beadas_id: "b1" },
+    ADAT(1000, 200, 300)
+  );
+  const snap = await firestore.collection("ai_hasznalat").get();
+  assert.equal(snap.size, 1);
+  const r = snap.docs[0].data();
+  assert.equal(r.tanar_id, "tanar-uid");
+  assert.equal(r.muvelet, "beadas_atiras");
+  assert.equal(r.prompt, 1000);
+  assert.equal(r.gondolkodas, 300);
+  assert.equal(r.kep_db, 1);
+  assert.ok(r.ido, "szerver-időbélyeg");
+  assert.equal(r.kornyezet, "pilot", "a tesztkörnyezetben pilot a KORNYEZET alapértéke");
+});
+
+test("mérés: a jelentés a hónap rekordjaiból összesít, a más hónapét kihagyja, a neveket feloldja", async () => {
+  await firestore.collection("felhasznalok").doc("tanar-uid").set({ nev: "Tanár Tamás", email: "t@x.hu", szerep: "tanar" });
+  await firestore.collection("feladatok").doc("f1").set({ cim: "Levél a barátnak", tanar_id: "tanar-uid" });
+
+  const rogzit = (muvelet, adat, ido, extra = {}) => firestore.collection("ai_hasznalat").add({
+    tanar_id: "tanar-uid", muvelet, mod: "leveles", feladat_id: "f1", beadas_id: "b1",
+    modell: "gemini-3.8-flash", prompt: adat.prompt, kimenet: adat.kimenet, gondolkodas: adat.gondolkodas || 0,
+    ido, ...extra
+  });
+  await rogzit("beadas_atiras", { prompt: 10000, kimenet: 500 }, new Date("2026-10-03T10:00:00Z"));
+  await rogzit("beadas_ertekeles", { prompt: 2000, kimenet: 900, gondolkodas: 2000 }, new Date("2026-10-03T10:00:30Z"));
+  await rogzit("beadas_atiras", { prompt: 99999, kimenet: 9999 }, new Date("2026-09-30T23:59:59Z"));   // szeptember
+  await rogzit("beadas_atiras", { prompt: 99999, kimenet: 9999 }, new Date("2026-11-01T00:00:00Z"));   // november
+
+  const j = await logika.aiHasznalatJelentesLogika(firestore, "2026-10");
+  assert.equal(j.honap, "2026-10");
+  assert.equal(j.rekord_db, 2, "csak az októberi rekordok");
+  assert.equal(j.csonkolt, false);
+  assert.equal(j.beadas.mind.futas_db, 1);
+  assert.equal(j.tanar[0].nev, "Tanár Tamás");
+  assert.equal(j.feladat[0].cim, "Levél a barátnak");
+  const ar = { be: 0.75, ki: 3.75 };
+  const vart = (10000 * ar.be + 500 * ar.ki + 2000 * ar.be + (900 + 2000) * ar.ki) / 1e6;
+  assert.ok(Math.abs(j.osszes.koltseg_usd - vart) < 1e-9, `${j.osszes.koltseg_usd} != ${vart}`);
+
+  const szept = await logika.aiHasznalatJelentesLogika(firestore, "2026-09");
+  assert.equal(szept.rekord_db, 1);
+  const ures = await logika.aiHasznalatJelentesLogika(firestore, "2025-01");
+  assert.equal(ures.rekord_db, 0);
+  assert.equal(ures.osszes.hivas, 0);
+});
+
+
+// ── A beadás hivatkozásainak ellenőrzése (audit 1. kör, 2026-10-06) ──
+// A beadást a kliens írja, ezért a szerver nem bízik a tanar_id-ban, a
+// feladat osztályában és a képutakban (az Admin SDK nem ismeri a Storage-szabályokat).
+
+const rendes = () => ({
+  beadas: {
+    diak_id: "diak-uid", osztaly_id: "o1", tanar_id: "tanar-uid", feladat_id: "f1",
+    kep_paths: ["beadasok/diak-uid/b1/1_dolgozat.jpg", "beadasok/diak-uid/b1/2_dolgozat.jpg"]
+  },
+  feladat: { osztaly_id: "o1", tanar_id: "tanar-uid" }
+});
+
+test("beadás-összerendelés: a szabályos beadás átmegy", () => {
+  const { beadas, feladat } = rendes();
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), null);
+});
+
+test("beadás-összerendelés: idegen Storage-útvonal elutasítva (másik diák, tananyag, más beadás)", () => {
+  for (const ut of [
+    "beadasok/masik-diak/x1/1.jpg",
+    "tananyagok/tanar-uid/123_anyag.pdf",
+    "feladatlapok/tanar-uid/123_lap.jpg",
+    "beadasok/diak-uid/masik-beadas/1.jpg",
+    "beadasok/diak-uid/b1/",
+    "beadasok/diak-uid/b1/../../masik-diak/x/1.jpg"
+  ]) {
+    const { beadas, feladat } = rendes();
+    beadas.kep_paths = ["beadasok/diak-uid/b1/1.jpg", ut];
+    assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "kep_ut_idegen", ut);
+  }
+});
+
+test("beadás-összerendelés: nem szöveg képút, üres és hiányzó lista elutasítva", () => {
+  for (const kep_paths of [[42], [null], [{ a: 1 }], "beadasok/diak-uid/b1/1.jpg", [], undefined]) {
+    const { beadas, feladat } = rendes();
+    beadas.kep_paths = kep_paths;
+    assert.notEqual(logika.beadasOsszerendeles("b1", beadas, feladat), null, JSON.stringify(kep_paths));
+  }
+});
+
+test("beadás-összerendelés: hamis tanár, másik osztály, hiányzó feladat elutasítva", () => {
+  let { beadas, feladat } = rendes();
+  beadas.tanar_id = "masik-tanar";
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "tanar_nem_egyezik");
+  ({ beadas, feladat } = rendes());
+  feladat.osztaly_id = "masik-osztaly";
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "osztaly_nem_egyezik");
+  ({ beadas } = rendes());
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, undefined), "feladat_nincs");
+  // mindkét oldalon hiányzó mező nem számít egyezésnek
+  ({ beadas, feladat } = rendes());
+  delete beadas.osztaly_id; delete feladat.osztaly_id;
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "osztaly_nem_egyezik");
+});
+
+test("jóváhagyás: hamis tanar_id-jú beadást az idegen tanár nem hagyhat jóvá", async () => {
+  const ref = await beadasFelvetel();
+  // a beadást a kliens hamisította: a feladat másik tanáré
+  await firestore.collection("feladatok").doc("f1").update({ tanar_id: "valodi-tanar" });
+  assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 4, szoveg: "x" })), "nem_a_te_beadasod");
+  assert.equal((await ref.get()).data().statusz, "javitva");
+  assert.equal(await tanariErtekeles(ref), undefined);
+});
+
+test("jóváhagyás: másik osztály feladatára hivatkozó beadás elutasítva", async () => {
+  await beadasFelvetel();
+  await firestore.collection("feladatok").doc("f1").update({ osztaly_id: "masik-osztaly" });
+  assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 4, szoveg: "x" })), "nem_a_te_beadasod");
+});
+
+
+// ── Külső audit 2. kör, A csomag (2026-10-07) ──
+
+const eltelt = (perc) => new Date(Date.now() - perc * 60 * 1000);
+
+async function foglalasHoz(statusz, { perc = 0, futas_id } = {}) {
+  const ref = firestore.collection("beadasok").doc("bf1");
+  await ref.set({ statusz, frissitve: eltelt(perc), ...(futas_id ? { futas_id } : {}) });
+  return ref;
+}
+
+test("foglalás: az induló állapotból sikerül, a másodikra már nem (duplikált esemény)", async () => {
+  const ref = await foglalasHoz("feltoltve");
+  const id = await logika.beadasFoglalas(firestore, ref, { csakFeltoltve: true });
+  assert.equal(typeof id, "string");
+  const d = (await ref.get()).data();
+  assert.equal(d.statusz, "folyamatban");
+  assert.equal(d.futas_id, id);
+  assert.equal(await logika.beadasFoglalas(firestore, ref, { csakFeltoltve: true }), null);
+});
+
+test("foglalás: párhuzamos kísérletből pontosan egy nyer", async () => {
+  const ref = await foglalasHoz("feltoltve");
+  const eredmenyek = await Promise.all([1, 2, 3, 4].map(() => logika.beadasFoglalas(firestore, ref, {})));
+  assert.equal(eredmenyek.filter(Boolean).length, 1);
+});
+
+test("foglalás: a trigger csak 'feltoltve'-ből indul; az újrafuttatás hibából és javítottból is", async () => {
+  const ref = await foglalasHoz("javitva");
+  assert.equal(await logika.beadasFoglalas(firestore, ref, { csakFeltoltve: true }), null);
+  assert.ok(await logika.beadasFoglalas(firestore, ref, {}));
+  await foglalasHoz("hiba");
+  assert.ok(await logika.beadasFoglalas(firestore, ref, {}));
+});
+
+test("foglalás: a friss 'folyamatban' védett, a lejárt foglalás újrafoglalható (megszakadt futás)", async () => {
+  const ref = await foglalasHoz("folyamatban", { perc: 1, futas_id: "regi" });
+  assert.equal(await logika.beadasFoglalas(firestore, ref, {}), null);
+  await foglalasHoz("folyamatban", { perc: logika.FOGLALAS_LEJARAT_MS / 60000 + 1, futas_id: "regi" });
+  const id = await logika.beadasFoglalas(firestore, ref, {});
+  assert.ok(id);
+  assert.equal((await ref.get()).data().futas_id, id);
+});
+
+test("hibaállapot: az elavult futás hibája nem írja felül az újabbat; a gazdáé igen", async () => {
+  const ref = await foglalasHoz("folyamatban", { futas_id: "uj" });
+  await logika.hibaraAllit("bf1", new Error("régi futás hibája"), "regi");
+  assert.equal((await ref.get()).data().statusz, "folyamatban");
+  await logika.hibaraAllit("bf1", new Error("a gazda hibája"), "uj");
+  const d = (await ref.get()).data();
+  assert.equal(d.statusz, "hiba");
+  assert.equal(d.hiba, "a gazda hibája");
+});
+
+test("hibaállapot: futásazonosító nélküli (korai) hiba nem írja felül a másik élő futást", async () => {
+  const ref = await foglalasHoz("folyamatban", { futas_id: "x" });
+  await logika.hibaraAllit("bf1", new Error("korai hiba"));
+  assert.equal((await ref.get()).data().statusz, "folyamatban");
+  await foglalasHoz("feltoltve");
+  await logika.hibaraAllit("bf1", new Error("korai hiba"));
+  assert.equal((await ref.get()).data().statusz, "hiba");
+});
+
+const RUBRIKA = { szempontok: [
+  { kulcs: "tartalom", cim: "Tartalom", suly: 10 },
+  { kulcs: "nyelvtan", cim: "Nyelvtan", suly: 5 }
+] };
+
+test("szempont-tisztítás: a maximum a rubrikából jön, a pont 0..max közé szorul", () => {
+  const r = logika.szempontokTisztitas([
+    { kulcs: "tartalom", pont: 999, max: 1, megjegyzes: "x" },
+    { kulcs: "nyelvtan", pont: -3, max: 100, megjegyzes: "y" }
+  ], RUBRIKA, { hianyHiba: true });
+  assert.deepEqual(r.map((x) => [x.kulcs, x.pont, x.max]), [["tartalom", 10, 10], ["nyelvtan", 0, 5]]);
+});
+
+test("szempont-tisztítás: nem szám pont/max, ismeretlen és dupla kulcs kezelve", () => {
+  const r = logika.szempontokTisztitas([
+    { kulcs: "tartalom", pont: "NaN", max: null },
+    { kulcs: "tartalom", pont: 10, max: 10 },
+    { kulcs: "nyelvtan", pont: Infinity, max: 5 },
+    { kulcs: "kitalalt", pont: 50, max: 50 }
+  ], RUBRIKA, { hianyHiba: true });
+  assert.equal(r.length, 2, "ismeretlen kulcs eldobva, kulcsonként egy tétel");
+  assert.deepEqual(r.map((x) => x.pont), [0, 0], "az első tétel számít, a nem véges pont 0");
+});
+
+test("szempont-tisztítás: hiányzó szempont – új feldolgozásnál hiba, jóváhagyásnál 0 pont", () => {
+  const ai = [{ kulcs: "tartalom", pont: 7, max: 10 }];
+  assert.throws(() => logika.szempontokTisztitas(ai, RUBRIKA, { hianyHiba: true }), /nyelvtan/);
+  const r = logika.szempontokTisztitas(ai, RUBRIKA);
+  assert.deepEqual(r.map((x) => [x.kulcs, x.pont, x.max]), [["tartalom", 7, 10], ["nyelvtan", 0, 5]]);
+});
+
+test("szempont-tisztítás: rubrika-szempontok nélkül csak a számokat szorítja", () => {
+  const r = logika.szempontokTisztitas([{ kulcs: "a", pont: 99, max: 4 }, { kulcs: "b", pont: "x", max: -2 }], {});
+  assert.deepEqual(r.map((x) => [x.pont, x.max]), [[4, 4], [0, 0]]);
+  assert.deepEqual(logika.szempontokTisztitas(undefined, {}), []);
+});
+
+test("jóváhagyás: az AI túlzó pontjai a mentett adatból sem jutnak át a diáknak", async () => {
+  const ref = await beadasFelvetel({ rubrika: RUBRIKA, ai: { szempontok: [
+    { kulcs: "tartalom", pont: 999, max: 1, megjegyzes: "" },
+    { kulcs: "nyelvtan", pont: 5, max: 5, megjegyzes: "" }
+  ] } });
+  await logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 5, szoveg: "x" });
+  const t = await tanariErtekeles(ref);
+  assert.equal(t.osszpontszam, 15);
+  assert.equal(t.max_pontszam, 15);
+  assert.equal(t.szazalek, 100);
+});
+
+test("AI-használat: hibás JSON válasznál is rögzül a tokenadat (egyszer)", async () => {
+  const eredeti = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: true, status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: "ez nem json" }] } }],
+      usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 20, totalTokenCount: 120 }
+    })
+  });
+  try {
+    await assert.rejects(
+      () => logika.geminiHivas("atiras", [], {}, { tanar_id: "t1", muvelet: "beadas_atiras", mod: "leveles" }),
+      /nem érvényes JSON/
+    );
+  } finally {
+    globalThis.fetch = eredeti;
+  }
+  const snap = await firestore.collection("ai_hasznalat").get();
+  assert.equal(snap.size, 1);
+  assert.equal(snap.docs[0].data().ossz, 120);
 });

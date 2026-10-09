@@ -44,3 +44,16 @@ test("nincs kulcsfájl vagy token a workflow-kban (Workload Identity Federation)
     assert.doesNotMatch(s, /FIREBASE_TOKEN|credentials_json|GOOGLE_APPLICATION_CREDENTIALS/i, f);
   }
 });
+
+test("a Firebase CLI verziója rögzítve van a workflow-kban (a deploy ne változzon magától)", () => {
+  for (const f of ["ci.yml", "prod.yml"]) {
+    const s = olvas(f);
+    assert.match(s, /npm install -g firebase-tools@\d+\.\d+\.\d+/, `${f}: nincs rögzített firebase-tools verzió`);
+    assert.doesNotMatch(s, /firebase-tools(?!@\d)/, `${f}: rögzítetlen firebase-tools`);
+  }
+});
+
+test("a WIF-recept a provider szintjén a prod environmentre szűkít (nem csak a repóra)", () => {
+  const d = readFileSync(new URL("../docs/ci-cd.md", import.meta.url), "utf8");
+  assert.match(d, /attribute-condition="assertion\.repository==[^"]*assertion\.sub==[^"]*environment:prod/);
+});

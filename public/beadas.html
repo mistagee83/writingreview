@@ -87,6 +87,7 @@
   import { t, nyelvNev, tipusNev, szintNev } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { statuszBadge, STATUSZ_DIAK, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { biztonsagosUrl } from './js/biztonsag.js';
   import { atmeretez, tulNagy, meret } from './js/kep.js';
   import {
     db, storage,
@@ -143,8 +144,8 @@
         <tbody>${r.kerdesek.map((k) =>
           `<tr><td>${esc(k.sorszam)}.</td><td>${esc(k.max_pont)}</td></tr>`).join('')}</tbody>
       </table>` : ''}
-    ${feladat.feladatlap?.url
-      ? `<p style="margin-top:1rem;"><a class="btn-sm" href="${esc(feladat.feladatlap.url)}" target="_blank" rel="noopener">${t('beadas.feladatlap_nyit')}</a></p>`
+    ${biztonsagosUrl(feladat.feladatlap?.url)
+      ? `<p style="margin-top:1rem;"><a class="btn-sm" href="${esc(biztonsagosUrl(feladat.feladatlap.url))}" target="_blank" rel="noopener">${t('beadas.feladatlap_nyit')}</a></p>`
       : ''}`;
 
   // ══════════════════════════════════════════
@@ -213,7 +214,11 @@
   const elonezet = document.getElementById('elonezet');
   const btnBead = document.getElementById('btn-bead');
 
+  // Feltöltés alatt a képlista nem módosítható (különben oldal maradna ki a beadásból).
+  let feltoltesFut = false;
+
   document.getElementById('fajlok').addEventListener('change', async (e) => {
+    if (feltoltesFut) return;
     uzenetTorles('msg');
     const ujak = [...e.target.files];
     if (!ujak.length) return;
@@ -229,6 +234,7 @@
         uzenet('msg', t('beadas.tul_nagy', { nev: f.name, meret: meret(kicsi.size) }));
         continue;
       }
+      if (feltoltesFut) return;
       fajlok.push(kicsi);
     }
 
@@ -243,12 +249,12 @@
         <div class="kep-label">${t('beadas.oldal_cimke', { n: i + 1, meret: meret(f.size) })}</div>
         <button class="kep-torol" data-i="${i}" type="button">✕</button>
       </div>`).join('');
-    btnBead.disabled = fajlok.length === 0;
+    btnBead.disabled = feltoltesFut || fajlok.length === 0;
   }
 
   elonezet.addEventListener('click', (e) => {
     const b = e.target.closest('.kep-torol');
-    if (!b) return;
+    if (!b || feltoltesFut) return;
     fajlok.splice(Number(b.dataset.i), 1);
     elonezetRajzol();
   });
@@ -260,18 +266,24 @@
   // ══════════════════════════════════════════
   btnBead.addEventListener('click', async () => {
     uzenetTorles('msg');
-    if (fajlok.length === 0) return;
+    if (feltoltesFut || fajlok.length === 0) return;
 
+    feltoltesFut = true;
+    document.getElementById('fajlok').disabled = true;
+    const lista = [...fajlok];   // a feltöltés a másolatból dolgozik
     const vissza = gombVar(btnBead, t('beadas.feltoltes_folyamat'));
     try {
-      const beadasRef = doc(collection(db, 'beadasok'));
+      // Kötött azonosító: feladatonként egy beadás diákonként (a szabály kényszeríti).
+      const beadasRef = doc(db, 'beadasok', `${feladatId}_${user.uid}`);
       const kepPaths = [];
 
-      for (let i = 0; i < fajlok.length; i++) {
+      for (let i = 0; i < lista.length; i++) {
         btnBead.innerHTML =
-          `<span class="spinner inline"></span>${t('beadas.oldal_haladas', { i: i + 1, ossz: fajlok.length })}`;
-        const path = `beadasok/${user.uid}/${beadasRef.id}/${i + 1}_${fajlok[i].name}`;
-        await uploadBytes(storageRef(storage, path), fajlok[i]);
+          `<span class="spinner inline"></span>${t('beadas.oldal_haladas', { i: i + 1, ossz: lista.length })}`;
+        // Az időbélyeg miatt egy félbemaradt feltöltés után az újrapróba nem ütközik a
+        // Storage „nem felülírható” szabályával.
+        const path = `beadasok/${user.uid}/${beadasRef.id}/${i + 1}_${Date.now()}_${lista[i].name}`;
+        await uploadBytes(storageRef(storage, path), lista[i]);
         kepPaths.push(path);
       }
 
@@ -295,7 +307,10 @@
     } catch (e) {
       console.error(e);
       uzenet('msg', t('beadas.bead_hiba', { ok: hibaSzoveg(e) }));
+      feltoltesFut = false;   // hibánál a lista újra szerkeszthető
+      document.getElementById('fajlok').disabled = false;
       vissza();
+      elonezetRajzol();
     }
   });
 </script>

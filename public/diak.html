@@ -273,7 +273,7 @@
               <span>${r.mod === 'kifejtos'
                 ? `📝 ${esc(r.tantargy || t('diak.kifejtos_alap'))}`
                 : `${esc(tipusNev(r.tipus || '–'))} · ${esc(szintNev(r.szint || '–'))}`}</span>
-              ${r.min_szo && r.max_szo ? `<span>${t('diak.szo_tartomany', { min: r.min_szo, max: r.max_szo })}</span>` : ''}
+              ${r.min_szo && r.max_szo ? `<span>${esc(t('diak.szo_tartomany', { min: r.min_szo, max: r.max_szo }))}</span>` : ''}
               ${f.hatarido
                 ? `<span class="${lejart ? 'lejart' : ''}">⏰ ${datum(f.hatarido)}${lejart ? t('diak.lejart') : ''}</span>`
                 : ''}

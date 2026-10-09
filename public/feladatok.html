@@ -119,6 +119,7 @@
             <div class="upload-icon">📄</div>
             <p data-i18n-html="fel.kattints_fajl"><strong>Kattints ide</strong> vagy húzd ide a fájlt</p>
             <p data-i18n="fel.fajltipus">JPG, PNG, PDF – max. 10MB</p>
+            <p data-i18n="fel.beillesztes_tipp">Képet a vágólapról is beilleszthetsz (Ctrl+V).</p>
             <p data-i18n="fel.feltoltes_nelkul">Feltöltés nélkül a rubrikát kézzel add meg – ilyenkor nem indul AI-elemzés.</p>
           </div>
           <div class="upload-preview" id="upload-preview">
@@ -230,9 +231,10 @@
             <label data-i18n="fel.tananyag_label">Tananyag (nem kötelező)</label>
             <p class="halvany" data-i18n="fel.tananyag_leiras">Amiből a diákok tanultak – ebből készül a megoldókulcs. Ha nincs, az AI a
               saját tudásából dolgozik. PDF vagy kép, legfeljebb 5 fájl.</p>
-            <div class="upload-zone kicsi">
+            <div class="upload-zone kicsi" id="tananyag-zona">
               <input type="file" id="tananyag-fajl" accept="image/*,.pdf" multiple aria-label="Tananyag feltöltése" data-i18n-aria="fel.tananyag_aria" />
               <p data-i18n-html="fel.tananyag_kattints">📚 <strong>Kattints ide</strong> vagy húzd ide a tananyagot</p>
+              <p data-i18n="fel.beillesztes_tipp">Képet a vágólapról is beilleszthetsz (Ctrl+V).</p>
             </div>
             <ul class="fajl-lista" id="tananyag-lista"></ul>
             <div class="msg" id="tananyag-msg"></div>
@@ -304,8 +306,10 @@
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { biztonsagosUrl } from './js/biztonsag.js';
   import { atmeretez, tulNagy, meret } from './js/kep.js';
   import { kifejtosUrlap } from './js/kifejtos-urlap.js';
+  import { beillesztesBekotes } from './js/beillesztes.js';
   import { skalaUrlap, skalaMegjegyzes } from './js/skala-urlap.js';
   import {
     db, storage, functions, httpsCallable, writeBatch,
@@ -881,6 +885,19 @@
   });
 
   // ══════════════════════════════════════════
+  // KÉP BEILLESZTÉSE (Ctrl+V): ugyanazt az utat járja, mint a kiválasztott fájl
+  // ══════════════════════════════════════════
+  beillesztesBekotes({
+    feladatlapZona: document.getElementById('upload-zone'),
+    tananyagZona: document.getElementById('tananyag-zona'),
+    feladatlapMezo: document.getElementById('f-fajl'),
+    tananyagMezo: document.getElementById('tananyag-fajl'),
+    kifejtos: () => aktualisMod() === 'kifejtos',
+    vanFeladatlap: () => Boolean(fajlPath),
+    csereMehet: () => confirm(t('fel.beillesztes_csere'))
+  });
+
+  // ══════════════════════════════════════════
   // MENTÉS
   // ══════════════════════════════════════════
   document.getElementById('btn-mentes').addEventListener('click', async (e) => {
@@ -937,14 +954,22 @@
         // A szabály csak ezeket a mezőket engedi módosítani – az
         // osztaly_id és a tanar_id szándékosan nem változtatható.
         const feladatRef = doc(db, 'feladatok', szerkesztesId);
+        const mezok = { cim, hatarido, rubrika };
+        // A feladatlap cseréje (a szerkesztő ígéri): az új path/url is mentődik.
+        if (fajlPath) {
+          mezok.feladatlap = {
+            path: fajlPath,
+            url: fajlUrl || await getDownloadURL(storageRef(storage, fajlPath))
+          };
+        }
         if (kifejtos) {
           // A feladat és a kulcs együtt változik, vagy egyik sem.
           const batch = writeBatch(db);
-          batch.update(feladatRef, { cim, hatarido, rubrika });
+          batch.update(feladatRef, mezok);
           batch.set(doc(db, 'feladatok', szerkesztesId, 'kulcs', 'aktualis'), kifejtos.kulcs);
           await batch.commit();
         } else {
-          await updateDoc(feladatRef, { cim, hatarido, rubrika });
+          await updateDoc(feladatRef, mezok);
         }
         uzenet('form-msg', kifejtos ? t('fel.mentve_kulcs') : t('fel.mentve_rubrika'), 'success');
       } else {
@@ -1066,7 +1091,7 @@
     // Chrome/Edge beépített nézője érti, a többi böngésző figyelmen kívül
     // hagyja.
     const lap = document.getElementById('v-lap');
-    const url = f.feladatlap?.url;
+    const url = biztonsagosUrl(f.feladatlap?.url);
     const pdf = /\.pdf$/i.test(f.feladatlap?.path || '');
     const lapHtml = !url ? '' : pdf
       ? `<iframe src="${esc(url)}#toolbar=0&navpanes=0&view=FitH" title="${esc(t('fel.v_lap_cim'))}"></iframe>`

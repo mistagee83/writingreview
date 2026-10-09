@@ -190,3 +190,122 @@ test("a hibaüzenet tartalmazza a modell nevét", async () => {
     new RegExp(t.MODELLEK.ertekeles.replace(/\./g, "\\."))
   );
 });
+
+// ══════════════════════════════════════════
+// Gondolkodási szint (költség)
+// ══════════════════════════════════════════
+
+/** Rögzíti a kimenő kérések generationConfig-ját; a válasz mindig sikeres. */
+function configFigyelo() {
+  const configok = [];
+  globalThis.fetch = async (url, opts) => {
+    configok.push({ modell: modellUrlbol(url), config: JSON.parse(opts.body).generationConfig });
+    return OK_VALASZ({ ok: true });
+  };
+  return configok;
+}
+
+test("az átírás (OCR) alacsony gondolkodási szinttel megy – a leveles és a kifejtős is ezt a lépést hívja", async () => {
+  const configok = configFigyelo();
+  await t.geminiHivas("atiras", [], {});
+  assert.equal(configok.length, 1);
+  assert.deepEqual(configok[0].config.thinkingConfig, { thinkingLevel: "low" });
+  // a többi beállítás érintetlen
+  assert.equal(configok[0].config.temperature, 0.2);
+  assert.equal(configok[0].config.responseMimeType, "application/json");
+});
+
+test("az átírás tartalék modelljei is megkapják a szintet (a 'low' mindháromnál érvényes)", async () => {
+  const configok = [];
+  globalThis.fetch = async (url, opts) => {
+    const modell = modellUrlbol(url);
+    configok.push({ modell, config: JSON.parse(opts.body).generationConfig });
+    // a fő modell és az első tartalék elhasal, a legutolsó sikerül
+    return modell === t.TARTALEK.atiras.at(-1) ? OK_VALASZ({ ok: true }) : HIBA_VALASZ(503, HIGH_DEMAND, "UNAVAILABLE");
+  };
+  await t.geminiHivas("atiras", [], {});
+  const modellek = new Set(configok.map((c) => c.modell));
+  assert.deepEqual([...modellek], [t.MODELLEK.atiras, ...t.TARTALEK.atiras]);
+  for (const c of configok) {
+    assert.deepEqual(c.config.thinkingConfig, { thinkingLevel: "low" }, c.modell);
+  }
+});
+
+test("az értékelés, a rubrika és az elemzés NEM kap gondolkodási beállítást (alapértelmezés marad)", async () => {
+  for (const lepes of ["ertekeles", "rubrika", "elemzes"]) {
+    const configok = configFigyelo();
+    await t.geminiHivas(lepes, [], {});
+    assert.ok(!("thinkingConfig" in configok[0].config), lepes);
+  }
+});
+
+test("a beállított gondolkodási szintek mind olyanok, amit a használt modellek elfogadnak", () => {
+  // Ha a "minimal"-t valaki felveszi az átíráshoz, a 3.8/3.7 Flash 400-ast dob – ez a teszt jelez.
+  for (const [lepes, szint] of Object.entries(t.GONDOLKODAS)) {
+    assert.ok(["low", "medium", "high"].includes(szint), `${lepes}: ${szint}`);
+    assert.ok(lepes in t.MODELLEK, `${lepes} ismeretlen lépés`);
+  }
+});
+
+// ══════════════════════════════════════════
+// Tokenszám (AI-használat mérése)
+// ══════════════════════════════════════════
+
+test("a hívás visszaadja a tokenszámokat a usageMetadata-ból", async () => {
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: JSON.stringify({ ok: 1 }) }] } }],
+      usageMetadata: { promptTokenCount: 1200, candidatesTokenCount: 150, thoughtsTokenCount: 800, totalTokenCount: 2150 }
+    })
+  });
+  const r = await t.geminiHivas("ertekeles", [], {});
+  assert.deepEqual(r.hasznalat, { prompt: 1200, kimenet: 150, gondolkodas: 800, ossz: 2150 });
+});
+
+test("usageMetadata nélküli válasz sem hiba: a tokenszámok 0", async () => {
+  globalThis.fetch = async () => OK_VALASZ({ ok: true });
+  const r = await t.geminiHivas("atiras", [], {});
+  assert.deepEqual(r.hasznalat, { prompt: 0, kimenet: 0, gondolkodas: 0, ossz: 0 });
+});
+
+test("a mérés hibája nem akadályozza a javítást: a rögzítés sosem dob", async () => {
+  const hibasAdatbazis = { collection: () => ({ add: async () => { throw new Error("nincs adatbázis"); } }) };
+  const adat = { modell: "m", fo_modell: "m", hasznalat: { prompt: 1, kimenet: 1, gondolkodas: 0, ossz: 2 }, probalkozas: 1, parts: [] };
+  await assert.doesNotReject(() => t.aiHasznalatNaplo({ tanar_id: "t", muvelet: "beadas_atiras" }, adat, hibasAdatbazis));
+  // kontextus nélkül (vagy művelet nélkül) nem is próbál írni
+  let irt = false;
+  const figyelo = { collection: () => ({ add: async () => { irt = true; } }) };
+  await t.aiHasznalatNaplo(undefined, adat, figyelo);
+  await t.aiHasznalatNaplo({ tanar_id: "t" }, adat, figyelo);
+  assert.equal(irt, false);
+  // kontextussal ír, és a rekord időbélyeget kap
+  let rekord;
+  const rogzito = { collection: (nev) => ({ add: async (r) => { rekord = { nev, ...r }; } }) };
+  await t.aiHasznalatNaplo({ tanar_id: "t", muvelet: "elemzes", feladat_id: "f" }, adat, rogzito);
+  assert.equal(rekord.nev, "ai_hasznalat");
+  assert.equal(rekord.muvelet, "elemzes");
+  assert.ok(rekord.ido, "időbélyeg");
+});
+
+
+test("hibás válasznál (nem JSON, üres szöveg) a hibán ott a tokenadat a mérés számára", async () => {
+  globalThis.fetch = async () => ({
+    ok: true, status: 200,
+    json: async () => ({
+      candidates: [{ content: { parts: [{ text: "ez nem json" }] } }],
+      usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 20, totalTokenCount: 120 }
+    })
+  });
+  await assert.rejects(() => t.geminiKeres("m", [], {}), (e) => e.hasznalat?.ossz === 120 && /nem érvényes JSON/.test(e.message));
+
+  globalThis.fetch = async () => ({
+    ok: true, status: 200,
+    json: async () => ({
+      candidates: [{ finishReason: "SAFETY" }],
+      usageMetadata: { promptTokenCount: 50, totalTokenCount: 50 }
+    })
+  });
+  await assert.rejects(() => t.geminiKeres("m", [], {}), (e) => e.hasznalat?.prompt === 50 && /SAFETY/.test(e.message));
+});
