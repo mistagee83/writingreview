@@ -68,6 +68,12 @@ számolhatók. Mindkét környezetben fut, korlát nélkül.
   mindkét futásban kihagyta a „lazy” szót (egy kihúzott szó mellett). A prompt-javítás és a
   gondolkodási szint **a pilotra deployolva** (2026-10-06, functions, mind a 14); **a prodra a `v1.3.0`-val (2026-10-07) kiment**
   (címkés kiadás kell, és ott a mérés is csak azzal indul).
+- **Éles igazolás a pilotban (2026-10-09, 7 új dolgozat a deploy után):** átírás $0,0119 → **$0,0036** / hívás
+  (−70%, kimenet+gondolkodás ~2900 → ~700 token), az értékelés változatlan ($0,0102). Dolgozatonként
+  ~$0,022 → **~$0,014**; az értékelés most a költség ~74%-a. A tulajdonos szerint az átiratok jók, nem
+  lényegesen rosszabbak. A számoló kevert átlagból dolgozik (régi+új), ezért az ajánlott 100 dolgozatos ár
+  €8,50 → €7,50; kb. 20–30 új beadás után lesz pontos. **Következő lehetséges lépés:** az értékelés
+  gondolkodásának visszavétele – csak pontszám-összehasonlító mérés után (az értékelés megy a diákhoz).
 - **Átírás-összehasonlító szkript (offline, meglévő fotókon):** `scripts/atiras-osszehasonlitas.mjs`
   (teszt: `tests/atiras-osszehasonlitas.test.mjs`). Ugyanazokat a fotókat átírja `medium` és `low` szinttel
   (az éles `geminiKeres`-sel, prompttal, sémával; Firebase-t nem érint), kiírja a költséget és a szó-szintű
