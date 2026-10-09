@@ -253,7 +253,9 @@ async function kvotaFoglalas(firestore, uid, muvelet, beallitasok = BEALLITASOK,
       throw hiba("resource-exhausted", "kvota_elfogyott", adat);
     }
     tx.set(hasznalatRef, { egyseg: FieldValue.increment(koltseg), frissitve: FieldValue.serverTimestamp() }, { merge: true });
-  });
+  // Egy osztály beadásai egyszerre érkeznek, mind ugyanarra a számlálóra: az alapértelmezett 5
+  // újrapróbálás ütközésnél kevés (a beadás ilyenkor hibaállapotba kerülne, pedig lenne keret).
+  }, { maxAttempts: 30 });
   return { uid, kulcs, koltseg };
 }
 

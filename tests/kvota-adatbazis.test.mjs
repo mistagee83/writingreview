@@ -123,12 +123,20 @@ test("a kétegységes művelet (kulcs) nem fér el, ha csak egy maradt", async (
   assert.equal(await hasznalat("t1", "osszes"), 20);
 });
 
-test("párhuzamos kérések sem léphetnek túl a kereten (25 egyidejű → pontosan 20 jut át)", async () => {
+test("párhuzamos kérések sem léphetnek túl a kereten (25 egyidejű → pontosan 20 jut át, a többi keret-hiba)", async () => {
   const eredmenyek = await Promise.allSettled(
     Array.from({ length: 25 }, () => logika.kvotaFoglalas(firestore, "t1", "beadas", BE))
   );
-  assert.equal(eredmenyek.filter((r) => r.status === "fulfilled").length, 20);
-  assert.equal(await hasznalat("t1", "osszes"), 20);
+  const sikeres = eredmenyek.filter((r) => r.status === "fulfilled").length;
+  const hibak = eredmenyek.filter((r) => r.status === "rejected").map((r) => r.reason);
+  // A lényeg: sosem több a kereténél, és a számláló pontosan a sikeres foglalások száma.
+  assert.ok(sikeres <= 20, `a keret átlépve: ${sikeres}`);
+  assert.equal(await hasznalat("t1", "osszes"), sikeres);
+  // Egy osztály egyszerre adja be a dolgozatot: ütközés miatt NEM bukhat el kérés (ez volt a hiba:
+  // 5 újrapróbálás után 16 kérés "aborted"-del bukott, pedig lett volna keret). Csak keret-hiba lehet.
+  const nemKeretHiba = hibak.filter((e) => e?.details?.kod !== "kvota_elfogyott_egyszeri");
+  assert.deepEqual(nemKeretHiba.map((e) => String(e?.message).slice(0, 80)), [], "ütközés miatt bukott kérés");
+  assert.equal(sikeres, 20, "pontosan a keretnyi kérés jut át");
 });
 
 test("hibás AI-művelet nem fogyaszt (az egység visszakerül)", async () => {
