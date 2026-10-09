@@ -32,11 +32,12 @@ after(async () => {
 });
 
 beforeEach(async () => {
-  const tanarok = await firestore.collection("tanarok").get();
-  for (const d of tanarok.docs) {
-    const h = await d.ref.collection("hasznalat").get();
+  // listDocuments(): a csak alkollekcióval bíró ("fantom") tanár-dokumentumot is visszaadja,
+  // a .get() nem – enélkül az "osszes" számláló átszivárogna a következő tesztbe.
+  for (const ref of await firestore.collection("tanarok").listDocuments()) {
+    const h = await ref.collection("hasznalat").get();
     await Promise.all(h.docs.map((x) => x.ref.delete()));
-    await d.ref.delete();
+    await ref.delete();
   }
   for (const koll of ["beadasok", "feladatok"]) {
     const snap = await firestore.collection(koll).get();
@@ -67,7 +68,7 @@ test("a pilotban (kikapcsolva) nincs foglalás, nem ír semmit, és nem korláto
     await logika.kvotaval("t1", "beadas", async () => { futott++; }, KI);
   }
   assert.equal(futott, 50);
-  assert.equal((await firestore.collection("tanarok").get()).size, 0, "a pilotban semmi sem íródik a tanarok alá");
+  assert.equal((await firestore.collectionGroup("hasznalat").get()).size, 0, "a pilotban semmi sem íródik a tanarok alá");
   assert.deepEqual(await logika.kvotaAllapotLogika(firestore, "t1", KI), { kvota: false });
 });
 
