@@ -45,7 +45,7 @@ test("t(): helyettesítés, tartalék nyelv, tartalék kulcs", () => {
   nyelvCsere("en");
   assert.equal(t("diak.mar_tag", { nev: "A1" }), 'You are already a member of "A1".');
   nyelvCsere("hu");
-  assert.equal(t("diak.mar_tag", { nev: "A1" }), 'Már tagja vagy a(z) "A1" osztálynak.');
+  assert.equal(t("diak.mar_tag", { nev: "A1" }), "Már tagja vagy ennek az osztálynak: „A1”.");
   assert.equal(t("nincs.ilyen.kulcs"), "nincs.ilyen.kulcs");
   assert.equal(t("diak.szo_tartomany"), "{min}–{max} szó", "hiányzó paraméter nem tűnhet el");
 });
