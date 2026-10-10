@@ -38,7 +38,7 @@ test("a téma-névlista a szerveren, a kliens modulban, a korai szkriptben és a
 
   for (const nev of szerver.TEMAK) {
     assert.ok(css.includes(`--motivum-${nev}:`), `CSS: hiányzó motívum ${nev}`);
-    assert.ok(css.includes(`.tema-gomb[data-tema="${nev}"]`), `CSS: hiányzó választógomb ${nev}`);
+    assert.ok(css.includes(`.tema-elem[data-tema="${nev}"]`), `CSS: hiányzó menüpont-stílus ${nev}`);
     if (nev !== szerver.ALAP_TEMA) assert.ok(css.includes(`:root[data-tema="${nev}"]`), `CSS: hiányzó paletta ${nev}`);
   }
 });
@@ -75,9 +75,58 @@ test("az új paletták akcentusa legalább 4,5:1 a fehéren és a világos hátt
   }
 });
 
-test("a diák felület kék marad: a téma a <html>-en van, a body.theme-diak saját akcentust ad, a motívum rejtve", () => {
+test("a téma az EGÉSZ felületet színezi: oldal-, oldalsáv- és felsősáv-háttér, tapéta-minta, olvasható szöveg a háttéren", () => {
+  for (const nev of szerver.TEMAK.filter((n) => n !== szerver.ALAP_TEMA)) {
+    const sor = css.match(new RegExp(`:root\\[data-tema="${nev}"\\] \\{([^}]*)\\}`))[1];
+    const szin = (valtozo) => sor.match(new RegExp(`--${valtozo}: (#[0-9a-f]{6})`))?.[1];
+    const [hatter, halvany, oldalsav, felso] = [szin("paper"), szin("muted"), szin("sidebar-bg"), szin("topbar-bg")];
+    for (const [melyik, ertek] of [["--paper", hatter], ["--muted", halvany], ["--sidebar-bg", oldalsav], ["--topbar-bg", felso]]) {
+      assert.ok(ertek, `${nev}: hiányzik a ${melyik}`);
+    }
+    // a tapéta: a háttérnél alig sötétebb vonalszín (halvány), így a szöveg a mintán is olvasható
+    const minta = sor.match(/--hatterminta: url\("data:image\/svg\+xml,[^"]*stroke='%23([0-9a-f]{6})'/)?.[1];
+    assert.ok(minta, `${nev}: hiányzik a tapéta-minta`);
+    const mintaSzin = `#${minta}`;
+    const arany = kontraszt(mintaSzin, hatter);
+    assert.ok(arany >= 1.08 && arany <= 1.35, `${nev}: a minta ${arany.toFixed(2)}:1 a háttéren (1,08–1,35 kell: látszik, de nem zavar)`);
+    assert.ok(kontraszt(halvany, hatter) >= 4.5, `${nev}: halvány szöveg/háttér ${kontraszt(halvany, hatter).toFixed(2)}`);
+    assert.ok(kontraszt(halvany, mintaSzin) >= 3.8, `${nev}: halvány szöveg a mintán ${kontraszt(halvany, mintaSzin).toFixed(2)}`);
+    assert.ok(kontraszt("#0f0f0f", hatter) >= 12, `${nev}: szöveg/háttér`);
+    // a felső sáv sötét marad (a fehér felirat olvasható), az oldalsáv világos
+    assert.ok(kontraszt("#ffffff", felso) >= 12, `${nev}: fehér/felső sáv`);
+    assert.ok(kontraszt("#0f0f0f", oldalsav) >= 14, `${nev}: szöveg/oldalsáv`);
+    // a motívum többször szerepel a csempén (tapéta, nem egyetlen kép)
+    assert.ok((sor.match(/%3Cg transform=/g) || []).length >= 3, `${nev}: a tapéta-csempén kevés motívum van`);
+  }
+  // az alapszín sima háttér marad (nincs tapéta, nincs felülírt --paper)
+  assert.ok(!css.includes(':root[data-tema="narancs"]'));
+  // a felső sáv és az oldalsáv témázható, a régi fejléc-dísz nincs meg
+  assert.match(css, /\.topbar \{\s+background: var\(--topbar-bg, var\(--ink\)\);/);
+  assert.match(css, /\.sidebar \{\s+background: var\(--sidebar-bg, #fff\);/);
+  assert.ok(!css.includes("page-header::after"), "a fejléc-kép megszűnt");
+});
+
+test("a színválasztó a felső sáv lenyíló menüje minden tanári oldalon, nem a főoldal panelje", () => {
+  // a guard tölti be a tanári oldalakon, dinamikusan (hibája ne akadályozza a belépést)
+  const guard = olvas("../public/js/guard.js");
+  assert.match(guard, /if \(szerep === "tanar"\) \{\s+import\("\.\/tema-menu\.js"\)[\s\S]{0,200}?\.catch\(/);
+  const tanar = olvas("../public/tanar.html");
+  assert.ok(!tanar.includes("tema-panel") && !tanar.includes("tema-valaszto"), "a főoldali panel megszűnt");
+  assert.ok(!/temaBeallitas/.test(tanar), "a mentés a menüből megy");
+
+  const menu = olvas("../public/js/tema-menu.js");
+  assert.match(menu, /document\.querySelector\("\.topbar-right"\)/);
+  assert.ok(!/innerHTML/.test(menu), "a menü a DOM API-val készül");
+  assert.match(menu, /httpsCallable\(functions, "temaBeallitas"\)/);
+  // a téma csak sikeres mentés után vált, hibánál a menü üzenetet mutat
+  assert.ok(menu.indexOf("await httpsCallable") < menu.indexOf("temaAlkalmaz(nev)"), "a téma a mentés előtt váltana");
+  assert.match(menu, /role", "menuitemradio"/);
+  assert.match(menu, /e\.key === "Escape"/);
+});
+
+test("a diák felület kék marad: a téma a <html>-en van, a body.theme-diak saját akcentust és sima hátteret ad", () => {
   assert.match(css, /body\.theme-diak \{[^}]*--accent:\s+#2563eb/);
-  assert.match(css, /body\.theme-diak \.page-header::after \{ display: none; \}/);
+  assert.match(css, /body\.theme-diak \{ background-image: none; \}/);
   // a tanári oldalak kapják a korai szkriptet, a diák oldalak nem
   for (const f of ["tanar", "osztalyok", "diakok", "feladatok", "javitas", "elemzes", "admin", "ai-hasznalat"]) {
     assert.ok(olvas(`../public/${f}.html`).includes("js/tema-korai.js"), f);

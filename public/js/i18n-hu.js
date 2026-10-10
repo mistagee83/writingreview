@@ -366,6 +366,7 @@ export default {
   "tanar.modul_diakok_leiras": "Diákonként a pontszázalék és az ismétlődő hibák alakulása feladatról feladatra.",
   "tanar.jegyzet_alap": "Az Alap csomagtól.",
   "tanar.tema_cim": "🎨 Megjelenés",
+  "tanar.tema_menu_cim": "Színtéma",
   "tanar.tema_leiras": "Válaszd ki a felületed színét. A narancs az alapszín.",
   "tanar.tema_narancs": "Narancs",
   "tanar.tema_kek": "Kék",

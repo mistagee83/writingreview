@@ -393,18 +393,24 @@ cd writingreview
 
 ## 5/g. Színválasztó a tanári felületen (B, 2026-10-10) – kód kész és commitolva, **még NINCS deployolva**
 
-- **Mit tud:** hat fix, kontraszt-ellenőrzött színtéma (narancs = alap, kék, zöld, lila, bordó, pala). Mindegyikhez tartozik egy vonalas SVG-motívum, ami a fejléc halvány díszeként (csak tanári oldalon, 760 px felett)
-  és a választógombokon látszik. A diák felület kék marad (`body.theme-diak`; a téma a `<html data-tema>`-n van, a body saját akcentusa felülírja).
+- **Mit tud:** hat fix, kontraszt-ellenőrzött színtéma (narancs = alap, kék, zöld, lila, bordó, pala). **A téma az EGÉSZ felületet színezi:** az oldal háttere, az oldalsáv és a felső sáv színt vált (a felső sáv sötét marad,
+  a téma sötét árnyalatában), az akcentus (aktív menü, kiemelések) is követi. **A háttéren a téma motívumai tapétaként ismétlődnek** (200x200-as csempe, a motívum négyszer, eltérő méretben és dőléssel; a vonalszín a háttérnél
+  alig sötétebb: 1,08–1,35:1, így látszik, de a szöveg a mintán is olvasható). Az alapszín (narancs) a megszokott sima háttér, tapéta nélkül. A diák felület kék és sima marad (`body.theme-diak`; a téma a `<html data-tema>`-n van,
+  a body saját akcentusa és `background-image: none` felülírja).
+- **A választó:** lenyíló menü a **felső sáv jobb oldalán, minden tanári oldalon** (`public/js/tema-menu.js`; a `guard.js` tölti be tanári szerepnél, dinamikus importtal). Billentyűzettel kezelhető (nyílbillentyűk, Esc, Home/End), a hibaüzenet
+  (pl. ingyenes csomag: „az Alap csomagtól”) a menüben jelenik meg, a téma csak sikeres mentés után vált. Telefonon a gomb kompakt (csak a minta); a felső sáv 360 px-en is befér. A telefon állapotsorának színe (`theme-color`) követi a felső sávot.
+  *(Az első változat a főoldalon egy panelben volt, és csak az akcentust meg egy fejléc-képet váltotta: ez megszűnt.)*
 - **Csomag:** az **Alap**tól; a narancsra (alapszín) visszaállás mindenkinek szabad. Zár: `temaBeallitas` callable (`functions/index.js`, `szinvalasztasKapu`, `kvota.FUNKCIOK.szinvalasztas`), hibakód `szinvalasztas_alap_kell`.
 - **Tárolás:** `felhasznalok/{uid}.tema` (csak a szerver írja; a szabályok már most tiltják a klienstől: `csakEzekValtoznak([nev, tura_*])`); az alapszín a mező hiánya (törlés). A `guard.js` a profilból állítja be a tanári oldalakon,
   a `localStorage` (`wr_tema`) csak a villanásmentes betöltést adja (`js/tema-korai.js`, blokkoló szkript a tanári oldalak `<head>`-jében).
-- **Fájlok:** `functions/tema.js` (névlista), `public/js/tema.js`, `public/js/tema-korai.js`, `public/css/app.css` (paletták, motívumok, választó), `public/tanar.html` (választó panel), `public/js/guard.js`.
-  **A névlista négy helyen él** (`functions/tema.js`, `js/tema.js`, `js/tema-korai.js`, a CSS): `tests/tema.test.mjs` az egyezést, a kontrasztot (>= 4,5:1) és a zárat védi. Új téma = mind a négy hely + két szótári név.
+- **Fájlok:** `functions/tema.js` (névlista), `public/js/tema.js`, `public/js/tema-korai.js`, `public/js/tema-menu.js` (a lenyíló), `public/css/app.css` (paletták, tapéta, menü; a generátor szkript nem része a repónak, a CSS-blokk a „Színtémák” megjegyzéstől a fájl végéig),
+  `public/js/guard.js`. **A névlista négy helyen él** (`functions/tema.js`, `js/tema.js`, `js/tema-korai.js`, a CSS): `tests/tema.test.mjs` az egyezést, a kontrasztokat (akcentus >= 4,5:1; a halvány szöveg a háttéren és a mintán; a minta 1,08–1,35:1) és a zárat védi.
+  Új téma = mind a négy hely + két szótári név + a motívum és a háttér-/sáv-színek a CSS-ben.
 - **A szín az előfizetéssel jár:** ha a csomag lejjebb megy, a téma visszaáll az alapszínre (`temaElveszik`, `functions/index.js`). Két helyen: a **Stripe-webhooknál**, amikor a csomag tényleg változik
   (a hó közben lemondott előfizetés a **forduló végén**, a `customer.subscription.deleted` eseménynél szűnik meg, addig a szín marad; Profi → Alap nem vesz el semmit), és az **admin csomagbeállításnál** (alapcsomagra állításkor).
   Az admin által adott csomagot a Stripe nem bántja, így a színt sem. Pilotban (nincs kvóta) semmi nem vesz el. Az alapszínre bárki bármikor visszaállhat. A funkció nem hoz új adatot, csak egy mezőt a profilban.
   **Régi állapot:** a javítás előtt (a commit `36a7255`) a lemondás nem állította vissza a témát; mivel a színválasztó még nem volt kiadva, élesben ilyen adat nem keletkezett.
-- **Nem próbálva valódi belépéssel:** a paletták, motívumok és a választó kitalált oldalon ellenőrizve (böngésző), a mentés hamis Firestore-ral tesztelve.
+- **Nem próbálva valódi belépéssel:** a paletták, a tapéta, a menü és a választó kitalált, a tanári elrendezést tükröző oldalon ellenőrizve (böngésző, asztali, 375 és 360 px), a mentés hamis Firestore-ral tesztelve.
 - **Tanulság:** a service worker a fejlesztői előnézetben a régi CSS-t szolgálja ki; ha a stílus nem frissül, a tab service workerét és a gyorsítótárát törölni kell.
 
 ## 5/h. Nyitóoldal tanároknak (C, 2026-10-10) – kód kész és commitolva, **még NINCS deployolva**

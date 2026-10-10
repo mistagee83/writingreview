@@ -73,7 +73,7 @@ test("a státusz-táblák minden kulcsa létezik minden nyelven", async () => {
 const ATALAKITOTT = [
   "diak.html", "index.html", "belepes.html", "beadas.html", "visszajelzes.html",
   "tanar.html", "osztalyok.html", "diakok.html", "admin.html", "ai-hasznalat.html", "javitas.html", "elemzes.html", "feladatok.html",
-  "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js", "js/fejlodes-grafikon.js",
+  "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js", "js/fejlodes-grafikon.js", "js/tema-menu.js",
   "js/kifejtos-urlap.js", "js/kifejtos-javitas.js", "js/skala-urlap.js",
   "js/tura.js", "js/tura-demo.js", "js/tura-lepesek.js"
 ];

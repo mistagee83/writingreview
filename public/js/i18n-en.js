@@ -367,6 +367,7 @@ export default {
   "tanar.modul_diakok_leiras": "For each student, how the score percentage and recurring errors develop from task to task.",
   "tanar.jegyzet_alap": "From the Basic plan.",
   "tanar.tema_cim": "🎨 Appearance",
+  "tanar.tema_menu_cim": "Colour theme",
   "tanar.tema_leiras": "Choose the colour of your interface. Orange is the default.",
   "tanar.tema_narancs": "Orange",
   "tanar.tema_kek": "Blue",

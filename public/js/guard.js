@@ -137,6 +137,13 @@ export function vedettOldal(elvartSzerep, opciok = {}) {
         .then((m) => m.fejlecBeallit({ szerep }))
         .catch((e) => console.warn("A fejléc-navigáció nem indult el:", e));
 
+      // A színválasztó lenyíló menüje a felső sávban (csak tanárnak). Dinamikus import: hibája ne akadályozza a belépést.
+      if (szerep === "tanar") {
+        import("./tema-menu.js")
+          .then((m) => m.temaMenuBeallit({ profil }))
+          .catch((e) => console.warn("A színválasztó nem indult el:", e));
+      }
+
       // A bemutató (villanykörte a topbaron, első belépéskor menü) egy
       // helyen kapcsolódik be, nem öt lapon külön. Dinamikus import:
       // ha bármi hibája van, az ne akadályozza meg a belépést.

@@ -82,16 +82,6 @@
       </div>
     </div>
 
-    <!-- Színválasztó: az alapszín (narancs) mindenkinek jár; a többi az Alap csomagtól (a szerver ellenőrzi). -->
-    <div class="panel" id="tema-panel">
-      <div class="panel-header"><h2 data-i18n="tanar.tema_cim">🎨 Megjelenés</h2></div>
-      <div class="panel-body">
-        <p><span data-i18n="tanar.tema_leiras">Válaszd ki a felületed színét.</span> <strong class="csomag-jegyzet" data-i18n="tanar.jegyzet_alap" hidden>Az Alap csomagtól.</strong></p>
-        <div class="tema-valaszto" id="tema-valaszto" role="group"></div>
-        <div class="msg" id="tema-msg"></div>
-      </div>
-    </div>
-
     <div class="modules-grid">
       <a class="module-card" href="osztalyok.html">
         <div class="module-icon">🎓</div>
@@ -126,7 +116,6 @@
   import { vedettOldal } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { t } from './js/i18n.js';
-  import { TEMAK, ALAP_TEMA, temaAlkalmaz } from './js/tema.js';
   import { hibaSzoveg, gombVar, uzenet } from './js/ui.js';
   import {
     db, collection, getDocs, query, where, functions, httpsCallable
@@ -135,47 +124,8 @@
   // Az oldalsáv a hitelesítés UTÁN rendereljük: onnan tudjuk, admin-e a
   // felhasználó, és csak akkor tesszük ki az admin menüpontot. (A sidebar
   // a kapuzott UI-ban van, tehát addig nem is látszik.)
-  const { user, admin, profil } = await vedettOldal('tanar');
+  const { user, admin } = await vedettOldal('tanar');
   oldalsav('tanar.html', { admin });
-
-  // ── SZÍNVÁLASZTÓ ──
-  // A mentést a szerver végzi (és az alapszínen kívül az Alap csomagtól engedi); a téma csak sikeres mentés után vált.
-  const temaValaszto = document.getElementById('tema-valaszto');
-  temaValaszto.setAttribute('aria-label', t('tanar.tema_cim'));
-  let aktualisTema = TEMAK.includes(profil.tema) ? profil.tema : ALAP_TEMA;
-  for (const nev of TEMAK) {
-    const gomb = document.createElement('button');
-    gomb.type = 'button';
-    gomb.className = 'tema-gomb';
-    gomb.dataset.tema = nev;
-    const minta = document.createElement('span');
-    minta.className = 'tema-minta';
-    const felirat = document.createElement('span');
-    felirat.textContent = t(`tanar.tema_${nev}`);
-    gomb.append(minta, felirat);
-    gomb.addEventListener('click', () => temaValaszt(nev));
-    temaValaszto.appendChild(gomb);
-  }
-  function temaJelol() {
-    for (const g of temaValaszto.children) g.setAttribute('aria-pressed', String(g.dataset.tema === aktualisTema));
-  }
-  async function temaValaszt(nev) {
-    if (nev === aktualisTema) return;
-    uzenet('tema-msg', '', 'success');
-    temaValaszto.querySelectorAll('button').forEach((g) => { g.disabled = true; });
-    try {
-      await httpsCallable(functions, 'temaBeallitas')({ tema: nev });
-      aktualisTema = nev;
-      temaAlkalmaz(nev);
-    } catch (e) {
-      console.error(e);
-      uzenet('tema-msg', hibaSzoveg(e));
-    } finally {
-      temaValaszto.querySelectorAll('button').forEach((g) => { g.disabled = false; });
-      temaJelol();
-    }
-  }
-  temaJelol();
 
   // A számokat kliensoldalon összegezzük: egy tanárnál néhány osztály és
   // pár száz beadás a teljes adathalmaz, ez nem indokol számlálókat.

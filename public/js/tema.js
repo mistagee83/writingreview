@@ -20,4 +20,14 @@ export function temaAlkalmaz(nev) {
     if (tema) localStorage.setItem(TAR_KULCS, tema);
     else localStorage.removeItem(TAR_KULCS);
   } catch (_) { /* privát ablak, letiltott tárolás: a téma így is érvényes marad */ }
+  allapotsavSzin();
+}
+
+/** A telefon állapotsorának színe kövesse a felső sávét (a témáét), hogy ne látszódjon csík a tetején. */
+function allapotsavSzin() {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  const sav = document.querySelector(".topbar");
+  if (!meta || !sav) return;
+  const szin = getComputedStyle(sav).backgroundColor;
+  if (szin) meta.setAttribute("content", szin);
 }
