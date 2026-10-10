@@ -1698,6 +1698,7 @@ exports._teszt = {
   osztalyElemzesKapu,
   szinvalasztasKapu,
   temaBeallitasLogika,
+  temaElveszik,
   fejlodesListaLogika,
   fejlodesDiakLogika,
   stripeEsemenyFeldolgozas,
@@ -2221,6 +2222,15 @@ function stripeKliens(titok = STRIPE_SECRET_KEY.value()) {
  * esemény pedig nem írja felül az újabb állapotot (esemenyHatas).
  * @returns {Promise<{kihagyva?: string, alkalmazva?: boolean, uid?: string, csomag?: string}>}
  */
+/**
+ * Elveszti-e a tanár a választott színtémát az új csomaggal? A színválasztás az előfizetéssel jár: ha a csomag
+ * már nem adja (pl. a lemondott előfizetés a forduló végén megszűnt), a téma visszaáll az alapszínre.
+ * Kvóta nélküli környezetben (pilot) a csomag nem számít, ott nem vesz el semmit.
+ */
+function temaElveszik(csomag, beallitasok = BEALLITASOK) {
+  return !kvota.funkcioEngedelyezett(beallitasok.kvota, csomag, "szinvalasztas");
+}
+
 async function stripeEsemenyFeldolgozas(firestore, esemeny, beallitasok = BEALLITASOK) {
   const esemenyRef = firestore.collection("stripe_esemenyek").doc(esemeny.id);
   return firestore.runTransaction(async (tx) => {
@@ -2253,6 +2263,10 @@ async function stripeEsemenyFeldolgozas(firestore, esemeny, beallitasok = BEALLI
       ...(hatas.csomagValtozas ? { csomag_modositva: FieldValue.serverTimestamp() } : {})
     }, { merge: true });
     if (hatas.ugyfel_id) tx.set(firestore.collection("stripe_ugyfelek").doc(hatas.ugyfel_id), { uid }, { merge: true });
+    // A színtéma az előfizetéssel jár: ha a csomag lejjebb ment (a forduló végén megszűnt az előfizetés), visszaáll az alapszín.
+    if (hatas.csomagValtozas && temaElveszik(hatas.mezok.csomag, beallitasok)) {
+      tx.set(firestore.collection("felhasznalok").doc(uid), { tema: FieldValue.delete() }, { merge: true });
+    }
     naplo("alkalmazva", { uid });
     return { alkalmazva: true, uid, csomag: hatas.mezok.csomag };
   });
@@ -2402,7 +2416,7 @@ exports.fizetesKezeles = onCall({ ...HIVAS_OPCIOK, secrets: [STRIPE_SECRET_KEY] 
 });
 
 /** Admin: egy tanár csomagjának beállítása (fizetésig ez az egyetlen út). */
-async function csomagBeallitasLogika(firestore, uid, csomag) {
+async function csomagBeallitasLogika(firestore, uid, csomag, beallitasok = BEALLITASOK) {
   if (!uid) throw hiba("invalid-argument", "felhasznalo_id_kell");
   if (!Object.hasOwn(kvota.CSOMAGOK, csomag)) {
     throw hiba("invalid-argument", "csomag_ervenytelen", { csomag: String(csomag) });
@@ -2413,6 +2427,10 @@ async function csomagBeallitasLogika(firestore, uid, csomag) {
     { csomag, csomag_forras: csomag === "ingyenes" ? "stripe" : "admin", csomag_modositva: FieldValue.serverTimestamp() },
     { merge: true }
   );
+  // az alapcsomagra visszaállított tanár színtémája is visszaáll (a színválasztás az Alaptól jár)
+  if (temaElveszik(csomag, beallitasok)) {
+    await firestore.collection("felhasznalok").doc(uid).set({ tema: FieldValue.delete() }, { merge: true });
+  }
   return { uid, csomag };
 }
 

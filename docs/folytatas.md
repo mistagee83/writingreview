@@ -400,7 +400,10 @@ cd writingreview
   a `localStorage` (`wr_tema`) csak a villanásmentes betöltést adja (`js/tema-korai.js`, blokkoló szkript a tanári oldalak `<head>`-jében).
 - **Fájlok:** `functions/tema.js` (névlista), `public/js/tema.js`, `public/js/tema-korai.js`, `public/css/app.css` (paletták, motívumok, választó), `public/tanar.html` (választó panel), `public/js/guard.js`.
   **A névlista négy helyen él** (`functions/tema.js`, `js/tema.js`, `js/tema-korai.js`, a CSS): `tests/tema.test.mjs` az egyezést, a kontrasztot (>= 4,5:1) és a zárat védi. Új téma = mind a négy hely + két szótári név.
-- **Ismert apróságok:** aki lemond az előfizetésről, megtartja a már választott színt (nem vonjuk vissza; az alapszínre bármikor visszaállhat). A funkció nem hoz új adatot, csak egy mezőt a profilban.
+- **A szín az előfizetéssel jár:** ha a csomag lejjebb megy, a téma visszaáll az alapszínre (`temaElveszik`, `functions/index.js`). Két helyen: a **Stripe-webhooknál**, amikor a csomag tényleg változik
+  (a hó közben lemondott előfizetés a **forduló végén**, a `customer.subscription.deleted` eseménynél szűnik meg, addig a szín marad; Profi → Alap nem vesz el semmit), és az **admin csomagbeállításnál** (alapcsomagra állításkor).
+  Az admin által adott csomagot a Stripe nem bántja, így a színt sem. Pilotban (nincs kvóta) semmi nem vesz el. Az alapszínre bárki bármikor visszaállhat. A funkció nem hoz új adatot, csak egy mezőt a profilban.
+  **Régi állapot:** a javítás előtt (a commit `36a7255`) a lemondás nem állította vissza a témát; mivel a színválasztó még nem volt kiadva, élesben ilyen adat nem keletkezett.
 - **Nem próbálva valódi belépéssel:** a paletták, motívumok és a választó kitalált oldalon ellenőrizve (böngésző), a mentés hamis Firestore-ral tesztelve.
 - **Tanulság:** a service worker a fejlesztői előnézetben a régi CSS-t szolgálja ki; ha a stílus nem frissül, a tab service workerét és a gyorsítótárát törölni kell.
 

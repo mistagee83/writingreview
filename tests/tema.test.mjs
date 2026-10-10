@@ -160,3 +160,114 @@ test("a színválasztás az Alaptól elérhető (a funkciótábla), az ingyenesn
   }
   assert.equal(kvota.funkcioEngedelyezett(false, "ingyenes", "szinvalasztas"), true, "pilot");
 });
+
+// ── a téma az előfizetéssel jár: csomagváltásnál visszaáll az alapszínre ──
+
+const { FieldValue } = require("firebase-admin/firestore");
+const torles = (v) => v && typeof v === "object" && typeof v.isEqual === "function" && v.isEqual(FieldValue.delete());
+
+// Memóriabeli Firestore tranzakcióval: elég a webhook és az admin csomagbeállítás útjához.
+function memFirestore(kezdo) {
+  const tar = structuredClone(kezdo);
+  const ir = (ut, adat, opcio) => {
+    const regi = opcio?.merge ? { ...(tar[ut] || {}) } : {};
+    for (const [k, v] of Object.entries(adat)) {
+      if (torles(v)) delete regi[k]; else regi[k] = v;
+    }
+    tar[ut] = regi;
+  };
+  const doc = (ut) => ({
+    path: ut,
+    get: async () => ({ exists: ut in tar, data: () => tar[ut] }),
+    set: async (adat, opcio) => ir(ut, adat, opcio)
+  });
+  return {
+    tar,
+    collection: (nev) => ({ doc: (id) => doc(`${nev}/${id}`) }),
+    runTransaction: async (fn) => fn({
+      get: async (ref) => ({ exists: ref.path in tar, data: () => tar[ref.path] }),
+      set: (ref, adat, opcio) => ir(ref.path, adat, opcio)
+    })
+  };
+}
+
+const AR = "price_alap_teszt";
+const AR_PROFI = "price_profi_teszt";
+const BE = { kvota: true, fizetes: true, fizetesArAlap: AR, fizetesArProfi: AR_PROFI };
+let sorszam = 0;
+const esemeny = (tipus, ar, objFelul = {}) => ({
+  id: `evt_${++sorszam}`, type: tipus, created: 1000 + sorszam,
+  data: { object: {
+    id: "sub_1", customer: "cus_1", status: "active", metadata: { uid: "t1" },
+    cancel_at_period_end: false, cancel_at: null,
+    items: { data: [{ price: { id: ar }, current_period_end: 5000 }] }, ...objFelul
+  } }
+});
+const kezdo = (csomag, extra = {}) => ({
+  "tanarok/t1": { csomag, csomag_forras: "stripe", ...extra },
+  "felhasznalok/t1": { nev: "Teszt Tanár", tema: "kek" }
+});
+
+test("a lemondott előfizetés a forduló végén megszűnik: a téma visszaáll az alapszínre, a név marad", async () => {
+  const fs = memFirestore(kezdo("alap"));
+  const r = await t.stripeEsemenyFeldolgozas(fs, esemeny("customer.subscription.deleted", AR), BE);
+  assert.equal(r.csomag, "ingyenes");
+  assert.equal(fs.tar["tanarok/t1"].csomag, "ingyenes");
+  assert.equal(fs.tar["felhasznalok/t1"].tema, undefined, "a téma törlődik");
+  assert.equal(fs.tar["felhasznalok/t1"].nev, "Teszt Tanár", "a többi mező érintetlen");
+});
+
+test("a hó közben lemondott (még élő) előfizetés megtartja a színt a fordulóig", async () => {
+  const fs = memFirestore(kezdo("alap"));
+  const r = await t.stripeEsemenyFeldolgozas(fs, esemeny("customer.subscription.updated", AR, { cancel_at_period_end: true }), BE);
+  assert.equal(r.csomag, "alap");
+  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek");
+});
+
+test("a csomagváltás Profiról Alapra nem vesz el színt; a fizetési hiba (past_due) alatt is marad", async () => {
+  const fs = memFirestore(kezdo("profi"));
+  await t.stripeEsemenyFeldolgozas(fs, esemeny("customer.subscription.updated", AR), BE);
+  assert.equal(fs.tar["tanarok/t1"].csomag, "alap");
+  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek");
+  await t.stripeEsemenyFeldolgozas(fs, esemeny("customer.subscription.updated", AR, { status: "past_due" }), BE);
+  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek");
+});
+
+test("az admin által adott csomagot a Stripe nem bántja, így a színt sem", async () => {
+  const fs = memFirestore(kezdo("profi", { csomag_forras: "admin" }));
+  await t.stripeEsemenyFeldolgozas(fs, esemeny("customer.subscription.deleted", AR), BE);
+  assert.equal(fs.tar["tanarok/t1"].csomag, "profi");
+  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek");
+});
+
+test("ugyanaz az esemény kétszer nem csinál semmit, és az ingyenesen már nincs mit visszaállítani", async () => {
+  const fs = memFirestore(kezdo("alap"));
+  const e = esemeny("customer.subscription.deleted", AR);
+  await t.stripeEsemenyFeldolgozas(fs, e, BE);
+  fs.tar["felhasznalok/t1"].tema = "zold";   // közben (valamiért) mégis lett témája
+  const masodik = await t.stripeEsemenyFeldolgozas(fs, e, BE);
+  assert.equal(masodik.kihagyva, "mar_feldolgozva");
+  assert.equal(fs.tar["felhasznalok/t1"].tema, "zold", "az idempotens újrajátszás nem nyúl hozzá");
+});
+
+test("az admin az alapcsomagra állítja: a téma visszaáll; fizetősre állítva marad; pilotban semmi", async () => {
+  let fs = memFirestore(kezdo("profi"));
+  await t.csomagBeallitasLogika(fs, "t1", "ingyenes", BE);
+  assert.equal(fs.tar["felhasznalok/t1"].tema, undefined);
+  assert.equal(fs.tar["tanarok/t1"].csomag, "ingyenes");
+
+  fs = memFirestore(kezdo("ingyenes"));
+  await t.csomagBeallitasLogika(fs, "t1", "profi", BE);
+  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek");
+
+  fs = memFirestore(kezdo("profi"));
+  await t.csomagBeallitasLogika(fs, "t1", "ingyenes", PILOT);
+  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek", "kvóta nélkül a csomag nem számít");
+});
+
+test("a temaElveszik a funkciótáblát követi", () => {
+  assert.equal(t.temaElveszik("ingyenes", PROD), true);
+  assert.equal(t.temaElveszik(undefined, PROD), true);
+  for (const csomag of ["alap", "profi", "korlatlan"]) assert.equal(t.temaElveszik(csomag, PROD), false, csomag);
+  assert.equal(t.temaElveszik("ingyenes", PILOT), false);
+});
