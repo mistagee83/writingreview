@@ -1,4 +1,23 @@
-# Következő munkamenet – átadó leirat (2026-10-10)
+# Következő munkamenet – átadó leirat
+
+> ## FRISS ÁLLAPOT (2026-10-10 este) – ezt olvasd el ELŐSZÖR
+>
+> **Kész és kiadva (prod, `v1.12.0`-ig):** fejlődéskövetés (Profi), osztályelemzés az Alapból, színválasztás (lenyíló a felső sávban, teljes háttér + tapéta), új nyitóoldal
+> (`index.html`; a belépés `belepes.html`), angol szövegek javítva. Részletek: `docs/folytatas.md` 5/f, 5/g, 5/h, 5/i.
+>
+> **Kész, de MÉG NINCS kiadva (helyi commitok a `v1.12.0` után):** a hero „akár 20 dolgozat” sora, a nyitóoldal magyar szövegeinek újraírása, a belépés/regisztráció magyar
+> szövegei (ChatGPT átnézte, én javítottam), „rubrika” → „értékelési szempontok” a magyar felületen, a magyar szövegezési útmutató. **A tulajdonos nem akar kis dolgokat pusholni: csak egyben, kérésre**
+> (`git tag v1.13.0 && git push origin main v1.13.0`; a jóváhagyás a GitHubon az övé). A pilotra semmi nem megy.
+>
+> **Soron következő:** a magyar szövegek átnézése az útmutató sorrendjében (`docs/magyar-szovegek.md`): tanári főoldal, osztályok, feladatok, javítási sor → diák oldalak (egyszerű, barátságos hang) → bemutató,
+> kulcsszerkesztő, hibaüzenetek. Munkamód: én írom át a szótárat (kulcsok és `{helyőrzők}` változatlanok), a tulajdonos ChatGPT-vel második olvasatot kér (csak megjelölés, nem átírás), végül egy tanár kolléga
+> hangosan olvassa. Ügyelj a névelőre és a ragozásra (egy szócsere után a névelő is változhat), és minden szócserénél futtasd a teszteket.
+>
+> **Nyitott, nem műszaki (lásd a 4. pontot is):** jogász (18 kérdés, a 18. a fejlődéskövetésről még nem jutott el hozzá; `docs/jogi/` piszkozatok, közzététel előtt jogi átnézés kell), a Google korhatár-kikötése
+> (blokkoló kiskorú diákoknál), a számlázz.hu bekötése, az „elfogadom” jelölőnégyzet, Stripe éles módra váltása. Az emulátoros teszteket (rules, claim, functions, storage, *adatbazis*) a tulajdonos futtatja.
+>
+> **Üzenet és hang:** `docs/folytatas.md` 5/h és a `landing-uzenet-pozicionalas` memória (a jó tanár még jobb lehet; nem időmegtakarítás; angolul „grading”, „Grading queue”).
+
 
 *Ezt olvasd el először egy új beszélgetés elején (a `CLAUDE.md` és a `docs/folytatas.md` mellett). Itt van, hol tart a projekt, mi a következő három feladat részletesen, és hogyan dolgozik a tulajdonos.*
 
