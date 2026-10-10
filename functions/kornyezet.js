@@ -42,6 +42,9 @@ function beallitasok(env = process.env) {
   // A Stripe-os fizetés: csak a prodon, és csak ha az `alap` csomag árazonosítója be van állítva
   // (functions/.env.prod: FIZETES_AR_ALAP=price_...). Az árazonosító nem titok; a kulcsok a Secret Managerben vannak.
   const arAlap = String(env.FIZETES_AR_ALAP || "").trim();
+  // A Profi csomag ára külön, nem kötelező: üresen a Profi nem kínálható (az alap igen).
+  const arProfi = String(env.FIZETES_AR_PROFI || "").trim();
+  const arAzonosito = (a) => (/^price_[A-Za-z0-9_]+$/.test(a) ? a : "");
   return {
     kornyezet,
     projekt,
@@ -52,8 +55,10 @@ function beallitasok(env = process.env) {
     tanariOnregisztracio: kornyezet === "prod",
     fizetes: kornyezet === "prod" && /^price_[A-Za-z0-9_]+$/.test(arAlap),
     fizetesArAlap: arAlap,
+    fizetesArProfi: arAzonosito(arProfi),
     // a felületen megjelenő ár szövege (pl. "7 EUR / hó"); a tényleges árat a Stripe-ban állítod
     fizetesArSzoveg: String(env.FIZETES_AR_SZOVEG || "").trim().slice(0, 40),
+    fizetesArProfiSzoveg: String(env.FIZETES_AR_PROFI_SZOVEG || "").trim().slice(0, 40),
     visszaUrl: visszaUrl(projekt, env.FIZETES_VISSZA_URL),
     cors: corsLista(projekt, env.ENGEDELYEZETT_DOMAINEK)
   };

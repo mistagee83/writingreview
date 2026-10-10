@@ -40,6 +40,15 @@ Kezdd a **Stripe tesztmódjával**; élesíteni csak a lenti ellenőrző lista u
 7. **Az ár bekapcsolása:** a `functions/.env.prod`-ban `FIZETES_AR_ALAP=price_...` (és szükség esetén az ár szövege: `FIZETES_AR_SZOVEG`). Új kiadás után a
    tanári főoldalon megjelenik a **💳 Csomag** panel.
 
+## A második csomag: Profi (19 EUR/hó, 500 egység)
+
+- Csomagok (`functions/kvota.js`): `alap` 150/hó, `profi` 500/hó, `korlatlan` (csak az admin adhatja). A felületen a „Profi” = „akár 500 dolgozat/hó”.
+- **Stripe-ban** külön termék és ár a Profinak (havi, EUR, áfával együtt, 19 EUR). Az árazonosítója a `functions/.env.prod`-ban: `FIZETES_AR_PROFI=price_...`
+  (a felületen megjelenő ár szövege: `FIZETES_AR_PROFI_SZOVEG`). Üresen a Profi nem kínálható, csak az alap.
+- **Csomagváltás** (alap ↔ profi): a Stripe **Customer Portal**ján, ehhez a portál beállításában engedélyezni kell az előfizetés-módosítást, és fel kell venni mindkét terméket
+  (Settings → Billing → Customer portal → „Subscriptions → Customers can switch plans”). A webhook az új ár alapján állítja át a csomagot.
+- A Checkout csak új előfizetőnek indul; aki már előfizet, a portálon kezeli (a felület is erre irányít).
+
 ## Kipróbálás tesztmódban
 
 - Fizetés: a Checkoutban a Stripe **teszt-kártyái** működnek (pl. `4242 4242 4242 4242`, bármilyen jövőbeli lejárat és CVC).

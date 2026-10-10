@@ -26,7 +26,11 @@ before(() => {
 after(async () => { await firestore?.terminate(); });
 
 const AR = "price_alap_teszt";
-const BE = { kvota: true, fizetes: true, fizetesArAlap: AR, fizetesArSzoveg: "7 EUR / hó", visszaUrl: "https://writing-review.web.app" };
+const AR_PROFI = "price_profi_teszt";
+const BE = {
+  kvota: true, fizetes: true, fizetesArAlap: AR, fizetesArProfi: AR_PROFI,
+  fizetesArSzoveg: "7 EUR / hó", fizetesArProfiSzoveg: "19 EUR / hó", visszaUrl: "https://writing-review.web.app"
+};
 
 beforeEach(async () => {
   for (const ref of await firestore.collection("tanarok").listDocuments()) {
@@ -154,6 +158,45 @@ function stripeStub() {
   };
 }
 
+test("a Profi előfizetés Profi csomagot ad 500 egységes keretet; az alapról a Profira váltás és vissza követi az árat", async () => {
+  const profi = { items: { data: [{ price: { id: AR_PROFI }, current_period_end: 5000 }] } };
+  await alkalmaz(esemeny({ created: 10 }));
+  assert.equal((await t.kvotaAllapotLogika(firestore, "t1", BE)).limit, 150);
+  // váltás a portálon: a subscription.updated az új árral érkezik
+  await alkalmaz(esemeny({ created: 20 }, profi));
+  let k = await t.kvotaAllapotLogika(firestore, "t1", BE);
+  assert.equal(k.csomag, "profi");
+  assert.equal(k.limit, 500);
+  // vissza az alapra
+  await alkalmaz(esemeny({ created: 30 }));
+  k = await t.kvotaAllapotLogika(firestore, "t1", BE);
+  assert.equal(k.csomag, "alap");
+  assert.equal(k.limit, 150);
+});
+
+test("fizetés indítása: a kért csomag ára megy a Checkoutra (alap a hiányzó), ismeretlen vagy nem beállított csomag elutasítva", async () => {
+  const s = stripeStub();
+  const keres = (csomag) => ({ ...kerelem(), ...(csomag === undefined ? {} : { data: { csomag } }) });
+  await t.fizetesInditasLogika(firestore, s, keres(undefined), BE);
+  await t.fizetesInditasLogika(firestore, s, keres("alap"), BE);
+  await t.fizetesInditasLogika(firestore, s, keres("profi"), BE);
+  assert.deepEqual(s.hivasok.checkout.map((p) => p.line_items[0].price), [AR, AR, AR_PROFI]);
+
+  for (const rossz of ["korlatlan", "ingyenes", "valami", "__proto__", "toString", 42, null, {}, ["profi"]]) {
+    await assert.rejects(
+      () => t.fizetesInditasLogika(firestore, s, keres(rossz), BE),
+      (e) => e.code === "invalid-argument" && e.details.kod === "csomag_ervenytelen",
+      String(rossz)
+    );
+  }
+  // ha a Profi ára nincs beállítva, nem kérhető
+  await assert.rejects(
+    () => t.fizetesInditasLogika(firestore, s, keres("profi"), { ...BE, fizetesArProfi: "" }),
+    (e) => e.details.kod === "csomag_ervenytelen"
+  );
+  assert.equal(s.hivasok.checkout.length, 3, "a hibás kérésekhez nem jött létre Checkout");
+});
+
 test("fizetés indítása: előfizetéses Checkout a tanár uid-jához kötve, az árral és a visszatérési címmel", async () => {
   const s = stripeStub();
   const r = await t.fizetesInditasLogika(firestore, s, kerelem(), BE);
@@ -213,8 +256,16 @@ test("fizetés állapota a felületnek: kikapcsolva csak {fizetes:false}; bekapc
   await alkalmaz(esemeny());
   const a = await t.fizetesAllapotLogika(firestore, "t1", BE);
   assert.deepEqual(a, {
-    fizetes: true, ar: "7 EUR / hó", alap_keret: 150, csomag_forras: "stripe",
+    fizetes: true,
+    csomagok: [
+      { nev: "alap", keret: 150, ar: "7 EUR / hó" },
+      { nev: "profi", keret: 500, ar: "19 EUR / hó" }
+    ],
+    csomag_forras: "stripe",
     elofizetes: { statusz: "active", periodus_vege: 5000, lemondva: false, van_ugyfel: true }
   });
+  // Profi ár nélkül csak az alap kínálható
+  const csakAlap = await t.fizetesAllapotLogika(firestore, "t1", { ...BE, fizetesArProfi: "" });
+  assert.deepEqual(csakAlap.csomagok.map((c) => c.nev), ["alap"]);
   assert.ok(!JSON.stringify(a).includes("cus_1"), "az ügyfél-azonosító nem megy a kliensnek");
 });

@@ -34,6 +34,8 @@ const EGYSEG_KOLTSEG = {
 const CSOMAGOK = {
   ingyenes: { keret: 20, idoszak: "egyszeri" },
   alap: { keret: 150, idoszak: "havi" },
+  // "Profi": a nagyobb csomag (a felületen "akár 500 dolgozat/hó"; a keret véges, hogy a költség fedezett maradjon)
+  profi: { keret: 500, idoszak: "havi" },
   korlatlan: { keret: null, idoszak: "havi" }
 };
 

@@ -32,6 +32,17 @@ test("ismeretlen vagy hiányzó csomag az alapcsomag, sosem a korlátlan", () =>
   assert.equal(k.keret("korlatlan"), null);
 });
 
+test("a Profi csomag: havi 500 egység, nagyobb az alapnál; a korlátlan marad az admin kézi csomagja", () => {
+  const { alap, profi } = k.CSOMAGOK;
+  assert.equal(profi.keret, 500);
+  assert.equal(profi.idoszak, "havi");
+  assert.ok(alap.keret < profi.keret);
+  assert.equal(k.keret("profi"), 500);
+  assert.equal(k.hasznalatKulcs("profi", new Date("2026-10-15T00:00:00Z")), "2026-10");
+  assert.equal(k.kvotaDontes({ csomag: "profi", hasznalt: 499, koltseg: 1 }).engedett, true);
+  assert.equal(k.kvotaDontes({ csomag: "profi", hasznalt: 500, koltseg: 1 }).engedett, false);
+});
+
 test("a csomagok: az ingyenes véges és egyszeri (nem újul meg), a fizetős havi és nagyobb", () => {
   const { ingyenes, alap } = k.CSOMAGOK;
   assert.equal(ingyenes.keret, 20);

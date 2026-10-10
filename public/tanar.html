@@ -65,7 +65,7 @@
         <p id="csomag-szoveg"></p>
         <p class="halvany" id="csomag-masodlagos"></p>
         <div class="gomb-sor">
-          <button class="btn-primary" id="btn-elofizet" style="display:none;" data-i18n="tanar.gomb_elofizet">💳 Előfizetek</button>
+          <span id="csomag-gombok"></span>
           <button class="btn-sm" id="btn-kezeles" style="display:none;" data-i18n="tanar.gomb_kezeles">⚙️ Előfizetés kezelése</button>
         </div>
         <div class="msg" id="csomag-msg"></div>
@@ -175,16 +175,16 @@
     const joElofizetes = e && ['active', 'trialing', 'past_due'].includes(e.statusz);
     const szoveg = document.getElementById('csomag-szoveg');
     const masodlagos = document.getElementById('csomag-masodlagos');
-    const btnElofizet = document.getElementById('btn-elofizet');
+    const gombok = document.getElementById('csomag-gombok');
     const btnKezeles = document.getElementById('btn-kezeles');
     masodlagos.textContent = '';
-    btnElofizet.style.display = 'none';
+    gombok.innerHTML = '';
     btnKezeles.style.display = 'none';
 
     if (d.csomag_forras === 'admin' && d.csomag !== 'ingyenes') {
       szoveg.textContent = t('tanar.csomag_kezi');
     } else if (joElofizetes) {
-      szoveg.textContent = t('tanar.csomag_alap', { limit: d.limit ?? '∞' });
+      szoveg.textContent = t('tanar.csomag_aktiv', { nev: t(`admin.csomag_${d.csomag}`), limit: d.limit ?? '∞' });
       if (e.statusz === 'past_due') {
         masodlagos.textContent = t('tanar.csomag_fizetesi_hiba');
       } else if (e.periodus_vege) {
@@ -193,19 +193,30 @@
           : t('tanar.csomag_megujul', { datum: datumSzoveg(e.periodus_vege) });
       }
       if (e.van_ugyfel) btnKezeles.style.display = '';
+      // az alap csomagról a nagyobbra a Stripe portálján lehet váltani
+      if (d.csomag === 'alap' && (d.csomagok || []).some((c) => c.nev === 'profi')) {
+        masodlagos.textContent += ` ${t('tanar.csomag_valtas_tipp')}`;
+      }
     } else {
       szoveg.textContent = t('tanar.csomag_ingyenes', { hasznalt: d.hasznalt, limit: d.limit ?? '∞' });
-      masodlagos.textContent = t('tanar.csomag_ajanlat', { limit: d.alap_keret ?? '', ar: d.ar || '' });
-      btnElofizet.style.display = '';
+      masodlagos.textContent = t('tanar.csomag_ajanlat');
+      // egy gomb minden kínálható csomaghoz (név, ár, keret a szervertől)
+      for (const c of d.csomagok || []) {
+        const gomb = document.createElement('button');
+        gomb.className = c.nev === 'profi' ? 'btn-sm' : 'btn-primary';
+        gomb.textContent = t('tanar.gomb_elofizet_csomag', { nev: t(`admin.csomag_${c.nev}`), ar: c.ar || '', limit: c.keret ?? '∞' });
+        gomb.addEventListener('click', () => atiranyit('fizetesIndit', gomb, { csomag: c.nev }));
+        gombok.appendChild(gomb);
+      }
       if (e?.van_ugyfel) btnKezeles.style.display = '';   // korábbi előfizetés számlái
     }
   }
 
-  async function atiranyit(callableNev, gomb) {
+  async function atiranyit(callableNev, gomb, adat = {}) {
     uzenet('csomag-msg', '', 'success');
     const vissza = gombVar(gomb, t('tanar.fizetes_var'));
     try {
-      const { data } = await httpsCallable(functions, callableNev)();
+      const { data } = await httpsCallable(functions, callableNev)(adat);
       const url = new URL(data.url);
       // Védelem: csak a Stripe saját oldalaira irányítunk át
       if (url.protocol !== 'https:' || !STRIPE_HOSTOK.includes(url.hostname)) throw new Error('unexpected redirect target');
@@ -216,7 +227,6 @@
       vissza();
     }
   }
-  document.getElementById('btn-elofizet').addEventListener('click', (e) => atiranyit('fizetesIndit', e.currentTarget));
   document.getElementById('btn-kezeles').addEventListener('click', (e) => atiranyit('fizetesKezeles', e.currentTarget));
 
   // Visszatérés a Stripe-ról: a webhook pár másodperc késéssel állítja át a csomagot, ezért rövid ideig újra kérdezünk.

@@ -2030,8 +2030,12 @@ async function fizetesAllapotLogika(firestore, uid, beallitasok = BEALLITASOK) {
   const t = snap.data() || {};
   return {
     fizetes: true,
-    ar: beallitasok.fizetesArSzoveg || null,
-    alap_keret: kvota.keret("alap"),
+    // a kínálható csomagok (beállított árral): név, havi keret, az ár szövege
+    csomagok: Object.keys(fizetes.arak(beallitasok)).map((nev) => ({
+      nev,
+      keret: kvota.keret(nev),
+      ar: (nev === "profi" ? beallitasok.fizetesArProfiSzoveg : beallitasok.fizetesArSzoveg) || null
+    })),
     csomag_forras: t.csomag_forras === "admin" ? "admin" : "stripe",
     elofizetes: fizetes.elofizetesNezet(t)
   };
@@ -2084,7 +2088,7 @@ async function stripeEsemenyFeldolgozas(firestore, esemeny, beallitasok = BEALLI
 
     const tanarRef = firestore.collection("tanarok").doc(uid);
     const tanar = (await tx.get(tanarRef)).data() || null;
-    const hatas = fizetes.esemenyHatas(esemeny, { tanar, arAlap: beallitasok.fizetesArAlap });
+    const hatas = fizetes.esemenyHatas(esemeny, { tanar, arak: fizetes.arak(beallitasok) });
     if (hatas.kihagy) {
       naplo(hatas.kihagy, { uid });
       return { kihagyva: hatas.kihagy, uid };
@@ -2134,7 +2138,10 @@ exports.stripeWebhook = onRequest(
   }
 );
 
-/** A fizetőoldal (Checkout) létrehozása: az előfizetés a tanár uid-jához kötve. */
+/**
+ * A fizetőoldal (Checkout) létrehozása: az előfizetés a tanár uid-jához kötve.
+ * A kért csomag a request.data.csomag ("alap" vagy "profi"; alap a hiányzó); csak beállított árú csomag kérhető.
+ */
 async function fizetesInditasLogika(firestore, stripe, request, beallitasok = BEALLITASOK) {
   const uid = tanar(request);
   if (!beallitasok.fizetes) throw hiba("failed-precondition", "fizetes_ki");
@@ -2143,12 +2150,21 @@ async function fizetesInditasLogika(firestore, stripe, request, beallitasok = BE
   if (t.csomag_forras === "admin" && t.csomag && t.csomag !== "ingyenes") throw hiba("failed-precondition", "csomag_kezi");
   if (fizetes.JAR.has(t.elofizetes?.statusz)) throw hiba("failed-precondition", "mar_elofizetett");
 
+  // csak a HIÁNYZÓ érték jelent alapot; a kifejezetten rossz (null, szám, lista…) hiba
+  const kertCsomag = request.data?.csomag === undefined ? "alap" : request.data.csomag;
+  const arakMap = fizetes.arak(beallitasok);
+  // Object.hasOwn: a csomagnév ne találhasson prototípus-kulcsot ("__proto__", "toString")
+  if (typeof kertCsomag !== "string" || !Object.hasOwn(arakMap, kertCsomag)) {
+    throw hiba("invalid-argument", "csomag_ervenytelen", { csomag: String(kertCsomag).slice(0, 40) });
+  }
+  const ar = arakMap[kertCsomag];
+
   const ugyfelId = t.elofizetes?.stripe_ugyfel_id;
   const email = request.auth.token?.email;
   try {
     const munkamenet = await stripe.checkout.sessions.create({
       mode: "subscription",
-      line_items: [{ price: beallitasok.fizetesArAlap, quantity: 1 }],
+      line_items: [{ price: ar, quantity: 1 }],
       client_reference_id: uid,
       // meglévő Stripe-ügyfél (korábbi előfizetés) újrahasznosítva; különben az e-mail-cím előtöltve
       ...(ugyfelId ? { customer: ugyfelId } : (email ? { customer_email: email } : {})),

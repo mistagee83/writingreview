@@ -7,7 +7,7 @@
 // (tranzakció, idempotencia); ez a fájl csak azt dönti el, MIT jelent egy esemény.
 //
 // Szabályok:
-//  - aktív vagy próbaidős előfizetés → `alap`; fizetési hiba (past_due) alatt marad az
+//  - aktív vagy próbaidős előfizetés → a csomagja az ára szerint (`alap` vagy `profi`); fizetési hiba (past_due) alatt marad az
 //    `alap` (a Stripe újrapróbálja a terhelést); lemondott, nem fizetett, megszűnt → `ingyenes`
 //  - az admin által kézzel adott csomagot (csomag_forras: "admin") a Stripe SOSEM írja át
 //  - nem ismert árú előfizetést figyelmen kívül hagyunk (nem a mi termékünk)
@@ -15,6 +15,23 @@
 //
 // Lásd docs/kornyezetek-terv.md 5.1.
 // ══════════════════════════════════════════════════════
+
+/** A fizetős csomagok, a nagyobb elöl (ha egy előfizetésben több ár is lenne, a nagyobb nyer). */
+const FIZETOS_CSOMAGOK = ["profi", "alap"];
+
+/** A beállításokból a nem üres árazonosítók csomagonként: {alap: "price_...", profi: "price_..."}. */
+function arak(beallitasok) {
+  const ki = {};
+  if (beallitasok?.fizetesArAlap) ki.alap = beallitasok.fizetesArAlap;
+  if (beallitasok?.fizetesArProfi) ki.profi = beallitasok.fizetesArProfi;
+  return ki;
+}
+
+/** Melyik csomag az előfizetésé (az ára alapján); null, ha egyik árunk sem. */
+function csomagArbol(sub, arakMap) {
+  const azonositok = arAzonositok(sub);
+  return FIZETOS_CSOMAGOK.find((nev) => arakMap?.[nev] && azonositok.includes(arakMap[nev])) || null;
+}
 
 /** Ezekben az állapotokban jár a fizetős csomag. */
 const JAR = new Set(["active", "trialing", "past_due"]);
@@ -58,7 +75,9 @@ function periodusVege(sub) {
  * @param {{tanar: object|null, arAlap: string}} ctx a tanár jelenlegi dokumentuma, és a mi termékünk árazonosítója
  * @returns {{kihagy: string}|{mezok: object, csomagValtozas: boolean, ugyfel_id?: string}}
  */
-function esemenyHatas(esemeny, { tanar = null, arAlap = "" } = {}) {
+function esemenyHatas(esemeny, { tanar = null, arak: arakMap = null, arAlap = "" } = {}) {
+  // `arak`: {alap, profi}; a régi `arAlap` paraméter a tesztek és a visszafelé kompatibilitás miatt marad
+  const arakEsemenyhez = arakMap || (arAlap ? { alap: arAlap } : {});
   const tipus = esemeny?.type;
   const o = esemeny?.data?.object || {};
 
@@ -80,7 +99,8 @@ function esemenyHatas(esemeny, { tanar = null, arAlap = "" } = {}) {
   }
 
   // ── előfizetés-változás ──
-  if (!arAlap || !arAzonositok(o).includes(arAlap)) return { kihagy: "ismeretlen_ar" };
+  const fizetosCsomag = csomagArbol(o, arakEsemenyhez);
+  if (!fizetosCsomag) return { kihagy: "ismeretlen_ar" };
 
   const elozoIdo = tanar?.elofizetes?.esemeny_ido;
   if (Number.isFinite(elozoIdo) && Number.isFinite(esemeny.created) && esemeny.created < elozoIdo) {
@@ -105,7 +125,7 @@ function esemenyHatas(esemeny, { tanar = null, arAlap = "" } = {}) {
   }
 
   let csomag = null;
-  if (JAR.has(statusz)) csomag = "alap";
+  if (JAR.has(statusz)) csomag = fizetosCsomag;
   else if (MEGSZUNT.has(statusz)) csomag = "ingyenes";
   // "incomplete" (az első fizetés még nem ment át): még nem ad csomagot, de el sem vesz
 
@@ -129,4 +149,4 @@ function elofizetesNezet(tanar) {
   };
 }
 
-module.exports = { JAR, MEGSZUNT, azonositok, arAzonositok, periodusVege, esemenyHatas, elofizetesNezet };
+module.exports = { JAR, MEGSZUNT, FIZETOS_CSOMAGOK, arak, csomagArbol, azonositok, arAzonositok, periodusVege, esemenyHatas, elofizetesNezet };

@@ -167,8 +167,14 @@ test("a tanári állapot az ingyenesnél egyszeri, a fizetősnél havi időszako
     await logika.kvotaAllapotLogika(firestore, "t1", BE, most),
     { kvota: true, csomag: "alap", limit: 150, hasznalt: 0, idoszak: "havi", honap: "2026-10" }
   );
-  // az eltávolított "profi" csomag nem állítható be
-  await assert.rejects(() => logika.csomagBeallitasLogika(firestore, "t1", "profi"), (e) => e.details.kod === "csomag_ervenytelen");
+  // ismeretlen csomag nem állítható be
+  await assert.rejects(() => logika.csomagBeallitasLogika(firestore, "t1", "valami-kamu"), (e) => e.details.kod === "csomag_ervenytelen");
+  // a Profi csomag viszont igen, és 500 egységes havi keretet ad
+  await logika.csomagBeallitasLogika(firestore, "t1", "profi");
+  assert.deepEqual(
+    await logika.kvotaAllapotLogika(firestore, "t1", BE, most),
+    { kvota: true, csomag: "profi", limit: 500, hasznalt: 0, idoszak: "havi", honap: "2026-10" }
+  );
 });
 
 test("elfogyott keretnél a már kijavított beadás állapota érintetlen marad (újrafuttatás)", async () => {

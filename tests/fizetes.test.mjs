@@ -28,6 +28,45 @@ const elofizetes = (felul = {}, kulso = {}) => ({
   ...kulso
 });
 
+const AR_PROFI = "price_profi_teszt";
+const ARAK = { alap: AR, profi: AR_PROFI };
+
+// ── több csomag: az ár dönti el, melyik ──
+
+test("a Profi árú előfizetés Profi csomagot ad, az alap árú alapot", () => {
+  const profi = f.esemenyHatas(elofizetes({ items: { data: [{ price: { id: AR_PROFI }, current_period_end: 5000 }] } }), { tanar: { csomag: "alap" }, arak: ARAK });
+  assert.equal(profi.mezok.csomag, "profi");
+  assert.equal(profi.csomagValtozas, true, "alapról profira váltás: változás");
+  const alap = f.esemenyHatas(elofizetes(), { tanar: { csomag: "profi" }, arak: ARAK });
+  assert.equal(alap.mezok.csomag, "alap");
+  assert.equal(alap.csomagValtozas, true, "profiról alapra váltás: változás");
+});
+
+test("a Profi lemondás után az ingyenesre esik vissza, nem alapra", () => {
+  const h = f.esemenyHatas(
+    elofizetes({ status: "canceled", items: { data: [{ price: { id: AR_PROFI } }] } }, { type: "customer.subscription.deleted" }),
+    { tanar: { csomag: "profi" }, arak: ARAK }
+  );
+  assert.equal(h.mezok.csomag, "ingyenes");
+});
+
+test("ha egy előfizetésben mindkét ár szerepel, a nagyobb csomag nyer", () => {
+  const sub = elofizetes({ items: { data: [{ price: { id: AR } }, { price: { id: AR_PROFI } }] } });
+  assert.equal(f.esemenyHatas(sub, { arak: ARAK }).mezok.csomag, "profi");
+});
+
+test("az ismeretlen ár kimarad akkor is, ha a Profi ára nincs beállítva", () => {
+  const profiSub = elofizetes({ items: { data: [{ price: { id: AR_PROFI } }] } });
+  assert.deepEqual(f.esemenyHatas(profiSub, { arak: { alap: AR } }), { kihagy: "ismeretlen_ar" });
+});
+
+test("az árak a beállításokból: csak a nem üresek", () => {
+  assert.deepEqual(f.arak({ fizetesArAlap: AR, fizetesArProfi: AR_PROFI }), ARAK);
+  assert.deepEqual(f.arak({ fizetesArAlap: AR }), { alap: AR });
+  assert.deepEqual(f.arak({ fizetesArAlap: "", fizetesArProfi: "" }), {});
+  assert.deepEqual(f.arak(undefined), {});
+});
+
 // ── esemenyHatas ──
 
 test("aktív előfizetés: alap csomag, a Stripe a forrás, az időszak vége az elemről", () => {
@@ -133,6 +172,17 @@ test("a fizetés csak a prodon és csak beállított árazonosítóval kapcsol b
   assert.equal(be({ KORNYEZET: "prod" }), false);
   assert.equal(be({ KORNYEZET: "pilot", FIZETES_AR_ALAP: "price_123" }), false, "a pilotban soha");
   assert.equal(be({ KORNYEZET: "prod", FIZETES_AR_ALAP: "prod_nem_ar" }), false, "csak price_ azonosító");
+});
+
+test("a Profi ára külön, nem kötelező: üresen a Profi nem kínálható, az alap igen", () => {
+  const b = (env) => kornyezet.beallitasok({ KORNYEZET: "prod", FIZETES_AR_ALAP: "price_a", ...env });
+  assert.equal(b({}).fizetesArProfi, "");
+  assert.equal(b({ FIZETES_AR_PROFI: "price_p" }).fizetesArProfi, "price_p");
+  assert.equal(b({ FIZETES_AR_PROFI: "prod_nem_ar" }).fizetesArProfi, "", "csak price_ azonosító");
+  assert.equal(b({ FIZETES_AR_PROFI: "price_p" }).fizetes, true);
+  assert.equal(b({ FIZETES_AR_PROFI_SZOVEG: "19 EUR / hó" }).fizetesArProfiSzoveg, "19 EUR / hó");
+  // a Profi ára az alap nélkül nem kapcsolja be a fizetést
+  assert.equal(kornyezet.beallitasok({ KORNYEZET: "prod", FIZETES_AR_PROFI: "price_p" }).fizetes, false);
 });
 
 test("a visszatérési cím csak https-eredet lehet", () => {
