@@ -356,9 +356,27 @@
       const { data } = await feladatElemzes({ feladatId });
       rajzol(data);
     } catch (e) {
+      // A szerver a csomag-zárat csomag_alap_kell kóddal jelzi: ilyenkor a barátságos kártya jön, nem hibaüzenet.
+      if (e?.details?.kod === 'csomag_alap_kell') {
+        zarKartya();
+        return;
+      }
       uzenet('msg', hibaSzoveg(e));
       vissza();
     }
+  }
+
+  function zarKartya() {
+    tartalom.innerHTML = `
+      <div class="panel">
+        <div class="panel-header"><h2>${t('elz.zar_cim')}</h2></div>
+        <div class="panel-body">
+          <p>${t('elz.zar_szoveg')}</p>
+          <div class="gomb-sor">
+            <a class="btn-primary" href="tanar.html#csomag-panel">${t('elz.zar_gomb')}</a>
+          </div>
+        </div>
+      </div>`;
   }
 
   // ══════════════════════════════════════════

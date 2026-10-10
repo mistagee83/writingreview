@@ -79,4 +79,28 @@ function kvotaDontes({ csomag, hasznalt, koltseg }) {
   return { engedett: limit === null || mar + koltseg <= limit, limit, hasznalt: mar };
 }
 
-module.exports = { EGYSEG_KOLTSEG, CSOMAGOK, ALAP_CSOMAG, honapKulcs, csomagNev, keret, idoszak, hasznalatKulcs, kvotaDontes };
+/**
+ * Csomaghoz kötött funkciók: melyik csomagoknál érhetők el (kvótás környezetben).
+ * Az ingyenes csomag egyiknél sem szerepel. Egy új, csomaghoz kötött funkció
+ * ide kerül, a szerveroldali zár (functions/index.js, funkcioKapu) ezt olvassa.
+ */
+const FUNKCIOK = {
+  // osztályszintű elemzés (feladatElemzes): az Alap csomagtól
+  osztaly_elemzes: ["alap", "profi", "korlatlan"],
+  // fejlődés-követés (fejlodesLista, fejlodesDiak): a Profi csomag része
+  fejlodes: ["profi", "korlatlan"]
+};
+
+/**
+ * Elérhető-e a funkció? Kvóta nélküli környezetben (pilot) mindenkinek; egyébként a
+ * csomag szerint. Az ismeretlen csomag ingyenesnek, az ismeretlen funkció tiltottnak számít.
+ */
+function funkcioEngedelyezett(kvotaBe, csomag, funkcio) {
+  if (!kvotaBe) return true;
+  return Object.hasOwn(FUNKCIOK, funkcio) && FUNKCIOK[funkcio].includes(csomagNev(csomag));
+}
+
+module.exports = {
+  EGYSEG_KOLTSEG, CSOMAGOK, ALAP_CSOMAG, FUNKCIOK, honapKulcs, csomagNev, keret, idoszak, hasznalatKulcs, kvotaDontes,
+  funkcioEngedelyezett
+};

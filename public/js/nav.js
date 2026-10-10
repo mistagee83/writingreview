@@ -9,13 +9,14 @@
 
 // Csak létező oldalak szerepelnek itt – a még el nem készült modulokat
 // a tanar.html modul-kártyái hirdetik, nem a menü.
-// (Az osztálynévsor az osztalyok.html-ben van, nincs külön "Diákok".)
+// (Az osztálynévsor az osztalyok.html-ben van; a "Diákok" a fejlődés-követés nézete.)
 import { t } from "./i18n.js";
 
 const MENU = [
   { label: "nav.menu" },
   { href: "tanar.html",     ikon: "🏠", cim: "nav.fooldal" },
   { href: "osztalyok.html", ikon: "🎓", cim: "nav.osztalyok" },
+  { href: "diakok.html",    ikon: "👥", cim: "nav.diakok" },
   { href: "feladatok.html", ikon: "📋", cim: "nav.feladatok" },
   { href: "javitas.html",   ikon: "✏️", cim: "nav.javitas" }
 ];

@@ -64,6 +64,7 @@
       <div class="panel-body">
         <p id="csomag-szoveg"></p>
         <p class="halvany" id="csomag-masodlagos"></p>
+        <ul class="csomag-funkciok" id="csomag-funkciok"></ul>
         <div class="gomb-sor">
           <span id="csomag-gombok"></span>
           <button class="btn-sm" id="btn-kezeles" style="display:none;" data-i18n="tanar.gomb_kezeles">⚙️ Előfizetés kezelése</button>
@@ -95,6 +96,11 @@
         <div class="module-icon">✏️</div>
         <div class="module-title" data-i18n="tanar.modul_javitas_cim">Javítási sor</div>
         <div class="module-desc" data-i18n="tanar.modul_javitas_leiras">Az AI javaslatainak ellenőrzése, jegy és visszajelzés elküldése.</div>
+      </a>
+      <a class="module-card" href="diakok.html">
+        <div class="module-icon">👥</div>
+        <div class="module-title" data-i18n="tanar.modul_diakok_cim">Diákok fejlődése</div>
+        <div class="module-desc" data-i18n="tanar.modul_diakok_leiras">Diákonként a pontszázalék és az ismétlődő hibák alakulása feladatról feladatra. A Profi csomag része.</div>
       </a>
       <a class="module-card" href="feladatok.html">
         <div class="module-icon">📊</div>
@@ -189,6 +195,7 @@
     gombok.innerHTML = '';
     megerositesElrejt();
     btnKezeles.style.display = 'none';
+    funkciokRajzol(d);
 
     if (d.csomag_forras === 'admin' && d.csomag !== 'ingyenes') {
       szoveg.textContent = t('tanar.csomag_kezi');
@@ -221,6 +228,25 @@
         gombok.appendChild(gomb);
       }
       if (e?.van_ugyfel) btnKezeles.style.display = '';   // korábbi előfizetés számlái
+    }
+  }
+
+  // Mit tartalmaz a csomag: az ingyenes és a szerver által kínált csomagok, a sajátod kiemelve.
+  function funkciokRajzol(d) {
+    const lista = document.getElementById('csomag-funkciok');
+    lista.replaceChildren();
+    const nevek = ['ingyenes', ...(d.csomagok || []).map((c) => c.nev)];
+    for (const nev of nevek) {
+      const li = document.createElement('li');
+      const cim = document.createElement('strong');
+      cim.textContent = t(`admin.csomag_${nev}`);
+      li.append(cim, ` ${t(`tanar.csomag_fn_${nev}`)}`);
+      if (nev === d.csomag) {
+        li.classList.add('aktualis');
+        li.setAttribute('aria-current', 'true');
+        li.append(` ${t('tanar.csomag_fn_tied')}`);
+      }
+      lista.appendChild(li);
     }
   }
 

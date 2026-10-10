@@ -34,6 +34,7 @@ const KEZDOLAP = {
  */
 const SZULO = {
   "osztalyok.html": "tanar.html",
+  "diakok.html": "tanar.html",
   "feladatok.html": "tanar.html",
   "javitas.html": "tanar.html",
   "admin.html": "tanar.html",
@@ -50,6 +51,7 @@ const NEVEK = {
   "diak.html": "nav.feladataim",
   "feladatok.html": "nav.feladatok",
   "osztalyok.html": "nav.osztalyok",
+  "diakok.html": "nav.diakok",
   "javitas.html": "nav.javitas",
   "admin.html": "nav.szerepkezeles",
   "ai-hasznalat.html": "nav.ai_hasznalat"

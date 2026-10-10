@@ -206,6 +206,9 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **DEPLOY HIÁNYZIK (2026-10-10): fejlődés-követés + az osztályelemzés az Alap csomagba (lásd 5/f).** A kód a munkafában kész, de **nincs commitolva és nincs deployolva**:
+  a **prod** (a `v1.7.3` címke, `eeb006f`) és a **pilot** is a régi kódot futtatja. Amíg nincs kiadás, az ingyenes tanár prodon még ingyen kap osztályelemzést,
+  és nincs Diákok menüpont. Pilot: `node scripts/deploy.mjs pilot --only hosting,functions`; prod: új címke (pl. `v1.8.0`). Csak a felhasználó kérésére.
 - **Külső audit 5. kör (tesztek):** a gyenge tesztek javítva; új `storage.test.mjs` (Storage-emulátor az `npm test`-ben) és `callable-jogosultsag.test.mjs`. **A Storage-teszt szabályhézagot talált:** létező fájl felülírása átment a `create` szabályon; a `storage.rules` `create` ágai most `resource == null`-t kérnek. **A Storage-szabály deployolva: pilot és prod is (2026-10-07, `--only storage`).** Részletek: `audit/ellenorzes/kor-5.md`.
 - **A tanári regisztráció kézi, és a kereskedelmi verzióban így nem működhet.** Ma mindenki
   **diákként** regisztrál (`index.html`), a tanári szerepet egy **admin** adja meg: a
@@ -363,6 +366,30 @@ cd writingreview
 - **Deploy-figyelmeztetés:** a három új függvény (`stripeWebhook`, `fizetesIndit`, `fizetesKezeles`) a `STRIPE_SECRET_KEY` és `STRIPE_WEBHOOK_SECRET` titkot várja
   **minden projektben** (a pilotban helyőrző is jó). Titok nélkül a deploy elhasal, ezért a következő kiadás (pilot és prod) ELŐTT be kell állítani őket.
 - **Nem kész:** a **számlázz.hu** (NAV-s számla) automatikus kiállítása a befizetésekről; az áfa/Stripe Tax a könyvelői válasz után; a jogi dokumentumok. Ezek nélkül éles fizetés nem indítható.
+
+## 5/f. Fejlődés az idő mentén és csomaghoz kötött funkciók (2026-10-10) – kód kész, **még NINCS deployolva és commitolva**
+
+- **Csomag-szintek (prod; a pilotban nincs kvóta, ott minden funkció mindenkinek elérhető):** Ingyenes = javítás és jóváhagyás egyszeri kerettel; **Alap** = + **osztályszintű
+  elemzés** (`feladatElemzes`); **Profi** = + **fejlődés-követés** (Diákok menü). A `korlatlan` mindkettőt kapja. A tábla egy helyen: `functions/kvota.js` → `FUNKCIOK`
+  (új csomaghoz kötött funkció = egy sor + egy zár). A zár **szerveroldali** (`funkcioEngedett`, `fejlodesKapu`, `osztalyElemzesKapu` a `functions/index.js`-ben); a felület csak a barátságos kártyát adja
+  a szerver hibakódja (`csomag_profi_kell`, `csomag_alap_kell`) alapján. Az ismeretlen csomag/funkció zárt.
+- **Fejlődés-követés (Diákok menü, `public/diakok.html`):** osztály kiválasztása → diáklista (jóváhagyott beadások, utolsó eredmény, trend) → diákonként két grafikon
+  (pontszázalék-vonal; hibák kategóriánként, halmozott oszlop) + ismétlődő hibatípusok (legalább két feladatban). **A pont a tanár által jóváhagyott** (`ertekeles/tanari.szazalek`,
+  csak `statusz: elkuldve`), **a hibák az AI-értékelésből** (`ertekeles/ai.hibak[]`; a tanári oldalon nincs hibalista). Szerver: `functions/fejlodes.js` (tiszta számtan),
+  callable-ök: `fejlodesLista`, `fejlodesDiak` (osztály-tulajdonos és `tanar_id` ellenőrzéssel). Grafikon: `public/js/fejlodes-grafikon.js` (dataviz-szabályok, validált paletta,
+  tooltip hoverre és fókuszra, összecsukható adattáblázat). Az oldal csak világos módú; a sötét tokenek (`:root[data-theme="dark"] .viz-root`) előkészítve.
+- **Osztályszintű elemzés az Alapba került:** az ingyenes tanár `csomag_alap_kell` hibát kap, az `elemzes.html` az „Az Alap csomagtól elérhető” kártyát mutatja. **A korábban,
+  ingyenesen generált, mentett elemzések (`feladatok/*/elemzes/osszegzes`) továbbra is olvashatók** (a tanár közvetlenül olvassa a szabályok szerint); újat már nem tud készíteni.
+- **Csomag-panel (`tanar.html`):** a csomagok tartalma (kiemelve a tiéd), új „Diákok fejlődése” modul-kártya; a szövegekben nincs beégetett szám vagy ár.
+- **Tesztek:** `tests/fejlodes.test.mjs` (emulátor nélkül, hamis Firestore-ral: számtan, zárak, tulajdonos-ellenőrzés, a `feladatElemzes` zárjának sorrendje, szótárak),
+  `callable-jogosultsag` (új callable-ök), `i18n`, `fejlec`. Emulátoros teszt ehhez nem készült; a Firestore-lekérdezések (`osztaly_id`/`diak_id` + `statusz`, csak egyenlőség) összetett indexet
+  nem igényelnek, de **élesben (a prodon) az első használatkor érdemes megnézni, nem kér-e indexet a konzol.**
+- **Nem próbálva böngészőben valódi adattal** (belépés és Firestore kell hozzá): a grafikon kitalált adattal ellenőrizve (asztali és telefonos szélesség), az oldalak maguk nem.
+- **Teljesítmény:** a lista beadásonként 2–3 olvasást végez (tanári + AI-értékelés + feladatcím gyorsítótárral). Nagy osztályoknál később érdemes előre számolt összesítőt tárolni.
+- **Jogi megjegyzés (fontos):** a fejlődés-követés a diák adatát **hosszabb ideig, több feladaton át** követi és összesíti: ez a megőrzési időt és az adatvédelmi jogász válaszát érinti
+  (új, 18. kérdés az `adatvedelmi-kerdesek.md`-ben). A funkció nem épít új adatot (a meglévő jóváhagyott beadásokból számol), de a megőrzési idő/törlés jövőbeli megépítésekor ezt is figyelembe kell venni.
+- **Még hátra a leirat szerint:** B) színválasztás (Alap csomagtól, ugyanezzel a `FUNKCIOK` mechanizmussal), C) landing oldal (a csomagok tartalma: a fentiek).
+  Osztályszintű, több feladatot átfogó hibaalakulás (a leirat A) pont második fele) még nincs.
 
 ## 5/b. BLOKKOLÓ: a Google korhatár-kikötése (2026-10-09)
 

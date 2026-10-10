@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="diakok.oldalcim">WritingReview – Diákok</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
+  </div>
+</div>
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main narrow">
+    <div class="page-header">
+      <h1 data-i18n="diakok.cim">Diákok</h1>
+      <p data-i18n="diakok.alcim">Hogyan fejlődnek a diákjaid feladatról feladatra: pontszázalék és ismétlődő hibák</p>
+    </div>
+
+    <!-- Profi-zár: a szerver utasítja el az alacsonyabb csomagot, ez csak a barátságos magyarázat -->
+    <div class="panel" id="zar-kartya" style="display:none;">
+      <div class="panel-header"><h2 data-i18n="diakok.zar_cim">⭐ Profi csomaggal elérhető</h2></div>
+      <div class="panel-body">
+        <p data-i18n="diakok.zar_szoveg">A fejlődés-követés a Profi csomag része.</p>
+        <div class="gomb-sor">
+          <a class="btn-primary" href="tanar.html#csomag-panel" data-i18n="diakok.zar_gomb">Csomagok megtekintése</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="tartalom">
+      <div class="panel">
+        <div class="panel-body">
+          <label for="osztaly-valaszto" data-i18n="diakok.osztaly_cimke">Osztály</label>
+          <select id="osztaly-valaszto"></select>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-body flush">
+          <div id="lista" aria-live="polite">
+            <div class="empty-state bare"><p data-i18n="kozos.betoltes">Betöltés...</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="reszlet-panel" style="display:none;" tabindex="-1">
+        <div class="panel-header"><h2 id="reszlet-cim"></h2></div>
+        <div class="panel-body" id="reszlet" aria-live="polite"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { t, datumSzoveg } from './js/i18n.js';
+  import { vedettOldal, esc } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { hibaSzoveg } from './js/ui.js';
+  import { pontGrafikon, hibaGrafikon, ismetlodoLista } from './js/fejlodes-grafikon.js';
+  import {
+    db, functions, httpsCallable,
+    collection, getDocs, query, where, orderBy
+  } from './js/firebase-config.js';
+
+  const { user, admin } = await vedettOldal('tanar');
+  oldalsav('diakok.html', { admin });
+
+  const fejlodesLista = httpsCallable(functions, 'fejlodesLista');
+  const fejlodesDiak = httpsCallable(functions, 'fejlodesDiak');
+
+  const valaszto = document.getElementById('osztaly-valaszto');
+  const lista = document.getElementById('lista');
+  const reszletPanel = document.getElementById('reszlet-panel');
+  const reszlet = document.getElementById('reszlet');
+
+  const uresAllapot = (ikon, szoveg) =>
+    `<div class="empty-state bare"><div class="empty-icon">${ikon}</div><p>${esc(szoveg)}</p></div>`;
+
+  /** A szerver a csomag-zárat `csomag_profi_kell` kóddal jelzi: ilyenkor a Profi kártya jön. */
+  function zarVoltE(e) {
+    return e?.details?.kod === 'csomag_profi_kell';
+  }
+
+  function zarMutat() {
+    document.getElementById('tartalom').style.display = 'none';
+    document.getElementById('zar-kartya').style.display = '';
+  }
+
+  // ── OSZTÁLYOK ──
+  async function osztalyokBetolt() {
+    const snap = await getDocs(query(
+      collection(db, 'osztalyok'),
+      where('tanar_id', '==', user.uid),
+      orderBy('letrehozva', 'desc')
+    ));
+    if (snap.empty) {
+      valaszto.disabled = true;
+      lista.innerHTML = uresAllapot('🎓', t('diakok.nincs_osztaly'));
+      return;
+    }
+    valaszto.innerHTML = snap.docs
+      .map((d) => `<option value="${esc(d.id)}">${esc(d.data().nev)}</option>`)
+      .join('');
+    await listaBetolt();
+  }
+
+  // ── DIÁKLISTA ──
+  const TREND = {
+    fel: 'diakok.trend_fel', le: 'diakok.trend_le', valtozatlan: 'diakok.trend_valtozatlan'
+  };
+
+  async function listaBetolt() {
+    reszletPanel.style.display = 'none';
+    lista.innerHTML = uresAllapot('⏳', t('kozos.betoltes'));
+    try {
+      const { data } = await fejlodesLista({ osztalyId: valaszto.value });
+      if (!data.diakok.length) {
+        lista.innerHTML = uresAllapot('🧑‍🎓', t('diakok.nincs_diak'));
+        return;
+      }
+      lista.innerHTML = `<table class="tabla">
+        <thead><tr>
+          <th>${t('diakok.oszlop_nev')}</th>
+          <th>${t('diakok.oszlop_beadas')}</th>
+          <th>${t('diakok.oszlop_utolso')}</th>
+          <th>${t('diakok.oszlop_trend')}</th>
+          <th></th>
+        </tr></thead>
+        <tbody>${data.diakok.map((d) => `<tr>
+          <td>${esc(d.nev)}</td>
+          <td>${d.beadas_db}</td>
+          <td>${d.utolso_szazalek == null ? '–' : `${d.utolso_szazalek}%`}</td>
+          <td>${t(TREND[d.trend] || 'diakok.trend_nincs')}</td>
+          <td class="tabla-akcio">
+            <button class="btn-sm" data-diak="${esc(d.diak_id)}" data-nev="${esc(d.nev)}"
+                    ${d.beadas_db ? '' : 'disabled'}>${t('diakok.reszletek_gomb')}</button>
+          </td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+    } catch (e) {
+      if (zarVoltE(e)) { zarMutat(); return; }
+      console.error(e);
+      lista.innerHTML = uresAllapot('⚠️', t('diakok.lista_hiba', { ok: hibaSzoveg(e) }));
+    }
+  }
+
+  // ── EGY DIÁK RÉSZLETEI ──
+  async function reszletBetolt(diakId, nev) {
+    document.getElementById('reszlet-cim').textContent = t('diakok.reszlet_cim', { nev });
+    reszletPanel.style.display = '';
+    reszlet.innerHTML = uresAllapot('⏳', t('kozos.betoltes'));
+    reszletPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try {
+      const { data } = await fejlodesDiak({ osztalyId: valaszto.value, diakId });
+      if (!data.pontok.length) {
+        reszlet.innerHTML = uresAllapot('📭', t('diakok.nincs_adat'));
+        return;
+      }
+      const figyelmeztetes = data.pontok.length < 2
+        ? `<p class="halvany">${t('diakok.keves_adat')}</p>` : '';
+      // A táblázat az adatok pontos, olvasóprogrammal is elérhető nézete (a grafikon mellé is kell).
+      reszlet.innerHTML = `${figyelmeztetes}
+        <div id="grafikonok"></div>
+        <details class="viz-tabla"><summary>${t('diakok.tabla_cim')}</summary>
+        <div class="tabla-gorgeto"><table class="tabla">
+          <thead><tr>
+            <th>${t('diakok.oszlop_feladat')}</th>
+            <th>${t('diakok.oszlop_datum')}</th>
+            <th>${t('diakok.oszlop_pont')}</th>
+          </tr></thead>
+          <tbody>${data.pontok.map((p) => `<tr>
+            <td>${esc(p.feladat_cim || '–')}</td>
+            <td>${p.ido ? datumSzoveg(new Date(p.ido)) : '–'}</td>
+            <td>${p.szazalek}%</td>
+          </tr>`).join('')}</tbody>
+        </table></div></details>`;
+      document.getElementById('grafikonok').append(
+        pontGrafikon(data.pontok), hibaGrafikon(data.pontok), ismetlodoLista(data.ismetlodo)
+      );
+    } catch (e) {
+      if (zarVoltE(e)) { zarMutat(); return; }
+      console.error(e);
+      reszlet.innerHTML = uresAllapot('⚠️', t('diakok.reszlet_hiba', { ok: hibaSzoveg(e) }));
+    }
+  }
+
+  valaszto.addEventListener('change', listaBetolt);
+  lista.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-diak]');
+    if (b) reszletBetolt(b.dataset.diak, b.dataset.nev);
+  });
+
+  try {
+    await osztalyokBetolt();
+  } catch (e) {
+    console.error(e);
+    lista.innerHTML = uresAllapot('⚠️', t('osztalyok.betoltesi_hiba'));
+  }
+</script>
+</body>
+</html>

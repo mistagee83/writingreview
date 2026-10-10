@@ -1685,3 +1685,74 @@ mark.beillesztett { background: #fde68a; color: inherit; padding: 0 0.1em; borde
 .csomag-megerosites { margin-top: 1rem; padding: 0.9rem 1.1rem; border: 1.5px solid var(--accent); border-radius: 10px; background: var(--accent-light); }
 .csomag-megerosites p { margin: 0 0 0.75rem; line-height: 1.6; }
 .jelzes-lista { margin: 0.4rem 0 0.6rem 1.1rem; padding: 0; line-height: 1.6; }
+
+/* ── Grafikonok (fejlődés-követés; js/fejlodes-grafikon.js) ── */
+/* A színek dataviz-validált tokenek; az oldal jelenleg csak világos módú, a sötét változat a téma-váltóhoz készen áll. */
+.viz-root {
+  --viz-felulet: #ffffff;
+  --viz-szoveg: #0b0b0b;
+  --viz-szoveg-2: #52514e;
+  --viz-halvany: #7a7670;
+  --viz-racs: #e1e0d9;
+  --viz-alap: #c3c2b7;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+}
+:root[data-theme="dark"] .viz-root {
+  --viz-felulet: #1a1a19;
+  --viz-szoveg: #ffffff;
+  --viz-szoveg-2: #c3c2b7;
+  --viz-halvany: #898781;
+  --viz-racs: #2c2c2a;
+  --viz-alap: #383835;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+}
+.viz-kartya { margin-bottom: 1.5rem; position: relative; }
+.viz-cim { font-size: 1rem; font-weight: 600; color: var(--viz-szoveg); }
+.viz-alcim { font-size: 0.85rem; color: var(--viz-szoveg-2); margin: 0.15rem 0 0.75rem; }
+.viz-tarto { position: relative; }
+.viz-svg { width: 100%; height: auto; display: block; }
+.viz-racs { stroke: var(--viz-racs); stroke-width: 1; }
+.viz-alap { stroke: var(--viz-alap); stroke-width: 1; }
+.viz-tengely { fill: var(--viz-halvany); font-size: 12px; }
+.viz-ertek { fill: var(--viz-szoveg); font-size: 13px; font-weight: 600; }
+.viz-vonal { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.viz-terulet { fill: var(--series-1); fill-opacity: 0.1; stroke: none; }
+.viz-pont { fill: var(--series-1); stroke: var(--viz-felulet); stroke-width: 2; }
+.viz-kereszt { stroke: var(--viz-alap); stroke-width: 1; pointer-events: none; }
+.viz-hit { fill: transparent; outline: none; cursor: crosshair; }
+.viz-tooltip {
+  position: absolute; top: 0; z-index: 2; pointer-events: none; min-width: 9rem;
+  background: var(--viz-felulet); color: var(--viz-szoveg); border: 1px solid var(--viz-racs);
+  border-radius: 8px; padding: 0.5rem 0.7rem; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12); font-size: 0.85rem;
+}
+.viz-tooltip[hidden] { display: none; }
+.viz-tt-cim { color: var(--viz-szoveg-2); margin-bottom: 0.25rem; }
+.viz-tt-sor { display: flex; align-items: center; gap: 0.45rem; line-height: 1.6; }
+.viz-tt-kulcs { width: 12px; height: 3px; border-radius: 2px; flex: none; }
+.viz-tt-cimke { color: var(--viz-szoveg-2); }
+.viz-jelmagyarazat { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin: 0.75rem 0 0; font-size: 0.85rem; color: var(--viz-szoveg-2); }
+.viz-jelmagyarazat li { display: flex; align-items: center; gap: 0.4rem; }
+.viz-jel { width: 10px; height: 10px; border-radius: 2px; flex: none; display: inline-block; }
+.viz-hibalista { list-style: none; margin: 0.5rem 0 0; }
+.viz-hibalista li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--viz-racs); }
+.viz-hibalista li:last-child { border-bottom: none; }
+.viz-cimke-uj { font-size: 0.78rem; font-weight: 600; color: var(--warn); background: var(--warn-light); border-radius: 999px; padding: 0.1rem 0.55rem; }
+.viz-tabla { margin-top: 0.5rem; }
+.viz-tabla summary { cursor: pointer; font-size: 0.9rem; color: var(--muted); padding: 0.4rem 0; }
+/* A csomagok tartalma a csomag-panelen; a sajátod kiemelve */
+.csomag-funkciok { list-style: none; margin: 0.75rem 0 0; }
+.csomag-funkciok li { padding: 0.35rem 0.6rem; border-left: 3px solid transparent; font-size: 0.9rem; line-height: 1.55; color: var(--muted); }
+.csomag-funkciok li.aktualis { border-left-color: var(--accent); background: var(--accent-light); color: var(--ink); }
+.csomag-funkciok strong { color: var(--ink); }

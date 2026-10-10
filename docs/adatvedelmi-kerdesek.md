@@ -81,6 +81,11 @@ van: egy „pilot” (kollégák, saját használat) és egy kereskedelmi „pro
     kiskorú diák viselkedésének megfigyelése: milyen jogalap és tájékoztatás kell hozzá, arányos-e, kell-e külön hozzájárulás vagy az iskola
     jóváhagyása, és mit jelent a megőrzési idő szempontjából (a jelzések a beadással együtt tárolódnak)?
 
+**H. Fejlődés-követés (Profi csomag)**
+18. A tanár diákonként, több feladaton át látja a jóváhagyott pontszázalékokat és az AI által jelölt hibatípusokat (idővonal, ismétlődő hibák). Ez nem új
+    adat, hanem a meglévő beadások összesítése, de hosszabb időre és profilszerűen követi a kiskorú diák teljesítményét. Kell-e ehhez külön jogalap vagy
+    tájékoztatás, számít-e profilalkotásnak, és milyen megőrzési időt javasol (mennyi ideig lehet a korábbi feladatokat összesíteni)?
+
 ## 4. Mit kérek
 
 Először egy rövid (1–2 órás) konzultációt, a fenti kérdésekre prioritási sorrendben (különösen az A, B és C pontokra), utána a tájékoztató és a

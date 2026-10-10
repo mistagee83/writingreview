@@ -28,6 +28,7 @@ const kornyezet = require("./kornyezet");
 const kvota = require("./kvota");
 const aiHasznalat = require("./ai-hasznalat");
 const fizetes = require("./fizetes");
+const fejlodes = require("./fejlodes");
 
 initializeApp();
 
@@ -179,7 +180,9 @@ const HIBA_SZOVEG = {
   mar_elofizetett: () => "Már van aktív előfizetésed. Az előfizetést az „Előfizetés kezelése” gombbal módosíthatod.",
   csomag_kezi: () => "A csomagodat az üzemeltető állította be, ezért itt nem fizethetsz elő. Írj az üzemeltetőnek.",
   nincs_ugyfel: () => "Még nincs előfizetésed, ezért nincs mit kezelni.",
-  fizetes_hiba: () => "A fizetési szolgáltatás nem válaszolt. Próbáld újra egy perc múlva."
+  fizetes_hiba: () => "A fizetési szolgáltatás nem válaszolt. Próbáld újra egy perc múlva.",
+  csomag_profi_kell: () => "A fejlődés-követés a Profi csomag része.",
+  csomag_alap_kell: () => "Az osztályszintű elemzés az Alap csomagtól érhető el."
 };
 
 /** Kódolt HttpsError: magyar üzenet + details.kod a kliens fordításához. */
@@ -1688,6 +1691,10 @@ exports._teszt = {
   kvotaAllapotLogika,
   csomagBeallitasLogika,
   fizetesAllapotLogika,
+  fejlodesKapu,
+  osztalyElemzesKapu,
+  fejlodesListaLogika,
+  fejlodesDiakLogika,
   stripeEsemenyFeldolgozas,
   stripeWebhookKezeles,
   fizetesInditasLogika,
@@ -2044,6 +2051,122 @@ async function fizetesAllapotLogika(firestore, uid, beallitasok = BEALLITASOK) {
 exports.kvotaAllapot = onCall(HIVAS_OPCIOK, async (request) => {
   const uid = tanar(request);
   return { ...(await kvotaAllapotLogika(db(), uid)), ...(await fizetesAllapotLogika(db(), uid)) };
+});
+
+// ══════════════════════════════════════════════════════
+// FEJLŐDÉS AZ IDŐ MENTÉN (Profi csomag; a számtan: functions/fejlodes.js)
+//
+// A zár a SZERVEREN van: a tanár a szabályok szerint olvashatná a beadásokat,
+// ezért a felület-zár önmagában kiskapu lenne. A két callable csomagot és az
+// osztály tulajdonosát is ellenőrzi, mielőtt adatot ad.
+// ══════════════════════════════════════════════════════
+
+/**
+ * Csomag-zár egy funkcióra (a tábla: kvota.FUNKCIOK): kvótás környezetben csak a megfelelő
+ * csomagoknál; egyébként (pilot) mindenki. A tanár csomagját csak akkor olvassa, ha kell.
+ */
+async function funkcioEngedett(firestore, uid, funkcio, beallitasok = BEALLITASOK) {
+  if (!beallitasok.kvota) return true;
+  const tanarSnap = await firestore.collection("tanarok").doc(uid).get();
+  return kvota.funkcioEngedelyezett(true, tanarSnap.data()?.csomag, funkcio);
+}
+
+/** A fejlődés-követés zárja: Profi és korlátlan csomag. */
+async function fejlodesKapu(firestore, uid, beallitasok) {
+  if (!(await funkcioEngedett(firestore, uid, "fejlodes", beallitasok))) {
+    throw hiba("permission-denied", "csomag_profi_kell");
+  }
+}
+
+/** Az osztályszintű elemzés zárja: Alap, Profi és korlátlan csomag. */
+async function osztalyElemzesKapu(firestore, uid, beallitasok) {
+  if (!(await funkcioEngedett(firestore, uid, "osztaly_elemzes", beallitasok))) {
+    throw hiba("permission-denied", "csomag_alap_kell");
+  }
+}
+
+/** Az osztály a hívó tanáré-e (a kapu után). */
+async function fejlodesOsztaly(firestore, uid, osztalyId) {
+  if (!osztalyId || typeof osztalyId !== "string") throw hiba("invalid-argument", "osztaly_diak_id_kell");
+  const snap = await firestore.collection("osztalyok").doc(osztalyId).get();
+  if (!snap.exists) throw hiba("not-found", "osztaly_nincs");
+  if (snap.data().tanar_id !== uid) throw hiba("permission-denied", "nem_a_te_osztalyod");
+  return snap;
+}
+
+/**
+ * A jóváhagyott beadások idővonal-pontjai (beadás-dokumentumok → pontok).
+ * A feladat címét feladatonként egyszer olvassuk.
+ */
+async function fejlodesPontok(firestore, uid, beadasDokumentumok) {
+  const feladatCimek = new Map();
+  const pontok = [];
+  for (const d of beadasDokumentumok) {
+    const beadas = d.data();
+    // a tanar_id-t a kliens írta: csak a saját beadásokat számoljuk
+    if (beadas.tanar_id !== uid) continue;
+    const [tanari, ai] = await Promise.all([
+      d.ref.collection("ertekeles").doc("tanari").get(),
+      d.ref.collection("ertekeles").doc("ai").get()
+    ]);
+    if (!feladatCimek.has(beadas.feladat_id)) {
+      const f = await firestore.collection("feladatok").doc(beadas.feladat_id).get();
+      feladatCimek.set(beadas.feladat_id, f.data()?.cim || null);
+    }
+    const pont = fejlodes.idovonalPont({
+      beadas, tanari: tanari.data(), ai: ai.data(), feladatCim: feladatCimek.get(beadas.feladat_id)
+    });
+    if (pont) pontok.push({ ...pont, diak_id: beadas.diak_id, diak_nev: beadas.diak_nev || "" });
+  }
+  return fejlodes.idovonalRendezes(pontok);
+}
+
+/** Egy osztály diáklistája: név, beadások száma, utolsó pontszázalék, trend. */
+async function fejlodesListaLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
+  await fejlodesKapu(firestore, uid, beallitasok);
+  const osztalyId = adat?.osztalyId;
+  await fejlodesOsztaly(firestore, uid, osztalyId);
+
+  const [tagok, beadasok] = await Promise.all([
+    firestore.collection("osztalyok").doc(osztalyId).collection("tagok").get(),
+    firestore.collection("beadasok")
+      .where("osztaly_id", "==", osztalyId).where("statusz", "==", "elkuldve").get()
+  ]);
+  const pontok = await fejlodesPontok(firestore, uid, beadasok.docs);
+  const diakonkent = new Map();
+  for (const p of pontok) {
+    if (!diakonkent.has(p.diak_id)) diakonkent.set(p.diak_id, []);
+    diakonkent.get(p.diak_id).push(p);
+  }
+  return {
+    diakok: fejlodes.diakLista(tagok.docs.map((t) => ({ uid: t.id, nev: t.data().nev })), diakonkent)
+  };
+}
+
+/** Egy diák idővonala az osztályban: pontszázalék és hibák feladatról feladatra. */
+async function fejlodesDiakLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
+  await fejlodesKapu(firestore, uid, beallitasok);
+  const { osztalyId, diakId } = adat || {};
+  if (!diakId || typeof diakId !== "string") throw hiba("invalid-argument", "osztaly_diak_id_kell");
+  await fejlodesOsztaly(firestore, uid, osztalyId);
+
+  const beadasok = await firestore.collection("beadasok")
+    .where("diak_id", "==", diakId).where("osztaly_id", "==", osztalyId)
+    .where("statusz", "==", "elkuldve").get();
+  const pontok = await fejlodesPontok(firestore, uid, beadasok.docs);
+  const nev = pontok.length ? pontok[pontok.length - 1].diak_nev : "";
+  return {
+    nev,
+    ...fejlodes.diakNezet(pontok.map(({ diak_id, diak_nev, ...pont }) => pont))
+  };
+}
+
+exports.fejlodesLista = onCall(HIVAS_OPCIOK, async (request) => {
+  return fejlodesListaLogika(db(), tanar(request), request.data);
+});
+
+exports.fejlodesDiak = onCall(HIVAS_OPCIOK, async (request) => {
+  return fejlodesDiakLogika(db(), tanar(request), request.data);
 });
 
 // ══════════════════════════════════════════════════════
@@ -2567,6 +2690,9 @@ exports.feladatElemzes = onCall(
     if (!feladatId) throw hiba("invalid-argument", "feladat_id_kell");
 
     const firestore = db();
+
+    // Csomag-zár: kvótás környezetben az Alap csomagtól (az ingyenes nem kapja), minden adatolvasás előtt.
+    await osztalyElemzesKapu(firestore, uid);
 
     const feladatSnap = await firestore.collection("feladatok").doc(feladatId).get();
     if (!feladatSnap.exists) throw hiba("not-found", "feladat_nincs");
