@@ -78,7 +78,7 @@ szükséges módon tájékoztatta. **[JOGÁSZ: kell-e külön adatfeldolgozói m
   az értékeléshez. Ugyancsak az MI-hez kerül a **tanár által feltöltött feladatlap és tananyag**, amikor a tanár értékelési szempontokat vagy megoldókulcsot kér. **A diák neve és e-mail-címe nem kerül az MI-hez.**
   (Ha a diák a lapra leírja a nevét, az a képpel együtt eljut az MI-hez.)
 - **Automatizált döntéshozatal nincs:** az MI csak javaslatot tesz, a pontszámról és a jegyről a **tanár dönt**, és a diák csak a jóváhagyott eredményt látja.
-- Az MI hibázhat (a kézírás-felismerés is), ezért van a tanári jóváhagyás. Az átiratot a tanár látja és javíthatja.
+- Az MI hibázhat (a kézírás-felismerés is), ezért van a tanári jóváhagyás. Az átiratot a tanár a fotó mellett látja, így észreveheti a félreolvasást.
 - A Google a feltételei szerint a fizetős szint adatait **nem használja** termékfejlesztésre/modell-tanításra, de az adat **átmenetileg bármely országban tárolódhat vagy gyorsítótárba kerülhet**
   (lásd 7. pont). **[ELLENŐRIZNI: az aktuális Google-feltételek közzététel napján; a hivatkozás: <https://ai.google.dev/gemini-api/terms>]**
 - Az Üzemeltető a feltöltött tartalmat **nem használja MI-modell tanítására**, és nem ad át harmadik félnek marketing célra.

@@ -137,7 +137,7 @@ test("amit a felület és a bemutató ígér, azt a mentés nem cáfolhatja", as
   const { LEPESEK } = await import("../public/js/tura-lepesek.js");
   const lepes = LEPESEK.find((l) => l.cel === "#upload-zone");
   assert.ok(lepes, "nincs bemutató-lépés a feladatlap feltöltéséhez");
-  assert.match(SZOTARAK.hu[lepes.szoveg], /Nem kötelező/, "a bemutató nem állítja, hogy opcionális");
+  assert.match(SZOTARAK.hu[lepes.szoveg], /Nem kötelező|nélkül is kiadhatsz/, "a bemutató nem állítja, hogy opcionális");
   assert.match(SZOTARAK.en[lepes.szoveg], /optional/i, "the tour doesn't say it's optional");
 
   const html = readFileSync(new URL("feladatok.html", PUBLIC), "utf8");

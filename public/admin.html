@@ -32,8 +32,7 @@
   <main class="main narrow">
     <div class="page-header">
       <h1 data-i18n="admin.cim">Szerepkezelés</h1>
-      <p data-i18n="admin.alcim">Itt nevezhetsz ki tanárokat. Mindenki diákként regisztrál – tanári
-         jogot innen kap.</p>
+      <p data-i18n="admin.alcim">Itt adhatsz vagy vonhatsz vissza tanári és adminjogosultságot.</p>
     </div>
 
     <div class="stats-grid">
@@ -58,7 +57,7 @@
       </div>
       <div class="panel-body">
         <div class="code-input-row">
-          <input type="text" id="kereso" placeholder="Keresés név vagy email szerint…" data-i18n-placeholder="admin.kereso" />
+          <input type="text" id="kereso" placeholder="Keresés név vagy e-mail-cím szerint…" data-i18n-placeholder="admin.kereso" />
           <select id="szuro" style="max-width:190px;">
             <option value="mind" data-i18n="admin.szuro_mind">Mindenki</option>
             <option value="tanar" data-i18n="admin.szuro_tanar">Csak tanárok</option>
@@ -73,11 +72,7 @@
       </div>
     </div>
 
-    <p class="halvany" data-i18n="admin.megjegyzes">
-      A szerepváltás a felhasználó belépési tokenjébe épül. Ha épp be van
-      lépve, a következő oldalbetöltésnél magától frissül – ha mégsem, ki- és
-      belépés után biztosan.
-    </p>
+    <p class="halvany" data-i18n="admin.megjegyzes">Az új jogosultság a következő oldalbetöltéskor lép életbe. Ha még a korábbi szerep látszik, a felhasználó lépjen ki, majd be újra.</p>
   </main>
 </div>
 

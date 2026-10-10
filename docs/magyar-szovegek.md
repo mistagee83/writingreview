@@ -48,7 +48,10 @@ Az angol külön stílust követ: `public/js/i18n-en.js` fejléce az irányadó.
    Egyszerűbb állapot- és hibaüzenetek, közvetlen fotózási és beadási útmutató;
    a HTML-tartalékok is frissítve. A kulcsok és helyőrzők változatlanok.
 4/b. Kész, 2026-10-10: a szerver hibaüzenetei (`szerver.*`; **a magyar felületen a szerver magyar szövege jelenik meg, ezért a `functions/index.js` `HIBA_SZOVEG`-ét és a szótárt együtt kell módosítani, és a változás functions-deployt igényel**), az osztályelemzés oldal (`elz.*`), a fejlődéskövetés (`diakok.*`).
-5. Bemutató (`tura.*`), megoldókulcs-szerkesztő (`kf.*`, `kj.*`), hibaüzenetek (`szerver.*`).
+5. Bemutató (`tura.*`), megoldókulcs-szerkesztő (`kf.*`, `kj.*`) és admin oldalak
+   (`admin.*`, `aih.*`): kész, 2026-10-10. Közvetlenebb útmutatók, egyértelműbb
+   jogosultsági és pontozási szövegek; az árszorzó az AI-költséget módosítja,
+   az a/an példáknál a kiejtés számít. A `szerver.*` hibaüzenetek még hátravannak.
 6. Jogi szövegek (`docs/jogi/`): a jogász felülvizsgálata után; a pontosság előbbre való.
 
 ## Második olvasó

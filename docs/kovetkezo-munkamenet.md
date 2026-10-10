@@ -1,25 +1,28 @@
 # Következő munkamenet – átadó leirat
 
-> ## FRISS ÁLLAPOT (2026-10-10 este) – ezt olvasd el ELŐSZÖR
+> ## FRISS ÁLLAPOT (2026-10-10, a nap vége) – ezt olvasd el ELŐSZÖR
 >
-> **Kész és kiadva (prod, `v1.12.0`-ig):** fejlődéskövetés (Profi), osztályelemzés az Alapból, színválasztás (lenyíló a felső sávban, teljes háttér + tapéta), új nyitóoldal
-> (`index.html`; a belépés `belepes.html`), angol szövegek javítva. Részletek: `docs/folytatas.md` 5/f, 5/g, 5/h, 5/i.
+> **Kiadva (prod, a `v1.13.0` címkével; a tulajdonos a GitHubon hagyja jóvá a futást):** fejlődéskövetés (Profi), osztályelemzés az Alapból, színválasztás (lenyíló a felső sávban, teljes háttér + tapéta),
+> az új nyitóoldal (`index.html`; a belépés `belepes.html`), az angol szövegek javítása, a magyar szövegek 1–3. köre (nyitóoldal, belépés/regisztráció, tanári főoldal, osztályok, feladatok, javítási sor,
+> diákoldalak, osztályelemzés, fejlődéskövetés, szerver hibaüzenetei), „rubrika” → „értékelési szempontok”. A kiadás **functions-et is tartalmaz** (a szerver magyar hibaüzenetei megváltoztak).
+> Részletek: `docs/folytatas.md` 5/f, 5/g, 5/h, 5/i. A pilotra semmi nem ment, és csak a tulajdonos kérésére mehet.
 >
-> **Kész, de MÉG NINCS kiadva (helyi commitok a `v1.12.0` után):** a hero „akár 20 dolgozat” sora, a nyitóoldal magyar szövegeinek újraírása, a belépés/regisztráció magyar
-> szövegei (ChatGPT átnézte, én javítottam), „rubrika” → „értékelési szempontok” a magyar felületen, a magyar szövegezési útmutató. **A tulajdonos nem akar kis dolgokat pusholni: csak egyben, kérésre**
-> (`git tag v1.13.0 && git push origin main v1.13.0`; a jóváhagyás a GitHubon az övé). A pilotra semmi nem megy.
+> **Hol tartunk a magyar szövegekkel (`docs/magyar-szovegek.md` az útmutató és az átnézési sorrend):** KÉSZ: nyitóoldal, belépés/regisztráció, tanári főoldal, osztályok, feladatok, javítási sor, diákoldalak, osztályelemzés,
+> fejlődéskövetés, szerver hibaüzenetei. **HÁTRA:** a bemutató (`tura.*`, hosszú HTML-es szövegek), a megoldókulcs-szerkesztő és -javítás (`kf.*`, `kj.*`, `kulcshiba.*`), az admin oldalak (`admin.*`, `aih.*`),
+> a maradék apróságok (`fejlec.*`, `nav.*`, `vj.*` jegyzetek), a jogi szövegek stílusa (a jogász után). Munkamód: a szótárat szkripttel szerkesztem (kulcsok és `{helyőrzők}` változatlanok, névelő és ragozás
+> ellenőrzése, ragozott `{nev}`-et kerülni), a tulajdonos ChatGPT-vel kér második olvasatot (csak megjelölés; a változtatásokat a repóba is beírja, ezeket **át kell nézni**: egyszer „az leirat” névelő-hibákat vitt be),
+> végül egy tanár kolléga olvassa hangosan. Minden szócsere után futtasd a teszteket (egy-két teszt szó szerint ellenőriz magyar mondatot).
 >
-> **Soron következő:** a magyar szövegek átnézése az útmutató sorrendjében (`docs/magyar-szovegek.md`): tanári főoldal, osztályok, feladatok, javítási sor → diák oldalak (egyszerű, barátságos hang) → bemutató,
-> kulcsszerkesztő, hibaüzenetek. Munkamód: én írom át a szótárat (kulcsok és `{helyőrzők}` változatlanok), a tulajdonos ChatGPT-vel második olvasatot kér (csak megjelölés, nem átírás), végül egy tanár kolléga
-> hangosan olvassa. Ügyelj a névelőre és a ragozásra (egy szócsere után a névelő is változhat), és minden szócserénél futtasd a teszteket.
+> **Szójegyzék-döntések:** „leirat” (a kézírásból készült szöveg), „értékelési szempontok” (nem rubrika), „fejlődéskövetés” (egy szó), „személyes visszajelzés”, angolul „grading”/„Grading queue”/„sign in”.
 >
-> **Nyitott, nem műszaki (lásd a 4. pontot is):** jogász (18 kérdés, a 18. a fejlődéskövetésről még nem jutott el hozzá; `docs/jogi/` piszkozatok, közzététel előtt jogi átnézés kell), a Google korhatár-kikötése
-> (blokkoló kiskorú diákoknál), a számlázz.hu bekötése, az „elfogadom” jelölőnégyzet, Stripe éles módra váltása. Az emulátoros teszteket (rules, claim, functions, storage, *adatbazis*) a tulajdonos futtatja.
+> **Munkamód a tulajdonossal:** magyarul, egyszerűen; ahol van értelmes alapérték, dönts és jelezd; commit a kért munkához mehet, **push és címke csak kérésre és egyben** (`git tag v1.14.0 && git push origin main v1.14.0`,
+> a jóváhagyás a GitHubon az övé); a pilotra semmi sem megy kérés nélkül; kontextus-takarékosan dolgozz (nagy szótár-szerkesztés szkripttel, a tulajdonos szól, ha betelik).
 >
-> **Üzenet és hang:** `docs/folytatas.md` 5/h és a `landing-uzenet-pozicionalas` memória (a jó tanár még jobb lehet; nem időmegtakarítás; angolul „grading”, „Grading queue”).
-
-
-*Ezt olvasd el először egy új beszélgetés elején (a `CLAUDE.md` és a `docs/folytatas.md` mellett). Itt van, hol tart a projekt, mi a következő három feladat részletesen, és hogyan dolgozik a tulajdonos.*
+> **Nyitott, nem műszaki (lásd a 4. pontot is):** jogász (18 kérdés, a 18. a fejlődéskövetésről még nem jutott el hozzá; `docs/jogi/` piszkozatok, közzététel előtt jogi átnézés kell; a nyitóoldalon addig nincs jogi
+> hivatkozás), a Google korhatár-kikötése (blokkoló kiskorú diákoknál), a számlázz.hu bekötése, az „elfogadom” jelölőnégyzet, Stripe éles módra váltása. Az emulátoros teszteket (rules, claim, functions, storage,
+> *adatbazis*) a tulajdonos futtatja; ebben a munkamenetben egyiket sem futtattuk.
+>
+> **Üzenet és hang:** `docs/folytatas.md` 5/h és a `landing-uzenet-pozicionalas` memória (a jó tanár még jobb lehet; személyes, adatokra épülő, fejlesztő visszajelzés; nem időmegtakarítás).
 
 ## 1. Hogyan dolgozz a tulajdonossal (fontos)
 

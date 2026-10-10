@@ -206,6 +206,13 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **Bemutató, megoldókulcs és admin szövegek (2026-10-10):** a `tura.*`,
+  `kf.*`, `kj.*`, `admin.*`, `aih.*` átnézve. Természetesebb útmutatók,
+  pontosabb jogosultsági és pontozási üzenetek, javított árszorzó-felirat és
+  a/an példák. A HTML-tartalékok frissítve; a kulcsok és helyőrzők változatlanok.
+  144 célzott teszt és a pilot build sikeres. **Pilot és prod is még a korábbi
+  szövegeket használja; a javítások deployra várnak.** A `szerver.*` még hátravan.
+
 - **Diákoldalak szövegei (2026-10-10):** a `diak.*`, `beadas.*`, `vj.*` és
   diákstátuszok átnézve. Javított szórend, egyszerűbb állapot- és hibaüzenetek,
   pontosabb fotózási útmutató; a HTML-tartalékok is frissítve.
