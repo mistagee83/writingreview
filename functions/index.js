@@ -2053,7 +2053,8 @@ exports.kvotaAllapot = onCall(HIVAS_OPCIOK, async (request) => {
 /** A Stripe-kliens (lusta betöltés: a többi függvény betöltési ideje ne nőjön). */
 function stripeKliens(titok = STRIPE_SECRET_KEY.value()) {
   const Stripe = require("stripe");
-  return new Stripe(titok);
+  // a beillesztett titok végén gyakran van sortörés vagy szóköz: az érvénytelenítené a kulcsot
+  return new Stripe(String(titok).trim());
 }
 
 /**
@@ -2129,7 +2130,7 @@ exports.stripeWebhook = onRequest(
   { region: REGION, secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET], cors: false },
   async (req, res) => {
     if (!BEALLITASOK.fizetes) { res.status(404).send("A fizetés ki van kapcsolva"); return; }
-    await stripeWebhookKezeles(req, res, { stripe: stripeKliens(), titok: STRIPE_WEBHOOK_SECRET.value() });
+    await stripeWebhookKezeles(req, res, { stripe: stripeKliens(), titok: String(STRIPE_WEBHOOK_SECRET.value()).trim() });
   }
 );
 
