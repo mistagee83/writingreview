@@ -41,14 +41,9 @@
 /* ── hero ── */
 .lp-hero { padding: 64px 0 80px; }
 .lp-hero-racs { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
-.lp-elocim {
-  display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.1rem;
-  font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #3b3a37;
-}
-.lp-elocim::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
 .lp-hero h1 {
   font-family: 'Syne', sans-serif; font-weight: 800; letter-spacing: -0.035em; line-height: 1.04;
-  font-size: clamp(2.25rem, 5.2vw, 3.7rem); margin-bottom: 1.25rem;
+  font-size: clamp(2.1rem, 5vw, 3.5rem); margin-bottom: 1.25rem;
 }
 .lp-bevezeto { font-size: 1.1rem; line-height: 1.65; color: #3b3a37; max-width: 34rem; }
 .lp-gombok { display: flex; flex-wrap: wrap; align-items: center; gap: 1.1rem 1.5rem; margin-top: 2rem; }
@@ -57,26 +52,42 @@
 .lp-masodlagos:hover { text-decoration: underline; text-underline-offset: 4px; }
 .lp-megjegyzes { margin-top: 1rem; font-size: 0.88rem; color: #5a5750; }
 
-/* a javítás ábrája: kézírás → AI-javítás */
-.lp-abra { display: grid; gap: 10px; justify-items: stretch; }
+/* a hero ábrája: dolgozatdarabok → AI-javítás → osztályelemzés → gyakorló feladatok promptja */
+.lp-abra { display: grid; gap: 8px; justify-items: stretch; }
 .lp-lap {
-  background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 18px 20px;
+  background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 18px;
   box-shadow: 0 12px 32px rgba(15, 15, 15, 0.07);
 }
 .lp-cimke { display: block; margin-bottom: 8px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6862; }
-.lp-kezirat { background: #fffdf6; transform: rotate(-1.2deg); }
-.lp-kez { font-family: 'Segoe Script', 'Bradley Hand', 'Comic Sans MS', cursive; font-size: 1.12rem; line-height: 1.6; color: #2b3a67; }
-.lp-vonalak { display: block; width: 100%; height: 28px; margin-top: 6px; }
-.lp-vonalak path { fill: none; stroke: var(--border); stroke-width: 1.5; }
-.lp-nyil { width: 30px; height: 20px; margin: 0 auto; transform: rotate(90deg); }
+.lp-kezirat { background: #fffdf6; transform: rotate(-1deg); }
+.lp-darabok, .lp-javitottak { list-style: none; display: grid; gap: 10px; }
+.lp-kez {
+  font-family: 'Segoe Script', 'Bradley Hand', 'Comic Sans MS', cursive; font-size: 1.02rem; line-height: 1.5; color: #2b3a67;
+  padding: 6px 0; border-bottom: 1.5px solid var(--border);
+}
+.lp-darabok .lp-kez:nth-child(2) { transform: rotate(0.6deg); }
+.lp-darabok .lp-kez:nth-child(3) { transform: rotate(-0.4deg); }
+.lp-darabok .lp-kez:last-child { border-bottom: none; }
+.lp-nyil { width: 26px; height: 18px; margin: 0 auto; transform: rotate(90deg); }
 .lp-nyil path { fill: none; stroke: #6b6862; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-.lp-javitott { font-size: 1.1rem; line-height: 1.6; }
+.lp-javitottak li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.lp-javitottak li:last-child { border-bottom: none; padding-bottom: 0; }
+.lp-javitott { font-size: 0.98rem; line-height: 1.5; }
 .lp-javitott del { color: var(--err); text-decoration: line-through; }
 .lp-javitott ins { color: #0b6b2a; background: var(--ok-light); text-decoration: none; font-weight: 600; padding: 0 3px; border-radius: 3px; }
-.lp-magyarazat { margin-top: 6px; font-size: 0.86rem; color: #5a5750; }
-.lp-pont { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
-.lp-pont-szam { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.7rem; letter-spacing: -0.03em; }
-.lp-pont-felirat { font-size: 0.85rem; color: #5a5750; }
+.lp-pont-szam { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em; flex: none; }
+.lp-pont-felirat { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 0.85rem; color: #5a5750; }
+.lp-sav-sor { display: grid; grid-template-columns: 1fr 5.5rem 2.4rem; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.9rem; }
+.lp-sav { height: 8px; border-radius: 4px; background: #ece8df; overflow: hidden; }
+.lp-sav i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+.lp-db { text-align: right; font-size: 0.85rem; }
+.lp-gyakorolj { margin-top: 10px; padding: 8px 10px; border-radius: 8px; background: var(--accent-light); font-size: 0.88rem; font-weight: 600; }
+.lp-prompt { position: relative; }
+.lp-kod {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', monospace; font-size: 0.82rem; line-height: 1.55;
+  color: #2f2e2b; background: #f6f4ee; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+}
+.lp-masol { position: absolute; top: 12px; right: 16px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; color: #5a5750; }
 
 /* ── szakaszok ── */
 .lp-szakasz { padding: 80px 0; }

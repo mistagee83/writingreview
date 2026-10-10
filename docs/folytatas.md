@@ -418,8 +418,12 @@ cd writingreview
 - **Szerkezet:** a gyökér (`index.html`) mostantól az **értékesítő nyitóoldal**; a korábbi belépő/regisztrációs oldal **`belepes.html`** lett (`guard.js` `BELEPO_OLDAL`, 404, a PWA `start_url` is
   `/belepes.html`, így a telepített app belépve egyből a főoldalra visz). A nyitóoldal **statikus**: nincs Firebase-betöltés, nincs külső kérés, nincs bejelentkezés-ellenőrzés; a már belépett
   felhasználót a `belepes.html` irányítja át. A `belepes.html#regisztracio` a regisztrációs fület, a `belepes.html#tanar` a tanári regisztrációt előválasztva nyitja.
-- **Tartalom:** hero (kézírás → AI-javítás ábra, CSS-ből, nem képernyőkép), három lépés, hat funkció, csomagok, GYIK, záró felhívás. Magyar és angol (`landing.*` kulcsok). Fájlok:
-  `public/index.html`, `public/css/landing.css`, `public/belepes.html`.
+- **Üzenet (a tulajdonos kérése, 2026-10-10; ehhez tarts):** az érték **nem az időmegtakarítás** („ne a lustaság legyen a hívószó”), hanem hogy a jó tanár **még jobb lehet**: minden diáknak **személyre szabott,
+  adatokra épülő, fejlesztő visszajelzés**; a hibák adataiból **célzott fejlesztés** és az AI segít **tervezni** (osztályelemzés, gyakorló feladatokat generáló prompt); a tanár **látja, mit írt a diák** (átirat), nem a kézírást bogozza.
+  A termék **nem csak nyelvtanároknak** szól, ezért nincs „nyelvtanároknak” előcím. Angolul az AI **grades**, a menü „**Grading queue**”, „sign in/out”. Memória: `landing-uzenet-pozicionalas`.
+- **Tartalom:** hero (főcím: „Személyre szabott visszajelzés minden diáknak.”; az ábra CSS-ből, nem képernyőkép, a teljes folyamatot mutatja: **három dolgozatdarab kézírása → AI-javítás (pontszámokkal) → osztályelemzés
+  (pl. „past simple: kérdő alak 2/3”) → a gyakorló feladatokat generáló prompt**), három lépés, hat funkció (személyre szabott, adatokra épülő, látod, amit írt, tervezés a mintázatokból, te döntesz, a te szempontjaid), csomagok, GYIK,
+  záró felhívás. Magyar és angol (`landing.*` kulcsok). Fájlok: `public/index.html`, `public/css/landing.css`, `public/belepes.html`.
 - **Környezet-függés (`data-csak`):** a **csomagok, árak és a keretes GYIK-kérdések csak ott látszanak, ahol a fizetés él** (prod, beállított Stripe-ár); a **regisztrációs gombok csak ott, ahol az önkiszolgáló
   tanári regisztráció be van kapcsolva**. A pilotban (nincs kvóta/fizetés) az oldal árak nélkül, csak „Belépés” gombbal jelenik meg.
 - **Az árak és keretek EGY forrásból jönnek:** az ár szövege a `functions/.env.<alias>` (`FIZETES_AR_SZOVEG`, `FIZETES_AR_PROFI_SZOVEG`: ugyanaz, amit a csomag-panel mutat), a keretek a `functions/kvota.js`-ből.
