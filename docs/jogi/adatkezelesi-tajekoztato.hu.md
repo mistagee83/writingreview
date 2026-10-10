@@ -74,7 +74,7 @@ szükséges módon tájékoztatta. **[JOGÁSZ: kell-e külön adatfeldolgozói m
 
 ## 5. Mesterséges intelligencia
 
-- A dolgozat **képe (vagy beírt szövege)** és a feladat **szempontjai** (a rubrika, megoldókulcs, feladatleírás) a **Google Gemini API**-nak (fizetős szint) kerülnek elküldésre az átíráshoz és
+- A dolgozat **képe (vagy beírt szövege)** és a feladat **szempontjai** (az értékelési szempontok, a megoldókulcs, a feladatleírás) a **Google Gemini API**-nak (fizetős szint) kerülnek elküldésre az átíráshoz és
   az értékeléshez. Ugyancsak az MI-hez kerül a **tanár által feltöltött feladatlap és tananyag**, amikor a tanár értékelési szempontokat vagy megoldókulcsot kér. **A diák neve és e-mail-címe nem kerül az MI-hez.**
   (Ha a diák a lapra leírja a nevét, az a képpel együtt eljut az MI-hez.)
 - **Automatizált döntéshozatal nincs:** az MI csak javaslatot tesz, a pontszámról és a jegyről a **tanár dönt**, és a diák csak a jóváhagyott eredményt látja.

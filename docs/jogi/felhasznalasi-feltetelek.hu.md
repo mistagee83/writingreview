@@ -44,7 +44,7 @@
 
 ## 6. Tartalom és szerzői jog
 
-1. A feltöltött **dolgozat a Diák (szerzője) tulajdona**; a feladatlap, a tananyag, a megoldókulcs és a rubrika a **tanáré** (vagy jogosultjáé). Az Üzemeltető ezekre nem szerez tulajdonjogot.
+1. A feltöltött **dolgozat a Diák (szerzője) tulajdona**; a feladatlap, a tananyag, a megoldókulcs és az értékelési szempontok a **tanáré** (vagy jogosultjáé). Az Üzemeltető ezekre nem szerez tulajdonjogot.
 2. A Felhasználó **nem kizárólagos, díjmentes felhasználási jogot** ad az Üzemeltetőnek arra, hogy a tartalmat **kizárólag a szolgáltatás nyújtásához szükséges mértékben** tárolja, feldolgozza és az MI-szolgáltatónak továbbítsa.
 3. Az Üzemeltető a tartalmat **nem használja MI-modell tanítására**, nem értékesíti, és marketing célra nem adja át. Az MI-szolgáltató a fizetős szint adatait a feltételei szerint termékfejlesztésre nem használja
    **[ELLENŐRIZNI: az aktuális szolgáltatói feltételek]**.

@@ -25,7 +25,7 @@ Az angol külön stílust követ: `public/js/i18n-en.js` fejléce az irányadó.
 | Az AI tevékenysége | értékel / javít; a tanár átnézi és jóváhagyja |
 | A tanár döntése | jóváhagy |
 | A kézírásból készült szöveg | leirat; „leiratot készít”, ne a kétértelmű „átírja” |
-| Pontozási szempontok | értékelési szempontok; a felületen a rubrika szakkifejezés maradhat |
+| Pontozási szempontok | **értékelési szempontok** (a „rubrika” szó a magyar felületen nem szerepel; angolul *rubric* marad) |
 | A csomag keretének mértékegysége | egység |
 | Osztályszintű elemzés | osztályelemzés |
 | Gyakorlóanyagot generáló szöveg | prompt |
