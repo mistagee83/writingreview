@@ -14,7 +14,7 @@
 //  - a státuszt csak ez a fájl írja
 // ══════════════════════════════════════════════════════
 
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
@@ -27,10 +27,15 @@ const kifejtos = require("./kifejtos");
 const kornyezet = require("./kornyezet");
 const kvota = require("./kvota");
 const aiHasznalat = require("./ai-hasznalat");
+const fizetes = require("./fizetes");
 
 initializeApp();
 
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
+// A Stripe titkai (Secret Manager, projektenként). FIGYELEM: minden projektben (a pilotban is) léteznie kell
+// mindkettőnek a deploy előtt – a pilotban egy helyőrző érték is elég, ott a fizetés ki van kapcsolva.
+const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
+const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 const REGION = "europe-west1";
 
 // ── MODELLEK LÉPÉSENKÉNT ──
@@ -169,7 +174,12 @@ const HIBA_SZOVEG = {
   mar_diak_hasznalo: () => "Ez a fiók már diákként használatban van, ezért tanári jogot nem kaphat.",
   kvota_elfogyott: (p) => `Elfogyott a havi AI-keret (${p.hasznalt} / ${p.limit} egység). A keret a hónap elején megújul.`,
   kvota_elfogyott_egyszeri: (p) => `Elfogyott az ingyenes AI-keret (${p.hasznalt} / ${p.limit} egység). Folytatáshoz fizetős csomag kell.`,
-  csomag_ervenytelen: (p) => `Ismeretlen csomag: ${p.csomag}`
+  csomag_ervenytelen: (p) => `Ismeretlen csomag: ${p.csomag}`,
+  fizetes_ki: () => "A fizetés ebben a környezetben nincs bekapcsolva.",
+  mar_elofizetett: () => "Már van aktív előfizetésed. Az előfizetést az „Előfizetés kezelése” gombbal módosíthatod.",
+  csomag_kezi: () => "A csomagodat az üzemeltető állította be, ezért itt nem fizethetsz elő. Írj az üzemeltetőnek.",
+  nincs_ugyfel: () => "Még nincs előfizetésed, ezért nincs mit kezelni.",
+  fizetes_hiba: () => "A fizetési szolgáltatás nem válaszolt. Próbáld újra egy perc múlva."
 };
 
 /** Kódolt HttpsError: magyar üzenet + details.kod a kliens fordításához. */
@@ -1677,6 +1687,11 @@ exports._teszt = {
   kvotaval,
   kvotaAllapotLogika,
   csomagBeallitasLogika,
+  fizetesAllapotLogika,
+  stripeEsemenyFeldolgozas,
+  stripeWebhookKezeles,
+  fizetesInditasLogika,
+  fizetesKezelesLogika,
   aiHasznalatNaplo,
   aiHasznalatJelentesLogika,
   BEALLITASOK,
@@ -2005,8 +2020,184 @@ async function kvotaAllapotLogika(firestore, uid, beallitasok = BEALLITASOK, mos
   };
 }
 
+/**
+ * A fizetés állapota a tanári felületnek: ki van-e kapcsolva, mennyi az ár (szöveg), és az előfizetés
+ * (csak a szükséges mezők). Külön a kvótától, hogy a kvóta-válasz alakja ne változzon.
+ */
+async function fizetesAllapotLogika(firestore, uid, beallitasok = BEALLITASOK) {
+  if (!beallitasok.fizetes) return { fizetes: false };
+  const snap = await firestore.collection("tanarok").doc(uid).get();
+  const t = snap.data() || {};
+  return {
+    fizetes: true,
+    ar: beallitasok.fizetesArSzoveg || null,
+    alap_keret: kvota.keret("alap"),
+    csomag_forras: t.csomag_forras === "admin" ? "admin" : "stripe",
+    elofizetes: fizetes.elofizetesNezet(t)
+  };
+}
+
 exports.kvotaAllapot = onCall(HIVAS_OPCIOK, async (request) => {
-  return kvotaAllapotLogika(db(), tanar(request));
+  const uid = tanar(request);
+  return { ...(await kvotaAllapotLogika(db(), uid)), ...(await fizetesAllapotLogika(db(), uid)) };
+});
+
+// ══════════════════════════════════════════════════════
+// STRIPE-FIZETÉS (csak prod, ha az árazonosító be van állítva; lásd functions/fizetes.js)
+//
+// A kártyaadat sosem érinti a szervert: a tanár a Stripe fizetőoldalára (Checkout) megy, az előfizetés
+// kezelése a Stripe saját portálján (Customer Portal). A csomagot kizárólag a webhook állítja be,
+// aláírás-ellenőrzés és idempotencia mellett.
+// ══════════════════════════════════════════════════════
+
+/** A Stripe-kliens (lusta betöltés: a többi függvény betöltési ideje ne nőjön). */
+function stripeKliens(titok = STRIPE_SECRET_KEY.value()) {
+  const Stripe = require("stripe");
+  return new Stripe(titok);
+}
+
+/**
+ * Egy (aláírás-ellenőrzött) Stripe-esemény alkalmazása a tanár dokumentumán, EGY tranzakcióban:
+ * az eseményazonosító naplózása adja az idempotenciát (a Stripe többször is kézbesíthet), a régebbi
+ * esemény pedig nem írja felül az újabb állapotot (esemenyHatas).
+ * @returns {Promise<{kihagyva?: string, alkalmazva?: boolean, uid?: string, csomag?: string}>}
+ */
+async function stripeEsemenyFeldolgozas(firestore, esemeny, beallitasok = BEALLITASOK) {
+  const esemenyRef = firestore.collection("stripe_esemenyek").doc(esemeny.id);
+  return firestore.runTransaction(async (tx) => {
+    if ((await tx.get(esemenyRef)).exists) return { kihagyva: "mar_feldolgozva" };
+
+    const naplo = (megjegyzes, extra = {}) => tx.set(esemenyRef, {
+      tipus: esemeny.type, ido: esemeny.created ?? null, megjegyzes, feldolgozva: FieldValue.serverTimestamp(), ...extra
+    });
+
+    // melyik tanáré? az esemény hordozza, vagy az ügyfél-azonosítóból keressük
+    const { uid: kozvetlen, ugyfel } = fizetes.azonositok(esemeny);
+    let uid = kozvetlen;
+    if (!uid && ugyfel) uid = (await tx.get(firestore.collection("stripe_ugyfelek").doc(ugyfel))).data()?.uid || null;
+    if (!uid) {
+      // a tipus nem a mi dolgunk, vagy ismeretlen ügyfél: naplózzuk, és 200-zal nyugtázzuk (ne próbálkozzon a Stripe)
+      naplo("nincs_tanar");
+      return { kihagyva: "nincs_tanar" };
+    }
+
+    const tanarRef = firestore.collection("tanarok").doc(uid);
+    const tanar = (await tx.get(tanarRef)).data() || null;
+    const hatas = fizetes.esemenyHatas(esemeny, { tanar, arAlap: beallitasok.fizetesArAlap });
+    if (hatas.kihagy) {
+      naplo(hatas.kihagy, { uid });
+      return { kihagyva: hatas.kihagy, uid };
+    }
+
+    tx.set(tanarRef, {
+      ...hatas.mezok,
+      ...(hatas.csomagValtozas ? { csomag_modositva: FieldValue.serverTimestamp() } : {})
+    }, { merge: true });
+    if (hatas.ugyfel_id) tx.set(firestore.collection("stripe_ugyfelek").doc(hatas.ugyfel_id), { uid }, { merge: true });
+    naplo("alkalmazva", { uid });
+    return { alkalmazva: true, uid, csomag: hatas.mezok.csomag };
+  });
+}
+
+/**
+ * A webhook-kérés kezelése: aláírás-ellenőrzés a NYERS törzsön, majd feldolgozás. A függőségek (kliens, titok,
+ * firestore) paraméterek, hogy hálózat nélkül tesztelhető legyen. Hibánál 5xx: a Stripe újrapróbálja.
+ */
+async function stripeWebhookKezeles(req, res, { stripe, titok, firestore = db(), beallitasok = BEALLITASOK }) {
+  if (req.method !== "POST") { res.status(405).send("Csak POST"); return; }
+  let esemeny;
+  try {
+    const alairas = req.headers["stripe-signature"];
+    if (!alairas || !req.rawBody) throw new Error("hiányzó aláírás vagy törzs");
+    esemeny = stripe.webhooks.constructEvent(req.rawBody, alairas, titok);
+  } catch (e) {
+    logger.warn("Stripe-webhook: érvénytelen aláírás", { hiba: e.message });
+    res.status(400).send("Érvénytelen aláírás");
+    return;
+  }
+  try {
+    const eredmeny = await stripeEsemenyFeldolgozas(firestore, esemeny, beallitasok);
+    logger.info("Stripe-esemény", { id: esemeny.id, tipus: esemeny.type, ...eredmeny });
+    res.status(200).json({ ok: true, ...eredmeny });
+  } catch (e) {
+    logger.error("Stripe-esemény feldolgozási hiba", { id: esemeny.id, tipus: esemeny.type, hiba: e.message });
+    res.status(500).send("Feldolgozási hiba");
+  }
+}
+
+exports.stripeWebhook = onRequest(
+  { region: REGION, secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET], cors: false },
+  async (req, res) => {
+    if (!BEALLITASOK.fizetes) { res.status(404).send("A fizetés ki van kapcsolva"); return; }
+    await stripeWebhookKezeles(req, res, { stripe: stripeKliens(), titok: STRIPE_WEBHOOK_SECRET.value() });
+  }
+);
+
+/** A fizetőoldal (Checkout) létrehozása: az előfizetés a tanár uid-jához kötve. */
+async function fizetesInditasLogika(firestore, stripe, request, beallitasok = BEALLITASOK) {
+  const uid = tanar(request);
+  if (!beallitasok.fizetes) throw hiba("failed-precondition", "fizetes_ki");
+
+  const t = (await firestore.collection("tanarok").doc(uid).get()).data() || {};
+  if (t.csomag_forras === "admin" && t.csomag && t.csomag !== "ingyenes") throw hiba("failed-precondition", "csomag_kezi");
+  if (fizetes.JAR.has(t.elofizetes?.statusz)) throw hiba("failed-precondition", "mar_elofizetett");
+
+  const ugyfelId = t.elofizetes?.stripe_ugyfel_id;
+  const email = request.auth.token?.email;
+  try {
+    const munkamenet = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [{ price: beallitasok.fizetesArAlap, quantity: 1 }],
+      client_reference_id: uid,
+      // meglévő Stripe-ügyfél (korábbi előfizetés) újrahasznosítva; különben az e-mail-cím előtöltve
+      ...(ugyfelId ? { customer: ugyfelId } : (email ? { customer_email: email } : {})),
+      metadata: { uid },
+      subscription_data: { metadata: { uid } },
+      // a lakcím kell az EU-s áfa-elszámoláshoz
+      billing_address_collection: "required",
+      locale: "auto",
+      success_url: `${beallitasok.visszaUrl}/tanar.html?fizetes=sikeres`,
+      cancel_url: `${beallitasok.visszaUrl}/tanar.html?fizetes=megszakitva`
+    });
+    return { url: munkamenet.url };
+  } catch (e) {
+    logger.error("Stripe Checkout hiba", { uid, hiba: e.message });
+    throw belsoHiba(e, "fizetes_hiba");
+  }
+}
+
+/** Az előfizetés kezelése a Stripe saját portálján (lemondás, kártyacsere, számlák). */
+async function fizetesKezelesLogika(firestore, stripe, request, beallitasok = BEALLITASOK) {
+  const uid = tanar(request);
+  if (!beallitasok.fizetes) throw hiba("failed-precondition", "fizetes_ki");
+  const ugyfelId = (await firestore.collection("tanarok").doc(uid).get()).data()?.elofizetes?.stripe_ugyfel_id;
+  if (!ugyfelId) throw hiba("failed-precondition", "nincs_ugyfel");
+  try {
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: ugyfelId,
+      return_url: `${beallitasok.visszaUrl}/tanar.html`
+    });
+    return { url: portal.url };
+  } catch (e) {
+    logger.error("Stripe-portál hiba", { uid, hiba: e.message });
+    throw belsoHiba(e, "fizetes_hiba");
+  }
+}
+
+/** A jogosultság és a kapcsoló ELŐBB dől el, mint hogy a Stripe-kulcshoz nyúlnánk. */
+function fizetesKapu(request) {
+  tanar(request);
+  if (!BEALLITASOK.fizetes) throw hiba("failed-precondition", "fizetes_ki");
+}
+
+exports.fizetesIndit = onCall({ ...HIVAS_OPCIOK, secrets: [STRIPE_SECRET_KEY] }, async (request) => {
+  fizetesKapu(request);
+  return fizetesInditasLogika(db(), stripeKliens(), request);
+});
+
+exports.fizetesKezeles = onCall({ ...HIVAS_OPCIOK, secrets: [STRIPE_SECRET_KEY] }, async (request) => {
+  fizetesKapu(request);
+  return fizetesKezelesLogika(db(), stripeKliens(), request);
 });
 
 /** Admin: egy tanár csomagjának beállítása (fizetésig ez az egyetlen út). */
@@ -2015,8 +2206,11 @@ async function csomagBeallitasLogika(firestore, uid, csomag) {
   if (!Object.hasOwn(kvota.CSOMAGOK, csomag)) {
     throw hiba("invalid-argument", "csomag_ervenytelen", { csomag: String(csomag) });
   }
+  // Az admin által adott (nem ingyenes) csomagot a Stripe-webhook nem írja át; az ingyenesre állítás visszaadja
+  // a csomagot a Stripe-nak (csomag_forras: "stripe").
   await firestore.collection("tanarok").doc(uid).set(
-    { csomag, csomag_modositva: FieldValue.serverTimestamp() }, { merge: true }
+    { csomag, csomag_forras: csomag === "ingyenes" ? "stripe" : "admin", csomag_modositva: FieldValue.serverTimestamp() },
+    { merge: true }
   );
   return { uid, csomag };
 }

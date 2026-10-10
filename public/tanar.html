@@ -58,6 +58,20 @@
       </div>
     </div>
 
+    <!-- Csomag és előfizetés: csak ott látszik, ahol a fizetés be van kapcsolva (prod). -->
+    <div class="panel" id="csomag-panel" style="display:none;">
+      <div class="panel-header"><h2 data-i18n="tanar.csomag_cim">💳 Csomag</h2></div>
+      <div class="panel-body">
+        <p id="csomag-szoveg"></p>
+        <p class="halvany" id="csomag-masodlagos"></p>
+        <div class="gomb-sor">
+          <button class="btn-primary" id="btn-elofizet" style="display:none;" data-i18n="tanar.gomb_elofizet">💳 Előfizetek</button>
+          <button class="btn-sm" id="btn-kezeles" style="display:none;" data-i18n="tanar.gomb_kezeles">⚙️ Előfizetés kezelése</button>
+        </div>
+        <div class="msg" id="csomag-msg"></div>
+      </div>
+    </div>
+
     <div class="modules-grid">
       <a class="module-card" href="osztalyok.html">
         <div class="module-icon">🎓</div>
@@ -87,6 +101,7 @@
   import { vedettOldal } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { t } from './js/i18n.js';
+  import { hibaSzoveg, gombVar, uzenet } from './js/ui.js';
   import {
     db, collection, getDocs, query, where, functions, httpsCallable
   } from './js/firebase-config.js';
@@ -138,13 +153,91 @@
       if (data.limit !== null && data.hasznalt >= data.limit) {
         document.getElementById('stat-keret').classList.add('accent');
       }
+      csomagRajzol(data);
+      return data;
     } catch (e) {
       console.error('Keret lekérdezési hiba:', e);   // a kártya rejtve marad
     }
   }
 
+  // ══════════════════════════════════════════
+  // CSOMAG ÉS ELŐFIZETÉS (Stripe; csak ha a szerver bekapcsolta)
+  // A fizetőoldalra és a kezelőportálra a szerver ad címet; a kártyaadat nem érinti az appot.
+  // ══════════════════════════════════════════
+  const STRIPE_HOSTOK = ['checkout.stripe.com', 'billing.stripe.com'];
+  const datumSzoveg = (mp) => new Date(mp * 1000).toLocaleDateString();
+
+  function csomagRajzol(d) {
+    const panel = document.getElementById('csomag-panel');
+    if (d.fizetes !== true) { panel.style.display = 'none'; return; }
+    panel.style.display = '';
+    const e = d.elofizetes;
+    const joElofizetes = e && ['active', 'trialing', 'past_due'].includes(e.statusz);
+    const szoveg = document.getElementById('csomag-szoveg');
+    const masodlagos = document.getElementById('csomag-masodlagos');
+    const btnElofizet = document.getElementById('btn-elofizet');
+    const btnKezeles = document.getElementById('btn-kezeles');
+    masodlagos.textContent = '';
+    btnElofizet.style.display = 'none';
+    btnKezeles.style.display = 'none';
+
+    if (d.csomag_forras === 'admin' && d.csomag !== 'ingyenes') {
+      szoveg.textContent = t('tanar.csomag_kezi');
+    } else if (joElofizetes) {
+      szoveg.textContent = t('tanar.csomag_alap', { limit: d.limit ?? '∞' });
+      if (e.statusz === 'past_due') {
+        masodlagos.textContent = t('tanar.csomag_fizetesi_hiba');
+      } else if (e.periodus_vege) {
+        masodlagos.textContent = e.lemondva
+          ? t('tanar.csomag_lemondva', { datum: datumSzoveg(e.periodus_vege) })
+          : t('tanar.csomag_megujul', { datum: datumSzoveg(e.periodus_vege) });
+      }
+      if (e.van_ugyfel) btnKezeles.style.display = '';
+    } else {
+      szoveg.textContent = t('tanar.csomag_ingyenes', { hasznalt: d.hasznalt, limit: d.limit ?? '∞' });
+      masodlagos.textContent = t('tanar.csomag_ajanlat', { limit: d.alap_keret ?? '', ar: d.ar || '' });
+      btnElofizet.style.display = '';
+      if (e?.van_ugyfel) btnKezeles.style.display = '';   // korábbi előfizetés számlái
+    }
+  }
+
+  async function atiranyit(callableNev, gomb) {
+    uzenet('csomag-msg', '', 'success');
+    const vissza = gombVar(gomb, t('tanar.fizetes_var'));
+    try {
+      const { data } = await httpsCallable(functions, callableNev)();
+      const url = new URL(data.url);
+      // Védelem: csak a Stripe saját oldalaira irányítunk át
+      if (url.protocol !== 'https:' || !STRIPE_HOSTOK.includes(url.hostname)) throw new Error('unexpected redirect target');
+      location.href = url.href;
+    } catch (e) {
+      console.error(e);
+      uzenet('csomag-msg', t('tanar.fizetes_hiba', { ok: hibaSzoveg(e) }));
+      vissza();
+    }
+  }
+  document.getElementById('btn-elofizet').addEventListener('click', (e) => atiranyit('fizetesIndit', e.currentTarget));
+  document.getElementById('btn-kezeles').addEventListener('click', (e) => atiranyit('fizetesKezeles', e.currentTarget));
+
+  // Visszatérés a Stripe-ról: a webhook pár másodperc késéssel állítja át a csomagot, ezért rövid ideig újra kérdezünk.
+  async function fizetesVisszateres() {
+    const eredmeny = new URLSearchParams(location.search).get('fizetes');
+    if (eredmeny === 'megszakitva') {
+      uzenet('csomag-msg', t('tanar.fizetes_megszakitva'), 'success');
+    } else if (eredmeny === 'sikeres') {
+      uzenet('csomag-msg', t('tanar.fizetes_sikeres'), 'success');
+      for (let i = 0; i < 10; i++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const d = await keret();
+        if (d?.elofizetes && ['active', 'trialing'].includes(d.elofizetes.statusz)) break;
+      }
+    }
+    if (eredmeny) history.replaceState(null, '', location.pathname);
+  }
+
   statisztika();
-  keret();
+  await keret();
+  fizetesVisszateres();
 </script>
 </body>
 </html>

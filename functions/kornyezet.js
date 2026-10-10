@@ -26,10 +26,22 @@ function corsLista(projekt, domainek = "") {
   return [...new Set(ki)];
 }
 
+/**
+ * A fizetés visszatérési címe (a Stripe ide irányítja vissza a tanárt): csak https-eredet,
+ * záró perjel nélkül; hiányzó vagy érvénytelen érték esetén a projekt Firebase-címe.
+ */
+function visszaUrl(projekt, ertek = "") {
+  const e = String(ertek || "").trim().replace(/\/+$/, "");
+  return /^https:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d+)?$/i.test(e) ? e : `https://${projekt}.web.app`;
+}
+
 /** A beállítások egy környezeti változó-készletből (alapból a process.env-ből). */
 function beallitasok(env = process.env) {
   const kornyezet = KORNYEZETEK.includes(env.KORNYEZET) ? env.KORNYEZET : "pilot";
   const projekt = env.GCLOUD_PROJECT || ALAP_PROJEKT;
+  // A Stripe-os fizetés: csak a prodon, és csak ha az `alap` csomag árazonosítója be van állítva
+  // (functions/.env.prod: FIZETES_AR_ALAP=price_...). Az árazonosító nem titok; a kulcsok a Secret Managerben vannak.
+  const arAlap = String(env.FIZETES_AR_ALAP || "").trim();
   return {
     kornyezet,
     projekt,
@@ -38,8 +50,13 @@ function beallitasok(env = process.env) {
     // Az önkiszolgáló tanári regisztráció ugyanígy csak a kereskedelmi verzióban él;
     // a pilotban a tanári szerepet továbbra is az admin adja.
     tanariOnregisztracio: kornyezet === "prod",
+    fizetes: kornyezet === "prod" && /^price_[A-Za-z0-9_]+$/.test(arAlap),
+    fizetesArAlap: arAlap,
+    // a felületen megjelenő ár szövege (pl. "7 EUR / hó"); a tényleges árat a Stripe-ban állítod
+    fizetesArSzoveg: String(env.FIZETES_AR_SZOVEG || "").trim().slice(0, 40),
+    visszaUrl: visszaUrl(projekt, env.FIZETES_VISSZA_URL),
     cors: corsLista(projekt, env.ENGEDELYEZETT_DOMAINEK)
   };
 }
 
-module.exports = { corsLista, beallitasok, KORNYEZETEK, HELYI_CIMEK };
+module.exports = { corsLista, beallitasok, visszaUrl, KORNYEZETEK, HELYI_CIMEK };

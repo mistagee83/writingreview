@@ -964,3 +964,25 @@ test("be nem lépett felhasználó semmit nem olvashat", async () => {
   await assertFails(getDoc(doc(nemBelepett(), "osztalyok", OSZTALY)));
   await assertFails(getDoc(doc(nemBelepett(), "felhasznalok", DIAK)));
 });
+
+// ══════════════════════════════════════════
+// KVÓTA ÉS FIZETÉS: a csomag, a használat és a Stripe-adatok csak a szervernek valók
+// ══════════════════════════════════════════
+
+test("a tanárok csomagját, használatát és a Stripe-gyűjteményeket kliens sem olvashatja, sem írhatja", async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const adat = ctx.firestore();
+    await setDoc(doc(adat, "tanarok", TANAR), { csomag: "alap", elofizetes: { stripe_ugyfel_id: "cus_1" } });
+    await setDoc(doc(adat, "tanarok", TANAR, "hasznalat", "2026-10"), { egyseg: 3 });
+    await setDoc(doc(adat, "stripe_esemenyek", "evt_1"), { tipus: "x" });
+    await setDoc(doc(adat, "stripe_ugyfelek", "cus_1"), { uid: TANAR });
+  });
+  for (const [nev, kliens] of [["tanár", tanar()], ["diák", diak()], ["be nem lépett", nemBelepett()]]) {
+    for (const ut of [["tanarok", TANAR], ["tanarok", TANAR, "hasznalat", "2026-10"], ["stripe_esemenyek", "evt_1"], ["stripe_ugyfelek", "cus_1"]]) {
+      await assertFails(getDoc(doc(kliens, ...ut)));
+      await assertFails(setDoc(doc(kliens, ...ut), { csomag: "korlatlan", egyseg: 0, uid: "x" }, { merge: true }));
+    }
+  }
+  // a tanár a saját csomagját sem állíthatja magának (ez volna az ingyenes fizetés)
+  await assertFails(setDoc(doc(tanar(), "tanarok", TANAR), { csomag: "korlatlan" }, { merge: true }));
+});

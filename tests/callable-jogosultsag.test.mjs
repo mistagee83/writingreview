@@ -26,7 +26,8 @@ const MINDEN_KAPUS = {
   belepes: ["osztalyhozCsatlakozas", "nevModositas", "tanariRegisztracio"],
   tanar: [
     "osztalyLetrehozas", "feladatlapElemzes", "beadasUjrafuttatas",
-    "visszajelzesJovahagyas", "diakEltavolitas", "feladatElemzes", "kulcsKeszites", "kvotaAllapot"
+    "visszajelzesJovahagyas", "diakEltavolitas", "feladatElemzes", "kulcsKeszites", "kvotaAllapot",
+    "fizetesIndit", "fizetesKezeles"
   ],
   admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas"]
 };
