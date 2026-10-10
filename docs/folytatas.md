@@ -206,6 +206,12 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **Diákoldalak szövegei (2026-10-10):** a `diak.*`, `beadas.*`, `vj.*` és
+  diákstátuszok átnézve. Javított szórend, egyszerűbb állapot- és hibaüzenetek,
+  pontosabb fotózási útmutató; a HTML-tartalékok is frissítve.
+  38 célzott teszt és a pilot build sikeres. A módosítások **pilot és prod
+  környezetben is még deployra várnak**.
+
 - **Magyar szövegstílus (2026-10-10):** az irányelvek a `docs/magyar-szovegek.md`-ben.
   A belépés/regisztráció (`index.*`, `auth.*`) szövegeit átnéztük, a magyar felületen
   az „átirat” helyett „leirat” szerepel. A kulcsok és helyőrzők változatlanok.

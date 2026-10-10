@@ -41,7 +41,7 @@
 
   <!-- MÁR BEADOTT ÁLLAPOT -->
   <div class="panel" id="allapot-panel" style="display:none;">
-    <div class="panel-header"><h2 data-i18n="beadas.allapot_cim">📄 A beadásod</h2></div>
+    <div class="panel-header"><h2 data-i18n="beadas.allapot_cim">📄 A dolgozatod</h2></div>
     <div class="panel-body" id="allapot-torzs"></div>
   </div>
 
@@ -55,13 +55,9 @@
   <div class="panel" id="iras-panel" style="display:none;">
     <div class="panel-header"><h2 data-i18n="beadas.iras_cim">✍️ Dolgozat megírása</h2></div>
     <div class="panel-body">
-      <p class="halvany" data-i18n="beadas.iras_leiras">
-        Írd meg a dolgozatot ide. Amíg nem adod be, a szöveg ebben a böngészőben automatikusan mentődik.
-      </p>
+      <p class="halvany" data-i18n="beadas.iras_leiras">Itt írd meg a dolgozatodat. Amíg nem adod be, automatikusan mentjük a szöveget ebben a böngészőben.</p>
       <!-- A diák ELŐRE látja, mit jelzünk a tanárnak (átláthatóság). -->
-      <p class="halvany iras-figyelmeztetes" data-i18n="beadas.iras_figyelmeztetes">
-        Tájékoztatásul: a rendszer jelzi a tanárnak, ha elhagyod ezt az ablakot, és ha szöveget illesztesz be.
-      </p>
+      <p class="halvany iras-figyelmeztetes" data-i18n="beadas.iras_figyelmeztetes">A tanárod látja, ha írás közben másik böngészőlapra vagy alkalmazásra váltasz. Azt is jelezzük neki, ha szöveget illesztesz be.</p>
       <!-- A helyesírás-javítás és az automatikus nyelvhelyesség KI van kapcsolva: a dolgozatot a diák
            saját tudása szerint kell értékelni, a javítóprogram elfedné a hibáit. -->
       <textarea id="iras-szoveg" class="iras-szoveg" rows="14"
@@ -76,9 +72,7 @@
       <div class="gomb-sor">
         <button class="btn-primary" id="btn-bead-szoveg" data-i18n="beadas.bead_gomb">📤 Beadás</button>
       </div>
-      <p class="halvany" style="margin-top:0.75rem;" data-i18n="beadas.vegleges">
-        A beadás után a dolgozat nem cserélhető ki.
-      </p>
+      <p class="halvany" style="margin-top:0.75rem;" data-i18n="beadas.vegleges">Beadás után már nem módosíthatod vagy cserélheted ki a dolgozatodat.</p>
     </div>
   </div>
 
@@ -86,16 +80,13 @@
   <div class="panel" id="feltoltes-panel" style="display:none;">
     <div class="panel-header"><h2 data-i18n="beadas.feltoltes_cim">📷 Dolgozat feltöltése</h2></div>
     <div class="panel-body">
-      <p class="halvany" data-i18n="beadas.feltoltes_leiras">
-        Fotózd le a dolgozat minden oldalát, jó fényben. A képek automatikusan
-        kisebbre méreteződnek a feltöltés előtt. Legfeljebb 10 oldal.
-      </p>
+      <p class="halvany" data-i18n="beadas.feltoltes_leiras">Fotózd le a dolgozatod minden oldalát jó fényben. Legfeljebb 10 oldalt tölthetsz fel. Feltöltés előtt automatikusan csökkentjük a képek méretét.</p>
       <!-- A próbán a lap szélén levágott szöveg jelölés nélkül elveszett:
            amit a fotó nem mutat, azt a javítás sem látja. -->
       <ul class="foto-tipp">
-        <li data-i18n-html="beadas.tipp1">📐 A <strong>teljes lap</strong> legyen a képen, a széleivel együtt – ami levágódik, az nem számít bele.</li>
+        <li data-i18n-html="beadas.tipp1">📐 A <strong>teljes lap</strong> legyen a képen, a széleivel együtt. Ami lemarad a képről, azt az AI nem tudja elolvasni.</li>
         <li data-i18n-html="beadas.tipp2">↩️ Ha egy válasz a <strong>hátoldalon</strong> folytatódik, azt az oldalt is fotózd le.</li>
-        <li data-i18n="beadas.tipp3">💡 Felülről fotózz, árnyék és vaku-csillanás nélkül.</li>
+        <li data-i18n="beadas.tipp3">💡 Felülről fotózz. Figyelj rá, hogy ne vetüljön árnyék a lapra, és ne csillanjon meg rajta a vaku fénye.</li>
       </ul>
 
       <div class="upload-zone" id="zona">
@@ -112,9 +103,7 @@
       <div class="gomb-sor">
         <button class="btn-primary" id="btn-bead" data-i18n="beadas.bead_gomb" disabled>📤 Beadás</button>
       </div>
-      <p class="halvany" style="margin-top:0.75rem;" data-i18n="beadas.vegleges">
-        A beadás után a dolgozat nem cserélhető ki.
-      </p>
+      <p class="halvany" style="margin-top:0.75rem;" data-i18n="beadas.vegleges">Beadás után már nem módosíthatod vagy cserélheted ki a dolgozatodat.</p>
     </div>
   </div>
 </main>

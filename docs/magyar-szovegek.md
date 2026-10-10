@@ -44,7 +44,9 @@ Az angol külön stílust követ: `public/js/i18n-en.js` fejléce az irányadó.
 2. Belépés és regisztráció (`index.*`, `auth.*`; az oldal jelenleg `belepes.html`): kész (ChatGPT átnézte, javítva).
 2/b. Tanári főoldal, osztályok, feladatok, javítási sor (`tanar.*`, `osztalyok.*`, `fel.*`, `jav.*`): kész, 2026-10-10 (a ragozott `{nev}`-es mondatok átfogalmazva: "…az osztályból: {nev}?", nem "{nev}-t").
 3. Tanári főoldal, osztályok, feladatok, javítási sor (`tanar.*`, `osztalyok.*`, `fel.*`, `jav.*`).
-4. Diákoldalak (`diak.*`, `beadas.*`, `vj.*`): különösen egyszerű, barátságos hang.
+4. Diákoldalak (`diak.*`, `beadas.*`, `vj.*`, diákstátuszok): kész, 2026-10-10.
+   Egyszerűbb állapot- és hibaüzenetek, közvetlen fotózási és beadási útmutató;
+   a HTML-tartalékok is frissítve. A kulcsok és helyőrzők változatlanok.
 5. Bemutató (`tura.*`), megoldókulcs-szerkesztő (`kf.*`, `kj.*`), hibaüzenetek (`szerver.*`).
 6. Jogi szövegek (`docs/jogi/`): a jogász felülvizsgálata után; a pontosság előbbre való.
 
