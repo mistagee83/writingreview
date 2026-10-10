@@ -157,7 +157,8 @@ test("a kiadás üzenete nem hazudik feladatlapról, ha nincs", () => {
   // A „feladatlap nélküli" változat NEM említhet feladatlapot – egyik nyelven sem.
   for (const nyelv of ["hu", "en"]) {
     const szotar = SZOTARAK[nyelv];
-    assert.match(szotar["fel.kiadas_uzenet_lap"], /rubri/i);
+    // az értékelési szempontok átvételét mondja ki (magyarul "értékelési szempontok", angolul "rubric")
+    assert.match(szotar["fel.kiadas_uzenet_lap"], nyelv === "hu" ? /szempont/i : /rubri/i);
     assert.doesNotMatch(
       szotar["fel.kiadas_uzenet"],
       /feladatlap|worksheet/i,
