@@ -40,8 +40,9 @@ Az angol külön stílust követ: `public/js/i18n-en.js` fejléce az irányadó.
 
 ## Átnézési sorrend
 
-1. Nyitóoldal (`landing.*`): az első kör kész, 2026-10-10.
-2. Belépés és regisztráció (`index.*`, `auth.*`; az oldal jelenleg `belepes.html`).
+1. Nyitóoldal (`landing.*`): kész, 2026-10-10.
+2. Belépés és regisztráció (`index.*`, `auth.*`; az oldal jelenleg `belepes.html`): kész (ChatGPT átnézte, javítva).
+2/b. Tanári főoldal, osztályok, feladatok, javítási sor (`tanar.*`, `osztalyok.*`, `fel.*`, `jav.*`): kész, 2026-10-10 (a ragozott `{nev}`-es mondatok átfogalmazva: "…az osztályból: {nev}?", nem "{nev}-t").
 3. Tanári főoldal, osztályok, feladatok, javítási sor (`tanar.*`, `osztalyok.*`, `fel.*`, `jav.*`).
 4. Diákoldalak (`diak.*`, `beadas.*`, `vj.*`): különösen egyszerű, barátságos hang.
 5. Bemutató (`tura.*`), megoldókulcs-szerkesztő (`kf.*`, `kj.*`), hibaüzenetek (`szerver.*`).
