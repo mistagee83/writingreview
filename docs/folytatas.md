@@ -351,6 +351,14 @@ cd writingreview
 - **Jogi kérdés:** a kiskorúak viselkedésének megfigyelése (17. kérdés az `adatvedelmi-kerdesek.md`-ben) – a jogász válaszáig a prodon óvatosan.
 - **Nincs meg (tudatosan):** kifejtős (kérdésenkénti) beírt mód; a beírt dolgozat szerkesztése beadás után; a jelzések küszöbeinek állíthatósága.
 
+## 5/e. Stripe-fizetés (2026-10-10) – kód kész és tesztelt, KIKAPCSOLT, **még NINCS deployolva**
+
+- Checkout + Customer Portal + webhook; a csomagot a szerver állítja (`ingyenes` ↔ `alap`, havi 150 egység). Csak a prodon, és csak ha a `functions/.env.prod`-ban
+  a `FIZETES_AR_ALAP` ki van töltve. Beállítás, kipróbálás és élesítés előtti lista: **`stripe.md`**.
+- **Deploy-figyelmeztetés:** a három új függvény (`stripeWebhook`, `fizetesIndit`, `fizetesKezeles`) a `STRIPE_SECRET_KEY` és `STRIPE_WEBHOOK_SECRET` titkot várja
+  **minden projektben** (a pilotban helyőrző is jó). Titok nélkül a deploy elhasal, ezért a következő kiadás (pilot és prod) ELŐTT be kell állítani őket.
+- **Nem kész:** a **számlázz.hu** (NAV-s számla) automatikus kiállítása a befizetésekről; az áfa/Stripe Tax a könyvelői válasz után; a jogi dokumentumok. Ezek nélkül éles fizetés nem indítható.
+
 ## 5/b. BLOKKOLÓ: a Google korhatár-kikötése (2026-10-09)
 
 A Gemini API és a Google Cloud generatív AI feltételei is tiltják, hogy az AI-t olyan alkalmazás részeként használjuk, ami „likely to be
