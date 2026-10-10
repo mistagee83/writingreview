@@ -420,11 +420,21 @@ cd writingreview
   A build (`scripts/kornyezet-config.mjs` `csomagAdatok`) írja be a `dist/js/kornyezet.js`-be (`FIZETES`, `ARAK`, `KERETEK`); a `public/js/kornyezet.js` a pilot (fizetés nélküli) alapértéket hordozza. **Ár- vagy keretváltáskor
   csak az `.env.prod`-ot / a `kvota.js`-t kell módosítani, és újra kell buildelni/deployolni.** (A „7 EUR / hó” szövegből az összeget vesszük, az időszak felirata a felület nyelvén jelenik meg.)
 - **Jogi kikötések (tudatosak):** az oldal **nem állít semmit** a kiskorúakról, az EU-s feldolgozásról, az adatkezelésről vagy megfelelésről (`tests/landing.test.mjs` tiltott-kifejezés ellenőrzése), és **nincs rajta jogi
-  hivatkozás, mert a felhasználási feltételek és az adatkezelési tájékoztató még nem léteznek.** Ezek elkészültekor a láblécbe kerülnek (TODO a `index.html`-ben), és a Stripe-nak is kellenek. Éles, nyilvános reklámozás előtt pótolandó.
+  hivatkozás, mert a felhasználási feltételek és az adatkezelési tájékoztató még nem léteznek.** Ezek elkészültekor a láblécbe kerülnek (TODO a `index.html`-ben), és a Stripe-nak is kellenek. **Piszkozatok: `docs/jogi/` (5/i).** Éles, nyilvános reklámozás előtt pótolandó.
 - **Tesztek:** `tests/landing.test.mjs` (kulcsok, ár-forrás, tiltott állítások, hivatkozások, a `belepes.html` új helye), `i18n`/`pwa`/`tema` frissítve. **Böngészőben ellenőrizve** (asztali, telefonos szélesség, magyar/angol, prod és pilot build);
   belépéssel és valódi Firebase-szel nem.
 - **Hatás a meglévő felhasználókra:** a korábbi könyvjelző (`/`) a nyitóoldalra visz, onnan a „Belépés” gomb; a már telepített app a régi `start_url`-t (`/`) őrzi, ott a nyitóoldal látszik, és a „Belépés” gomb belépett
   felhasználónál azonnal átirányít. **Hosting-változás, nem kell hozzá functions-deploy.**
+
+## 5/i. Jogi dokumentumok – piszkozatok (2026-10-10), **nem publikálhatók jogász nélkül**
+
+- **`docs/jogi/`**: `felhasznalasi-feltetelek.hu.md` (ÁSZF), `adatkezelesi-tajekoztato.hu.md`, `README.md` (jelölések, munkahipotézisek, a három legfontosabb nyitott pont). Magyarul; angol változat szándékosan még nincs (előbb a jogi átnézés).
+- A szövegek a **tényleges működést** írják le (adatkör, helyek, szolgáltatók, MI-feldolgozás, mentés, sütik), és négy jelölést használnak: `[KITÖLTENDŐ]` (a tulajdonos adata: név, cím, adószám, e-mail, áfa-státusz),
+  `[JOGÁSZ]` (jogi döntés), `[ELLENŐRIZNI]` (ténykérdés közzététel előtt), `[NINCS MEGÉPÍTVE]` (a szöveg olyat ígérne, ami a kódban még nincs).
+- **Nincs megépítve, és a jogi szövegek feltételezik/ígérik:** automatikus megőrzési idő és törlés, önkiszolgáló fiók- és adattörlés (addig kérésre, kézzel), az „elfogadom” jelölőnégyzet naplózott időponttal a regisztrációnál,
+  automatikus számlakiállítás (számlázz.hu), adatfeldolgozói megállapodás-sablon tanároknak/iskoláknak.
+- **Blokkoló nyitott pontok:** a Google korhatár-kikötése (kiskorú diákok), a szerepek és a jogalap a diákok adataira, a megőrzési idő. Éles kiskorú-használat előtt ezek kellenek.
+- **Következő lépés a jóváhagyás után:** két oldal (`feltetelek.html`, `adatkezeles.html`) a nyitóoldal stílusában, kétnyelvűen; lábléc-linkek (TODO az `index.html`-ben); a `tests/landing.test.mjs` tiltott-kifejezés listájának igazítása; a Stripe-fiókban a feltételek linkje.
 
 ## 5/b. BLOKKOLÓ: a Google korhatár-kikötése (2026-10-09)
 
