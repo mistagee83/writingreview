@@ -306,7 +306,10 @@ feladatlaphoz tartozik, nem újrahasznosítható.
 | `diak_id` | string (uid) | |
 | `diak_nev` | string | denormalizált |
 | `tanar_id` | string (uid) | denormalizált, a szabály ezt hasonlítja |
-| `kep_paths` | string[] | 1–10 Storage útvonal |
+| `kep_paths` | string[] | fotós beadásnál 1–10 Storage útvonal; beírtnál üres lista |
+| `forras` | `'szoveg'` \| hiányzik | csak a **beírt** beadásnál van (érték: `szoveg`); hiányzó = fotós |
+| `szoveg` | string | a beírt dolgozat szövege (1–20000 karakter); a szerver ebből készíti az `atirat`-ot |
+| `jelzesek` | map | a beírt beadás írás közbeni jelzései: `elhagyas_db`, `elhagyas_mp`, `beillesztes_db`, `beillesztett_karakter` (egészek), `beillesztett_tartomanyok` (lapos lista: kezdet, vég párok a `szoveg`-ben, legfeljebb 50 pár). A beillesztett szöveg nem tárolódik |
 | `statusz` | string | `feltoltve \| folyamatban \| javitva \| elkuldve \| hiba` |
 | `atirat` | string \| null | **amit az AI kiolvasott a képekből** |
 | `atirat_olvashatosag` | `jo\|kozepes\|gyenge` | az AI értékelése a kézírásról |
@@ -320,7 +323,10 @@ hibázott" vagy „az AI félreolvasta a kézírást". A tanár látja és javí
 
 - **olvasás:** a beadó diák + az osztály tanára.
 - **létrehozás:** a diák a sajátját, `statusz: 'feltoltve'`-vel, csak olyan
-  osztályba, aminek tagja.
+  osztályba, aminek tagja. A beadás módját a feladat `rubrika.beadasi_mod` mezője dönti el
+  (`foto` | `szoveg` | `mindketto`; hiányzó/ismeretlen = `foto`): a szabály a fotós beadást
+  `foto`/`mindketto`, a beírtat `szoveg`/`mindketto` módnál engedi, kifejtős feladatra
+  beírtat soha. A jelzések alakját a szabály köti (`jelzesekOk`).
 - **módosítás/törlés:** kliensről tiltott. Mindent Function ír.
 
 ### `beadasok/{beadasId}/ertekeles/ai`

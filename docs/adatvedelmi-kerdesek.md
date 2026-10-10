@@ -25,6 +25,10 @@ van: egy „pilot” (kollégák, saját használat) és egy kereskedelmi „pro
 - **Külső erőforrások:** a betűtípusok (Syne, DM Sans) 2026-10-10-től saját tárhelyről jönnek (korábban a Google Fonts szerveréről, ilyenkor a
   látogató IP-címe a Google-hez került; a javítás a `main`-en van, a **deploy után** él). A Firebase SDK-t a lapok még a Google CDN-jéről
   (`www.gstatic.com`) töltik be, ez szintén kiadja az IP-címet. Nincs analitika, nincs reklám- vagy követő süti. A böngészőben localStorage/IndexedDB tárolja a bejelentkezést és a nyelvet.
+- **Beírt dolgozat és írás közbeni jelzések (kód készül/kész, deploy még nincs):** a tanár feladatonként engedheti, hogy a diák az oldalon
+  írja meg a dolgozatot. Ilyenkor a rendszer két tájékoztató jelzést gyűjt a tanárnak: hányszor/mennyi időre hagyta el a diák az ablakot, és mit
+  illesztett be (csak darabszám, karakterszám és a beadott szövegbeli tartományok, a beillesztett szöveg maga nem). A diák előre látja, hogy ezt
+  jelezzük. Nincs fotó és nincs átírás, csak az értékelés megy az MI-hez. **Ez kiskorúak viselkedésének megfigyelése: külön jogi kérdés (17. kérdés).**
 - **Törlés és megőrzés:** tudomásom szerint jelenleg nincs automatikus megőrzési idő, és nincs önkiszolgáló fiók- vagy adattörlési funkció
   (csak az osztályból való eltávolítás). Ezeket a jogi tanács alapján kell megépíteni.
 - **Jelenlegi állapot:** a pilotban a kollégák és a saját diákjaim valódi dolgozatai is átmentek (összesen néhány tucat javítás). A prodon külső
@@ -71,6 +75,11 @@ van: egy „pilot” (kollégák, saját használat) és egy kereskedelmi „pro
 
 **F. A jelenlegi pilot**
 16. A pilotban már valódi diákmunkák mentek át. Mit kell most tennem (pótló tájékoztatás, törlés, dokumentáció)?
+
+**G. Írás közbeni jelzések (beírt dolgozat)**
+17. A beírt dolgozatnál a rendszer a tanárnak jelzi, hányszor hagyta el a diák az ablakot, és mit illesztett be (a diák ezt előre látja). Ez a
+    kiskorú diák viselkedésének megfigyelése: milyen jogalap és tájékoztatás kell hozzá, arányos-e, kell-e külön hozzájárulás vagy az iskola
+    jóváhagyása, és mit jelent a megőrzési idő szempontjából (a jelzések a beadással együtt tárolódnak)?
 
 ## 4. Mit kérek
 

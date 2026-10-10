@@ -490,6 +490,29 @@ A feladat oldalán:
   beadás. **A beadás után a dolgozat nem cserélhető ki.** A feldolgozás a
   háttérben fut; a diáknak nem kell maradnia.
 
+**Beírt dolgozat (fogalmazás-feladatnál, ha a tanár engedi).** A tanár feladatonként
+állítja a *„Hogyan adják be a diákok?"* mezőben (`rubrika.beadasi_mod`): **fotóval**
+(alap; a régi feladatok is ilyenek), **beírva az oldalon**, vagy **mindkettő** (a diák
+választ). A kifejtős feladat mindig fotós. Beírt módban a diák szövegmezőt kap
+(helyesírás-javítás és Grammarly kikapcsolva, hogy a hibák látszódjanak; szószámláló a
+szószám-határokhoz; a szöveg a böngészőben automatikusan mentődik, amíg be nem adja).
+A beadás után a szöveg nem módosítható. Beírt dolgozatnál **nincs átírás**: a diák
+szövege maga az átirat, az AI-ból csak az értékelés fut (egy hívással kevesebb, nincs
+kép, nincs kézírás-minta).
+
+**Két tájékoztató jelzés a tanárnak (írás közben gyűjtjük, a diák ELŐRE látja):**
+
+1. *hányszor és mennyi időre hagyta el az ablakot* (lap- vagy alkalmazásváltás; a 2
+   másodpercnél rövidebb távollétet nem számoljuk);
+2. *mit illesztett be* – darabszám, karakterszám, és a végleges szövegben betű szerint még
+   megtalálható beillesztett részek (a javító nézetben **sárgával kiemelve**, százalékos
+   aránnyal). A beillesztett szöveg maga nem tárolódik, csak a tartományok.
+
+A jelzés a diák böngészőjéből jön, ezért **nem bizonyíték** (kijátszható, és ártalmatlan
+oka is lehet: értesítés, szótár, saját jegyzet) – a tanári felület ezt ki is mondja, és
+nem MI-detektor: tényt jelez, nem ítéletet. Kódja: `public/js/iras-jelzes.js` (tiszta
+részei tesztelve: `tests/iras-jelzes.test.mjs`).
+
 **A státusz-panel** élőben frissül, és mindegyik állapotot elmagyarázza („Az AI
 épp olvassa a dolgozatodat. Ez néhány percet vehet igénybe – nem kell itt
 maradnod." / „Az AI végzett, most a tanárod ellenőrzi." …). Ha az AI már

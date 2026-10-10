@@ -336,6 +336,21 @@ cd writingreview
 - **Kérdéslista az adatvédelmi jogásznak:** `adatvedelmi-kerdesek.md` (a Gmail-piszkozat ugyanez). Nincs még fiók-/adattörlési funkció és
   megőrzési idő: a jogász válasza alapján kell megépíteni.
 
+## 5/d. Beírt dolgozat (leveles mód) és írás közbeni jelzések (2026-10-10) – kód kész, **még NINCS deployolva**
+
+- A tanár feladatonként állítja (`rubrika.beadasi_mod`: foto | szoveg | mindketto; alap foto, a régi feladatok változatlanok); csak
+  fogalmazás-feladatnál. Beírt beadásnál nincs átírás és nincs kép: a diák szövege az átirat, csak az értékelés fut. Két tényjelzés a tanárnak
+  (az ablak elhagyása, beillesztés; a beillesztett részek sárgával kiemelve); a diák előre látja őket. Nem MI-detektor, nem bizonyíték.
+  Részletek: `mukodesi-leiras.md` 5.2, `adatmodell.md`.
+- **Fájlok:** `public/js/iras-jelzes.js` (jelzések), `public/beadas.html` (diák), `public/feladatok.html` (tanári választó), `public/javitas.html`
+  (jelzések + kiemelt szöveg), `firestore.rules` (új alakú beadás, `beadasiMod`, `jelzesekOk`), `functions/index.js` (`beadasiMod`,
+  `beadasOsszerendeles`, átírás átugrása, prompt-fejléc). Tesztek: `iras-jelzes`, `beirt-beadas` (tiszta), `beirt-beadas-adatbazis` (emulátor),
+  `rules` (emulátor; új esetek a beírt beadásra).
+- **Deploy-hatás:** új Firestore-szabály (**`firestore:rules` kell**), módosított függvények, új hosting. Pilot: `node scripts/deploy.mjs pilot
+  --only hosting,functions,firestore:rules`; prod: címkés kiadás. A régi feladatok és beadások viselkedése nem változik.
+- **Jogi kérdés:** a kiskorúak viselkedésének megfigyelése (17. kérdés az `adatvedelmi-kerdesek.md`-ben) – a jogász válaszáig a prodon óvatosan.
+- **Nincs meg (tudatosan):** kifejtős (kérdésenkénti) beírt mód; a beírt dolgozat szerkesztése beadás után; a jelzések küszöbeinek állíthatósága.
+
 ## 5/b. BLOKKOLÓ: a Google korhatár-kikötése (2026-10-09)
 
 A Gemini API és a Google Cloud generatív AI feltételei is tiltják, hogy az AI-t olyan alkalmazás részeként használjuk, ami „likely to be
