@@ -11,6 +11,8 @@ gépen, következő lépések) és szükség esetén a [`docs/mukodesi-leiras.md
 Rövid szabályok:
 
 - Magyarul kommunikálj a felhasználóval.
+- Magyar felületi szövegnél kövesd a [`docs/magyar-szovegek.md`](docs/magyar-szovegek.md)
+  hangnemét és szójegyzékét új szöveg írásakor és meglévő szöveg átnézésekor is.
 - **Commitot, pusht és deployt csak kérésre végezz** (a deploy éles projektre megy).
 - Új felhasználói szöveg: szótári kulcs (`public/js/i18n-hu.js` + `i18n-en.js`), nem beégetett
   szöveg. A `public/js/kifejtos.js` generált fájl – ne szerkeszd kézzel.

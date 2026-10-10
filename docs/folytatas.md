@@ -206,6 +206,12 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **Magyar szövegstílus (2026-10-10):** az irányelvek a `docs/magyar-szovegek.md`-ben.
+  A belépés/regisztráció (`index.*`, `auth.*`) szövegeit átnéztük, a magyar felületen
+  az „átirat” helyett „leirat” szerepel. A kulcsok és helyőrzők változatlanok.
+  Következő kör: tanári főoldal, osztályok, feladatok, javítási sor.
+  A szövegjavítások **pilot és prod környezetben is még deployra várnak**.
+
 - **DEPLOY ÁLLAPOT (2026-10-10):** a fejlődés-követés és az osztályelemzés az Alap csomagba (5/f) a **`v1.8.0` címkén a prodra jóváhagyásra vár** (a tulajdonos hagyja jóvá a GitHubon).
   A **színválasztó (B, 5/g) csak a commitban van, NINCS címkézve és deployolva**: a prodon ez egy újabb kiadás (pl. `v1.9.0`). A **pilot a régi kódot futtatja**, ahova szándékosan nem megy semmi, ami
   a csomagokról/fizetésről szól; a pilotra csak a fejlődés-követés kerülhet, a tulajdonos kérésére: `node scripts/deploy.mjs pilot --only hosting,functions:fejlodesLista,functions:fejlodesDiak`
