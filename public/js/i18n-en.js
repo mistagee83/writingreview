@@ -386,7 +386,7 @@ export default {
   "landing.kezdd_ingyen": "Start for free",
   "landing.igy_mukodik": "How it works →",
   "landing.hero_cim": "Personal feedback for every student.",
-  "landing.hero_leiras": "Have you ever felt you don't have the time and energy to write detailed feedback for each of your students? You don't have to feel bad about it any more.",
+  "landing.hero_leiras": "Have you ever felt you don't have the time and energy to write detailed feedback for each of your students? You don't have to worry about it any more.",
   "landing.hero_ingyenes": "Try it on {db} student papers, free – no card needed.",
   "landing.abra_aria": "How it works: handwritten papers become transcripts and then graded papers; the errors add up to a class analysis and a prompt that generates practice tasks.",
   "landing.abra_kezirat": "Handwriting",
