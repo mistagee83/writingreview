@@ -49,7 +49,7 @@
 - Opcionális ötlet: a tanár neve/iskolája megjelenik a diákoknak szóló visszajelzésen.
 - Kétnyelvű szövegek (`public/js/i18n-hu.js` és `i18n-en.js`), szótári kulcsokkal.
 
-### C) Landing (nyitó) oldal újratervezése
+### C) Landing (nyitó) oldal újratervezése  *(KÉSZ: lásd `docs/folytatas.md` 5/h)*
 
 **Mit kér a tulajdonos:** a mostani nyitó oldal „nem valami szép”. Új, értékesítő jellegű landing oldal kell.
 

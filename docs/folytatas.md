@@ -389,7 +389,7 @@ cd writingreview
 - **Teljesítmény:** a lista beadásonként 2–3 olvasást végez (tanári + AI-értékelés + feladatcím gyorsítótárral). Nagy osztályoknál később érdemes előre számolt összesítőt tárolni.
 - **Jogi megjegyzés (fontos):** a fejlődés-követés a diák adatát **hosszabb ideig, több feladaton át** követi és összesíti: ez a megőrzési időt és az adatvédelmi jogász válaszát érinti
   (új, 18. kérdés az `adatvedelmi-kerdesek.md`-ben). A funkció nem épít új adatot (a meglévő jóváhagyott beadásokból számol), de a megőrzési idő/törlés jövőbeli megépítésekor ezt is figyelembe kell venni.
-- **Még hátra a leirat szerint:** C) landing oldal (a csomagok tartalma: a fentiek és az 5/g). Osztályszintű, több feladatot átfogó hibaalakulás (a leirat A) pont második fele) még nincs.
+- **Még hátra a leirat szerint:** (a C) landing kész, 5/h). Osztályszintű, több feladatot átfogó hibaalakulás (a leirat A) pont második fele) még nincs.
 
 ## 5/g. Színválasztó a tanári felületen (B, 2026-10-10) – kód kész és commitolva, **még NINCS deployolva**
 
@@ -406,6 +406,25 @@ cd writingreview
   **Régi állapot:** a javítás előtt (a commit `36a7255`) a lemondás nem állította vissza a témát; mivel a színválasztó még nem volt kiadva, élesben ilyen adat nem keletkezett.
 - **Nem próbálva valódi belépéssel:** a paletták, motívumok és a választó kitalált oldalon ellenőrizve (böngésző), a mentés hamis Firestore-ral tesztelve.
 - **Tanulság:** a service worker a fejlesztői előnézetben a régi CSS-t szolgálja ki; ha a stílus nem frissül, a tab service workerét és a gyorsítótárát törölni kell.
+
+## 5/h. Nyitóoldal tanároknak (C, 2026-10-10) – kód kész és commitolva, **még NINCS deployolva**
+
+- **Szerkezet:** a gyökér (`index.html`) mostantól az **értékesítő nyitóoldal**; a korábbi belépő/regisztrációs oldal **`belepes.html`** lett (`guard.js` `BELEPO_OLDAL`, 404, a PWA `start_url` is
+  `/belepes.html`, így a telepített app belépve egyből a főoldalra visz). A nyitóoldal **statikus**: nincs Firebase-betöltés, nincs külső kérés, nincs bejelentkezés-ellenőrzés; a már belépett
+  felhasználót a `belepes.html` irányítja át. A `belepes.html#regisztracio` a regisztrációs fület, a `belepes.html#tanar` a tanári regisztrációt előválasztva nyitja.
+- **Tartalom:** hero (kézírás → AI-javítás ábra, CSS-ből, nem képernyőkép), három lépés, hat funkció, csomagok, GYIK, záró felhívás. Magyar és angol (`landing.*` kulcsok). Fájlok:
+  `public/index.html`, `public/css/landing.css`, `public/belepes.html`.
+- **Környezet-függés (`data-csak`):** a **csomagok, árak és a keretes GYIK-kérdések csak ott látszanak, ahol a fizetés él** (prod, beállított Stripe-ár); a **regisztrációs gombok csak ott, ahol az önkiszolgáló
+  tanári regisztráció be van kapcsolva**. A pilotban (nincs kvóta/fizetés) az oldal árak nélkül, csak „Belépés” gombbal jelenik meg.
+- **Az árak és keretek EGY forrásból jönnek:** az ár szövege a `functions/.env.<alias>` (`FIZETES_AR_SZOVEG`, `FIZETES_AR_PROFI_SZOVEG`: ugyanaz, amit a csomag-panel mutat), a keretek a `functions/kvota.js`-ből.
+  A build (`scripts/kornyezet-config.mjs` `csomagAdatok`) írja be a `dist/js/kornyezet.js`-be (`FIZETES`, `ARAK`, `KERETEK`); a `public/js/kornyezet.js` a pilot (fizetés nélküli) alapértéket hordozza. **Ár- vagy keretváltáskor
+  csak az `.env.prod`-ot / a `kvota.js`-t kell módosítani, és újra kell buildelni/deployolni.** (A „7 EUR / hó” szövegből az összeget vesszük, az időszak felirata a felület nyelvén jelenik meg.)
+- **Jogi kikötések (tudatosak):** az oldal **nem állít semmit** a kiskorúakról, az EU-s feldolgozásról, az adatkezelésről vagy megfelelésről (`tests/landing.test.mjs` tiltott-kifejezés ellenőrzése), és **nincs rajta jogi
+  hivatkozás, mert a felhasználási feltételek és az adatkezelési tájékoztató még nem léteznek.** Ezek elkészültekor a láblécbe kerülnek (TODO a `index.html`-ben), és a Stripe-nak is kellenek. Éles, nyilvános reklámozás előtt pótolandó.
+- **Tesztek:** `tests/landing.test.mjs` (kulcsok, ár-forrás, tiltott állítások, hivatkozások, a `belepes.html` új helye), `i18n`/`pwa`/`tema` frissítve. **Böngészőben ellenőrizve** (asztali, telefonos szélesség, magyar/angol, prod és pilot build);
+  belépéssel és valódi Firebase-szel nem.
+- **Hatás a meglévő felhasználókra:** a korábbi könyvjelző (`/`) a nyitóoldalra visz, onnan a „Belépés” gomb; a már telepített app a régi `start_url`-t (`/`) őrzi, ott a nyitóoldal látszik, és a „Belépés” gomb belépett
+  felhasználónál azonnal átirányít. **Hosting-változás, nem kell hozzá functions-deploy.**
 
 ## 5/b. BLOKKOLÓ: a Google korhatár-kikötése (2026-10-09)
 

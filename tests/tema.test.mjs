@@ -82,7 +82,7 @@ test("a diák felület kék marad: a téma a <html>-en van, a body.theme-diak sa
   for (const f of ["tanar", "osztalyok", "diakok", "feladatok", "javitas", "elemzes", "admin", "ai-hasznalat"]) {
     assert.ok(olvas(`../public/${f}.html`).includes("js/tema-korai.js"), f);
   }
-  for (const f of ["diak", "beadas", "visszajelzes", "index"]) {
+  for (const f of ["diak", "beadas", "visszajelzes", "belepes", "index"]) {
     assert.ok(!olvas(`../public/${f}.html`).includes("js/tema-korai.js"), `${f}: nem kaphat tanári témát`);
   }
 });

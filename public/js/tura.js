@@ -42,7 +42,7 @@ function torol(kulcs) {
 }
 
 function jelenlegiOldal() {
-  // A gyökér a belépő lapot szolgálja ki – ott a kapu sem fut le, tehát
+  // A gyökér a nyitóoldalt szolgálja ki – ott a kapu sem fut le, tehát
   // a bemutató sem indul. Ha ezt tanar.html-nek hazudnánk, a menü a
   // belépés előtt is fel akarna nyílni.
   const nev = location.pathname.split("/").pop();

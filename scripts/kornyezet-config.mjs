@@ -4,7 +4,8 @@
 // tests/kornyezet.test.mjs használja. Lásd docs/kornyezetek-terv.md 4.
 // ══════════════════════════════════════════════════════
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -113,9 +114,47 @@ export function konfigHibak(cfg, { kitoltott = false, elvartKornyezet, celProjek
   return hibak;
 }
 
+/** Egy .env fájl KULCS=érték sorai (a kommentek és az üres sorok kimaradnak). */
+export function envBetoltes(fajl) {
+  const ki = {};
+  if (!existsSync(fajl)) return ki;
+  for (const sor of readFileSync(fajl, "utf8").split(/\r?\n/)) {
+    const m = sor.match(/^\s*([A-Z0-9_]+)\s*=(.*)$/);
+    if (m) ki[m[1]] = m[2].trim();
+  }
+  return ki;
+}
+
+/** Ugyanaz a szabály, mint a szervernél (functions/kornyezet.js): csak érvényes Stripe-árazonosító számít. */
+const ARAZONOSITO = /^price_[A-Za-z0-9_]+$/;
+
+/**
+ * A nyitóoldalon megjelenő csomag-adatok EGY forrásból: az árak szövege a functions/.env.<alias>-ból
+ * (ugyanaz, amit a szerver a csomag-panelnek ad), a keretek a functions/kvota.js-ből. A fizetés csak ott él,
+ * ahol a szerveren is (prod, beállított alap-ár); egyébként a nyitóoldal nem mutat árakat.
+ */
+export function csomagAdatok(alias, gyoker = GYOKER) {
+  const env = envBetoltes(join(gyoker, "functions", `.env.${alias}`));
+  const kvota = createRequire(import.meta.url)(join(gyoker, "functions", "kvota.js"));
+  const szoveg = (kulcs) => String(env[kulcs] || "").trim().slice(0, 40);
+  const fizetes = alias === "prod" && ARAZONOSITO.test(String(env.FIZETES_AR_ALAP || "").trim());
+  const profiAr = ARAZONOSITO.test(String(env.FIZETES_AR_PROFI || "").trim());
+  return {
+    fizetes,
+    arak: fizetes ? { alap: szoveg("FIZETES_AR_SZOVEG"), ...(profiAr ? { profi: szoveg("FIZETES_AR_PROFI_SZOVEG") } : {}) } : {},
+    keretek: Object.fromEntries(["ingyenes", "alap", "profi"].map((n) => [n, kvota.CSOMAGOK[n].keret]))
+  };
+}
+
+/** A public/js/kornyezet.js (pilot) alapértékei: a build nélküli helyi előnézet és a teszt ezzel egyezik. */
+const PILOT_CSOMAG = { fizetes: false, arak: {}, keretek: { ingyenes: 20, alap: 150, profi: 500 } };
+
 /** A dist/js/kornyezet.js forrása (a public/js/kornyezet.js mintájára). */
-export function kornyezetJs(cfg, sablon) {
+export function kornyezetJs(cfg, sablon, csomag = PILOT_CSOMAG) {
   const csere = {
+    FIZETES: JSON.stringify(csomag.fizetes),
+    ARAK: JSON.stringify(csomag.arak),
+    KERETEK: JSON.stringify(csomag.keretek),
     KORNYEZET: JSON.stringify(cfg.kornyezet),
     ALAPNYELV: JSON.stringify(cfg.alapnyelv),
     KVOTA: JSON.stringify(cfg.kvota),

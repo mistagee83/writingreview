@@ -26,7 +26,7 @@ import { join, dirname, basename, extname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { generalas } from "./kifejtos-kliens.mjs";
 import {
-  konfigBetoltes, konfigHibak, kornyezetJs, firebaseConfigCsere, kornyezetValasztas, celProjekt
+  konfigBetoltes, konfigHibak, kornyezetJs, firebaseConfigCsere, kornyezetValasztas, celProjekt, csomagAdatok
 } from "./kornyezet-config.mjs";
 
 const GYOKER = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -159,7 +159,7 @@ cpSync(SRC, OUT, { recursive: true });
 
 // A környezet-függő fájlok felülírása – a hashelés előtt, hogy a hash a végleges tartalomé legyen.
 for (const [fajl, atalakit] of [
-  ["js/kornyezet.js", (src) => kornyezetJs(konfig, src)],
+  ["js/kornyezet.js", (src) => kornyezetJs(konfig, src, csomagAdatok(KORNYEZET))],
   ["js/firebase-config.js", (src) => firebaseConfigCsere(src, konfig.webConfig)]
 ]) {
   const f = join(OUT, fajl);

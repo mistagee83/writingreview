@@ -18,6 +18,12 @@ export const KVOTA = false;
 // kettőnek egyeznie kell – a tests/kornyezet.test.mjs ellenőrzi.
 export const TANARI_ONREGISZTRACIO = false;
 export const TESZT_SAV = false;
+// A csomagok a nyitóoldalnak (a build a functions/.env.<alias>-ból és a functions/kvota.js-ből tölti ki; lásd
+// scripts/kornyezet-config.mjs, csomagAdatok). FIZETES: él-e a Stripe-fizetés (prod, beállított ár) – ha nem,
+// a nyitóoldal nem mutat árakat. ARAK: az ár szövege csomagonként; KERETEK: az AI-egység keret csomagonként.
+export const FIZETES = false;
+export const ARAK = {};
+export const KERETEK = {"ingyenes":20,"alap":150,"profi":500};
 
 // A „TESZT” sáv: a pilot-telepítést jelöli, hogy ne tévesszék össze az
 // éles verzióval. Nyelvfüggetlen felirat, nem kell szótári kulcs; az

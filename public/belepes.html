@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="index.oldalcim">WritingReview – Belépés</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
+  <link rel="stylesheet" href="css/app.css"/>
+  <link rel="stylesheet" href="css/auth.css"/>
+</head>
+<body class="auth-page">
+
+<!-- Átirányítás overlay -->
+<div id="redirect-overlay">
+  <div class="big-spinner"></div>
+  <span data-i18n="index.atiranyitas">Átirányítás...</span>
+</div>
+
+<!-- BAL PANEL -->
+<div class="left-panel">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="hero-text">
+    <h1 data-i18n-html="index.hero_cim">AI-alapú<br/>dolgozat<em>javítás</em></h1>
+    <p data-i18n="index.hero_leiras">Töltsd fel a dolgozatot, a rendszer másodpercek alatt kiértékeli és visszajelez – tanárnak és diáknak egyaránt.</p>
+  </div>
+  <div class="step-list">
+    <div class="step">
+      <div class="step-num">1</div>
+      <p data-i18n="index.lepes1">A tanár létrehoz egy feladatot és megoszt egy kódot</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <p data-i18n="index.lepes2">A diák feltölti a dolgozat fotóját</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <p data-i18n="index.lepes3">Az AI kijavítja, a tanár ellenőrzi és elküldi</p>
+    </div>
+  </div>
+</div>
+
+<!-- JOBB PANEL -->
+<div class="right-panel">
+  <div class="nyelv-hely" data-nyelvvalaszto></div>
+  <div class="auth-card">
+    <h2 data-i18n="index.udvozles">Üdvözlünk</h2>
+    <p class="subtitle" id="auth-alcim" data-i18n="index.alcim">Lépj be, vagy regisztrálj az induláshoz</p>
+
+    <div class="tabs" id="auth-fulek">
+      <button class="tab-btn active" id="tab-login" onclick="switchTab('login')" data-i18n="index.ful_belepes">Belépés</button>
+      <button class="tab-btn" id="tab-register" onclick="switchTab('register')" data-i18n="index.ful_regisztracio">Regisztráció</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="form-login">
+      <div class="form-group">
+        <label for="login-email" data-i18n="index.email">Email</label>
+        <input type="email" id="login-email" placeholder="pelda@email.com" data-i18n-placeholder="index.email_pelda" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="login-password" data-i18n="index.jelszo">Jelszó</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn-primary" id="btn-login" onclick="emailLogin()" data-i18n="index.ful_belepes">Belépés</button>
+      <div class="divider" data-i18n="index.vagy">vagy</div>
+      <button class="btn-google" id="btn-google-login" onclick="googleLogin()">
+        <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5L31.8 34c-2.1 1.4-4.7 2-7.8 2-5.2 0-9.5-2.9-11.2-7l-6.6 5C9.7 39.7 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l5.7 5c3.4-3.1 5.6-7.8 5.6-14.4 0-1.3-.1-2.7-.8-4z"/></svg>
+        <span data-i18n="index.google_belepes">Folytatás Google-fiókkal</span>
+      </button>
+    </div>
+
+    <!-- REGISZTRÁCIÓ -->
+    <div id="form-register" style="display:none;">
+      <!-- Diák / tanár választó: csak az önkiszolgáló tanári regisztrációt
+           bekapcsoló környezetben jelenik meg (kornyezet.js, lásd a szkriptet). -->
+      <div class="form-group" id="szerep-csoport" hidden>
+        <label data-i18n="index.szerep_cim">Kinek készül a fiók?</label>
+        <div class="tabs szerep-valaszto" role="radiogroup">
+          <button type="button" class="tab-btn" id="szerep-diak" role="radio" aria-checked="true" onclick="szerepValaszt('diak')" data-i18n="index.szerep_diak">Diák vagyok</button>
+          <button type="button" class="tab-btn" id="szerep-tanar" role="radio" aria-checked="false" onclick="szerepValaszt('tanar')" data-i18n="index.szerep_tanar">Tanár vagyok</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="reg-name" data-i18n="index.teljes_nev">Teljes név</label>
+        <input type="text" id="reg-name" placeholder="Pl. Kiss Péter" data-i18n-placeholder="index.nev_pelda" autocomplete="name" />
+      </div>
+      <div class="form-group">
+        <label for="reg-email" data-i18n="index.email">Email</label>
+        <input type="email" id="reg-email" placeholder="pelda@email.com" data-i18n-placeholder="index.email_pelda" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="reg-password" data-i18n="index.jelszo">Jelszó</label>
+        <input type="password" id="reg-password" placeholder="min. 6 karakter" data-i18n-placeholder="index.jelszo_pelda" autocomplete="new-password" />
+      </div>
+      <button class="btn-primary" id="btn-register" onclick="emailRegister()" data-i18n="index.fiok_letrehozas">Fiók létrehozása</button>
+      <div class="divider" data-i18n="index.vagy">vagy</div>
+      <button class="btn-google" id="btn-google-reg" onclick="googleLogin(true)">
+        <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5L31.8 34c-2.1 1.4-4.7 2-7.8 2-5.2 0-9.5-2.9-11.2-7l-6.6 5C9.7 39.7 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l5.7 5c3.4-3.1 5.6-7.8 5.6-14.4 0-1.3-.1-2.7-.8-4z"/></svg>
+        <span data-i18n="index.google_regisztracio">Regisztráció Google-fiókkal</span>
+      </button>
+    </div>
+
+    <!-- TANÁRI REGISZTRÁCIÓ: e-mail-megerősítés. A tanári jogot a szerver adja
+         meg, miután az e-mail-cím megerősített (tanariRegisztracio Function). -->
+    <div class="megerosites" id="tanari-megerosites" hidden>
+      <h3 data-i18n="index.tanar_megerosites_cim">Erősítsd meg az e-mail-címed</h3>
+      <p id="tanari-leiras"></p>
+      <button class="btn-primary" id="btn-tanari-kesz" onclick="tanariKesz()" data-i18n="index.tanar_megerositettem">Megerősítettem</button>
+      <button class="btn-google" id="btn-tanari-ujra" onclick="tanariUjrakuldes()" data-i18n="index.tanar_ujrakuldes">Levél újraküldése</button>
+      <button class="btn-kilepes" type="button" onclick="tanariKilepes()" data-i18n="kozos.kilepes">Kilépés</button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <!-- TELEPÍTÉS A TELEFONRA
+         A sáv rejtve indul, és a pwa.js nyitja ki, ha van mit
+         felkínálni. Telepített appból nem jelenik meg. -->
+    <div class="telepito" id="telepito" hidden>
+      <div class="telepito-fo">
+        <span class="telepito-ikon" aria-hidden="true">
+          <img src="icons/icon-192.png" alt="" width="34" height="34" />
+        </span>
+        <div>
+          <strong data-i18n="index.telepito_cim">Tedd ki a telefonod főképernyőjére</strong>
+          <span data-i18n="index.telepito_leiras">Úgy nyílik, mint egy alkalmazás – böngésző sáv nélkül.</span>
+        </div>
+      </div>
+      <button class="btn-telepito" type="button" id="btn-telepito" data-i18n="index.telepito_gomb">📲 Telepítés</button>
+      <div class="telepito-tipp" id="telepito-tipp" hidden>
+        <p data-i18n-html="index.telepito_android"><strong>Androidon (Chrome):</strong> a jobb felső ⋮ menüben
+        „Alkalmazás telepítése" vagy „Hozzáadás a kezdőlaphoz".</p>
+        <p data-i18n-html="index.telepito_ios"><strong>iPhone-on (Safari):</strong> alul a megosztás ikon
+        <span aria-hidden="true">⬆️</span>, majd „Főképernyőhöz adás".</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { t, nyelv } from './js/i18n.js';
+  import { hibaSzoveg } from './js/ui.js';
+  import { TANARI_ONREGISZTRACIO } from './js/kornyezet.js';
+  import {
+    auth, db, functions, googleProvider,
+    doc, getDoc, setDoc, updateDoc, serverTimestamp,
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    sendEmailVerification,
+    signInWithPopup,
+    signOut,
+    getRedirectResult,
+    httpsCallable
+  } from './js/firebase-config.js';
+  import { swRegisztracio, telepitoSav } from './js/pwa.js';
+
+  // Telepíthető alkalmazás: a service worker bejegyzése és a telepítő
+  // sáv. Mindkettő hibatűrő – ha nem megy, a belépés attól működik.
+  swRegisztracio();
+  telepitoSav({ sav: 'telepito', gomb: 'btn-telepito', tipp: 'telepito-tipp' });
+
+  // Egyszerre csak egy belépési folyamat futhat – megakadályozza, hogy
+  // az onAuthStateChanged és a getRedirectResult kétszer irányítson át.
+  let folyamatban = false;
+
+  // ── SEGÉDFÜGGVÉNYEK ──
+
+  function showMsg(text, type = 'error') {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = `msg ${type}`;
+  }
+  function clearMsg() {
+    const el = document.getElementById('msg');
+    el.className = 'msg';
+    el.textContent = '';
+  }
+
+  function setLoading(btnId, loading, label) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.innerHTML = loading ? `<span class="spinner inline"></span>${t('kozos.betoltes')}` : label;
+  }
+
+  // A regisztrációs űrlapon megadott név.
+  //
+  // Miért modul-szintű változó, és nem paraméter: a
+  // createUserWithEmailAndPassword azonnal kiváltja az onAuthStateChanged-et,
+  // ami előbb ér ide, mint a regisztráció saját ága – és ott nincs név.
+  // Korábban ezért lett minden email-regisztrációból "Névtelen".
+  let regisztracioNev = null;
+
+  // A regisztrációs űrlap diák/tanár választása, és az, amit a profil
+  // LÉTREHOZÁSAKOR használunk (ugyanazért modul-szintű, mint a név: az
+  // onAuthStateChanged előbb fut). A belépő fülről nem lehet tanári
+  // regisztrációt indítani, és ott, ahol az önkiszolgáló tanári
+  // regisztráció nincs bekapcsolva, a választó sem látszik.
+  let valasztottSzerep = 'diak';
+  let regisztracioSzerep = 'diak';
+  // Most hoztuk létre a tanári fiókot: a megerősítő levelet egyszer magunk küldjük.
+  let ujTanariFiok = false;
+
+  if (TANARI_ONREGISZTRACIO) document.getElementById('szerep-csoport').hidden = false;
+
+  window.szerepValaszt = (szerep) => {
+    valasztottSzerep = szerep === 'tanar' ? 'tanar' : 'diak';
+    document.getElementById('szerep-diak').setAttribute('aria-checked', String(valasztottSzerep === 'diak'));
+    document.getElementById('szerep-tanar').setAttribute('aria-checked', String(valasztottSzerep === 'tanar'));
+  };
+
+  // ── PROFIL LÉTREHOZÁS / LEKÉRÉS ──
+  // Mindenki "diak" lesz alapból. A tanári regisztráció csak jelzés
+  // (tanari_kerelem): a tanári jogot a szerver adja meg, ha az e-mail-cím
+  // megerősített. Egyéb esetben a szerepet admin állítja (Felhasználók oldal).
+  async function ensureUserProfile(user) {
+    const ref = doc(db, 'felhasznalok', user.uid);
+    const snap = await getDoc(ref);
+    const nev = regisztracioNev || user.displayName || 'Névtelen';
+
+    if (!snap.exists()) {
+      const tanariKerelem = TANARI_ONREGISZTRACIO && regisztracioSzerep === 'tanar';
+      await setDoc(ref, {
+        nev,
+        email: user.email,
+        szerep: 'diak',
+        letrehozva: serverTimestamp(),
+        ...(tanariKerelem ? { tanari_kerelem: true } : {})
+      });
+      ujTanariFiok = tanariKerelem;
+      return { szerep: 'diak', tanariKerelem };
+    }
+
+    // Önjavítás: ha a profil korábban név nélkül jött létre, de most
+    // tudjuk a nevet, pótoljuk. (A szabály a nev mező írását engedi.)
+    if (regisztracioNev && snap.data().nev === 'Névtelen') {
+      try {
+        await updateDoc(ref, { nev: regisztracioNev });
+      } catch (e) {
+        console.error('Névpótlás nem sikerült:', e);
+      }
+    }
+
+    return { szerep: snap.data().szerep, tanariKerelem: snap.data().tanari_kerelem === true };
+  }
+
+  // ── ÁTIRÁNYÍTÁS ──
+  function redirect(szerep) {
+    document.getElementById('redirect-overlay').classList.add('show');
+    window.location.replace(szerep === 'tanar' ? 'tanar.html' : 'diak.html');
+  }
+
+  async function belepesUtan(user) {
+    if (folyamatban) return;
+    folyamatban = true;
+    try {
+      const profil = await ensureUserProfile(user);
+      // Tanári regisztrációt indított, de a szerep még nincs meg: az e-mail
+      // megerősítése és a szerveres jóváhagyás hátravan. (A folyamatban
+      // jelző szándékosan marad: az oldal a megerősítő nézetben marad.)
+      if (TANARI_ONREGISZTRACIO && profil.szerep !== 'tanar' && profil.tanariKerelem) {
+        await tanariBefejezes(user);
+        return;
+      }
+      redirect(profil.szerep);
+    } catch (e) {
+      folyamatban = false;
+      throw e;
+    }
+  }
+
+  // ── TANÁRI REGISZTRÁCIÓ BEFEJEZÉSE ──
+  // Megerősített e-mail kell (Google-fióknál ez adott). A szerver az Auth
+  // rekordból ellenőrzi, nem a kliens állításából.
+  function tanariNezet(email) {
+    for (const id of ['auth-fulek', 'form-login', 'form-register', 'auth-alcim']) {
+      document.getElementById(id).style.display = 'none';
+    }
+    document.getElementById('tanari-leiras').textContent = t('index.tanar_megerosites_leiras', { email: email || '' });
+    document.getElementById('tanari-megerosites').hidden = false;
+  }
+
+  async function tanariJogKeres(user) {
+    await httpsCallable(functions, 'tanariRegisztracio')();
+    // A szerep az új tokenben jelenik meg – frissítés nélkül a tanári oldal
+    // még diáknak látná a felhasználót.
+    await user.getIdToken(true);
+    redirect('tanar');
+  }
+
+  async function levelKuldes(user) {
+    auth.languageCode = nyelv();   // a levél a felület nyelvén érkezzen
+    await sendEmailVerification(user);
+  }
+
+  async function tanariBefejezes(user) {
+    try { await user.reload(); } catch (e) { console.error('Felhasználó frissítése nem sikerült:', e); }
+
+    if (user.emailVerified) {
+      try {
+        await tanariJogKeres(user);
+        return;
+      } catch (e) {
+        tanariNezet(user.email);
+        showMsg(hibaSzoveg(e));
+        return;
+      }
+    }
+
+    tanariNezet(user.email);
+    if (ujTanariFiok) {
+      ujTanariFiok = false;
+      try {
+        await levelKuldes(user);
+        showMsg(t('index.tanar_level_elkuldve'), 'success');
+      } catch (e) {
+        showMsg(translateError(e.code));
+      }
+    }
+  }
+
+  window.tanariKesz = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    clearMsg();
+    const gomb = document.getElementById('btn-tanari-kesz');
+    gomb.disabled = true;
+    try {
+      await user.reload();
+      if (!user.emailVerified) {
+        showMsg(t('index.tanar_meg_nincs'));
+        return;
+      }
+      await tanariJogKeres(user);
+    } catch (e) {
+      showMsg(String(e.code).startsWith('auth/') ? translateError(e.code) : hibaSzoveg(e));
+    } finally {
+      gomb.disabled = false;
+    }
+  };
+
+  window.tanariUjrakuldes = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    clearMsg();
+    try {
+      await levelKuldes(user);
+      showMsg(t('index.tanar_level_elkuldve'), 'success');
+    } catch (e) {
+      showMsg(translateError(e.code));
+    }
+  };
+
+  window.tanariKilepes = async () => {
+    try { await signOut(auth); } finally { window.location.reload(); }
+  };
+
+  // ── MÁR BE VAN LÉPVE? ──
+  onAuthStateChanged(auth, (user) => {
+    if (user) belepesUtan(user).catch((e) => console.error('Auth state hiba:', e));
+  });
+
+  // ── GOOGLE REDIRECT VISSZATÉRÉS (ha egyszer popup helyett redirectre váltunk) ──
+  try {
+    const result = await getRedirectResult(auth);
+    if (result?.user) await belepesUtan(result.user);
+  } catch (e) {
+    if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+      showMsg(translateError(e.code));
+    }
+  }
+
+  // ── FÜLVÁLTÁS ──
+  window.switchTab = (tab) => {
+    const isLogin = tab === 'login';
+    document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
+    document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
+    document.getElementById('tab-login').classList.toggle('active', isLogin);
+    document.getElementById('tab-register').classList.toggle('active', !isLogin);
+    clearMsg();
+  };
+
+  // A nyitóoldalról érkező közvetlen linkek: #regisztracio (a regisztrációs fül), #tanar (tanári regisztráció előválasztva).
+  const horgony = location.hash.replace('#', '');
+  if (horgony === 'regisztracio' || horgony === 'tanar') {
+    window.switchTab('register');
+    if (horgony === 'tanar' && TANARI_ONREGISZTRACIO) window.szerepValaszt('tanar');
+  }
+
+  // ── EMAIL BELÉPÉS ──
+  window.emailLogin = async () => {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) { showMsg(t('index.tolts_ki')); return; }
+    setLoading('btn-login', true, t('index.ful_belepes'));
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      await belepesUtan(cred.user);
+    } catch (e) {
+      showMsg(translateError(e.code));
+      setLoading('btn-login', false, t('index.ful_belepes'));
+    }
+  };
+
+  // ── EMAIL REGISZTRÁCIÓ ──
+  window.emailRegister = async () => {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    if (!name || !email || !password) { showMsg(t('index.tolts_ki')); return; }
+    if (password.length < 6) { showMsg(t('index.jelszo_rovid')); return; }
+    setLoading('btn-register', true, t('index.fiok_letrehozas'));
+    try {
+      // A név ELŐRE, mert a createUser azonnal kiváltja az
+      // onAuthStateChanged-et, és az ér ide előbb.
+      regisztracioNev = name;
+      regisztracioSzerep = TANARI_ONREGISZTRACIO ? valasztottSzerep : 'diak';
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await belepesUtan(cred.user);
+    } catch (e) {
+      regisztracioNev = null;
+      regisztracioSzerep = 'diak';
+      showMsg(translateError(e.code));
+      setLoading('btn-register', false, t('index.fiok_letrehozas'));
+    }
+  };
+
+  // ── GOOGLE BELÉPÉS ──
+  // regisztracio = true: a regisztrációs fülről indult (ott a diák/tanár
+  // választás érvényes); a belépő fülről új fiók mindig diák.
+  window.googleLogin = async (regisztracio = false) => {
+    regisztracioSzerep = regisztracio && TANARI_ONREGISZTRACIO ? valasztottSzerep : 'diak';
+    const btnLogin = document.getElementById('btn-google-login');
+    const btnReg = document.getElementById('btn-google-reg');
+    if (btnLogin) btnLogin.disabled = true;
+    if (btnReg) btnReg.disabled = true;
+    clearMsg();
+
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      await belepesUtan(result.user);
+    } catch (e) {
+      // A felhasználó bezárta a popupot – ez nem hiba
+      if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+        showMsg(translateError(e.code));
+      }
+      if (btnLogin) btnLogin.disabled = false;
+      if (btnReg) btnReg.disabled = false;
+    }
+  };
+
+  // ── ENTER ──
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    if (!document.getElementById('tanari-megerosites').hidden) return;
+    const loginVisible = document.getElementById('form-login').style.display !== 'none';
+    if (loginVisible) window.emailLogin();
+    else window.emailRegister();
+  });
+
+  // ── HIBAFORDÍTÁS ──
+  function translateError(code) {
+    const kulcs = 'auth.' + String(code).replace(/^auth\//, '');
+    return t(kulcs) !== kulcs ? t(kulcs) : t('auth.ismeretlen', { kod: code });
+  }
+</script>
+</body>
+</html>

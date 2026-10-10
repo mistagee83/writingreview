@@ -4,7 +4,7 @@
   "description": "Kézzel írt dolgozatok beadása és AI-alapú értékelése tanárok és diákok számára.",
   "lang": "hu",
   "dir": "ltr",
-  "start_url": "/",
+  "start_url": "/belepes.html",
   "scope": "/",
   "id": "/",
   "display": "standalone",

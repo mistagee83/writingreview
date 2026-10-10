@@ -1,0 +1,157 @@
+/* ══════════════════════════════════════════════════════
+   WritingReview – nyitóoldal (index.html)
+   Az app.css tokenjeire és betűtípusaira épül (Syne a címekben, DM Sans a szövegben). A nyitóoldal
+   mindig az alapszínt (narancs) használja: a színtéma csak a belépett tanárokra vonatkozik.
+   ══════════════════════════════════════════════════════ */
+
+.landing { background: var(--paper); color: var(--ink); }
+.landing [hidden] { display: none !important; }
+.landing a { color: inherit; }
+.landing a:focus-visible, .landing summary:focus-visible, .landing .nyelvvalaszto:focus-visible {
+  outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px;
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+.landing section[id] { scroll-margin-top: 76px; }
+
+.lp-sor { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.lp-keskeny { max-width: 760px; }
+.lp-kozep { text-align: center; }
+
+/* ── fejléc ── */
+.lp-fejlec {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(245, 242, 236, 0.94); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.lp-fejlec-sor { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 64px; }
+.lp-marka { text-decoration: none; color: var(--ink); }
+.lp-marka span { color: var(--accent); }
+.lp-menu { display: flex; gap: 1.75rem; }
+.lp-menu a { text-decoration: none; font-size: 0.92rem; color: #3b3a37; }
+.lp-menu a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.lp-jobb { display: flex; align-items: center; gap: 0.9rem; }
+.lp-belepes { text-decoration: none; font-size: 0.92rem; font-weight: 600; }
+.lp-belepes:hover { text-decoration: underline; text-underline-offset: 4px; }
+/* a nyelvválasztó az app.css-ben a sötét fejléchez van stílusozva: világos fejlécen átszínezzük */
+.lp-fejlec .nyelvvalaszto { border-color: var(--border); color: var(--ink); background: #fff; }
+.lp-fejlec .nyelvvalaszto:hover { border-color: var(--ink); color: var(--ink); }
+.lp-gomb-kicsi { padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px; text-decoration: none; }
+.btn-primary.lp-gomb-kicsi, .btn-primary.lp-gomb { color: #fff; text-decoration: none; }
+
+/* ── hero ── */
+.lp-hero { padding: 64px 0 80px; }
+.lp-hero-racs { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+.lp-elocim {
+  display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1.1rem;
+  font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #3b3a37;
+}
+.lp-elocim::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.lp-hero h1 {
+  font-family: 'Syne', sans-serif; font-weight: 800; letter-spacing: -0.035em; line-height: 1.04;
+  font-size: clamp(2.25rem, 5.2vw, 3.7rem); margin-bottom: 1.25rem;
+}
+.lp-bevezeto { font-size: 1.1rem; line-height: 1.65; color: #3b3a37; max-width: 34rem; }
+.lp-gombok { display: flex; flex-wrap: wrap; align-items: center; gap: 1.1rem 1.5rem; margin-top: 2rem; }
+.lp-gomb { padding: 0.9rem 1.7rem; font-size: 1rem; border-radius: 10px; }
+.lp-masodlagos { font-weight: 600; text-decoration: none; }
+.lp-masodlagos:hover { text-decoration: underline; text-underline-offset: 4px; }
+.lp-megjegyzes { margin-top: 1rem; font-size: 0.88rem; color: #5a5750; }
+
+/* a javítás ábrája: kézírás → AI-javítás */
+.lp-abra { display: grid; gap: 10px; justify-items: stretch; }
+.lp-lap {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 18px 20px;
+  box-shadow: 0 12px 32px rgba(15, 15, 15, 0.07);
+}
+.lp-cimke { display: block; margin-bottom: 8px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6862; }
+.lp-kezirat { background: #fffdf6; transform: rotate(-1.2deg); }
+.lp-kez { font-family: 'Segoe Script', 'Bradley Hand', 'Comic Sans MS', cursive; font-size: 1.12rem; line-height: 1.6; color: #2b3a67; }
+.lp-vonalak { display: block; width: 100%; height: 28px; margin-top: 6px; }
+.lp-vonalak path { fill: none; stroke: var(--border); stroke-width: 1.5; }
+.lp-nyil { width: 30px; height: 20px; margin: 0 auto; transform: rotate(90deg); }
+.lp-nyil path { fill: none; stroke: #6b6862; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.lp-javitott { font-size: 1.1rem; line-height: 1.6; }
+.lp-javitott del { color: var(--err); text-decoration: line-through; }
+.lp-javitott ins { color: #0b6b2a; background: var(--ok-light); text-decoration: none; font-weight: 600; padding: 0 3px; border-radius: 3px; }
+.lp-magyarazat { margin-top: 6px; font-size: 0.86rem; color: #5a5750; }
+.lp-pont { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.lp-pont-szam { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.7rem; letter-spacing: -0.03em; }
+.lp-pont-felirat { font-size: 0.85rem; color: #5a5750; }
+
+/* ── szakaszok ── */
+.lp-szakasz { padding: 80px 0; }
+.lp-szakasz-szines { background: #fff; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.lp-szakasz h2, .lp-zaro h2 {
+  font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: -0.025em; line-height: 1.12;
+  font-size: clamp(1.65rem, 3.6vw, 2.3rem); margin-bottom: 2rem;
+}
+.lp-szakasz-alcim { margin: -1rem 0 2rem; color: #3b3a37; line-height: 1.6; }
+
+.lp-lepesek { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.lp-lepesek li { background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 26px; }
+.lp-szam {
+  display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; margin-bottom: 14px;
+  border-radius: 50%; background: var(--ink); color: #fff; font-family: 'Syne', sans-serif; font-weight: 700;
+}
+.lp-lepesek h3, .lp-kartya h3, .lp-csomag h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
+.lp-lepesek p, .lp-kartya p { line-height: 1.6; color: #3b3a37; font-size: 0.97rem; }
+
+.lp-kartyak { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 20px; }
+.lp-kartya { background: var(--paper); border: 1.5px solid var(--border); border-radius: 14px; padding: 26px; }
+.lp-ikon { display: block; font-size: 1.6rem; margin-bottom: 12px; }
+
+/* ── csomagok ── */
+.lp-csomagok { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 1.25rem; }
+.lp-csomag { display: flex; flex-direction: column; background: #fff; border: 1.5px solid var(--border); border-radius: 16px; padding: 28px; }
+.lp-ar { margin: 0.25rem 0 0.5rem; }
+.lp-ar strong { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 2.2rem; letter-spacing: -0.03em; }
+.lp-ar span { color: #5a5750; font-size: 0.95rem; }
+.lp-keret { font-weight: 600; font-size: 0.95rem; padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.lp-pontok { list-style: none; display: grid; gap: 0.6rem; }
+.lp-pontok li { position: relative; padding-left: 1.6rem; line-height: 1.5; font-size: 0.95rem; }
+.lp-pontok li::before { content: "✓"; position: absolute; left: 0; top: 0; font-weight: 700; color: #0b6b2a; }
+
+/* ── GYIK ── */
+.lp-kerdes { border-bottom: 1px solid var(--border); }
+.lp-kerdes summary {
+  list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: 1.15rem 0; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--ink);
+}
+.lp-kerdes summary::-webkit-details-marker { display: none; }
+.lp-kerdes summary::after { content: "+"; font-size: 1.5rem; line-height: 1; color: #5a5750; flex: none; }
+.lp-kerdes[open] summary::after { content: "−"; }
+.lp-kerdes p { padding-bottom: 1.25rem; line-height: 1.65; color: #3b3a37; max-width: 60ch; }
+
+/* ── záró felhívás és lábléc ── */
+.lp-zaro { background: var(--ink); color: #fff; text-align: center; padding: 80px 0; }
+.lp-zaro h2 { margin-bottom: 0.75rem; }
+.lp-zaro p { color: #cfccc5; margin-bottom: 1.75rem; }
+.lp-kozep-gombok { justify-content: center; margin-top: 0; }
+.btn-primary.lp-gomb-vilagos { background: #fff; color: var(--ink); }
+.btn-primary.lp-gomb-vilagos:hover { background: #ece9e1; }
+.lp-lablec { padding: 28px 0; font-size: 0.88rem; color: #5a5750; }
+.lp-lablec-sor { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.lp-lablec .brand { color: var(--ink); font-size: 1rem; }
+.lp-lablec .brand span { color: var(--accent); }
+.lp-lablec a { text-decoration: none; font-weight: 600; }
+.lp-lablec a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+/* ── keskeny képernyő ── */
+@media (max-width: 900px) {
+  .lp-menu { display: none; }
+  .lp-hero { padding: 40px 0 56px; }
+  .lp-hero-racs { grid-template-columns: 1fr; gap: 40px; }
+  .lp-lepesek { grid-template-columns: 1fr; }
+  .lp-szakasz { padding: 56px 0; }
+}
+@media (max-width: 520px) {
+  .lp-sor { padding: 0 18px; }
+  .lp-fejlec-sor { height: 58px; }
+  .lp-jobb { gap: 0.7rem; }
+  .lp-marka { font-size: 1.05rem; }
+  /* a fejléc kis gombja nem fér el: a hero-ban és a lap alján ott a nagy gomb */
+  .lp-gomb-kicsi { display: none; }
+  .lp-gomb { width: 100%; justify-content: center; }
+  .lp-gombok { flex-direction: column; align-items: stretch; text-align: center; }
+  .lp-masodlagos { padding: 0.5rem 0; }
+}

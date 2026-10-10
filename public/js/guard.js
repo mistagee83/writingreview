@@ -14,7 +14,7 @@ import { auth, db, doc, getDoc, onAuthStateChanged, signOut } from "./firebase-c
 import { datumSzoveg } from "./i18n.js";
 import { temaAlkalmaz } from "./tema.js";
 
-export const BELEPO_OLDAL = "index.html";
+export const BELEPO_OLDAL = "belepes.html";
 
 const KEZDOLAP = {
   tanar: "tanar.html",
