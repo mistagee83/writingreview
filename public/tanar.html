@@ -68,6 +68,14 @@
           <span id="csomag-gombok"></span>
           <button class="btn-sm" id="btn-kezeles" style="display:none;" data-i18n="tanar.gomb_kezeles">⚙️ Előfizetés kezelése</button>
         </div>
+        <!-- A csomag kiválasztása még NEM visz a fizetésre: előbb itt kell jóváhagyni -->
+        <div class="csomag-megerosites" id="csomag-megerosites" style="display:none;" role="group" aria-live="polite">
+          <p id="megerosites-szoveg"></p>
+          <div class="gomb-sor">
+            <button class="btn-primary" id="btn-tovabb" data-i18n="tanar.gomb_tovabb">Tovább a fizetéshez</button>
+            <button class="btn-sm" id="btn-megse" data-i18n="tanar.gomb_megse">Mégse</button>
+          </div>
+        </div>
         <div class="msg" id="csomag-msg"></div>
       </div>
     </div>
@@ -179,6 +187,7 @@
     const btnKezeles = document.getElementById('btn-kezeles');
     masodlagos.textContent = '';
     gombok.innerHTML = '';
+    megerositesElrejt();
     btnKezeles.style.display = 'none';
 
     if (d.csomag_forras === 'admin' && d.csomag !== 'ingyenes') {
@@ -205,12 +214,39 @@
         const gomb = document.createElement('button');
         gomb.className = c.nev === 'profi' ? 'btn-sm' : 'btn-primary';
         gomb.textContent = t('tanar.gomb_elofizet_csomag', { nev: t(`admin.csomag_${c.nev}`), ar: c.ar || '', limit: c.keret ?? '∞' });
-        gomb.addEventListener('click', () => atiranyit('fizetesIndit', gomb, { csomag: c.nev }));
+        // a kattintás csak kijelöli a csomagot; a fizetésre a "Tovább" gomb visz, jóváhagyás után
+        gomb.setAttribute('aria-pressed', 'false');
+        gomb.addEventListener('click', () => kivalaszt(c, gomb));
         gombok.appendChild(gomb);
       }
       if (e?.van_ugyfel) btnKezeles.style.display = '';   // korábbi előfizetés számlái
     }
   }
+
+  // ── a csomag kiválasztása és jóváhagyása a fizetés előtt ──
+  let kivalasztott = null;
+  const megerosites = document.getElementById('csomag-megerosites');
+
+  function megerositesElrejt() {
+    kivalasztott = null;
+    megerosites.style.display = 'none';
+    for (const g of document.getElementById('csomag-gombok').children) g.setAttribute('aria-pressed', 'false');
+  }
+
+  function kivalaszt(c, gomb) {
+    kivalasztott = c;
+    uzenet('csomag-msg', '', 'success');
+    for (const g of document.getElementById('csomag-gombok').children) g.setAttribute('aria-pressed', String(g === gomb));
+    document.getElementById('megerosites-szoveg').textContent = t('tanar.megerosites_szoveg', {
+      nev: t(`admin.csomag_${c.nev}`), ar: c.ar || '', limit: c.keret ?? '∞'
+    });
+    megerosites.style.display = '';
+  }
+
+  document.getElementById('btn-tovabb').addEventListener('click', (e) => {
+    if (kivalasztott) atiranyit('fizetesIndit', e.currentTarget, { csomag: kivalasztott.nev });
+  });
+  document.getElementById('btn-megse').addEventListener('click', megerositesElrejt);
 
   async function atiranyit(callableNev, gomb, adat = {}) {
     uzenet('csomag-msg', '', 'success');
