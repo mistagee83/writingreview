@@ -325,6 +325,24 @@ cd writingreview
 - A feladat adatában a kódszavak magyarok (`angol`, `esszé`, `5-6. évfolyam`…); a megjelenítés
   fordít. Bővítéskor a kliens és a szerver listáját is át kell írni.
 
+## 5/c. Adatvédelmi előkészítés (2026-10-10)
+
+- **Google Fonts helyi kiszolgálása – kód kész, a `main`-en lesz; deploy még NINCS (pilot: hosting; prod: címkés kiadás).** A Syne és a DM Sans
+  változó betűtípusok a `public/css/fonts/`-ban (latin + latin-ext a magyar ő/ű miatt, 6 fájl, ~165 kB), az `@font-face` az `app.css`-ben;
+  a lapokból kikerültek a `fonts.googleapis.com` hivatkozások. Teszt: `tests/betutipusok.test.mjs` (nincs külső betűtípus, a fájlok léteznek).
+  Az `offline.html` rendszer-betűtípusra esik vissza (offline úgysem tölt be más). **Következő hasonló kérdés:** a Firebase SDK-t a lapok a
+  Google CDN-jéről (`www.gstatic.com`) töltik be (`public/js/firebase-config.js`) – ez szintén kiadja a látogató IP-címét; helyi kiszolgálás
+  nagyobb, külön feladat (a böngészős modul-importok miatt).
+- **Kérdéslista az adatvédelmi jogásznak:** `adatvedelmi-kerdesek.md` (a Gmail-piszkozat ugyanez). Nincs még fiók-/adattörlési funkció és
+  megőrzési idő: a jogász válasza alapján kell megépíteni.
+
+## 5/b. BLOKKOLÓ: a Google korhatár-kikötése (2026-10-09)
+
+A Gemini API és a Google Cloud generatív AI feltételei is tiltják, hogy az AI-t olyan alkalmazás részeként használjuk, ami „likely to be
+accessed by individuals under 18” – szinttől függetlenül. A diákjaink kiskorúak. **Éles kiskorú használat előtt jogi tisztázás kell**
+(részletek, forrás-linkek és kezelési lehetőségek: `kornyezetek-terv.md` 5.2). Az EU-s feldolgozás ettől külön kérdés: a Gemini API-nál nincs
+EU-garancia, a Cloud-oldali platformon (a Vertex AI új neve) van EU-végpont.
+
 ## 6. Javasolt következő lépések (sorrendben)
 
 1. *(A prod ellenőrző listája lezárva, a költségkeret is.)*

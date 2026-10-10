@@ -75,6 +75,29 @@ A funkciók régiója (`europe-west1`) és a `REGION` állandó a két környeze
 ### 5.2 Adatvédelem és jog (EU, kiskorúak kézírása megy AI-hoz)
 - Adatkezelési tájékoztató és felhasználási feltételek (angolul és magyarul), adatfeldolgozói megállapodás az iskolákkal/tanárokkal.
 - **Az AI feldolgozásának helye.** Ma a szerver közvetlenül a Gemini API-t hívja (`generativelanguage.googleapis.com`, API-kulccsal). Az **EU-s feldolgozás garanciájához** valószínűleg regionális végpont (pl. Vertex AI EU-régióban) kell. **Ezt a szolgáltatónál ellenőrizni kell**, mielőtt éles gyerekadat kerül bele.
+- **A Google szolgáltatási feltételeinek korhatár-kikötése (2026-10-09, elsődleges forrásból ellenőrizve) – BLOKKOLÓ, jogi értelmezés kell.**
+  Mindkét úton szerepel: a **Gemini API** feltételei (<https://ai.google.dev/gemini-api/terms>, „Age Requirements”: nem használható olyan
+  weboldal/alkalmazás részeként, ami „directed towards or is likely to be accessed by individuals under the age of 18”), és a **Google Cloud**
+  Service Specific Terms generatív AI-szolgáltatásokra (<https://cloud.google.com/terms/service-terms>, „Age Restrictions”: ugyanez, az
+  ügyfél „nem engedi az End Usereknek” sem). **Ez nem függ a fizetős/ingyenes szinttől.** A WritingReview diákja kiskorú, és a diák
+  tölt fel fotót az appba, ezért a szó szerinti olvasat szerint az app a „likely to be accessed by under 18” körbe esik. Lehetséges kezelés
+  (jogász döntse): (a) írásos egyeztetés/kivétel a Google-lel; (b) a diák ne férjen hozzá az apphoz (a tanár tölti fel a fotót) – ez
+  a termék lényegén változtat; (c) más szolgáltató (annak feltételeit ugyanígy ellenőrizni); (d) EU-ban üzemeltetett modell.
+  **Amíg ez nincs tisztázva, éles kiskorú diák-használatot ne indíts a prodon.**
+- **Alternatíva: Claude (Anthropic) – elsődleges forrásból ellenőrizve 2026-10-09.** A korhatár NEM tiltás: az Anthropic Usage Policy engedi a
+  kiskorúak által használt, az API-ra épülő terméket, ha a fejlesztő megfelel a „Guidelines for Organizations Serving Minors” útmutatónak
+  (<https://support.claude.com/en/articles/9307344>): korhatár/hozzáférés-ellenőrzés a szándékolt felhasználókra, tartalomszűrés, monitorozás,
+  adatvédelmi jogszabályok betartása és ennek nyilvános kimondása, tájékoztatás, hogy AI-val van dolguk; Anthropic időnként auditál. A
+  Commercial Terms-ben nincs korhatár-kikötés (kiskorú/18 szó nem szerepel). **EU-s feldolgozás:** az Anthropic saját API-ján az `inference_geo`
+  csak `global`/`us`, a workspace geo is csak `us` (<https://platform.claude.com/docs/en/manage-claude/data-residency>) → EU csak Amazon
+  Bedrock (EU profil) vagy Google Cloud/Vertex (EU régió/multi-régió) útján, partner-áron; ott a platform saját feltételeit (az AWS-ét,
+  illetve a Google Cloud generatív AI korhatár-kikötése a harmadik fél modelljére is vonatkozik-e) külön ellenőrizni kell. A kézírás-átírás
+  pontosságát és a költséget (Haiku 5.5 $0,10/$0,50, Haiku 4.5 $1/$5, Sonnet 5.5 $2/$10 per 1M token, első fél áron; a Gemini 3.8 Flash $0,75/$3,75)
+  a `scripts/atiras-osszehasonlitas.mjs`-hoz hasonló szkripttel kell mérni, mielőtt döntesz.
+- **Az AI feldolgozás helye (ellenőrizve):** a Gemini API fizetős szintje nem tanít az adatokon, de „may be stored transiently or cached in
+  any country” – EU-garancia nincs. EU-s feldolgozás csak a Cloud-oldali platformon (a Vertex AI-t átnevezték: **Gemini Enterprise Agent
+  Platform**) EU-végpontról lehetséges (`aiplatform.eu.rep.googleapis.com`, vagy `europe-west*` régió); a globális végpont nem garantál
+  semmit. Modell-támogatás (3.8/3.7 Flash, 3.5 Flash-Lite) a Google modell-oldalán ellenőrizendő a migráció előtt.
 - Adatmegőrzés és törlés: meddig marad meg a fotó és az átirat, hogyan törölhet a tanár/diák (GDPR: hozzáférés, törlés).
 - Országspecifikus kiegészítések később (a célpiac szűkülésekor).
 
