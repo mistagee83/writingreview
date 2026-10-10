@@ -64,6 +64,7 @@
   import { statuszBadge, uzenet, uzenetTorles, hibaSzoveg, gombVar, jegyMegjelenit } from './js/ui.js';
   import { kifejtosJavitas } from './js/kifejtos-javitas.js';
   import { skalaFeloldas, jegyJavaslat } from './js/kifejtos.js';
+  import { szovegJelolve, tartomanyokRendben, beillesztettArany } from './js/iras-jelzes.js';
   import {
     db, storage, functions, httpsCallable,
     collection, doc, getDoc, getDocs,
@@ -306,14 +307,23 @@
       const pontSorok = kifejtosMod ? [] : (tanari?.szempontok?.length ? tanari.szempontok : (ai?.szempontok || []))
         .map((sz) => ({ ...sz, cim: sz.cim || cimek[sz.kulcs] || sz.kulcs }));
 
-      // Dolgozatfotók
-      const kepUrlek = await Promise.all(
+      // Dolgozatfotók (a beírt dolgozatnak nincs fotója)
+      const beirt = b.forras === 'szoveg';
+      const kepUrlek = beirt ? [] : await Promise.all(
         (b.kep_paths || []).map((p) =>
           getDownloadURL(storageRef(storage, p)).catch(() => null))
       );
       if (elavult()) return;
 
-      torzs.innerHTML = `
+      // Beírt dolgozat: a diák szövege, a beillesztett részek megjelölve. A tartományokat a kliens
+      // küldte, ezért csak érvényes listát használunk (tartomanyokRendben), és a szöveg escape-elve megy ki.
+      const beirtSzoveg = typeof b.szoveg === 'string' ? b.szoveg : (b.atirat || '');
+      const jelzes = b.jelzesek || null;
+      const kiemelt = jelzes && tartomanyokRendben(jelzes.beillesztett_tartomanyok, beirtSzoveg.length)
+        ? jelzes.beillesztett_tartomanyok : [];
+      const szam = (v) => (Number.isFinite(Number(v)) ? Math.max(0, Math.floor(Number(v))) : 0);
+
+      const fotokSzekcio = `
         <div class="m-szekcio">
           <h4>${t('jav.fotok_cim')}</h4>
           <div class="kep-sor">
@@ -330,7 +340,35 @@
           <p class="halvany">${t('jav.atirat_figyelmeztetes')}</p>
           <pre class="atirat">${esc(b.atirat || t('jav.nincs_atirat'))}</pre>
           ${b.atirat_megjegyzes ? `<p class="halvany">${esc(b.atirat_megjegyzes)}</p>` : ''}
+        </div>`;
+
+      const beirtSzekcio = `
+        <div class="m-szekcio">
+          <h4>${t('jav.jelzesek_cim')}</h4>
+          ${jelzes ? `
+            <ul class="jelzes-lista">
+              <li>${szam(jelzes.elhagyas_db) > 0
+                ? t('jav.jelzes_elhagyas', { db: szam(jelzes.elhagyas_db), mp: szam(jelzes.elhagyas_mp) })
+                : t('jav.jelzes_nincs_elhagyas')}</li>
+              <li>${szam(jelzes.beillesztes_db) > 0
+                ? t('jav.jelzes_beillesztes', {
+                    db: szam(jelzes.beillesztes_db), kar: szam(jelzes.beillesztett_karakter),
+                    szazalek: Math.round(beillesztettArany(kiemelt, beirtSzoveg.length) * 100)
+                  })
+                : t('jav.jelzes_nincs_beillesztes')}</li>
+            </ul>
+            <p class="halvany">${t('jav.jelzes_tipp')}</p>`
+            : `<p class="halvany">${t('jav.jelzes_nincs')}</p>`}
         </div>
+
+        <div class="m-szekcio">
+          <h4>${t('jav.beirt_cim')}</h4>
+          ${kiemelt.length ? `<p class="halvany">${t('jav.jelzes_jelmagyarazat')}</p>` : ''}
+          <pre class="atirat">${szovegJelolve(beirtSzoveg || t('jav.nincs_atirat'), kiemelt, esc)}</pre>
+        </div>`;
+
+      torzs.innerHTML = `
+        ${beirt ? beirtSzekcio : fotokSzekcio}
 
         ${kifejtosMod ? `
         <div class="m-szekcio">

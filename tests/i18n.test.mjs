@@ -119,6 +119,8 @@ test("az átalakított lapokban nincs beégetett magyar szöveg a megjelenítés
     const talalat = sorok.filter((s) => ekezetes.test(s) && !/Névtelen/.test(s) && !/console\.(error|warn|log)/.test(s)
       // az AI magyar kódszavai (adat, nem megjelenő szöveg)
       && !/['"](általános|szórványos)['"]/.test(s)
+      // a tanított nyelv magyar kódszava (adat: a feladat nyelve; a beírás-felület nyelvkód-térképe)
+      && !/['"]német['"]/.test(s)
       // a magyar évfolyam-skála értékei (adat; a szerver ugyanezeket várja)
       && !/évfolyam|érettségi/.test(s));
     assert.deepEqual(talalat, [], `${f}: beégetett magyar szöveg`);

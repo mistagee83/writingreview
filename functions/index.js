@@ -451,12 +451,37 @@ async function aiHasznalatNaplo(kontextus, adat, firestore = null) {
  * Hibakódot ad vissza (vagy null, ha rendben van); a letöltés és az AI-hívás előtt hívandó.
  */
 const KEP_UT_MAX_HOSSZ = 500;
+/** A beírt beadás szövegének felső határa (a Firestore-szabály és a kliens is ezt tartja). */
+const BEIRT_SZOVEG_MAX = 20000;
+
+/**
+ * A feladat beadási módja (a tanár állítja a rubrikában): "foto" | "szoveg" | "mindketto".
+ * Hiányzó vagy ismeretlen érték = "foto" (a régi feladatok fotósak maradnak).
+ */
+function beadasiMod(feladat) {
+  const m = feladat?.rubrika?.beadasi_mod;
+  return m === "szoveg" || m === "mindketto" ? m : "foto";
+}
+
 function beadasOsszerendeles(beadasId, beadas, feladat) {
   const szoveg = (v) => typeof v === "string" && v.length > 0;
   if (!feladat) return "feladat_nincs";
   if (!szoveg(beadas.osztaly_id) || beadas.osztaly_id !== feladat.osztaly_id) return "osztaly_nem_egyezik";
   if (!szoveg(beadas.tanar_id) || beadas.tanar_id !== feladat.tanar_id) return "tanar_nem_egyezik";
   if (!szoveg(beadas.diak_id)) return "diak_hianyzik";
+
+  // Beírt dolgozat: nincs kép, és a feladat engedi (csak fogalmazás-feladat). A szöveget a kliens
+  // írta, ezért a hosszát itt is ellenőrizzük (a szabály ugyanezt teszi).
+  if (beadas.forras === "szoveg") {
+    if (kifejtos.feladatMod(feladat.rubrika) === "kifejtos") return "mod_nem_egyezik";
+    if (beadasiMod(feladat) === "foto") return "mod_nem_egyezik";
+    if (typeof beadas.szoveg !== "string" || beadas.szoveg.trim().length === 0
+        || beadas.szoveg.length > BEIRT_SZOVEG_MAX) return "szoveg_nincs";
+    if (Array.isArray(beadas.kep_paths) && beadas.kep_paths.length > 0) return "kep_es_szoveg";
+    return null;
+  }
+  if (beadasiMod(feladat) === "szoveg") return "mod_nem_egyezik";
+
   const elotag = `beadasok/${beadas.diak_id}/${beadasId}/`;
   const utak = beadas.kep_paths;
   if (!Array.isArray(utak) || utak.length === 0) return "kep_nincs";
@@ -742,7 +767,7 @@ látható. A dolgozat nyelve: ${nyelv}.
 Az olvashatosag mezőben értékeld, mennyire volt olvasható a kézírás.`;
 }
 
-function ertekelesPrompt(feladat, atirat) {
+function ertekelesPrompt(feladat, atirat, { beirt = false } = {}) {
   const r = feladat.rubrika || {};
   const szempontok = (r.szempontok || [])
     .map((sz) => `  - ${sz.kulcs} ("${sz.cim}"): max ${sz.suly} pont`)
@@ -785,7 +810,7 @@ ${r.egyeb_utasitas ? `\nA tanár külön kérése:\n${r.egyeb_utasitas}` : ""}
 # ÉRTÉKELÉSI SZEMPONTOK
 ${szempontok || "  - nincs megadva"}
 
-# A DIÁK DOLGOZATA (kézírásból átírva)
+# A DIÁK DOLGOZATA (${beirt ? "a diák beírta" : "kézírásból átírva"})
 """
 ${atirat}
 """
@@ -1151,32 +1176,47 @@ async function feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat,
   // ── 1. lépés: átírás ──
   // Külön lépés, hogy a tanár lássa, mit olvasott ki az AI – e nélkül
   // nem lehet megállapítani, hogy a diák hibázott vagy az AI félreolvasott.
-  const kepek = await kepekBetoltese(kepPaths);
-  const { eredmeny: atiratValasz, modell: atirasModell } = await geminiHivas(
-    'atiras',
-    [{ text: atiratPrompt(nyelve(feladat.rubrika)) }, ...kepek],
-    ATIRAT_SCHEMA,
-    { tanar_id: beadas.tanar_id, muvelet: "beadas_atiras", mod: "leveles", feladat_id: beadas.feladat_id, beadas_id: beadasId }
-  );
+  // BEÍRT dolgozatnál nincs mit átírni: a diák szövege maga az átirat (nincs AI-hívás, nincs kép).
+  let atirat;
+  let atirasModell = null;
+  if (beadas.forras === "szoveg") {
+    atirat = beadas.szoveg.trim();
+    await futasFrissites(beadasRef, futasId, {
+      atirat,
+      atirat_olvashatosag: null,
+      atirat_megjegyzes: null,
+      atirat_model: null,
+      frissitve: FieldValue.serverTimestamp()
+    });
+  } else {
+    const kepek = await kepekBetoltese(kepPaths);
+    const { eredmeny: atiratValasz, modell } = await geminiHivas(
+      'atiras',
+      [{ text: atiratPrompt(nyelve(feladat.rubrika)) }, ...kepek],
+      ATIRAT_SCHEMA,
+      { tanar_id: beadas.tanar_id, muvelet: "beadas_atiras", mod: "leveles", feladat_id: beadas.feladat_id, beadas_id: beadasId }
+    );
+    atirasModell = modell;
 
-  const atirat = (atiratValasz.atirat || "").trim();
-  if (!atirat) throw new Error("Az átírás üres szöveget adott.");
+    atirat = (atiratValasz.atirat || "").trim();
+    if (!atirat) throw new Error("Az átírás üres szöveget adott.");
 
-  await futasFrissites(beadasRef, futasId, {
-    atirat,
-    atirat_olvashatosag: atiratValasz.olvashatosag || null,
-    atirat_megjegyzes: atiratValasz.megjegyzes || null,
-    // Melyik modell olvasta fel – e nélkül utólag nem lehet
-    // összehasonlítani két modell kézírás-pontosságát.
-    atirat_model: atirasModell,
-    frissitve: FieldValue.serverTimestamp()
-  });
+    await futasFrissites(beadasRef, futasId, {
+      atirat,
+      atirat_olvashatosag: atiratValasz.olvashatosag || null,
+      atirat_megjegyzes: atiratValasz.megjegyzes || null,
+      // Melyik modell olvasta fel – e nélkül utólag nem lehet
+      // összehasonlítani két modell kézírás-pontosságát.
+      atirat_model: atirasModell,
+      frissitve: FieldValue.serverTimestamp()
+    });
+  }
 
   // ── 2. lépés: értékelés a SZÖVEG alapján ──
   // Így a rubrika módosítása után fillérekért újrafuttatható, kép nélkül.
   const { eredmeny: ertekeles, modell: ertekelesModell } = await geminiHivas(
     'ertekeles',
-    [{ text: ertekelesPrompt({ ...feladat }, atirat) }],
+    [{ text: ertekelesPrompt({ ...feladat }, atirat, { beirt: beadas.forras === "szoveg" }) }],
     ERTEKELES_SCHEMA,
     { tanar_id: beadas.tanar_id, muvelet: "beadas_ertekeles", mod: "leveles", feladat_id: beadas.feladat_id, beadas_id: beadasId }
   );
@@ -1623,6 +1663,8 @@ exports._teszt = {
   csatlakozasLogika,
   jovahagyasLogika,
   beadasOsszerendeles,
+  beadasiMod,
+  BEIRT_SZOVEG_MAX,
   beadasFoglalas,
   feldolgozBeadas,
   foglalasLejart,

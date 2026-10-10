@@ -66,6 +66,35 @@ service cloud.firestore {
         && f.url.matches('https://firebasestorage\\.googleapis\\.com/.*');
     }
 
+    // A feladat beadási módja (a tanár állítja a rubrikában): foto | szoveg | mindketto.
+    // Hiányzó vagy ismeretlen érték = foto (a régi feladatok így fotósak maradnak).
+    function beadasiMod(feladatId) {
+      let r = feladatAdat(feladatId).get('rubrika', {});
+      let m = r is map ? r.get('beadasi_mod', 'foto') : 'foto';
+      return m in ['szoveg', 'mindketto'] ? m : 'foto';
+    }
+
+    function egeszHatarral(v, max) {
+      return v is int && v >= 0 && v <= max;
+    }
+
+    // A beírt dolgozat írás közbeni jelzései (public/js/iras-jelzes.js): csupa egész szám, a
+    // kiemelt tartományok kezdet-vég párok (a lista tartalmát a szabály nem járhatja be, a
+    // megjelenítés érvényesíti: tartomanyokRendben). A beillesztett SZÖVEG nem tárolódik.
+    function jelzesekOk(j) {
+      return j is map
+        && j.keys().hasOnly(['elhagyas_db', 'elhagyas_mp', 'beillesztes_db',
+             'beillesztett_karakter', 'beillesztett_tartomanyok'])
+        && j.keys().hasAll(['elhagyas_db', 'elhagyas_mp', 'beillesztes_db',
+             'beillesztett_karakter', 'beillesztett_tartomanyok'])
+        && egeszHatarral(j.elhagyas_db, 100000)
+        && egeszHatarral(j.elhagyas_mp, 10000000)
+        && egeszHatarral(j.beillesztes_db, 100000)
+        && egeszHatarral(j.beillesztett_karakter, 100000000)
+        && j.beillesztett_tartomanyok is list
+        && j.beillesztett_tartomanyok.size() <= 100;
+    }
+
     function osztalyTag(osztalyId) {
       return belepve()
         && exists(/databases/$(database)/documents/osztalyok/$(osztalyId)/tagok/$(request.auth.uid));
@@ -281,7 +310,7 @@ service cloud.firestore {
       allow create: if belepve()
         && request.resource.data.keys().hasOnly(['feladat_id', 'osztaly_id', 'diak_id',
              'diak_nev', 'tanar_id', 'kep_paths', 'statusz', 'atirat', 'hiba',
-             'letrehozva', 'frissitve'])
+             'letrehozva', 'frissitve', 'forras', 'szoveg', 'jelzesek'])
         && request.resource.data.diak_id == request.auth.uid
         && request.resource.data.statusz == 'feltoltve'
         && osztalyTag(request.resource.data.osztaly_id)
@@ -291,8 +320,25 @@ service cloud.firestore {
         && feladatAdat(request.resource.data.feladat_id).tanar_id == request.resource.data.tanar_id
         && feladatAdat(request.resource.data.feladat_id).aktiv == true
         && request.resource.data.kep_paths is list
-        && request.resource.data.kep_paths.size() > 0
-        && request.resource.data.kep_paths.size() <= 10;
+        && (
+          // FOTÓS beadás: 1–10 kép, és a feladat engedi a fotót
+          (!('forras' in request.resource.data)
+            && !('szoveg' in request.resource.data)
+            && !('jelzesek' in request.resource.data)
+            && request.resource.data.kep_paths.size() > 0
+            && request.resource.data.kep_paths.size() <= 10
+            && beadasiMod(request.resource.data.feladat_id) in ['foto', 'mindketto'])
+          ||
+          // BEÍRT beadás (csak fogalmazás-feladat, ha a tanár engedi): szöveg, kép nélkül, jelzésekkel
+          (request.resource.data.get('forras', '') == 'szoveg'
+            && request.resource.data.kep_paths.size() == 0
+            && request.resource.data.get('szoveg', null) is string
+            && request.resource.data.szoveg.size() > 0
+            && request.resource.data.szoveg.size() <= 20000
+            && jelzesekOk(request.resource.data.get('jelzesek', null))
+            && beadasiMod(request.resource.data.feladat_id) in ['szoveg', 'mindketto']
+            && feladatAdat(request.resource.data.feladat_id).get('rubrika', {}).get('mod', 'iras') != 'kifejtos')
+        );
 
       // Státuszváltás, javítás, jóváhagyás: mind Cloud Function.
       // Így a diák nem tudja 'elkuldve'-re állítani a saját beadását,

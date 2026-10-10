@@ -1671,3 +1671,12 @@ button.elem-jel.atnez:hover { outline: 1.5px solid var(--warn); }
 .skala-sor .sk-min input { width: 5.5rem; }
 #skala-csoport .btn-sm { margin-top: 0.5rem; }
 #sk-uj[hidden], #sk-szazalek-tipp[hidden], #sk-sorok[hidden] { display: none; }
+
+/* ── Beírt dolgozat (diák) és az írás közbeni jelzések (tanár) ── */
+.mod-fulek { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.mod-fulek .btn-sm[aria-pressed="true"] { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.iras-szoveg { width: 100%; min-height: 18rem; font: inherit; line-height: 1.65; resize: vertical; margin-top: 0.5rem; }
+.szamlalo { margin-top: 0.4rem; font-size: 0.85rem; color: var(--muted); }
+.iras-figyelmeztetes { background: var(--warn-light); border-left: 3px solid var(--warn); padding: 0.5rem 0.75rem; border-radius: 0 6px 6px 0; }
+mark.beillesztett { background: #fde68a; color: inherit; padding: 0 0.1em; border-radius: 2px; }
+.jelzes-lista { margin: 0.4rem 0 0.6rem 1.1rem; padding: 0; line-height: 1.6; }

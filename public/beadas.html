@@ -45,6 +45,43 @@
     <div class="panel-body" id="allapot-torzs"></div>
   </div>
 
+  <!-- A beadás módja: csak akkor látszik, ha a tanár mindkettőt engedi -->
+  <div class="mod-fulek" id="mod-fulek" style="display:none;" role="group" aria-label="Beadás módja" data-i18n-aria="beadas.mod_aria">
+    <button type="button" class="btn-sm" id="ful-foto" data-i18n="beadas.mod_foto">📷 Lefotózom</button>
+    <button type="button" class="btn-sm" id="ful-szoveg" data-i18n="beadas.mod_szoveg">✍️ Beírom az oldalon</button>
+  </div>
+
+  <!-- BEÍRÁS (ha a tanár engedi) -->
+  <div class="panel" id="iras-panel" style="display:none;">
+    <div class="panel-header"><h2 data-i18n="beadas.iras_cim">✍️ Dolgozat megírása</h2></div>
+    <div class="panel-body">
+      <p class="halvany" data-i18n="beadas.iras_leiras">
+        Írd meg a dolgozatot ide. Amíg nem adod be, a szöveg ebben a böngészőben automatikusan mentődik.
+      </p>
+      <!-- A diák ELŐRE látja, mit jelzünk a tanárnak (átláthatóság). -->
+      <p class="halvany iras-figyelmeztetes" data-i18n="beadas.iras_figyelmeztetes">
+        Tájékoztatásul: a rendszer jelzi a tanárnak, ha elhagyod ezt az ablakot, és ha szöveget illesztesz be.
+      </p>
+      <!-- A helyesírás-javítás és az automatikus nyelvhelyesség KI van kapcsolva: a dolgozatot a diák
+           saját tudása szerint kell értékelni, a javítóprogram elfedné a hibáit. -->
+      <textarea id="iras-szoveg" class="iras-szoveg" rows="14"
+                spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+                data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
+                placeholder="Kezdj el írni…" data-i18n-placeholder="beadas.iras_placeholder"
+                aria-label="Dolgozat" data-i18n-aria="beadas.iras_aria"></textarea>
+      <div class="szamlalo" id="szamlalo" aria-live="polite">0</div>
+
+      <div class="msg" id="iras-msg"></div>
+
+      <div class="gomb-sor">
+        <button class="btn-primary" id="btn-bead-szoveg" data-i18n="beadas.bead_gomb">📤 Beadás</button>
+      </div>
+      <p class="halvany" style="margin-top:0.75rem;" data-i18n="beadas.vegleges">
+        A beadás után a dolgozat nem cserélhető ki.
+      </p>
+    </div>
+  </div>
+
   <!-- FELTÖLTÉS -->
   <div class="panel" id="feltoltes-panel" style="display:none;">
     <div class="panel-header"><h2 data-i18n="beadas.feltoltes_cim">📷 Dolgozat feltöltése</h2></div>
@@ -88,6 +125,7 @@
   import { statuszBadge, STATUSZ_DIAK, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import { biztonsagosUrl } from './js/biztonsag.js';
   import { atmeretez, tulNagy, meret } from './js/kep.js';
+  import { jelzesFigyelo, szoszam, SZOVEG_MAX } from './js/iras-jelzes.js';
   import {
     db, storage,
     collection, doc, getDoc, getDocs, setDoc,
@@ -163,7 +201,7 @@
     document.getElementById('allapot-torzs').innerHTML =
       `<p class="halvany">${t('beadas.zart')}</p>`;
   } else {
-    document.getElementById('feltoltes-panel').style.display = 'block';
+    beadasiFelulet();
   }
 
   // ══════════════════════════════════════════
@@ -197,13 +235,120 @@
         ${b.statusz === 'elkuldve'
           ? `<p style="margin-top:1rem;"><a class="btn-primary" href="visszajelzes.html?id=${esc(beadasId)}" style="text-decoration:none;">${t('beadas.visszajelzes_nyit')}</a></p>`
           : ''}
-        ${b.atirat && ['javitva', 'elkuldve'].includes(b.statusz) ? `
+        ${b.atirat && b.forras !== 'szoveg' && ['javitva', 'elkuldve'].includes(b.statusz) ? `
           <details style="margin-top:1.2rem;">
             <summary>${t('beadas.atirat_cim')}</summary>
             <pre class="atirat">${esc(b.atirat)}</pre>
             <p class="halvany">${t('beadas.atirat_tipp')}</p>
           </details>` : ''}`;
     });
+  }
+
+  // ══════════════════════════════════════════
+  // BEADÁSI MÓD (a tanár állítja feladatonként: foto | szoveg | mindketto)
+  // A kifejtős feladat mindig fotós. Az érvényes mód a szabályban és a szerveren is ellenőrzött.
+  // ══════════════════════════════════════════
+  const BEADASI_MOD = r.mod !== 'kifejtos' && ['szoveg', 'mindketto'].includes(r.beadasi_mod)
+    ? r.beadasi_mod : 'foto';
+  const NYELV_KOD = { angol: 'en', 'német': 'de', francia: 'fr', spanyol: 'es', olasz: 'it', orosz: 'ru', latin: 'la', magyar: 'hu' };
+  const piszkozatKulcs = `wr-piszkozat-${user.uid}-${feladatId}`;
+  const tarol = (muvelet) => { try { return muvelet(localStorage); } catch (_) { return null; } };
+
+  const fotoPanel = document.getElementById('feltoltes-panel');
+  const irasPanel = document.getElementById('iras-panel');
+  const fulek = document.getElementById('mod-fulek');
+  let irasKesz = null;   // az írás-felület egyszeri előkészítése
+
+  function modMutat(mod) {
+    fotoPanel.style.display = mod === 'foto' ? 'block' : 'none';
+    irasPanel.style.display = mod === 'szoveg' ? 'block' : 'none';
+    document.getElementById('ful-foto').setAttribute('aria-pressed', String(mod === 'foto'));
+    document.getElementById('ful-szoveg').setAttribute('aria-pressed', String(mod === 'szoveg'));
+    if (mod === 'szoveg') irasKesz ??= irasElokeszit();
+  }
+
+  function beadasiFelulet() {
+    if (BEADASI_MOD === 'foto') return modMutat('foto');
+    if (BEADASI_MOD === 'szoveg') return modMutat('szoveg');
+    // mindkettő: a diák választ; ha már van megkezdett szövege, azzal indul
+    fulek.style.display = '';
+    document.getElementById('ful-foto').addEventListener('click', () => modMutat('foto'));
+    document.getElementById('ful-szoveg').addEventListener('click', () => modMutat('szoveg'));
+    modMutat(tarol((ls) => ls.getItem(piszkozatKulcs)) ? 'szoveg' : 'foto');
+  }
+
+  function irasElokeszit() {
+    const mezo = document.getElementById('iras-szoveg');
+    const szamlalo = document.getElementById('szamlalo');
+    const btn = document.getElementById('btn-bead-szoveg');
+    mezo.lang = NYELV_KOD[r.nyelv] || '';
+    mezo.value = tarol((ls) => ls.getItem(piszkozatKulcs)) || '';
+
+    // Az írás közbeni jelzések (ablak elhagyása, beillesztés): a számlálók a böngészőben is mentődnek.
+    const figyelo = jelzesFigyelo(mezo, { kulcs: `wr-jelzes-${user.uid}-${feladatId}` });
+
+    function szamlaloFrissit() {
+      const n = szoszam(mezo.value);
+      const min = r.min_szo, max = r.max_szo;
+      szamlalo.textContent =
+        min && max ? (n < min || n > max ? t('beadas.szoszam_elvart', { n, min, max }) : t('beadas.szoszam', { n }))
+        : min && n < min ? t('beadas.szoszam_legalabb', { n, min })
+        : max && n > max ? t('beadas.szoszam_legfeljebb', { n, max })
+        : t('beadas.szoszam', { n });
+    }
+    szamlaloFrissit();
+
+    let mentesIdo = null;
+    mezo.addEventListener('input', () => {
+      szamlaloFrissit();
+      clearTimeout(mentesIdo);
+      mentesIdo = setTimeout(() => tarol((ls) => ls.setItem(piszkozatKulcs, mezo.value)), 400);
+    });
+
+    btn.addEventListener('click', async () => {
+      uzenetTorles('iras-msg');
+      const szoveg = mezo.value.replace(/\r\n/g, '\n');
+      if (!szoveg.trim()) { uzenet('iras-msg', t('beadas.iras_ures')); return; }
+      if (szoveg.length > SZOVEG_MAX) { uzenet('iras-msg', t('beadas.iras_hosszu', { max: SZOVEG_MAX })); return; }
+      if (!confirm(t('beadas.iras_megerosites'))) return;
+
+      mezo.disabled = true;
+      const vissza = gombVar(btn, t('beadas.feltoltes_folyamat'));
+      try {
+        // Kötött azonosító: feladatonként egy beadás diákonként (a szabály kényszeríti).
+        const beadasRef = doc(db, 'beadasok', `${feladatId}_${user.uid}`);
+        await setDoc(beadasRef, {
+          feladat_id: feladatId,
+          osztaly_id: feladat.osztaly_id,
+          diak_id: user.uid,
+          diak_nev: profil.nev || user.email,
+          tanar_id: feladat.tanar_id,
+          kep_paths: [],
+          forras: 'szoveg',
+          szoveg,
+          jelzesek: figyelo.dokumentum(szoveg),
+          statusz: 'feltoltve',
+          atirat: null,
+          hiba: null,
+          letrehozva: serverTimestamp(),
+          frissitve: serverTimestamp()
+        });
+        clearTimeout(mentesIdo);
+        tarol((ls) => ls.removeItem(piszkozatKulcs));
+        figyelo.torles();
+        figyelo.leallit();
+        irasPanel.style.display = 'none';
+        fotoPanel.style.display = 'none';
+        fulek.style.display = 'none';
+        allapotFigyel(beadasRef.id);
+      } catch (e) {
+        console.error(e);
+        uzenet('iras-msg', t('beadas.bead_hiba', { ok: hibaSzoveg(e) }));
+        mezo.disabled = false;
+        vissza();
+      }
+    });
+    return true;
   }
 
   // ══════════════════════════════════════════

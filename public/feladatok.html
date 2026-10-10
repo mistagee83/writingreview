@@ -204,6 +204,16 @@
           </div>
 
           <div class="form-group">
+            <label for="r-beadasi-mod" data-i18n="fel.beadasi_mod_label">Hogyan adják be a diákok?</label>
+            <select id="r-beadasi-mod" style="max-width:320px;">
+              <option value="foto" selected data-i18n="fel.beadasi_mod_foto">Fotóval (kézzel írt dolgozat)</option>
+              <option value="szoveg" data-i18n="fel.beadasi_mod_szoveg">Beírva az oldalon</option>
+              <option value="mindketto" data-i18n="fel.beadasi_mod_mindketto">Mindkettő (a diák választ)</option>
+            </select>
+            <p class="halvany" data-i18n="fel.beadasi_mod_tipp">Beírt dolgozatnál a rendszer jelzi neked, ha a diák elhagyta az ablakot vagy szöveget illesztett be – a diák ezt előre látja. Ez tájékoztató jelzés, nem bizonyíték.</p>
+          </div>
+
+          <div class="form-group">
             <label>
               <span data-i18n="fel.szempontok_label">Szempontok és pontszámok</span>
               <span id="suly-jelzo" class="suly-jelzo">összesen: 0 pont</span>
@@ -682,6 +692,8 @@
       szint: szintEl.value || null,
       min_szo: Number(document.getElementById('r-min').value) || null,
       max_szo: Number(document.getElementById('r-max').value) || null,
+      // foto (alap) | szoveg | mindketto – a diák felülete és a szabály is ehhez igazodik
+      beadasi_mod: document.getElementById('r-beadasi-mod').value,
       szempontok: szempontokBeolvas(),
       egyeb_utasitas: document.getElementById('r-egyeb').value.trim()
     };
@@ -699,6 +711,7 @@
     szintSkalaFrissit(nyelv, r.szint ?? null);
     document.getElementById('r-min').value = r.min_szo || '';
     document.getElementById('r-max').value = r.max_szo || '';
+    document.getElementById('r-beadasi-mod').value = ['szoveg', 'mindketto'].includes(r.beadasi_mod) ? r.beadasi_mod : 'foto';
     document.getElementById('r-egyeb').value = r.egyeb_utasitas || '';
 
     if (Array.isArray(r.szempontok) && r.szempontok.length) {
@@ -1030,6 +1043,7 @@
     document.getElementById('r-egyeb').value = '';
     document.getElementById('r-min').value = '';
     document.getElementById('r-max').value = '';
+    document.getElementById('r-beadasi-mod').value = 'foto';
     document.getElementById('upload-preview').classList.remove('show');
     document.getElementById('rubrika-badge').style.display = 'none';
     document.getElementById('r-nyelv').value = 'angol';
@@ -1166,6 +1180,8 @@
                 <span>${r.mod === 'kifejtos'
                   ? esc(t('fel.kifejtos_sor', { targy: r.tantargy || t('diak.kifejtos_alap'), db: (r.kerdesek || []).length }))
                   : `${esc(nyelvNev(r.nyelv || 'angol'))} · ${esc(tipusNev(r.tipus || '–'))} · ${esc(szintNev(r.szint || '–'))}`}</span>
+                ${r.mod !== 'kifejtos' && r.beadasi_mod === 'szoveg' ? `<span>${esc(t('fel.v_mod_szoveg'))}</span>` : ''}
+                ${r.mod !== 'kifejtos' && r.beadasi_mod === 'mindketto' ? `<span>${esc(t('fel.v_mod_mindketto'))}</span>` : ''}
                 ${f.hatarido ? `<span>⏰ ${datum(f.hatarido)}</span>` : ''}
                 <span class="badge ${f.aktiv ? 'aktiv' : 'inaktiv'}">
                   ${f.aktiv ? t('osztalyok.aktiv') : t('osztalyok.zart')}
