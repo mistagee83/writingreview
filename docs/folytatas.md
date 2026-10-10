@@ -351,10 +351,15 @@ cd writingreview
 - **Jogi kérdés:** a kiskorúak viselkedésének megfigyelése (17. kérdés az `adatvedelmi-kerdesek.md`-ben) – a jogász válaszáig a prodon óvatosan.
 - **Nincs meg (tudatosan):** kifejtős (kérdésenkénti) beírt mód; a beírt dolgozat szerkesztése beadás után; a jelzések küszöbeinek állíthatósága.
 
-## 5/e. Stripe-fizetés (2026-10-10) – kód kész és tesztelt, KIKAPCSOLT, **még NINCS deployolva**
+## 5/e. Stripe-fizetés (2026-10-10) – **a prodon él TESZTMÓDBAN (v1.6.1)**, a tesztfizetés végigment (Checkout → webhook → csomag `alap`)
 
 - Checkout + Customer Portal + webhook; a csomagot a szerver állítja (`ingyenes` ↔ `alap`, havi 150 egység). Csak a prodon, és csak ha a `functions/.env.prod`-ban
   a `FIZETES_AR_ALAP` ki van töltve. Beállítás, kipróbálás és élesítés előtti lista: **`stripe.md`**.
+- **Állapot (2026-10-10):** a titkok (teszt) beállítva a prodon, a webhook (`creative-breeze`, `stripeWebhook`, 4 esemény) a Stripe tesztmódjában létrehozva, az `FIZETES_AR_ALAP` a
+  teszt `price_...`. Tesztfizetés teszt-kártyával: a csomag `alap`-ra váltott. **Hátra:** az éles módra váltás (éles termék/ár, portál, webhook, `sk_live` és éles `whsec` a prodra,
+  az éles `price_...` a `.env.prod`-ba, kiadás, kis összegű próbafizetés visszatérítéssel); a számlázz.hu-bekötés; áfa; jogi dokumentumok; a nagyobb (500-as) csomag.
+- **Tanulság a deploynál:** az új titkokhoz a futtató szolgáltatásfióknak (`<projektszám>-compute@developer.gserviceaccount.com`) `roles/secretmanager.secretAccessor` kell az adott titkon,
+  és a CI-fióknak (`github-deploy`) nincs joga ezt beállítani: kézzel kell megadni (`gcloud secrets add-iam-policy-binding ...`). Új titok után a függvényeket újra kell deployolni.
 - **Deploy-figyelmeztetés:** a három új függvény (`stripeWebhook`, `fizetesIndit`, `fizetesKezeles`) a `STRIPE_SECRET_KEY` és `STRIPE_WEBHOOK_SECRET` titkot várja
   **minden projektben** (a pilotban helyőrző is jó). Titok nélkül a deploy elhasal, ezért a következő kiadás (pilot és prod) ELŐTT be kell állítani őket.
 - **Nem kész:** a **számlázz.hu** (NAV-s számla) automatikus kiállítása a befizetésekről; az áfa/Stripe Tax a könyvelői válasz után; a jogi dokumentumok. Ezek nélkül éles fizetés nem indítható.
