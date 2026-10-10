@@ -100,12 +100,12 @@
       <a class="module-card" href="diakok.html">
         <div class="module-icon">👥</div>
         <div class="module-title" data-i18n="tanar.modul_diakok_cim">Diákok fejlődése</div>
-        <div class="module-desc" data-i18n="tanar.modul_diakok_leiras">Diákonként a pontszázalék és az ismétlődő hibák alakulása feladatról feladatra. A Profi csomag része.</div>
+        <div class="module-desc"><span data-i18n="tanar.modul_diakok_leiras">Diákonként a pontszázalék és az ismétlődő hibák alakulása feladatról feladatra.</span> <strong class="csomag-jegyzet" data-i18n="tanar.jegyzet_profi" hidden>A Profi csomag része.</strong></div>
       </a>
       <a class="module-card" href="feladatok.html">
         <div class="module-icon">📊</div>
         <div class="module-title" data-i18n="tanar.modul_elemzes_cim">Osztályszintű elemzés</div>
-        <div class="module-desc" data-i18n="tanar.modul_elemzes_leiras">Egy feladat beadásaiból típushibák, javasolt gyakorlatok és kész feladatgeneráló prompt. A feladatlistából, a 📊 gombbal.</div>
+        <div class="module-desc"><span data-i18n="tanar.modul_elemzes_leiras">Egy feladat beadásaiból típushibák, javasolt gyakorlatok és kész feladatgeneráló prompt. A feladatlistából, a 📊 gombbal.</span> <strong class="csomag-jegyzet" data-i18n="tanar.jegyzet_alap" hidden>Az Alap csomagtól.</strong></div>
       </a>
     </div>
   </main>
@@ -156,6 +156,8 @@
     try {
       const { data } = await httpsCallable(functions, 'kvotaAllapot')();
       if (!data.kvota) return;   // pilot: nincs korlát, nincs kártya
+      // a csomag-megjegyzések (modul-kártyák) csak ott értelmesek, ahol a csomagok élnek
+      document.querySelectorAll(".csomag-jegyzet").forEach((e) => { e.hidden = false; });
       kiir('stat-keret', `${data.hasznalt} / ${data.limit ?? '∞'}`);
       // Az ingyenes keret egyszeri (nem újul meg): a felirat is ezt mondja.
       if (data.idoszak === 'egyszeri') {
