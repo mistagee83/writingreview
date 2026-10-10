@@ -29,6 +29,7 @@ const kvota = require("./kvota");
 const aiHasznalat = require("./ai-hasznalat");
 const fizetes = require("./fizetes");
 const fejlodes = require("./fejlodes");
+const tema = require("./tema");
 
 initializeApp();
 
@@ -182,7 +183,9 @@ const HIBA_SZOVEG = {
   nincs_ugyfel: () => "Még nincs előfizetésed, ezért nincs mit kezelni.",
   fizetes_hiba: () => "A fizetési szolgáltatás nem válaszolt. Próbáld újra egy perc múlva.",
   csomag_profi_kell: () => "A fejlődés-követés a Profi csomag része.",
-  csomag_alap_kell: () => "Az osztályszintű elemzés az Alap csomagtól érhető el."
+  csomag_alap_kell: () => "Az osztályszintű elemzés az Alap csomagtól érhető el.",
+  szinvalasztas_alap_kell: () => "A színválasztás az Alap csomagtól érhető el.",
+  tema_ervenytelen: () => "Ismeretlen színtéma."
 };
 
 /** Kódolt HttpsError: magyar üzenet + details.kod a kliens fordításához. */
@@ -1693,6 +1696,8 @@ exports._teszt = {
   fizetesAllapotLogika,
   fejlodesKapu,
   osztalyElemzesKapu,
+  szinvalasztasKapu,
+  temaBeallitasLogika,
   fejlodesListaLogika,
   fejlodesDiakLogika,
   stripeEsemenyFeldolgozas,
@@ -2078,6 +2083,13 @@ async function fejlodesKapu(firestore, uid, beallitasok) {
   }
 }
 
+/** A színválasztás zárja: Alap, Profi és korlátlan csomag (az alapszínre visszaállás nem zárolt). */
+async function szinvalasztasKapu(firestore, uid, beallitasok) {
+  if (!(await funkcioEngedett(firestore, uid, "szinvalasztas", beallitasok))) {
+    throw hiba("permission-denied", "szinvalasztas_alap_kell");
+  }
+}
+
 /** Az osztályszintű elemzés zárja: Alap, Profi és korlátlan csomag. */
 async function osztalyElemzesKapu(firestore, uid, beallitasok) {
   if (!(await funkcioEngedett(firestore, uid, "osztaly_elemzes", beallitasok))) {
@@ -2160,6 +2172,25 @@ async function fejlodesDiakLogika(firestore, uid, adat, beallitasok = BEALLITASO
     ...fejlodes.diakNezet(pontok.map(({ diak_id, diak_nev, ...pont }) => pont))
   };
 }
+
+/**
+ * A tanár színtémájának mentése (felhasznalok/{uid}.tema; a kliens nem írhatja, a szabályok tiltják).
+ * Az alapszín (narancs) a mező törlése, és mindenkinek szabad; bármely másik az Alap csomagtól.
+ */
+async function temaBeallitasLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
+  const nev = tema.temaNev(adat?.tema);
+  if (nev === undefined) throw hiba("invalid-argument", "tema_ervenytelen");
+  if (nev !== tema.ALAP_TEMA) await szinvalasztasKapu(firestore, uid, beallitasok);
+  await firestore.collection("felhasznalok").doc(uid).set(
+    { tema: nev === tema.ALAP_TEMA ? FieldValue.delete() : nev },
+    { merge: true }
+  );
+  return { tema: nev };
+}
+
+exports.temaBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
+  return temaBeallitasLogika(db(), tanar(request), request.data);
+});
 
 exports.fejlodesLista = onCall(HIVAS_OPCIOK, async (request) => {
   return fejlodesListaLogika(db(), tanar(request), request.data);

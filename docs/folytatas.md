@@ -206,9 +206,10 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
-- **DEPLOY HIÁNYZIK (2026-10-10): fejlődés-követés + az osztályelemzés az Alap csomagba (lásd 5/f).** A kód a munkafában kész, de **nincs commitolva és nincs deployolva**:
-  a **prod** (a `v1.7.3` címke, `eeb006f`) és a **pilot** is a régi kódot futtatja. Amíg nincs kiadás, az ingyenes tanár prodon még ingyen kap osztályelemzést,
-  és nincs Diákok menüpont. Pilot: `node scripts/deploy.mjs pilot --only hosting,functions`; prod: új címke (pl. `v1.8.0`). Csak a felhasználó kérésére.
+- **DEPLOY ÁLLAPOT (2026-10-10):** a fejlődés-követés és az osztályelemzés az Alap csomagba (5/f) a **`v1.8.0` címkén a prodra jóváhagyásra vár** (a tulajdonos hagyja jóvá a GitHubon).
+  A **színválasztó (B, 5/g) csak a commitban van, NINCS címkézve és deployolva**: a prodon ez egy újabb kiadás (pl. `v1.9.0`). A **pilot a régi kódot futtatja**, ahova szándékosan nem megy semmi, ami
+  a csomagokról/fizetésről szól; a pilotra csak a fejlődés-követés kerülhet, a tulajdonos kérésére: `node scripts/deploy.mjs pilot --only hosting,functions:fejlodesLista,functions:fejlodesDiak`
+  (a teljes functions-deploy a Stripe-titkokat várná a pilotban is). Pilotban a csomag-megjegyzések és a zárak maguktól nem látszanak (nincs kvóta/fizetés), a színválasztó viszont mindenkinek nyitott.
 - **Külső audit 5. kör (tesztek):** a gyenge tesztek javítva; új `storage.test.mjs` (Storage-emulátor az `npm test`-ben) és `callable-jogosultsag.test.mjs`. **A Storage-teszt szabályhézagot talált:** létező fájl felülírása átment a `create` szabályon; a `storage.rules` `create` ágai most `resource == null`-t kérnek. **A Storage-szabály deployolva: pilot és prod is (2026-10-07, `--only storage`).** Részletek: `audit/ellenorzes/kor-5.md`.
 - **A tanári regisztráció kézi, és a kereskedelmi verzióban így nem működhet.** Ma mindenki
   **diákként** regisztrál (`index.html`), a tanári szerepet egy **admin** adja meg: a
@@ -388,8 +389,20 @@ cd writingreview
 - **Teljesítmény:** a lista beadásonként 2–3 olvasást végez (tanári + AI-értékelés + feladatcím gyorsítótárral). Nagy osztályoknál később érdemes előre számolt összesítőt tárolni.
 - **Jogi megjegyzés (fontos):** a fejlődés-követés a diák adatát **hosszabb ideig, több feladaton át** követi és összesíti: ez a megőrzési időt és az adatvédelmi jogász válaszát érinti
   (új, 18. kérdés az `adatvedelmi-kerdesek.md`-ben). A funkció nem épít új adatot (a meglévő jóváhagyott beadásokból számol), de a megőrzési idő/törlés jövőbeli megépítésekor ezt is figyelembe kell venni.
-- **Még hátra a leirat szerint:** B) színválasztás (Alap csomagtól, ugyanezzel a `FUNKCIOK` mechanizmussal), C) landing oldal (a csomagok tartalma: a fentiek).
-  Osztályszintű, több feladatot átfogó hibaalakulás (a leirat A) pont második fele) még nincs.
+- **Még hátra a leirat szerint:** C) landing oldal (a csomagok tartalma: a fentiek és az 5/g). Osztályszintű, több feladatot átfogó hibaalakulás (a leirat A) pont második fele) még nincs.
+
+## 5/g. Színválasztó a tanári felületen (B, 2026-10-10) – kód kész és commitolva, **még NINCS deployolva**
+
+- **Mit tud:** hat fix, kontraszt-ellenőrzött színtéma (narancs = alap, kék, zöld, lila, bordó, pala). Mindegyikhez tartozik egy vonalas SVG-motívum, ami a fejléc halvány díszeként (csak tanári oldalon, 760 px felett)
+  és a választógombokon látszik. A diák felület kék marad (`body.theme-diak`; a téma a `<html data-tema>`-n van, a body saját akcentusa felülírja).
+- **Csomag:** az **Alap**tól; a narancsra (alapszín) visszaállás mindenkinek szabad. Zár: `temaBeallitas` callable (`functions/index.js`, `szinvalasztasKapu`, `kvota.FUNKCIOK.szinvalasztas`), hibakód `szinvalasztas_alap_kell`.
+- **Tárolás:** `felhasznalok/{uid}.tema` (csak a szerver írja; a szabályok már most tiltják a klienstől: `csakEzekValtoznak([nev, tura_*])`); az alapszín a mező hiánya (törlés). A `guard.js` a profilból állítja be a tanári oldalakon,
+  a `localStorage` (`wr_tema`) csak a villanásmentes betöltést adja (`js/tema-korai.js`, blokkoló szkript a tanári oldalak `<head>`-jében).
+- **Fájlok:** `functions/tema.js` (névlista), `public/js/tema.js`, `public/js/tema-korai.js`, `public/css/app.css` (paletták, motívumok, választó), `public/tanar.html` (választó panel), `public/js/guard.js`.
+  **A névlista négy helyen él** (`functions/tema.js`, `js/tema.js`, `js/tema-korai.js`, a CSS): `tests/tema.test.mjs` az egyezést, a kontrasztot (>= 4,5:1) és a zárat védi. Új téma = mind a négy hely + két szótári név.
+- **Ismert apróságok:** aki lemond az előfizetésről, megtartja a már választott színt (nem vonjuk vissza; az alapszínre bármikor visszaállhat). A funkció nem hoz új adatot, csak egy mezőt a profilban.
+- **Nem próbálva valódi belépéssel:** a paletták, motívumok és a választó kitalált oldalon ellenőrizve (böngésző), a mentés hamis Firestore-ral tesztelve.
+- **Tanulság:** a service worker a fejlesztői előnézetben a régi CSS-t szolgálja ki; ha a stílus nem frissül, a tab service workerét és a gyorsítótárát törölni kell.
 
 ## 5/b. BLOKKOLÓ: a Google korhatár-kikötése (2026-10-09)
 

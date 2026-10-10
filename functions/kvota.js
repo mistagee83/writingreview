@@ -88,7 +88,9 @@ const FUNKCIOK = {
   // osztályszintű elemzés (feladatElemzes): az Alap csomagtól
   osztaly_elemzes: ["alap", "profi", "korlatlan"],
   // fejlődés-követés (fejlodesLista, fejlodesDiak): a Profi csomag része
-  fejlodes: ["profi", "korlatlan"]
+  fejlodes: ["profi", "korlatlan"],
+  // színválasztás a tanári felületen (temaBeallitas; az alapszín mindenkinek szabad): az Alap csomagtól
+  szinvalasztas: ["alap", "profi", "korlatlan"]
 };
 
 /**

@@ -12,6 +12,7 @@
 
 import { auth, db, doc, getDoc, onAuthStateChanged, signOut } from "./firebase-config.js";
 import { datumSzoveg } from "./i18n.js";
+import { temaAlkalmaz } from "./tema.js";
 
 export const BELEPO_OLDAL = "index.html";
 
@@ -123,6 +124,9 @@ export function vedettOldal(elvartSzerep, opciok = {}) {
         window.location.replace(KEZDOLAP[szerep] || BELEPO_OLDAL);
         return;
       }
+
+      // A tanári felület színtémája a profilból (a szerver az igazság; a diák felület kék marad)
+      if (szerep === "tanar") temaAlkalmaz(profil.tema);
 
       megjelenit(user, profil);
 

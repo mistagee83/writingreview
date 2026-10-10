@@ -1756,3 +1756,48 @@ mark.beillesztett { background: #fde68a; color: inherit; padding: 0 0.1em; borde
 .csomag-funkciok li { padding: 0.35rem 0.6rem; border-left: 3px solid transparent; font-size: 0.9rem; line-height: 1.55; color: var(--muted); }
 .csomag-funkciok li.aktualis { border-left-color: var(--accent); background: var(--accent-light); color: var(--ink); }
 .csomag-funkciok strong { color: var(--ink); }
+
+/* ── Színtémák a tanári felületen (Alap csomagtól; js/tema.js, functions/tema.js) ──
+   A paletták fixek és kontraszt-ellenőrzöttek (fehér/akcentus >= 4,5:1). A motívumok vonalas SVG-k,
+   CSS-maszkként az akcentusszínnel rajzolódnak ki (nincs villanás, követik a témát). A diák felület kék marad. */
+:root {
+  --motivum-narancs: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M24 56 L74 12 L90 28 L40 72 L20 76 Z'/%3E%3Cpath d='M66 20 L82 36'/%3E%3Cpath d='M80 70 H112'/%3E%3Cpath d='M96 56 H112'/%3E%3C/svg%3E");
+  --motivum-kek: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 22 q13 -14 27 0 t27 0 t27 0 t27 0'/%3E%3Cpath d='M6 42 q13 -14 27 0 t27 0 t27 0 t27 0'/%3E%3Cpath d='M6 62 q13 -14 27 0 t27 0 t27 0 t27 0'/%3E%3C/svg%3E");
+  --motivum-zold: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 70 Q60 62 106 12'/%3E%3Cpath d='M44 62 q-16 -22 4 -36 q18 18 -4 36z'/%3E%3Cpath d='M80 40 q-4 -24 22 -26 q4 22 -22 26z'/%3E%3C/svg%3E");
+  --motivum-lila: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M60 8 l7 20 21 1 -17 12 6 21 -17 -12 -17 12 6 -21 -17 -12 21 -1z'/%3E%3Ccircle cx='20' cy='22' r='3'/%3E%3Ccircle cx='102' cy='62' r='3'/%3E%3Ccircle cx='100' cy='18' r='2'/%3E%3C/svg%3E");
+  --motivum-bordo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M60 20 Q38 10 12 16 V66 Q38 60 60 70 Q82 60 108 66 V16 Q82 10 60 20 Z'/%3E%3Cpath d='M60 20 V70'/%3E%3C/svg%3E");
+  --motivum-pala: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 68 L42 18 L62 46 L78 28 L114 68 Z'/%3E%3Cpath d='M34 30 l8 8 l8 -8'/%3E%3C/svg%3E");
+  --tema-motivum: var(--motivum-narancs);
+}
+:root[data-tema="kek"] { --accent: #1d4ed8; --accent-light: #eff6ff; --accent-on-dark: #60a5fa; --tema-motivum: var(--motivum-kek); }
+:root[data-tema="zold"] { --accent: #15803d; --accent-light: #f0fdf4; --accent-on-dark: #4ade80; --tema-motivum: var(--motivum-zold); }
+:root[data-tema="lila"] { --accent: #7e22ce; --accent-light: #faf5ff; --accent-on-dark: #c084fc; --tema-motivum: var(--motivum-lila); }
+:root[data-tema="bordo"] { --accent: #be123c; --accent-light: #fff1f2; --accent-on-dark: #fb7185; --tema-motivum: var(--motivum-bordo); }
+:root[data-tema="pala"] { --accent: #475569; --accent-light: #f1f5f9; --accent-on-dark: #94a3b8; --tema-motivum: var(--motivum-pala); }
+
+/* a fejléc halvány motívuma (csak a tanári oldalakon; a diák oldalon nincs, keskeny képernyőn elrejtve) */
+.page-header { position: relative; }
+.page-header::after {
+  content: ""; position: absolute; right: 0; top: 50%; width: 120px; height: 80px; transform: translateY(-50%);
+  background: var(--accent); opacity: 0.2; pointer-events: none;
+  -webkit-mask: var(--tema-motivum) center / contain no-repeat; mask: var(--tema-motivum) center / contain no-repeat;
+}
+body.theme-diak .page-header::after { display: none; }
+@media (max-width: 760px) { .page-header::after { display: none; } }
+
+/* a színválasztó a főoldalon */
+.tema-valaszto { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.75rem; }
+.tema-gomb {
+  display: flex; flex-direction: column; align-items: center; gap: 0.35rem; width: 5.5rem; padding: 0.6rem 0.4rem;
+  background: #fff; border: 1.5px solid var(--border); border-radius: 10px; font: inherit; font-size: 0.8rem; color: var(--ink); cursor: pointer;
+}
+.tema-gomb:hover { border-color: var(--ink); }
+.tema-gomb[aria-pressed="true"] { border-color: var(--ink); outline: 2px solid var(--ink); outline-offset: 2px; }
+.tema-gomb:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.tema-minta { width: 3.2rem; height: 2.1rem; background: var(--szin); -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat; }
+.tema-gomb[data-tema="narancs"] { --szin: #d4500a; --m: var(--motivum-narancs); }
+.tema-gomb[data-tema="kek"] { --szin: #1d4ed8; --m: var(--motivum-kek); }
+.tema-gomb[data-tema="zold"] { --szin: #15803d; --m: var(--motivum-zold); }
+.tema-gomb[data-tema="lila"] { --szin: #7e22ce; --m: var(--motivum-lila); }
+.tema-gomb[data-tema="bordo"] { --szin: #be123c; --m: var(--motivum-bordo); }
+.tema-gomb[data-tema="pala"] { --szin: #475569; --m: var(--motivum-pala); }

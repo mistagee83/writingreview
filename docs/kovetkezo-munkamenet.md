@@ -38,7 +38,7 @@
 - **Grafikonokhoz** használd a `dataviz` skillt (egységes, hozzáférhető színek, sötét/világos mód).
 - **Jogi megjegyzés:** hosszabb ideig, több feladaton át követett diák-adat: a megőrzési idő és az adatvédelmi jogász válasza (`docs/adatvedelmi-kerdesek.md`) érinti; tervezéskor említsd.
 
-### B) Színválasztás a tanári felületen – az Alap csomagtól
+### B) Színválasztás a tanári felületen – az Alap csomagtól  *(KÉSZ: lásd `docs/folytatas.md` 5/g)*
 
 **Mit kér a tulajdonos:** egy szín-/témaválasztó a főoldalon, ami **az ingyenes csomagban NEM elérhető**, az **Alap** és a **Profi** (és a `korlatlan`) csomagban igen. Cél: az előfizetés két dolgot adjon (keret + egy kényelmi/kozmetikai plusz). „Nem emiatt veszik meg, de van hatása.”
 
