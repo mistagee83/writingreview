@@ -220,6 +220,43 @@ test("fizetés indítása: meglévő Stripe-ügyfelet újrahasznosít (nem küld
   assert.ok(!("customer_email" in s.hivasok.checkout[0]));
 });
 
+const eltuntUgyfelHiba = () => Object.assign(new Error("No such customer: 'cus_regi'"), { code: "resource_missing", param: "customer" });
+
+test("fizetés indítása: ha a Stripe-ban az eltárolt ügyfél már nincs meg, új ügyfelet kap, és az elavult azonosító törlődik", async () => {
+  await firestore.collection("tanarok").doc("t1").set({ elofizetes: { stripe_ugyfel_id: "cus_regi", statusz: "canceled", periodus_vege: 99 } });
+  const hivasok = [];
+  const s = { checkout: { sessions: { create: async (p) => {
+    hivasok.push(p);
+    if (p.customer === "cus_regi") throw eltuntUgyfelHiba();
+    return { url: "https://checkout.stripe.com/c/pay/cs_test_uj" };
+  } } } };
+  const r = await t.fizetesInditasLogika(firestore, s, kerelem(), BE);
+  assert.equal(r.url, "https://checkout.stripe.com/c/pay/cs_test_uj");
+  assert.equal(hivasok.length, 2);
+  assert.equal(hivasok[0].customer, "cus_regi", "előbb a régi ügyféllel próbálja");
+  assert.ok(!("customer" in hivasok[1]));
+  assert.equal(hivasok[1].customer_email, "tanar@iskola.hu", "az újrapróba az e-mailből indít ügyfelet");
+  const d = await tanarDok();
+  assert.ok(!("stripe_ugyfel_id" in d.elofizetes), "az elavult azonosító törölve");
+  assert.equal(d.elofizetes.periodus_vege, 99, "az előfizetés többi adata megmarad");
+});
+
+test("fizetés indítása: más Stripe-hiba (nem hiányzó ügyfél) nem indít újrapróbát és nem töröl semmit", async () => {
+  await firestore.collection("tanarok").doc("t1").set({ elofizetes: { stripe_ugyfel_id: "cus_jo", statusz: "canceled" } });
+  let hivas = 0;
+  const s = { checkout: { sessions: { create: async () => { hivas++; throw Object.assign(new Error("Rate limit"), { code: "rate_limit" }); } } } };
+  await assert.rejects(() => t.fizetesInditasLogika(firestore, s, kerelem(), BE), (e) => e.details.kod === "fizetes_hiba");
+  assert.equal(hivas, 1);
+  assert.equal((await tanarDok()).elofizetes.stripe_ugyfel_id, "cus_jo");
+});
+
+test("előfizetés kezelése: az eltűnt ügyfélnél nincs mit kezelni, és az elavult azonosító törlődik", async () => {
+  await firestore.collection("tanarok").doc("t1").set({ elofizetes: { stripe_ugyfel_id: "cus_regi" } });
+  const s = { billingPortal: { sessions: { create: async () => { throw eltuntUgyfelHiba(); } } } };
+  await assert.rejects(() => t.fizetesKezelesLogika(firestore, s, kerelem(), BE), (e) => e.details.kod === "nincs_ugyfel");
+  assert.ok(!("stripe_ugyfel_id" in ((await tanarDok()).elofizetes || {})));
+});
+
 test("fizetés indítása: kikapcsolt fizetés, diák, aktív előfizetés, admin csomag → elutasítva, Stripe-hívás nélkül", async () => {
   const s = stripeStub();
   await assert.rejects(() => t.fizetesInditasLogika(firestore, s, kerelem(), { ...BE, fizetes: false }), (e) => e.details.kod === "fizetes_ki");

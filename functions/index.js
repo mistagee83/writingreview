@@ -2139,6 +2139,21 @@ exports.stripeWebhook = onRequest(
 );
 
 /**
+ * Megszűnt Stripe-ügyfél (a Stripe-ban törölték, vagy másik módból – teszt/éles – származik az azonosító):
+ * a Stripe "resource_missing"-et ad az ügyfélre. Ilyenkor az eltárolt azonosító elavult, és el kell engedni.
+ */
+function eltuntUgyfel(e) {
+  return e?.code === "resource_missing" && (e?.param === "customer" || /customer/i.test(String(e?.message)));
+}
+
+/** Az elavult Stripe-ügyfél-azonosító törlése a tanár dokumentumáról (az előfizetés többi adata marad). */
+async function ugyfelAzonositoTorles(firestore, uid) {
+  await firestore.collection("tanarok").doc(uid).set(
+    { elofizetes: { stripe_ugyfel_id: FieldValue.delete() } }, { merge: true }
+  );
+}
+
+/**
  * A fizetőoldal (Checkout) létrehozása: az előfizetés a tanár uid-jához kötve.
  * A kért csomag a request.data.csomag ("alap" vagy "profi"; alap a hiányzó); csak beállított árú csomag kérhető.
  */
@@ -2161,21 +2176,31 @@ async function fizetesInditasLogika(firestore, stripe, request, beallitasok = BE
 
   const ugyfelId = t.elofizetes?.stripe_ugyfel_id;
   const email = request.auth.token?.email;
+  const parameterek = (ugyfel) => ({
+    mode: "subscription",
+    line_items: [{ price: ar, quantity: 1 }],
+    client_reference_id: uid,
+    // meglévő Stripe-ügyfél (korábbi előfizetés) újrahasznosítva; különben az e-mail-cím előtöltve
+    ...(ugyfel ? { customer: ugyfel } : (email ? { customer_email: email } : {})),
+    metadata: { uid },
+    subscription_data: { metadata: { uid } },
+    // a lakcím kell az EU-s áfa-elszámoláshoz
+    billing_address_collection: "required",
+    locale: "auto",
+    success_url: `${beallitasok.visszaUrl}/tanar.html?fizetes=sikeres`,
+    cancel_url: `${beallitasok.visszaUrl}/tanar.html?fizetes=megszakitva`
+  });
   try {
-    const munkamenet = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      line_items: [{ price: ar, quantity: 1 }],
-      client_reference_id: uid,
-      // meglévő Stripe-ügyfél (korábbi előfizetés) újrahasznosítva; különben az e-mail-cím előtöltve
-      ...(ugyfelId ? { customer: ugyfelId } : (email ? { customer_email: email } : {})),
-      metadata: { uid },
-      subscription_data: { metadata: { uid } },
-      // a lakcím kell az EU-s áfa-elszámoláshoz
-      billing_address_collection: "required",
-      locale: "auto",
-      success_url: `${beallitasok.visszaUrl}/tanar.html?fizetes=sikeres`,
-      cancel_url: `${beallitasok.visszaUrl}/tanar.html?fizetes=megszakitva`
-    });
+    let munkamenet;
+    try {
+      munkamenet = await stripe.checkout.sessions.create(parameterek(ugyfelId));
+    } catch (e) {
+      if (!ugyfelId || !eltuntUgyfel(e)) throw e;
+      // az eltárolt ügyfél a Stripe-ban már nincs meg: elengedjük, és új ügyfelet kap (e-mailből)
+      logger.warn("Elavult Stripe-ügyfél, új ügyfél létrehozása", { uid });
+      await ugyfelAzonositoTorles(firestore, uid);
+      munkamenet = await stripe.checkout.sessions.create(parameterek(null));
+    }
     return { url: munkamenet.url };
   } catch (e) {
     logger.error("Stripe Checkout hiba", { uid, hiba: e.message });
@@ -2196,6 +2221,11 @@ async function fizetesKezelesLogika(firestore, stripe, request, beallitasok = BE
     });
     return { url: portal.url };
   } catch (e) {
+    if (eltuntUgyfel(e)) {
+      // az ügyfél a Stripe-ban már nincs meg: nincs mit kezelni, az elavult azonosítót elengedjük
+      await ugyfelAzonositoTorles(firestore, uid);
+      throw hiba("failed-precondition", "nincs_ugyfel");
+    }
     logger.error("Stripe-portál hiba", { uid, hiba: e.message });
     throw belsoHiba(e, "fizetes_hiba");
   }
