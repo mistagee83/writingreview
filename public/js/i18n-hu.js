@@ -385,7 +385,7 @@ export default {
   "landing.igy_mukodik": "Így működik →",
   "landing.hero_cim": "Személyre szabott visszajelzés minden diáknak.",
   "landing.hero_leiras": "Érezted már úgy, hogy nincs elég időd és energiád arra, hogy minden diákodnak részletes visszajelzést írj? Emiatt már nem kell aggódnod többé.",
-  "landing.hero_ingyenes": "{db} dolgozat javítása ingyen, kártya nélkül.",
+  "landing.hero_ingyenes": "Akár {db} dolgozat javítása ingyen, kártya nélkül.",
   "landing.abra_aria": "A menet: a kézírásos dolgozatokból átirat, majd értékelt dolgozat lesz; a hibákból osztályelemzés és gyakorló feladatokat generáló utasítás készül.",
   "landing.abra_kezirat": "Kézírás",
   "landing.abra_javitas": "AI-javítás",
