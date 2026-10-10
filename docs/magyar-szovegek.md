@@ -47,6 +47,7 @@ Az angol külön stílust követ: `public/js/i18n-en.js` fejléce az irányadó.
 4. Diákoldalak (`diak.*`, `beadas.*`, `vj.*`, diákstátuszok): kész, 2026-10-10.
    Egyszerűbb állapot- és hibaüzenetek, közvetlen fotózási és beadási útmutató;
    a HTML-tartalékok is frissítve. A kulcsok és helyőrzők változatlanok.
+4/b. Kész, 2026-10-10: a szerver hibaüzenetei (`szerver.*`; **a magyar felületen a szerver magyar szövege jelenik meg, ezért a `functions/index.js` `HIBA_SZOVEG`-ét és a szótárt együtt kell módosítani, és a változás functions-deployt igényel**), az osztályelemzés oldal (`elz.*`), a fejlődéskövetés (`diakok.*`).
 5. Bemutató (`tura.*`), megoldókulcs-szerkesztő (`kf.*`, `kj.*`), hibaüzenetek (`szerver.*`).
 6. Jogi szövegek (`docs/jogi/`): a jogász felülvizsgálata után; a pontosság előbbre való.
 
