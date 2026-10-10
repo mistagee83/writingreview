@@ -212,7 +212,8 @@
       // egy gomb minden kínálható csomaghoz (név, ár, keret a szervertől)
       for (const c of d.csomagok || []) {
         const gomb = document.createElement('button');
-        gomb.className = c.nev === 'profi' ? 'btn-sm' : 'btn-primary';
+        // a két csomag egyenrangú választás: egyforma stílus (a kiválasztottat az aria-pressed emeli ki)
+        gomb.className = 'btn-sm';
         gomb.textContent = t('tanar.gomb_elofizet_csomag', { nev: t(`admin.csomag_${c.nev}`), ar: c.ar || '', limit: c.keret ?? '∞' });
         // a kattintás csak kijelöli a csomagot; a fizetésre a "Tovább" gomb visz, jóváhagyás után
         gomb.setAttribute('aria-pressed', 'false');
