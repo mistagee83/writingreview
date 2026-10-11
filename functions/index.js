@@ -35,10 +35,13 @@ const tema = require("./tema");
 initializeApp();
 
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
-// A Stripe titkai (Secret Manager, projektenként). FIGYELEM: minden projektben (a pilotban is) léteznie kell
-// mindkettőnek a deploy előtt – a pilotban egy helyőrző érték is elég, ott a fizetés ki van kapcsolva.
-const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
-const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
+// A Stripe titkai (Secret Manager, projektenként). FIGYELEM: a Firebase CLI a deploynál MINDEN deklarált titkot megkövetel,
+// ezért csak akkor DEKLARÁLJUK őket, ha a fizetés be van kapcsolva (prod + beállított ár). A pilotban így nem kellenek;
+// a fizetési függvények ott a `fizetes_ki` hibával / 404-gyel válaszolnak, a titkot sosem olvassák.
+const FIZETES_BE = kornyezet.beallitasok().fizetes;
+const STRIPE_SECRET_KEY = FIZETES_BE ? defineSecret("STRIPE_SECRET_KEY") : null;
+const STRIPE_WEBHOOK_SECRET = FIZETES_BE ? defineSecret("STRIPE_WEBHOOK_SECRET") : null;
+const STRIPE_TITKOK = FIZETES_BE ? [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET] : [];
 // A számlázz.hu Számla Agent kulcsa. FIGYELEM: a Firebase CLI a deploynál MINDEN deklarált titkot megkövetel (akkor is, ha
 // egy függvényhez sincs kötve), ezért a titkot csak akkor DEKLARÁLJUK, ha a számlázás be van kapcsolva (SZAMLAZZ=igen a
 // functions/.env.prod-ban). Így a pilot és a még ki nem kapcsolt prod deployához nem kell létrehozni.
@@ -2226,7 +2229,7 @@ exports.fejlodesDiak = onCall(HIVAS_OPCIOK, async (request) => {
 // ══════════════════════════════════════════════════════
 
 /** A Stripe-kliens (lusta betöltés: a többi függvény betöltési ideje ne nőjön). */
-function stripeKliens(titok = STRIPE_SECRET_KEY.value()) {
+function stripeKliens(titok = STRIPE_SECRET_KEY?.value()) {
   const Stripe = require("stripe");
   // a beillesztett titok végén gyakran van sortörés vagy szóköz: az érvénytelenítené a kulcsot
   return new Stripe(String(titok).trim());
@@ -2508,7 +2511,7 @@ exports.szamlaJeloles = onCall(HIVAS_OPCIOK, async (request) => {
 });
 
 exports.stripeWebhook = onRequest(
-  { region: REGION, secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, ...(SZAMLAZZ_AGENT_KULCS ? [SZAMLAZZ_AGENT_KULCS] : [])], cors: false },
+  { region: REGION, secrets: [...STRIPE_TITKOK, ...(SZAMLAZZ_AGENT_KULCS ? [SZAMLAZZ_AGENT_KULCS] : [])], cors: false },
   async (req, res) => {
     if (!BEALLITASOK.fizetes) { res.status(404).send("A fizetés ki van kapcsolva"); return; }
     await stripeWebhookKezeles(req, res, { stripe: stripeKliens(), titok: String(STRIPE_WEBHOOK_SECRET.value()).trim() });
@@ -2630,12 +2633,12 @@ function fizetesKapu(request) {
   if (!BEALLITASOK.fizetes) throw hiba("failed-precondition", "fizetes_ki");
 }
 
-exports.fizetesIndit = onCall({ ...HIVAS_OPCIOK, secrets: [STRIPE_SECRET_KEY] }, async (request) => {
+exports.fizetesIndit = onCall({ ...HIVAS_OPCIOK, secrets: STRIPE_TITKOK.slice(0, 1) }, async (request) => {
   fizetesKapu(request);
   return fizetesInditasLogika(db(), stripeKliens(), request);
 });
 
-exports.fizetesKezeles = onCall({ ...HIVAS_OPCIOK, secrets: [STRIPE_SECRET_KEY] }, async (request) => {
+exports.fizetesKezeles = onCall({ ...HIVAS_OPCIOK, secrets: STRIPE_TITKOK.slice(0, 1) }, async (request) => {
   fizetesKapu(request);
   return fizetesKezelesLogika(db(), stripeKliens(), request);
 });

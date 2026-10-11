@@ -383,8 +383,8 @@ cd writingreview
   az éles `price_...` a `.env.prod`-ba, kiadás, kis összegű próbafizetés visszatérítéssel); a számlázz.hu-bekötés; áfa; jogi dokumentumok; a nagyobb (500-as) csomag.
 - **Tanulság a deploynál:** az új titkokhoz a futtató szolgáltatásfióknak (`<projektszám>-compute@developer.gserviceaccount.com`) `roles/secretmanager.secretAccessor` kell az adott titkon,
   és a CI-fióknak (`github-deploy`) nincs joga ezt beállítani: kézzel kell megadni (`gcloud secrets add-iam-policy-binding ...`). Új titok után a függvényeket újra kell deployolni.
-- **Deploy-figyelmeztetés:** a három új függvény (`stripeWebhook`, `fizetesIndit`, `fizetesKezeles`) a `STRIPE_SECRET_KEY` és `STRIPE_WEBHOOK_SECRET` titkot várja
-  **minden projektben** (a pilotban helyőrző is jó). Titok nélkül a deploy elhasal, ezért a következő kiadás (pilot és prod) ELŐTT be kell állítani őket.
+- **Deploy-hatás (javítva 2026-10-11):** a Stripe-titkokat (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) a kód már csak bekapcsolt fizetésnél (prod + ár) deklarálja,
+  így a **pilot deployához nem kell őket létrehozni** (a fizetési függvények a pilotban `fizetes_ki`-vel válaszolnak). Teszt: `tests/szamlazz.test.mjs`. A javítás még nincs commitolva.
 - **Nem kész:** a **számlázz.hu** (NAV-s számla) automatikus kiállítása a befizetésekről; az áfa/Stripe Tax a könyvelői válasz után; a jogi dokumentumok. Ezek nélkül éles fizetés nem indítható.
 
 ## 5/e-2. Számlázz.hu-bekötés és kézi számlázás (2026-10-11) – **a prodon él a `v1.15.1`-gyel (kézi számlázás); az Agent KI VAN KAPCSOLVA**

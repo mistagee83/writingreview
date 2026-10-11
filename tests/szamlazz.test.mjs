@@ -275,3 +275,22 @@ test("a számlázz.hu titka csak bekapcsolt számlázásnál deklarált (külön
   assert.ok(!nevek({ KORNYEZET: "pilot", FIZETES_AR_ALAP: "price_x", SZAMLAZZ: "igen" }).includes("SZAMLAZZ_AGENT_KULCS"), "pilotban sosem");
   assert.ok(nevek({ ...prod, SZAMLAZZ: "igen" }).includes("SZAMLAZZ_AGENT_KULCS"), "bekapcsolva deklarált");
 });
+
+// Ugyanez a Stripe-titkokra: a pilot deployához (fizetés nélkül) nem kell létrehozni őket.
+test("a Stripe titkai csak bekapcsolt fizetésnél deklaráltak (a pilot deployához nem kellenek)", async () => {
+  const { spawnSync } = await import("node:child_process");
+  const cwd = new URL("../functions/", import.meta.url);
+  const script = "require('./index.js');console.log(JSON.stringify(require('firebase-functions/params').declaredParams.map(p=>p.name)))";
+  const nevek = (env) => {
+    const r = spawnSync(process.execPath, ["-e", script], { cwd, env: { ...process.env, GCLOUD_PROJECT: "wr-titok-teszt", ...env }, encoding: "utf8" });
+    assert.equal(r.status, 0, r.stderr);
+    return JSON.parse(r.stdout.trim().split(/\r?\n/).pop());
+  };
+  const pilot = nevek({ KORNYEZET: "pilot", FIZETES_AR_ALAP: "" });
+  assert.ok(!pilot.includes("STRIPE_SECRET_KEY") && !pilot.includes("STRIPE_WEBHOOK_SECRET"), "pilotban nem deklarált");
+  assert.ok(pilot.includes("GEMINI_API_KEY"));
+  const pilotArral = nevek({ KORNYEZET: "pilot", FIZETES_AR_ALAP: "price_x" });
+  assert.ok(!pilotArral.includes("STRIPE_SECRET_KEY"), "pilotban ár mellett sem");
+  const prod = nevek({ KORNYEZET: "prod", FIZETES_AR_ALAP: "price_x" });
+  assert.ok(prod.includes("STRIPE_SECRET_KEY") && prod.includes("STRIPE_WEBHOOK_SECRET"), "prodon deklarált");
+});
