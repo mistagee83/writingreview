@@ -552,14 +552,14 @@ test("kulcs: a hiányzó beállítás alapértékkel töltődik", () => {
 test("kulcs: a hibás kulcs olvasható üzenettel bukik", () => {
   const rossz = (kerdesek) => () => sz.kulcsEllenorzes({ kerdesek });
   assert.throws(rossz([]), /nincs egyetlen kérdés sem/);
-  assert.throws(rossz([{ sorszam: "1", tipus: "esszé", max_pont: 1, elemek: [e("a", "b")] }]), /ismeretlen típus/);
-  assert.throws(rossz([{ sorszam: "1", tipus: "sorrend", max_pont: 0, elemek: [e("a", "b")] }]), /max pont/);
-  assert.throws(rossz([{ sorszam: "1", tipus: "sorrend", max_pont: 1, elemek: [e("a", "b"), e("a", "c")] }]), /ismétlődő elem/);
+  assert.throws(rossz([{ sorszam: "1", tipus: "esszé", max_pont: 1, elemek: [e("a", "b")] }]), /típusa nem ismert/);
+  assert.throws(rossz([{ sorszam: "1", tipus: "sorrend", max_pont: 0, elemek: [e("a", "b")] }]), /legnagyobb pontszám/);
+  assert.throws(rossz([{ sorszam: "1", tipus: "sorrend", max_pont: 1, elemek: [e("a", "b"), e("a", "c")] }]), /elemnek is ugyanaz az azonosítója/);
   assert.throws(rossz([
     { sorszam: "1", tipus: "sorrend", max_pont: 1, elemek: [e("a", "b")] },
     { sorszam: "1", tipus: "sorrend", max_pont: 1, elemek: [e("a", "b")] }
-  ]), /ismétlődő sorszám/);
-  assert.throws(rossz([{ sorszam: "1", tipus: "sorrend", max_pont: 1, elemek: [e("a", "b")], beallitas: { sorrend: "mindegy" } }]), /sorrend-mód/);
+  ]), /ugyanaz a sorszáma/);
+  assert.throws(rossz([{ sorszam: "1", tipus: "sorrend", max_pont: 1, elemek: [e("a", "b")], beallitas: { sorrend: "mindegy" } }]), /sorrend beállítása nem ismert/);
   assert.throws(rossz([{ sorszam: "1", tipus: "sorrend", max_pont: 1, elemek: [e("a", "b")], beallitas: { reszpont: 2 } }]), /részpont/);
   assert.throws(rossz([{ sorszam: "1", tipus: "valasztos", max_pont: 1 }]), /ág/);
 });
