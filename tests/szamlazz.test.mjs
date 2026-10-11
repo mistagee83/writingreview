@@ -258,3 +258,20 @@ test("a jelölés hibás azonosítót, üres számlaszámot és ismeretlen befiz
   assert.equal(await kod({ id: "in_agent", szamlaszam: null }), "szamla_nincs");
   assert.equal(await kod({ id: "in_agent", szamlaszam: "B" }), "szamla_nincs");
 });
+
+// A Firebase CLI a deploynál MINDEN deklarált titkot megkövetel (a v1.15.0 prod-deploy ezen bukott el): a számlázz.hu
+// kulcsát ezért csak bekapcsolt számlázásnál szabad deklarálni. Külön folyamatban töltjük be, a környezeti változókkal.
+test("a számlázz.hu titka csak bekapcsolt számlázásnál deklarált (különben a deploy titok nélkül elbukna)", async () => {
+  const { spawnSync } = await import("node:child_process");
+  const cwd = new URL("../functions/", import.meta.url);
+  const script = "require('./index.js');console.log(JSON.stringify(require('firebase-functions/params').declaredParams.map(p=>p.name)))";
+  const nevek = (env) => {
+    const r = spawnSync(process.execPath, ["-e", script], { cwd, env: { ...process.env, GCLOUD_PROJECT: "wr-titok-teszt", ...env }, encoding: "utf8" });
+    assert.equal(r.status, 0, r.stderr);
+    return JSON.parse(r.stdout.trim().split(/\r?\n/).pop());
+  };
+  const prod = { KORNYEZET: "prod", FIZETES_AR_ALAP: "price_x" };
+  assert.ok(!nevek({ ...prod, SZAMLAZZ: "" }).includes("SZAMLAZZ_AGENT_KULCS"), "kikapcsolva nem deklarálható");
+  assert.ok(!nevek({ KORNYEZET: "pilot", FIZETES_AR_ALAP: "price_x", SZAMLAZZ: "igen" }).includes("SZAMLAZZ_AGENT_KULCS"), "pilotban sosem");
+  assert.ok(nevek({ ...prod, SZAMLAZZ: "igen" }).includes("SZAMLAZZ_AGENT_KULCS"), "bekapcsolva deklarált");
+});

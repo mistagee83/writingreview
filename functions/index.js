@@ -39,9 +39,10 @@ const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 // mindkettőnek a deploy előtt – a pilotban egy helyőrző érték is elég, ott a fizetés ki van kapcsolva.
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
-// A számlázz.hu Számla Agent kulcsa. Csak akkor kötjük a webhookhoz, ha a számlázás be van kapcsolva (SZAMLAZZ=igen a
-// functions/.env.prod-ban) – így a pilot deployához nem kell létrehozni.
-const SZAMLAZZ_AGENT_KULCS = defineSecret("SZAMLAZZ_AGENT_KULCS");
+// A számlázz.hu Számla Agent kulcsa. FIGYELEM: a Firebase CLI a deploynál MINDEN deklarált titkot megkövetel (akkor is, ha
+// egy függvényhez sincs kötve), ezért a titkot csak akkor DEKLARÁLJUK, ha a számlázás be van kapcsolva (SZAMLAZZ=igen a
+// functions/.env.prod-ban). Így a pilot és a még ki nem kapcsolt prod deployához nem kell létrehozni.
+const SZAMLAZZ_AGENT_KULCS = kornyezet.beallitasok().szamlazz ? defineSecret("SZAMLAZZ_AGENT_KULCS") : null;
 const REGION = "europe-west1";
 
 // ── MODELLEK LÉPÉSENKÉNT ──
@@ -2379,7 +2380,7 @@ async function szamlaKiallitas(firestore, esemeny, { beallitasok = BEALLITASOK, 
  * A webhook-kérés kezelése: aláírás-ellenőrzés a NYERS törzsön, majd feldolgozás. A függőségek (kliens, titok,
  * firestore) paraméterek, hogy hálózat nélkül tesztelhető legyen. Hibánál 5xx: a Stripe újrapróbálja.
  */
-async function stripeWebhookKezeles(req, res, { stripe, titok, firestore = db(), beallitasok = BEALLITASOK, szamlazzKulcs = () => String(SZAMLAZZ_AGENT_KULCS.value()).trim() }) {
+async function stripeWebhookKezeles(req, res, { stripe, titok, firestore = db(), beallitasok = BEALLITASOK, szamlazzKulcs = () => String(SZAMLAZZ_AGENT_KULCS?.value() ?? "").trim() }) {
   if (req.method !== "POST") { res.status(405).send("Csak POST"); return; }
   let esemeny;
   try {
@@ -2502,7 +2503,7 @@ exports.szamlaJeloles = onCall(HIVAS_OPCIOK, async (request) => {
 });
 
 exports.stripeWebhook = onRequest(
-  { region: REGION, secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, ...(BEALLITASOK.szamlazz ? [SZAMLAZZ_AGENT_KULCS] : [])], cors: false },
+  { region: REGION, secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, ...(SZAMLAZZ_AGENT_KULCS ? [SZAMLAZZ_AGENT_KULCS] : [])], cors: false },
   async (req, res) => {
     if (!BEALLITASOK.fizetes) { res.status(404).send("A fizetés ki van kapcsolva"); return; }
     await stripeWebhookKezeles(req, res, { stripe: stripeKliens(), titok: String(STRIPE_WEBHOOK_SECRET.value()).trim() });
