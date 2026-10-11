@@ -1858,3 +1858,22 @@ body.theme-diak { background-image: none; }
   .brand { font-size: 0.78rem; }
   .btn-logout { padding: 0.35rem 0.4rem; }
 }
+
+/* ── csomagok összehasonlítása (tanári főoldal) ── */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.csomag-tabla { margin-top: 1rem; }
+.csomag-tabla-gorgeto { overflow-x: auto; }
+.csomag-tabla table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 460px; }
+.csomag-tabla th, .csomag-tabla td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; }
+.csomag-tabla th:first-child, .csomag-tabla td:first-child { text-align: left; }
+.csomag-tabla thead th { font-weight: 700; }
+.csomag-tabla tbody th { font-weight: 500; color: var(--ink); }
+.csomag-tabla .aktualis { background: var(--accent-light); }
+.csomag-tabla td [aria-hidden="true"] { font-weight: 700; }
+@media (max-width: 560px) {
+  .csomag-tabla table { min-width: 0; font-size: 0.78rem; }
+  .csomag-tabla th, .csomag-tabla td { padding: 0.45rem 0.25rem; }
+  .csomag-tabla table { table-layout: fixed; }
+  .csomag-tabla th:first-child { width: 31%; }
+  .csomag-tabla .btn-sm { padding: 0.35rem 0.1rem; font-size: 0.66rem; white-space: normal; width: 100%; }
+}

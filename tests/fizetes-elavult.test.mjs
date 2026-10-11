@@ -84,3 +84,12 @@ test("az admin által adott csomagot az elavult ügyfél törlése nem bántja",
   assert.equal(d.csomag, "korlatlan");
   assert.ok(!("elofizetes" in d));
 });
+
+test("az összehasonlító táblázat adata: a funkciók egy forrásból (kvota.FUNKCIOK), az ingyenes keret, a kínált csomagok", async () => {
+  const kvota = require("./kvota.js");
+  const fs = hamisFirestore({ "tanarok/t1": { csomag: "ingyenes" } });
+  const a = await t.fizetesAllapotLogika(fs, "t1", BE);
+  assert.deepEqual(a.funkciok, kvota.FUNKCIOK);
+  assert.equal(a.ingyenes_keret, kvota.keret("ingyenes"));
+  assert.deepEqual(a.csomagok.map((c) => c.nev), ["profi", "alap"].filter((n) => ["alap", "profi"].includes(n)).sort((x, y) => (x === "alap" ? -1 : 1)));
+});

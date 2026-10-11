@@ -2061,6 +2061,9 @@ async function fizetesAllapotLogika(firestore, uid, beallitasok = BEALLITASOK) {
       ar: (nev === "profi" ? beallitasok.fizetesArProfiSzoveg : beallitasok.fizetesArSzoveg) || null
     })),
     csomag_forras: t.csomag_forras === "admin" ? "admin" : "stripe",
+    // az összehasonlító táblázat adata: melyik funkció melyik csomagban van (egy forrás: kvota.FUNKCIOK), és az ingyenes keret
+    funkciok: kvota.FUNKCIOK,
+    ingyenes_keret: kvota.keret("ingyenes"),
     // Stripe-ügyfél nélkül nincs élő előfizetés: az ilyen adat csak maradvány (pl. az éles módra váltás előtti, tesztmódú
     // előfizetésből), ezért nem mutatjuk, és nem állítja meg az új előfizetést.
     elofizetes: t.elofizetes?.stripe_ugyfel_id ? fizetes.elofizetesNezet(t) : null

@@ -66,6 +66,8 @@
         <p id="csomag-szoveg"></p>
         <p class="halvany" id="csomag-masodlagos"></p>
         <ul class="csomag-funkciok" id="csomag-funkciok"></ul>
+        <button class="btn-sm" id="btn-osszehasonlit" type="button" aria-expanded="false" aria-controls="csomag-tablazat" style="display:none;margin-top:0.75rem;" data-i18n="tanar.cmp_gomb">Csomagok összehasonlítása</button>
+        <div class="csomag-tabla" id="csomag-tablazat" hidden></div>
         <div class="gomb-sor">
           <span id="csomag-gombok"></span>
           <button class="btn-sm" id="btn-kezeles" style="display:none;" data-i18n="tanar.gomb_kezeles">⚙️ Előfizetés kezelése</button>
@@ -199,6 +201,7 @@
     megerositesElrejt();
     btnKezeles.style.display = 'none';
     funkciokRajzol(d);
+    tablazatRajzol(d, joElofizetes);
 
     if (d.csomag_forras === 'admin' && d.csomag !== 'ingyenes') {
       szoveg.textContent = t('tanar.csomag_kezi');
@@ -251,6 +254,113 @@
       }
       lista.appendChild(li);
     }
+  }
+
+  // ── csomagok összehasonlítása: táblázat (a funkciók a szervertől jönnek, egy forrásból: kvota.FUNKCIOK) ──
+  // A Korlátlan csomagot nem mutatjuk (csak az admin adja, nem vásárolható).
+  let tablazatNyitva = false;
+  const btnOsszehasonlit = document.getElementById('btn-osszehasonlit');
+  function tablazatKapcsol(nyitva) {
+    tablazatNyitva = nyitva;
+    document.getElementById('csomag-tablazat').hidden = !nyitva;
+    btnOsszehasonlit.setAttribute('aria-expanded', String(nyitva));
+    btnOsszehasonlit.textContent = t(nyitva ? 'tanar.cmp_gomb_be' : 'tanar.cmp_gomb');
+  }
+  btnOsszehasonlit.addEventListener('click', () => tablazatKapcsol(!tablazatNyitva));
+
+  function tablazatRajzol(d, joElofizetes) {
+    const hely = document.getElementById('csomag-tablazat');
+    const kinalt = d.csomagok || [];
+    const adminCsomag = d.csomag_forras === 'admin' && d.csomag !== 'ingyenes';
+    if (adminCsomag || !kinalt.length) {
+      btnOsszehasonlit.style.display = 'none';
+      hely.hidden = true;
+      hely.replaceChildren();
+      return;
+    }
+    btnOsszehasonlit.style.display = '';
+    const nevek = ['ingyenes', ...kinalt.map((c) => c.nev)];
+    const mas = (tag, szoveg, osztaly) => {
+      const e = document.createElement(tag);
+      if (szoveg !== undefined) e.textContent = szoveg;
+      if (osztaly) e.className = osztaly;
+      return e;
+    };
+    const jelCella = (van) => {
+      const td = mas('td');
+      const jel = mas('span', van ? '✓' : '–');
+      jel.setAttribute('aria-hidden', 'true');
+      td.append(jel, mas('span', t(van ? 'tanar.cmp_van' : 'tanar.cmp_nincs'), 'sr-only'));
+      return td;
+    };
+    const benne = (funkcio, nev) => (d.funkciok?.[funkcio] || []).includes(nev);
+    const csomagAdat = (nev) => kinalt.find((c) => c.nev === nev);
+    const kerettel = (nev) => (nev === 'ingyenes'
+      ? t('tanar.cmp_keret_egyszeri', { n: d.ingyenes_keret })
+      : t('tanar.cmp_keret_havi', { n: csomagAdat(nev).keret ?? '∞' }));
+    const sorok = [
+      [t('tanar.cmp_sor_ar'), (nev) => mas('td', nev === 'ingyenes' ? t('tanar.cmp_ingyenes_ar') : (csomagAdat(nev).ar || '–'))],
+      [t('tanar.cmp_sor_keret'), (nev) => mas('td', kerettel(nev))],
+      [t('tanar.cmp_sor_javitas'), () => jelCella(true)],
+      [t('tanar.cmp_sor_osztaly'), (nev) => jelCella(benne('osztaly_elemzes', nev))],
+      [t('tanar.cmp_sor_szin'), (nev) => jelCella(benne('szinvalasztas', nev))],
+      [t('tanar.cmp_sor_fejlodes'), (nev) => jelCella(benne('fejlodes', nev))]
+    ];
+
+    const tabla = mas('table');
+    tabla.append(mas('caption', t('tanar.cmp_cim'), 'sr-only'));
+    const fej = mas('tr');
+    const sarok = mas('th', t('tanar.cmp_funkcio'));
+    sarok.scope = 'col';
+    fej.append(sarok);
+    for (const nev of nevek) {
+      const th = mas('th', t(`admin.csomag_${nev}`), nev === d.csomag ? 'aktualis' : '');
+      th.scope = 'col';
+      fej.append(th);
+    }
+    const thead = mas('thead');
+    thead.append(fej);
+    tabla.append(thead);
+    const torzs = mas('tbody');
+    for (const [cimke, cella] of sorok) {
+      const tr = mas('tr');
+      const th = mas('th', cimke);
+      th.scope = 'row';
+      tr.append(th);
+      for (const nev of nevek) {
+        const td = cella(nev);
+        if (nev === d.csomag) td.classList.add('aktualis');
+        tr.append(td);
+      }
+      torzs.append(tr);
+    }
+    // utolsó sor: vásárlás (új előfizetőnek) vagy váltás (a meglévőnek a Stripe portálján)
+    const vasarlas = mas('tr');
+    vasarlas.append(mas('td'));
+    for (const nev of nevek) {
+      const td = mas('td', undefined, nev === d.csomag ? 'aktualis' : '');
+      if (nev === d.csomag) {
+        td.textContent = t('tanar.cmp_tied');
+      } else if (nev !== 'ingyenes') {
+        const gomb = mas('button', t(joElofizetes ? 'tanar.cmp_valtas' : 'tanar.cmp_valaszt'), 'btn-sm');
+        gomb.type = 'button';
+        gomb.addEventListener('click', () => {
+          if (joElofizetes) { atiranyit('fizetesKezeles', gomb); return; }
+          const c = csomagAdat(nev);
+          const sajatGomb = document.getElementById('csomag-gombok').children[kinalt.indexOf(c)];
+          kivalaszt(c, sajatGomb);
+          megerosites.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+        td.append(gomb);
+      }
+      vasarlas.append(td);
+    }
+    torzs.append(vasarlas);
+    tabla.append(torzs);
+    const gorgeto = mas('div', undefined, 'csomag-tabla-gorgeto');
+    gorgeto.append(tabla);
+    hely.replaceChildren(gorgeto);
+    tablazatKapcsol(tablazatNyitva);
   }
 
   // ── a csomag kiválasztása és jóváhagyása a fizetés előtt ──
