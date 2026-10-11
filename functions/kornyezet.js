@@ -59,6 +59,11 @@ function beallitasok(env = process.env) {
     // a felületen megjelenő ár szövege (pl. "7 EUR / hó"); a tényleges árat a Stripe-ban állítod
     fizetesArSzoveg: String(env.FIZETES_AR_SZOVEG || "").trim().slice(0, 40),
     fizetesArProfiSzoveg: String(env.FIZETES_AR_PROFI_SZOVEG || "").trim().slice(0, 40),
+    // Automatikus számla a számlázz.hu-val: csak a prodon, ha a fizetés él és a SZAMLAZZ=igen be van állítva.
+    // (A titok csak ilyenkor kötődik a webhookhoz, így a pilot deployához nem kell.)
+    szamlazz: kornyezet === "prod" && /^price_[A-Za-z0-9_]+$/.test(arAlap) && String(env.SZAMLAZZ || "").trim().toLowerCase() === "igen",
+    szamlazzBank: String(env.SZAMLAZZ_BANK || "").trim().slice(0, 60),
+    szamlazzBankszamla: String(env.SZAMLAZZ_BANKSZAMLA || "").trim().slice(0, 60),
     visszaUrl: visszaUrl(projekt, env.FIZETES_VISSZA_URL),
     cors: corsLista(projekt, env.ENGEDELYEZETT_DOMAINEK)
   };

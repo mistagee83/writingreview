@@ -25,7 +25,8 @@ const MENU = [
 const ADMIN_MENU = [
   { label: "nav.adminisztracio" },
   { href: "admin.html", ikon: "🔑", cim: "nav.szerepkezeles" },
-  { href: "ai-hasznalat.html", ikon: "📈", cim: "nav.ai_hasznalat" }
+  { href: "ai-hasznalat.html", ikon: "📈", cim: "nav.ai_hasznalat" },
+  { href: "szamlazando.html", ikon: "🧾", cim: "nav.szamlazando" }
 ];
 
 /**

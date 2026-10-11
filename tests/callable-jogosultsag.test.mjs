@@ -29,7 +29,7 @@ const MINDEN_KAPUS = {
     "visszajelzesJovahagyas", "diakEltavolitas", "feladatElemzes", "kulcsKeszites", "kvotaAllapot",
     "fizetesIndit", "fizetesKezeles", "fejlodesLista", "fejlodesDiak", "temaBeallitas"
   ],
-  admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas"]
+  admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas", "szamlazandoLista", "szamlaJeloles"]
 };
 
 async function kod(nev, request) {

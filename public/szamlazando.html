@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="szaml.oldalcim">WritingReview – Számlázandók</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
+  <script src="js/tema-korai.js"></script>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.admin_fejlec">🔑 Admin &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
+  </div>
+</div>
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main">
+    <div class="page-header">
+      <h1 data-i18n="szaml.cim">Számlázandó befizetések</h1>
+      <p data-i18n="szaml.alcim">Itt látod, kinek kell számlát kiállítani. Állítsd ki a számlázz.hu-ban (az e-mail küldését pipáld be), majd írd ide a számlaszámot, és jelöld késznek.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-body">
+        <div class="code-input-row">
+          <label for="szuro" style="margin:0;align-self:center;" data-i18n="szaml.szuro">Mutasd</label>
+          <select id="szuro" style="max-width:190px;">
+            <option value="nyitott" data-i18n="szaml.szuro_nyitott">Számlázandó</option>
+            <option value="kesz" data-i18n="szaml.szuro_kesz">Kiállított</option>
+            <option value="mind" data-i18n="szaml.szuro_mind">Mind</option>
+          </select>
+          <button class="btn-sm" id="btn-frissit" data-i18n="admin.frissites">🔄 Frissítés</button>
+          <button class="btn-sm" id="btn-csv" data-i18n="szaml.csv">⬇ CSV letöltése</button>
+        </div>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+
+    <div id="tartalom"><div class="empty-state bare"><div class="spinner"></div></div></div>
+  </main>
+</div>
+<script type="module">
+  import { t, nyelv } from './js/i18n.js';
+  import { vedettOldal, esc } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { uzenet, uzenetTorles, hibaSzoveg } from './js/ui.js';
+  import { functions, httpsCallable } from './js/firebase-config.js';
+
+  // Tanári szerep ÉS admin claim is kell
+  await vedettOldal('tanar', { admin: true });
+  oldalsav('szamlazando.html', { admin: true });
+
+  const lista = httpsCallable(functions, 'szamlazandoLista');
+  const jeloles = httpsCallable(functions, 'szamlaJeloles');
+  const szuroEl = document.getElementById('szuro');
+  const tartalom = document.getElementById('tartalom');
+  let adat = { tetelek: [], csonkolt: false };
+
+  // ── FORMÁZÁS ──
+  const datum = (mp) => (Number.isFinite(mp) ? new Date(mp * 1000).toLocaleDateString(nyelv()) : '–');
+  // A Stripe a legkisebb egységben ad összeget (cent); a nulla tizedes-pénznemek (pl. JPY) nem századosak.
+  const NULL_TIZEDES = ['jpy', 'krw', 'vnd', 'clp', 'isk', 'ugx', 'xaf', 'xof'];
+  const nullTizedes = (x) => NULL_TIZEDES.includes(String(x.penznem).toLowerCase());
+  const nagysag = (x) => (nullTizedes(x) ? x.osszeg : x.osszeg / 100);
+  function penz(x) {
+    if (!Number.isFinite(x.osszeg) || !x.penznem) return '–';
+    try {
+      return nagysag(x).toLocaleString(nyelv(), { style: 'currency', currency: String(x.penznem).toUpperCase() });
+    } catch {
+      return `${nagysag(x)} ${esc(String(x.penznem).toUpperCase())}`;
+    }
+  }
+  const cimSor = (c) => [c.sor1, c.sor2].filter(Boolean).join(' ');
+  const cimSzoveg = (x) => {
+    const c = x.cim || {};
+    return [[c.irsz, c.varos].filter(Boolean).join(' '), cimSor(c), c.orszag].filter(Boolean).join(', ');
+  };
+  const szurt = () => {
+    const m = szuroEl.value;
+    return adat.tetelek.filter((x) => m === 'mind' || (m === 'kesz' ? x.allapot === 'kesz' : x.allapot !== 'kesz'));
+  };
+
+  // ── RAJZOLÁS ──
+  const ALLAPOTOK = ['szamlazando', 'kesz', 'folyamatban', 'hiba', 'bizonytalan'];
+  const OSZTALY = { szamlazando: 'feltoltve', kesz: 'elkuldve', folyamatban: 'folyamatban', hiba: 'hiba', bizonytalan: 'hiba' };
+  function allapotJelzo(x) {
+    const a = ALLAPOTOK.includes(x.allapot) ? x.allapot : 'szamlazando';
+    return `<span class="badge ${OSZTALY[a]}">${t(`szaml.allapot_${a}`)}</span>`;
+  }
+  function muvelet(x) {
+    if (x.proba) return `<span class="halvany">${t('szaml.teszt_tipp')}</span>`;
+    if (x.allapot === 'kesz') {
+      return `${allapotJelzo(x)} <strong>${esc(x.szamlaszam || '')}</strong>` +
+        (x.kezi ? ` <button class="btn-sm" type="button" data-vissza="${esc(x.id)}">${t('szaml.visszavonas')}</button>` : '');
+    }
+    if (x.allapot === 'szamlazando') {
+      return `<div class="code-input-row"><input type="text" maxlength="60" placeholder="${t('szaml.szamlaszam')}" data-szam="${esc(x.id)}" style="max-width:170px;" />
+        <button class="btn-sm" type="button" data-kesz="${esc(x.id)}">${t('szaml.kiallitva')}</button></div>`;
+    }
+    return `${allapotJelzo(x)}${x.hibauzenet ? ` <span class="halvany">${esc(x.hibauzenet)}</span>` : ''}`;
+  }
+  function rajzol() {
+    const sorok = szurt();
+    if (!sorok.length) {
+      tartalom.innerHTML = `<div class="empty-state bare"><p>${t(szuroEl.value === 'nyitott' ? 'szaml.ures_nyitott' : 'szaml.ures')}</p></div>`;
+      return;
+    }
+    const tr = sorok.map((x) => `<tr>
+      <td>${datum(x.teljesites)}${x.proba ? ` <span class="badge inaktiv">${t('szaml.teszt')}</span>` : ''}</td>
+      <td><strong>${esc(x.nev || '–')}</strong><br><span class="halvany">${esc(x.email || '')}</span></td>
+      <td>${esc(cimSzoveg(x))}<br><button class="btn-sm" type="button" data-masol="${esc(x.id)}">${t('szaml.masol')}</button></td>
+      <td>${penz(x)}</td>
+      <td>${esc(x.stripe_szam || x.id)}</td>
+      <td>${muvelet(x)}</td></tr>`).join('');
+    const fejlec = ['datum', 'vevo', 'cim', 'osszeg', 'stripe', 'muvelet'].map((k) => `<th>${t(`szaml.oszlop_${k}`)}</th>`).join('');
+    tartalom.innerHTML = `<div class="panel"><div class="panel-body flush"><div class="tabla-gorgeto"><table class="tabla">
+      <thead><tr>${fejlec}</tr></thead><tbody>${tr}</tbody></table></div></div></div>`;
+  }
+
+  // ── BETÖLTÉS ÉS MŰVELETEK ──
+  async function betolt() {
+    uzenetTorles('msg');
+    tartalom.innerHTML = `<div class="empty-state bare"><div class="spinner"></div></div>`;
+    try {
+      adat = (await lista()).data;
+      if (adat.csonkolt) uzenet('msg', t('szaml.csonkolt', { db: adat.tetelek.length }), 'error');
+      rajzol();
+    } catch (e) {
+      adat = { tetelek: [], csonkolt: false };
+      tartalom.innerHTML = `<div class="empty-state bare"><p>${esc(hibaSzoveg(e))}</p></div>`;
+    }
+  }
+  async function jelol(id, szamlaszam) {
+    uzenetTorles('msg');
+    try {
+      await jeloles({ id, szamlaszam });
+      await betolt();
+    } catch (e) {
+      uzenet('msg', hibaSzoveg(e), 'error');
+    }
+  }
+  tartalom.addEventListener('click', async (ev) => {
+    const gomb = ev.target.closest('button');
+    if (!gomb) return;
+    if (gomb.dataset.kesz) {
+      const mezo = tartalom.querySelector(`input[data-szam="${CSS.escape(gomb.dataset.kesz)}"]`);
+      const szam = (mezo?.value || '').trim();
+      if (!szam) { uzenet('msg', t('szaml.szamlaszam_kell'), 'error'); mezo?.focus(); return; }
+      await jelol(gomb.dataset.kesz, szam);
+    } else if (gomb.dataset.vissza) {
+      if (confirm(t('szaml.visszavonas_kerdes'))) await jelol(gomb.dataset.vissza, null);
+    } else if (gomb.dataset.masol) {
+      const x = adat.tetelek.find((y) => y.id === gomb.dataset.masol);
+      if (!x) return;
+      const szoveg = [x.nev, x.email, cimSzoveg(x)].filter(Boolean).join('\n');
+      try {
+        await navigator.clipboard.writeText(szoveg);
+        uzenet('msg', t('szaml.masolva'), 'success');
+      } catch {
+        uzenet('msg', szoveg, 'success');
+      }
+    }
+  });
+
+  // A CSV a megjelenített (szűrt) sorokból készül, a tesztbefizetések nélkül; pontosvesszős, UTF-8 BOM-mal,
+  // hogy az Excel jól nyissa. A cellák idézőjelezve (a név vagy a cím tartalmazhat pontosvesszőt).
+  const csvMezo = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  document.getElementById('btn-csv').addEventListener('click', () => {
+    const sorok = szurt().filter((x) => !x.proba).map((x) => {
+      const c = x.cim || {};
+      const osszeg = Number.isFinite(x.osszeg) ? nagysag(x).toFixed(nullTizedes(x) ? 0 : 2) : '';
+      return [datum(x.teljesites), x.nev, x.email, c.irsz, c.varos, cimSor(c), c.orszag,
+        osszeg, String(x.penznem || '').toUpperCase(), x.stripe_szam || x.id].map(csvMezo).join(';');
+    });
+    const fejlec = t('szaml.csv_fej').split(';').map(csvMezo).join(';');
+    const csv = '﻿' + [fejlec, ...sorok].join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'szamlazando.csv';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  szuroEl.addEventListener('change', rajzol);
+  document.getElementById('btn-frissit').addEventListener('click', betolt);
+  betolt();
+</script>
+</body>
+</html>

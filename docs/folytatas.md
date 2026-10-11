@@ -387,6 +387,13 @@ cd writingreview
   **minden projektben** (a pilotban helyőrző is jó). Titok nélkül a deploy elhasal, ezért a következő kiadás (pilot és prod) ELŐTT be kell állítani őket.
 - **Nem kész:** a **számlázz.hu** (NAV-s számla) automatikus kiállítása a befizetésekről; az áfa/Stripe Tax a könyvelői válasz után; a jogi dokumentumok. Ezek nélkül éles fizetés nem indítható.
 
+## 5/e-2. Számlázz.hu-bekötés (2026-10-11) – kód kész, **még NINCS commitolva és deployolva, és KI VAN KAPCSOLVA**
+
+- A Stripe `invoice.paid` eseményéből automatikus számla (alanyi adómentes; tesztmódban díjbekérő). Részletek, beállítás, nyitott pontok: **`docs/szamlazz.md`**. Teszt: `tests/szamlazz.test.mjs` (emulátor nélkül).
+- **Bekapcsolás előtt:** Agent-kulcs titokként, az `invoice.paid` hozzáadása a Stripe webhookhoz, `SZAMLAZZ=igen` az `.env.prod`-ban, majd kiadás. Az EUR-árfolyam kezelését tesztmódban (díjbekérővel) ki kell próbálni.
+- **Kézi számlázás (kész, ez az első lépés):** admin oldal „🧾 Számlázandók” (`szamlazando.html`): az `invoice.paid` befizetések listája vevői adatokkal, számlaszám-jelöléssel és CSV-vel. **Deploy-hatás:** hosting + functions (új callable-ök: `szamlazandoLista`, `szamlaJeloles`; módosított `stripeWebhook`); a Stripe webhookhoz fel kell venni az `invoice.paid` eseményt. A prod a régi kódon fut, amíg nincs kiadás.
+- A pilotra nem hat (a titok csak bekapcsolt számlázásnál kötődik, ezért a pilot deployához nem kell).
+
 ## 5/f. Fejlődés az idő mentén és csomaghoz kötött funkciók (2026-10-10) – kód kész, **még NINCS deployolva és commitolva**
 
 - **Csomag-szintek (prod; a pilotban nincs kvóta, ott minden funkció mindenkinek elérhető):** Ingyenes = javítás és jóváhagyás egyszeri kerettel; **Alap** = + **osztályszintű

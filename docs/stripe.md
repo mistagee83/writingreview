@@ -60,8 +60,7 @@ Kezdd a **Stripe tesztmódjával**; élesíteni csak a lenti ellenőrző lista u
 - [ ] **Könyvelő:** az egyéni vállalkozó áfa-státusza (alanyi adómentes vagy áfás), az EU-s eladás szabályai (más tagállamba értékesített digitális szolgáltatás:
       OSS), és hogy az **áfával együtt** feltüntetett ár helyes-e. Ettől függ, hogy kell-e Stripe Tax (`automatic_tax`) és hogyan.
 - [ ] **Számlázás:** a Stripe saját számlája/nyugtája **nem** helyettesíti a **NAV felé jelentett magyar számlát**. A számlázz.hu fiókodra a Számla Agent (API) szolgál
-      az automatikus számlakiállításra; ennek bekötése külön lépés (a `invoice.paid`/`checkout.session.completed` eseményből), és a számlázz.hu agent-kulcsa
-      is titok lesz. Amíg nincs bekötve, a számlát kézzel kell kiállítani minden befizetésről.
+      az automatikus számlakiállításra; a bekötés **kódja kész** (`docs/szamlazz.md`: `invoice.paid` → számla, tesztmódban díjbekérő), de kikapcsolt; élesítéshez az Agent-kulcs, a webhook új eseménye és `SZAMLAZZ=igen` kell. Amíg nincs bekapcsolva, a számlát kézzel kell kiállítani.
 - [ ] **Jogi dokumentumok:** felhasználási feltételek, adatkezelési tájékoztató, lemondási és (fogyasztói) elállási szabályok, linkelve a Checkoutból és a portálról.
 - [ ] **Google korhatár-kikötés és adatvédelem** (`kornyezetek-terv.md` 5.2; `adatvedelmi-kerdesek.md`): a nyilvános értékesítés előtt tisztázni.
 - [ ] A Stripe-fiók **éles módra** kapcsolása (üzleti adatok, kifizetési számla), éles kulcsok és éles `price_...`/webhook titok beállítása, majd egy valódi, kis összegű

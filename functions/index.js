@@ -28,6 +28,7 @@ const kornyezet = require("./kornyezet");
 const kvota = require("./kvota");
 const aiHasznalat = require("./ai-hasznalat");
 const fizetes = require("./fizetes");
+const szamlazz = require("./szamlazz");
 const fejlodes = require("./fejlodes");
 const tema = require("./tema");
 
@@ -38,6 +39,9 @@ const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 // mindkettőnek a deploy előtt – a pilotban egy helyőrző érték is elég, ott a fizetés ki van kapcsolva.
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
+// A számlázz.hu Számla Agent kulcsa. Csak akkor kötjük a webhookhoz, ha a számlázás be van kapcsolva (SZAMLAZZ=igen a
+// functions/.env.prod-ban) – így a pilot deployához nem kell létrehozni.
+const SZAMLAZZ_AGENT_KULCS = defineSecret("SZAMLAZZ_AGENT_KULCS");
 const REGION = "europe-west1";
 
 // ── MODELLEK LÉPÉSENKÉNT ──
@@ -185,7 +189,9 @@ const HIBA_SZOVEG = {
   csomag_profi_kell: () => "A fejlődés-követés a Profi csomag része.",
   csomag_alap_kell: () => "Az osztályszintű elemzés az Alap csomagtól érhető el.",
   szinvalasztas_alap_kell: () => "A színválasztás az Alap csomagtól érhető el.",
-  tema_ervenytelen: () => "Ismeretlen színtéma."
+  tema_ervenytelen: () => "Ismeretlen színtéma.",
+  szamla_nincs: () => "Ez a befizetés nem található a számlázandók között.",
+  szamlaszam_ervenytelen: () => "A számlaszám 1–60 karakter lehet."
 };
 
 /** Kódolt HttpsError: magyar üzenet + details.kod a kliens fordításához. */
@@ -1703,6 +1709,10 @@ exports._teszt = {
   fejlodesDiakLogika,
   stripeEsemenyFeldolgozas,
   stripeWebhookKezeles,
+  szamlaKiallitas,
+  szamlaRogzites,
+  szamlazandoListaLogika,
+  szamlaJelolesLogika,
   fizetesInditasLogika,
   fizetesKezelesLogika,
   aiHasznalatNaplo,
@@ -2272,11 +2282,104 @@ async function stripeEsemenyFeldolgozas(firestore, esemeny, beallitasok = BEALLI
   });
 }
 
+/** Ennyi sikertelen kísérlet után nem kéri újra a Stripe-tól a számlát (a hiba kézi javítást igényel). */
+const SZAMLA_MAX_KISERLET = 5;
+/** Ennyi ideig tekintjük "folyamatban" lévőnek a számlakészítést (utána egy új kísérlet átveheti). */
+const SZAMLA_FOLYAMATBAN_MS = 10 * 60 * 1000;
+
+/**
+ * A számlázáshoz szükséges adatok a Stripe-számlából (a `szamlak` dokumentumba kerülnek, az admin lista ebből dolgozik).
+ * Személyes adat (név, cím, e-mail): csak a szerver és az admin callable éri el, a szabályok a klienstől tiltják.
+ */
+function szamlaAdatok(szamla) {
+  const cim = szamla.customer_address || {};
+  const szoveg = (x, max = 200) => (typeof x === "string" ? x.slice(0, max) : null);
+  return {
+    stripe_szam: szoveg(szamla.number, 60),
+    stripe_ugyfel: typeof szamla.customer === "string" ? szamla.customer : null,
+    nev: szoveg(szamla.customer_name),
+    email: szoveg(szamla.customer_email),
+    cim: {
+      sor1: szoveg(cim.line1), sor2: szoveg(cim.line2), varos: szoveg(cim.city, 100),
+      irsz: szoveg(cim.postal_code, 20), orszag: szoveg(cim.country, 2)
+    },
+    osszeg: szamla.amount_paid, penznem: szamla.currency,
+    teljesites: Number.isFinite(szamla.status_transitions?.paid_at) ? szamla.status_transitions.paid_at : (szamla.created ?? null),
+    proba: szamla.livemode !== true
+  };
+}
+
+/**
+ * Kézi számlázás támogatása (amíg nincs bekötve az Agent): a sikeres befizetést „számlázandóként” rögzíti, az admin
+ * oldalon (szamlazando.html) a tulajdonos ebből állítja ki a számlát a számlázz.hu-ban. Idempotens: egy befizetés egyszer kerül be.
+ * A Stripe tesztmódú befizetése is bekerül (`proba: true`, az oldalon jelölve), hogy a folyamat kipróbálható legyen.
+ */
+async function szamlaRogzites(firestore, esemeny) {
+  const szamla = esemeny?.data?.object;
+  const ok = szamlazz.kihagyas(szamla);
+  if (ok) return { eredmeny: "kihagyva", ok };
+  const ref = firestore.collection("szamlak").doc(szamla.id);
+  return firestore.runTransaction(async (tx) => {
+    if ((await tx.get(ref)).data()) return { eredmeny: "kihagyva", ok: "mar_rogzitve" };
+    tx.set(ref, { allapot: "szamlazando", ...szamlaAdatok(szamla), rogzitve: FieldValue.serverTimestamp() });
+    return { eredmeny: "rogzitve" };
+  });
+}
+
+/**
+ * Számla a sikeres Stripe-befizetésről (`invoice.paid`) a számlázz.hu-ban. Idempotens: a `szamlak/{stripe-számla-id}`
+ * dokumentum tranzakciós foglalása gátolja a dupla számlát (a Stripe többször is kézbesíthet).
+ * Eredmények: `kesz`, `kihagyva`, `bizonytalan` (hálózati hiba: lehet, hogy elkészült – NEM próbáljuk újra vakon),
+ * `hiba` (a számlázz.hu elutasította; a hívó 5xx-et ad, hogy a Stripe újrapróbálja).
+ */
+async function szamlaKiallitas(firestore, esemeny, { beallitasok = BEALLITASOK, kulcs, kuldFn = szamlazz.kuldes } = {}) {
+  const szamla = esemeny?.data?.object;
+  const ok = szamlazz.kihagyas(szamla);
+  if (ok) return { eredmeny: "kihagyva", ok };
+  // A Stripe TESZTMÓDÚ befizetéséről nem kérünk számlát: a számlázz.hu éles fiókjában a tesztelés díjköteles, és az
+  // automatikus számlázást is leállíthatja (a számlázz.hu javaslata: tesztelni csak teszt fiókban).
+  if (szamla.livemode !== true) return { eredmeny: "kihagyva", ok: "teszt_mod" };
+
+  const ref = firestore.collection("szamlak").doc(szamla.id);
+  const foglalas = await firestore.runTransaction(async (tx) => {
+    const adat = (await tx.get(ref)).data();
+    if (adat) {
+      if (adat.allapot === "kesz" || adat.allapot === "bizonytalan") return { kihagy: adat.allapot };
+      const ido = adat.foglalva?.toMillis?.() ?? 0;
+      if (adat.allapot === "folyamatban" && Date.now() - ido < SZAMLA_FOLYAMATBAN_MS) return { kihagy: "folyamatban" };
+      if ((adat.kiserlet || 0) >= SZAMLA_MAX_KISERLET) return { kihagy: "feladva" };
+    }
+    const kiserlet = (adat?.kiserlet || 0) + 1;
+    tx.set(ref, {
+      allapot: "folyamatban", foglalva: FieldValue.serverTimestamp(), kiserlet,
+      ...szamlaAdatok(szamla)
+    }, { merge: true });
+    return { kiserlet };
+  });
+  if (foglalas.kihagy) return { eredmeny: "kihagyva", ok: foglalas.kihagy };
+
+  const { xml, probaMod } = szamlazz.szamlaXml(szamla, {
+    kulcs, bank: beallitasok.szamlazzBank, bankszamla: beallitasok.szamlazzBankszamla
+  });
+  const valasz = await kuldFn(xml);
+  if (valasz.sikeres) {
+    await ref.set({ allapot: "kesz", szamlaszam: valasz.szamlaszam || null, proba: probaMod, kesz: FieldValue.serverTimestamp() }, { merge: true });
+    return { eredmeny: "kesz", szamlaszam: valasz.szamlaszam, proba: probaMod };
+  }
+  const hiba = { hibakod: valasz.hibakod || null, hibauzenet: String(valasz.hibauzenet || "").slice(0, 300) };
+  if (valasz.bizonytalan) {
+    await ref.set({ allapot: "bizonytalan", ...hiba, hiba_ido: FieldValue.serverTimestamp() }, { merge: true });
+    return { eredmeny: "bizonytalan", ...hiba };
+  }
+  await ref.set({ allapot: "hiba", ...hiba, hiba_ido: FieldValue.serverTimestamp() }, { merge: true });
+  return { eredmeny: "hiba", ...hiba, kiserlet: foglalas.kiserlet };
+}
+
 /**
  * A webhook-kérés kezelése: aláírás-ellenőrzés a NYERS törzsön, majd feldolgozás. A függőségek (kliens, titok,
  * firestore) paraméterek, hogy hálózat nélkül tesztelhető legyen. Hibánál 5xx: a Stripe újrapróbálja.
  */
-async function stripeWebhookKezeles(req, res, { stripe, titok, firestore = db(), beallitasok = BEALLITASOK }) {
+async function stripeWebhookKezeles(req, res, { stripe, titok, firestore = db(), beallitasok = BEALLITASOK, szamlazzKulcs = () => String(SZAMLAZZ_AGENT_KULCS.value()).trim() }) {
   if (req.method !== "POST") { res.status(405).send("Csak POST"); return; }
   let esemeny;
   try {
@@ -2286,6 +2389,37 @@ async function stripeWebhookKezeles(req, res, { stripe, titok, firestore = db(),
   } catch (e) {
     logger.warn("Stripe-webhook: érvénytelen aláírás", { hiba: e.message });
     res.status(400).send("Érvénytelen aláírás");
+    return;
+  }
+  if (esemeny.type === "invoice.paid" && !beallitasok.szamlazz && beallitasok.fizetes) {
+    try {
+      const eredmeny = await szamlaRogzites(firestore, esemeny);
+      logger.info("Számlázandó befizetés", { id: esemeny.id, szamla: esemeny.data?.object?.id, ...eredmeny });
+      res.status(200).json({ ok: true, ...eredmeny });
+    } catch (e) {
+      logger.error("Számlázandó rögzítési hiba", { id: esemeny.id, hiba: e.message });
+      res.status(500).send("Feldolgozási hiba");
+    }
+    return;
+  }
+  if (esemeny.type === "invoice.paid" && beallitasok.szamlazz) {
+    try {
+      const eredmeny = await szamlaKiallitas(firestore, esemeny, { beallitasok, kulcs: szamlazzKulcs() });
+      if (eredmeny.eredmeny === "hiba" && eredmeny.kiserlet < SZAMLA_MAX_KISERLET) {
+        logger.error("Számla-hiba (a Stripe újrapróbálja)", { id: esemeny.id, ...eredmeny });
+        res.status(500).send("Számlázási hiba");
+        return;
+      }
+      if (eredmeny.eredmeny === "hiba" || eredmeny.eredmeny === "bizonytalan") {
+        logger.error("Számla: kézi ellenőrzés kell", { id: esemeny.id, szamla: esemeny.data?.object?.id, ...eredmeny });
+      } else {
+        logger.info("Számla", { id: esemeny.id, szamla: esemeny.data?.object?.id, ...eredmeny });
+      }
+      res.status(200).json({ ok: true, ...eredmeny });
+    } catch (e) {
+      logger.error("Számla feldolgozási hiba", { id: esemeny.id, hiba: e.message });
+      res.status(500).send("Feldolgozási hiba");
+    }
     return;
   }
   try {
@@ -2298,8 +2432,77 @@ async function stripeWebhookKezeles(req, res, { stripe, titok, firestore = db(),
   }
 }
 
+// ── KÉZI SZÁMLÁZÁS: az admin oldal (szamlazando.html) callable-jei ──
+const SZAMLA_LISTA_MAX = 300;
+const STRIPE_SZAMLA_ID = /^in_[A-Za-z0-9_]{1,80}$/;
+
+/** A legutóbbi befizetések számlázási állapottal, a legújabb elöl. */
+async function szamlazandoListaLogika(firestore) {
+  const snap = await firestore.collection("szamlak").orderBy("teljesites", "desc").limit(SZAMLA_LISTA_MAX).get();
+  return {
+    csonkolt: snap.size >= SZAMLA_LISTA_MAX,
+    tetelek: snap.docs.map((d) => {
+      const x = d.data();
+      return {
+        id: d.id, allapot: x.allapot || "szamlazando", stripe_szam: x.stripe_szam ?? null,
+        nev: x.nev ?? null, email: x.email ?? null, cim: x.cim || {}, osszeg: x.osszeg ?? null, penznem: x.penznem ?? null,
+        teljesites: x.teljesites ?? null, proba: x.proba === true, szamlaszam: x.szamlaszam ?? null, kezi: x.kezi === true,
+        hibauzenet: x.hibauzenet ?? null
+      };
+    })
+  };
+}
+
+/**
+ * Egy befizetés kézi „kiállítva” jelölése (számlaszámmal), vagy visszavonása (szamlaszam: null).
+ * Az Agent által kiállított (nem kézi) számlát nem írja át.
+ */
+async function szamlaJelolesLogika(firestore, adminUid, adat) {
+  const id = adat?.id;
+  if (typeof id !== "string" || !STRIPE_SZAMLA_ID.test(id)) throw hiba("invalid-argument", "szamla_nincs");
+  const szam = adat?.szamlaszam;
+  const visszavon = szam === null;
+  if (!visszavon && (typeof szam !== "string" || szam.trim().length < 1 || szam.trim().length > 60)) {
+    throw hiba("invalid-argument", "szamlaszam_ervenytelen");
+  }
+  const ref = firestore.collection("szamlak").doc(id);
+  return firestore.runTransaction(async (tx) => {
+    const x = (await tx.get(ref)).data();
+    if (!x) throw hiba("not-found", "szamla_nincs");
+    if (x.allapot === "kesz" && x.kezi !== true) throw hiba("failed-precondition", "szamla_nincs");
+    if (visszavon) {
+      tx.set(ref, { allapot: "szamlazando", szamlaszam: FieldValue.delete(), kezi: FieldValue.delete(), kesz: FieldValue.delete(), kiallitotta: FieldValue.delete() }, { merge: true });
+      return { allapot: "szamlazando" };
+    }
+    tx.set(ref, { allapot: "kesz", szamlaszam: szam.trim(), kezi: true, kesz: FieldValue.serverTimestamp(), kiallitotta: adminUid }, { merge: true });
+    return { allapot: "kesz", szamlaszam: szam.trim() };
+  });
+}
+
+exports.szamlazandoLista = onCall(HIVAS_OPCIOK, async (request) => {
+  admin(request);
+  try {
+    return await szamlazandoListaLogika(db());
+  } catch (e) {
+    if (e instanceof HttpsError) throw e;
+    logger.error("szamlazandoLista hiba", { hiba: e.message });
+    throw belsoHiba(e);
+  }
+});
+
+exports.szamlaJeloles = onCall(HIVAS_OPCIOK, async (request) => {
+  const uid = admin(request);
+  try {
+    return await szamlaJelolesLogika(db(), uid, request.data);
+  } catch (e) {
+    if (e instanceof HttpsError) throw e;
+    logger.error("szamlaJeloles hiba", { hiba: e.message });
+    throw belsoHiba(e);
+  }
+});
+
 exports.stripeWebhook = onRequest(
-  { region: REGION, secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET], cors: false },
+  { region: REGION, secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, ...(BEALLITASOK.szamlazz ? [SZAMLAZZ_AGENT_KULCS] : [])], cors: false },
   async (req, res) => {
     if (!BEALLITASOK.fizetes) { res.status(404).send("A fizetés ki van kapcsolva"); return; }
     await stripeWebhookKezeles(req, res, { stripe: stripeKliens(), titok: String(STRIPE_WEBHOOK_SECRET.value()).trim() });
