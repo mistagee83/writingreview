@@ -551,7 +551,7 @@ test("kulcs: a hiányzó beállítás alapértékkel töltődik", () => {
 
 test("kulcs: a hibás kulcs olvasható üzenettel bukik", () => {
   const rossz = (kerdesek) => () => sz.kulcsEllenorzes({ kerdesek });
-  assert.throws(rossz([]), /nincs egy kérdés sem/);
+  assert.throws(rossz([]), /nincs egyetlen kérdés sem/);
   assert.throws(rossz([{ sorszam: "1", tipus: "esszé", max_pont: 1, elemek: [e("a", "b")] }]), /ismeretlen típus/);
   assert.throws(rossz([{ sorszam: "1", tipus: "sorrend", max_pont: 0, elemek: [e("a", "b")] }]), /max pont/);
   assert.throws(rossz([{ sorszam: "1", tipus: "sorrend", max_pont: 1, elemek: [e("a", "b"), e("a", "c")] }]), /ismétlődő elem/);

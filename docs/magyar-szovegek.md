@@ -51,7 +51,8 @@ Az angol külön stílust követ: `public/js/i18n-en.js` fejléce az irányadó.
 5. Bemutató (`tura.*`), megoldókulcs-szerkesztő (`kf.*`, `kj.*`) és admin oldalak
    (`admin.*`, `aih.*`): kész, 2026-10-10. Közvetlenebb útmutatók, egyértelműbb
    jogosultsági és pontozási szövegek; az árszorzó az AI-költséget módosítja,
-   az a/an példáknál a kiejtés számít. A `szerver.*` hibaüzenetek még hátravannak.
+   az a/an példáknál a kiejtés számít.
+5/b. Megoldókulcs-hibák (`kulcshiba.*`): kész, 2026-10-11. A szerver magyar szövege (`KULCS_HIBA_HU`, `functions/kifejtos.js`) és a szótár együtt változott; a változás functions-deployt igényel. Hátra: a jogi szövegek.
 6. Jogi szövegek (`docs/jogi/`): a jogász felülvizsgálata után; a pontosság előbbre való.
 
 ## Második olvasó

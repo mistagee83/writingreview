@@ -426,29 +426,29 @@ function jegyJavaslat(pont, max, skala) {
 const kulcsHely = (p) => `${p.kerdes}. kérdés${p.ag ? `, ${p.ag} ág` : ""}`;
 
 const KULCS_HIBA_HU = {
-  nincs_elem: (p) => `${kulcsHely(p)}: nincs egy elem sem.`,
-  tul_sok_elem: (p) => `${kulcsHely(p)}: túl sok elem.`,
-  hianyzo_elem_azonosito: (p) => `${kulcsHely(p)}, ${p.elem}. elem: hiányzó azonosító.`,
-  ismetlodo_elem_azonosito: (p) => `${kulcsHely(p)}: ismétlődő elemazonosító (${p.id}).`,
-  ures_allitas: (p) => `${kulcsHely(p)}, ${p.id}: üres állítás.`,
-  ervenytelen_pont: (p) => `${kulcsHely(p)}, ${p.id}: érvénytelen pont.`,
-  ismeretlen_sorrend_mod: (p) => `${kulcsHely(p)}: ismeretlen sorrend-mód.`,
-  ismeretlen_szakszo_mod: (p) => `${kulcsHely(p)}: ismeretlen szakszó-mód.`,
-  ismeretlen_kulcson_kivul_mod: (p) => `${kulcsHely(p)}: ismeretlen kulcson kívüli mód.`,
-  reszpont_hatar: (p) => `${kulcsHely(p)}: a részpont 0 és 1 között lehet.`,
-  nincs_kerdes: () => "nincs egy kérdés sem.",
-  tul_sok_kerdes: () => "túl sok kérdés.",
-  hianyzo_sorszam: (p) => `${kulcsHely(p)}: hiányzó sorszám.`,
-  ismetlodo_sorszam: (p) => `ismétlődő sorszám (${p.sorszam}).`,
-  ismeretlen_tipus: (p) => `${kulcsHely(p)}: ismeretlen típus.`,
-  ervenytelen_max_pont: (p) => `${kulcsHely(p)}: érvénytelen max pont.`,
-  nincs_ag: (p) => `${kulcsHely(p)}: nincs választható ág.`,
-  hianyzo_ag_azonosito: (p) => `${kulcsHely(p)}, ${p.ag_sor}. ág: hiányzó azonosító.`,
-  ismetlodo_ag_azonosito: (p) => `${kulcsHely(p)}: ismétlődő ágazonosító (${p.id}).`
+  nincs_elem: (p) => `${kulcsHely(p)}: nincs benne egyetlen elem sem.`,
+  tul_sok_elem: (p) => `${kulcsHely(p)}: túl sok az elem.`,
+  hianyzo_elem_azonosito: (p) => `${kulcsHely(p)}, ${p.elem}. elem: nincs azonosítója.`,
+  ismetlodo_elem_azonosito: (p) => `${kulcsHely(p)}: két elemnek is ugyanaz az azonosítója (${p.id}).`,
+  ures_allitas: (p) => `${kulcsHely(p)}, ${p.id}: az állítás üres.`,
+  ervenytelen_pont: (p) => `${kulcsHely(p)}, ${p.id}: a pontszám nem érvényes.`,
+  ismeretlen_sorrend_mod: (p) => `${kulcsHely(p)}: a sorrend beállítása nem ismert.`,
+  ismeretlen_szakszo_mod: (p) => `${kulcsHely(p)}: a szakszavak beállítása nem ismert.`,
+  ismeretlen_kulcson_kivul_mod: (p) => `${kulcsHely(p)}: a kulcson kívüli válaszok beállítása nem ismert.`,
+  reszpont_hatar: (p) => `${kulcsHely(p)}: a részpont 0 és 1 közötti szám lehet.`,
+  nincs_kerdes: () => `nincs egyetlen kérdés sem.`,
+  tul_sok_kerdes: () => `túl sok a kérdés.`,
+  hianyzo_sorszam: (p) => `${kulcsHely(p)}: nincs sorszáma.`,
+  ismetlodo_sorszam: (p) => `két kérdésnek is ugyanaz a sorszáma (${p.sorszam}).`,
+  ismeretlen_tipus: (p) => `${kulcsHely(p)}: a kérdés típusa nem ismert.`,
+  ervenytelen_max_pont: (p) => `${kulcsHely(p)}: a legnagyobb pontszám nem érvényes.`,
+  nincs_ag: (p) => `${kulcsHely(p)}: nincs kiválasztható ág.`,
+  hianyzo_ag_azonosito: (p) => `${kulcsHely(p)}, ${p.ag_sor}. ág: nincs azonosítója.`,
+  ismetlodo_ag_azonosito: (p) => `${kulcsHely(p)}: két ágnak is ugyanaz az azonosítója (${p.id}).`
 };
 
 function hiba(kod, p = {}) {
-  const e = new Error(`Hibás megoldókulcs: ${KULCS_HIBA_HU[kod](p)}`);
+  const e = new Error(`Hiba a megoldókulcsban: ${KULCS_HIBA_HU[kod](p)}`);
   e.kod = kod;
   e.parameterek = p;
   e.kulcsHiba = true;   // a szerver ebből tudja: details.kod = "kulcshiba"
