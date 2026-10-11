@@ -387,10 +387,13 @@ cd writingreview
   **minden projektben** (a pilotban helyőrző is jó). Titok nélkül a deploy elhasal, ezért a következő kiadás (pilot és prod) ELŐTT be kell állítani őket.
 - **Nem kész:** a **számlázz.hu** (NAV-s számla) automatikus kiállítása a befizetésekről; az áfa/Stripe Tax a könyvelői válasz után; a jogi dokumentumok. Ezek nélkül éles fizetés nem indítható.
 
-## 5/e-2. Számlázz.hu-bekötés (2026-10-11) – kód kész, **még NINCS commitolva és deployolva, és KI VAN KAPCSOLVA**
+## 5/e-2. Számlázz.hu-bekötés és kézi számlázás (2026-10-11) – **a prodon él a `v1.15.1`-gyel (kézi számlázás); az Agent KI VAN KAPCSOLVA**
 
 - A Stripe `invoice.paid` eseményéből automatikus számla (alanyi adómentes; tesztmódban díjbekérő). Részletek, beállítás, nyitott pontok: **`docs/szamlazz.md`**. Teszt: `tests/szamlazz.test.mjs` (emulátor nélkül).
 - **Bekapcsolás előtt:** Agent-kulcs titokként, az `invoice.paid` hozzáadása a Stripe webhookhoz, `SZAMLAZZ=igen` az `.env.prod`-ban, majd kiadás. Az EUR-árfolyam kezelését tesztmódban (díjbekérővel) ki kell próbálni.
+- **Állapot:** a `v1.15.1` kiment a prodra, az `invoice.paid` esemény a Stripe tesztmódú (sandbox) webhookján (`creative-breeze`) be van állítva, és a tesztfizetés megjelent a „🧾 Számlázandók” listán (a tulajdonos kipróbálta). **Az éles módra váltáskor az éles webhookon is be kell pipálni az `invoice.paid`-et** (öt esemény).
+- **Tanulság:** a Firebase CLI deploynál MINDEN deklarált titkot megkövetel, akkor is, ha nincs függvényhez kötve: a `v1.15.0` ezen bukott (`SZAMLAZZ_AGENT_KULCS`). Új titkot csak feltételesen deklarálj (lásd `index.js`), vagy előbb hozd létre minden projektben; teszt: `tests/szamlazz.test.mjs`.
+- **Agent-döntés:** a számlázz.hu Számla Agent #free csomaggal is használható, de külön díjas (1–50 bizonylat/hó: 2690 Ft + áfa/hó, utólag); tesztelni teszt fiókban kell (éles fiókban díjköteles, leállíthatja az automatikus számlázást), ezért a kód a Stripe tesztmódú befizetést kihagyja. Bekötés kb. havi 50 számla fölött érdemes.
 - **Kézi számlázás (kész, ez az első lépés):** admin oldal „🧾 Számlázandók” (`szamlazando.html`): az `invoice.paid` befizetések listája vevői adatokkal, számlaszám-jelöléssel és CSV-vel. **Deploy-hatás:** hosting + functions (új callable-ök: `szamlazandoLista`, `szamlaJeloles`; módosított `stripeWebhook`); a Stripe webhookhoz fel kell venni az `invoice.paid` eseményt. A prod a régi kódon fut, amíg nincs kiadás.
 - A pilotra nem hat (a titok csak bekapcsolt számlázásnál kötődik, ezért a pilot deployához nem kell).
 
