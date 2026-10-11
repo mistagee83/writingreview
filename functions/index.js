@@ -2061,7 +2061,9 @@ async function fizetesAllapotLogika(firestore, uid, beallitasok = BEALLITASOK) {
       ar: (nev === "profi" ? beallitasok.fizetesArProfiSzoveg : beallitasok.fizetesArSzoveg) || null
     })),
     csomag_forras: t.csomag_forras === "admin" ? "admin" : "stripe",
-    elofizetes: fizetes.elofizetesNezet(t)
+    // Stripe-ügyfél nélkül nincs élő előfizetés: az ilyen adat csak maradvány (pl. az éles módra váltás előtti, tesztmódú
+    // előfizetésből), ezért nem mutatjuk, és nem állítja meg az új előfizetést.
+    elofizetes: t.elofizetes?.stripe_ugyfel_id ? fizetes.elofizetesNezet(t) : null
   };
 }
 
@@ -2519,6 +2521,21 @@ function eltuntUgyfel(e) {
 }
 
 /** Az elavult Stripe-ügyfél-azonosító törlése a tanár dokumentumáról (az előfizetés többi adata marad). */
+/**
+ * A Stripe-ban már nem létező ügyfél előfizetése nem létezik: az egész előfizetési adat törlődik, és ha a csomagot a
+ * Stripe adta (nem az admin), az ingyenesre áll vissza. Tipikus eset: az éles módra váltás előtt tesztmódban kötött előfizetés.
+ */
+async function elavultElofizetesTorles(firestore, uid) {
+  const ref = firestore.collection("tanarok").doc(uid);
+  const t = (await ref.get()).data() || {};
+  const mezok = { elofizetes: FieldValue.delete() };
+  if (t.csomag_forras !== "admin" && t.csomag && t.csomag !== "ingyenes") {
+    mezok.csomag = "ingyenes";
+    mezok.csomag_modositva = FieldValue.serverTimestamp();
+  }
+  await ref.set(mezok, { merge: true });
+}
+
 async function ugyfelAzonositoTorles(firestore, uid) {
   await firestore.collection("tanarok").doc(uid).set(
     { elofizetes: { stripe_ugyfel_id: FieldValue.delete() } }, { merge: true }
@@ -2535,7 +2552,8 @@ async function fizetesInditasLogika(firestore, stripe, request, beallitasok = BE
 
   const t = (await firestore.collection("tanarok").doc(uid).get()).data() || {};
   if (t.csomag_forras === "admin" && t.csomag && t.csomag !== "ingyenes") throw hiba("failed-precondition", "csomag_kezi");
-  if (fizetes.JAR.has(t.elofizetes?.statusz)) throw hiba("failed-precondition", "mar_elofizetett");
+  // csak élő előfizetés (Stripe-ügyféllel) állítja meg az újat; az ügyfél nélküli "aktív" állapot elavult maradvány
+  if (t.elofizetes?.stripe_ugyfel_id && fizetes.JAR.has(t.elofizetes?.statusz)) throw hiba("failed-precondition", "mar_elofizetett");
 
   // csak a HIÁNYZÓ érték jelent alapot; a kifejezetten rossz (null, szám, lista…) hiba
   const kertCsomag = request.data?.csomag === undefined ? "alap" : request.data.csomag;
@@ -2594,8 +2612,8 @@ async function fizetesKezelesLogika(firestore, stripe, request, beallitasok = BE
     return { url: portal.url };
   } catch (e) {
     if (eltuntUgyfel(e)) {
-      // az ügyfél a Stripe-ban már nincs meg: nincs mit kezelni, az elavult azonosítót elengedjük
-      await ugyfelAzonositoTorles(firestore, uid);
+      // az ügyfél a Stripe-ban már nincs meg: nincs mit kezelni, az elavult előfizetési adatot elengedjük
+      await elavultElofizetesTorles(firestore, uid);
       throw hiba("failed-precondition", "nincs_ugyfel");
     }
     logger.error("Stripe-portál hiba", { uid, hiba: e.message });

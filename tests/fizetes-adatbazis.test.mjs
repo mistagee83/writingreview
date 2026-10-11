@@ -250,11 +250,31 @@ test("fizetés indítása: más Stripe-hiba (nem hiányzó ügyfél) nem indít 
   assert.equal((await tanarDok()).elofizetes.stripe_ugyfel_id, "cus_jo");
 });
 
-test("előfizetés kezelése: az eltűnt ügyfélnél nincs mit kezelni, és az elavult azonosító törlődik", async () => {
-  await firestore.collection("tanarok").doc("t1").set({ elofizetes: { stripe_ugyfel_id: "cus_regi" } });
+test("előfizetés kezelése: az eltűnt ügyfélnél nincs mit kezelni, az elavult előfizetés törlődik, a Stripe-csomag ingyenesre áll", async () => {
+  await firestore.collection("tanarok").doc("t1").set({ csomag: "alap", csomag_forras: "stripe", elofizetes: { stripe_ugyfel_id: "cus_regi", statusz: "active", periodus_vege: 99 } });
   const s = { billingPortal: { sessions: { create: async () => { throw eltuntUgyfelHiba(); } } } };
   await assert.rejects(() => t.fizetesKezelesLogika(firestore, s, kerelem(), BE), (e) => e.details.kod === "nincs_ugyfel");
-  assert.ok(!("stripe_ugyfel_id" in ((await tanarDok()).elofizetes || {})));
+  const d = await tanarDok();
+  assert.ok(!("elofizetes" in d), "az egész elavult előfizetési adat törölve");
+  assert.equal(d.csomag, "ingyenes");
+});
+
+test("előfizetés kezelése: az admin által adott csomagot az elavult ügyfél törlése nem bántja", async () => {
+  await firestore.collection("tanarok").doc("t1").set({ csomag: "korlatlan", csomag_forras: "admin", elofizetes: { stripe_ugyfel_id: "cus_regi", statusz: "active" } });
+  const s = { billingPortal: { sessions: { create: async () => { throw eltuntUgyfelHiba(); } } } };
+  await assert.rejects(() => t.fizetesKezelesLogika(firestore, s, kerelem(), BE), (e) => e.details.kod === "nincs_ugyfel");
+  const d = await tanarDok();
+  assert.equal(d.csomag, "korlatlan");
+  assert.ok(!("elofizetes" in d));
+});
+
+test("elavult előfizetés (aktív állapot Stripe-ügyfél nélkül): nem látszik, és nem állítja meg az új előfizetést", async () => {
+  await firestore.collection("tanarok").doc("t1").set({ csomag: "ingyenes", elofizetes: { statusz: "active", periodus_vege: 99 } });
+  const allapot = await t.fizetesAllapotLogika(firestore, "t1", BE);
+  assert.equal(allapot.elofizetes, null);
+  const s = stripeStub();
+  await t.fizetesInditasLogika(firestore, s, kerelem(), BE);
+  assert.equal(s.hivasok.checkout.length, 1, "az új fizetés elindulhat");
 });
 
 test("fizetés indítása: kikapcsolt fizetés, diák, aktív előfizetés, admin csomag → elutasítva, Stripe-hívás nélkül", async () => {
@@ -263,9 +283,9 @@ test("fizetés indítása: kikapcsolt fizetés, diák, aktív előfizetés, admi
   await assert.rejects(() => t.fizetesInditasLogika(firestore, s, kerelem("d1", "diak"), BE), (e) => e.code === "permission-denied");
   await assert.rejects(() => t.fizetesInditasLogika(firestore, s, { auth: null }, BE), (e) => e.code === "unauthenticated");
 
-  await firestore.collection("tanarok").doc("t1").set({ elofizetes: { statusz: "active" } });
+  await firestore.collection("tanarok").doc("t1").set({ elofizetes: { stripe_ugyfel_id: "cus_1", statusz: "active" } });
   await assert.rejects(() => t.fizetesInditasLogika(firestore, s, kerelem(), BE), (e) => e.details.kod === "mar_elofizetett");
-  await firestore.collection("tanarok").doc("t1").set({ elofizetes: { statusz: "past_due" } });
+  await firestore.collection("tanarok").doc("t1").set({ elofizetes: { stripe_ugyfel_id: "cus_1", statusz: "past_due" } });
   await assert.rejects(() => t.fizetesInditasLogika(firestore, s, kerelem(), BE), (e) => e.details.kod === "mar_elofizetett");
 
   await firestore.collection("tanarok").doc("t2").set({ csomag: "korlatlan", csomag_forras: "admin" });
