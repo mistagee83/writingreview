@@ -121,6 +121,13 @@ Required reviewers); ezt a tulajdonos állíthatja be.
 - **Nyitott:** kvóta/próbacsomag (5.1), eldobható e-mail-címek elleni védelem (a megerősítés csak a
   cím birtoklását bizonyítja), iskolai meghívó/domain. A kvótáig a prod nyilvános kiadása nem javasolt.
 
+## 0/d. Pilot-deploy (2026-10-11) – a pilot a `f69b887` kódon fut
+
+`node scripts/deploy.mjs pilot --only hosting,functions,firestore:rules` sikeresen lefutott (a Stripe-titkok nélkül). A pilotban most van: beírt dolgozat és jelzések,
+fejlődés-követés, osztályelemzés, színválasztó, új nyitóoldal (árak nélkül), az auditkörök javításai, helyi betűtípusok, az új magyar szövegek. A fizetési függvények
+(`stripeWebhook`, `fizetesIndit`, `fizetesKezeles`, `szamlazandoLista`, `szamlaJeloles`) létrejöttek, de a pilotban `fizetes_ki`-vel válaszolnak. A prod nem változott.
+**Hátra (ellenőrzés):** a fejlődés-követés nem kér-e összetett indexet; a beírt dolgozat végigpróbálása; a régi service worker frissülése a kollégáknál.
+
 ## 1. Hol tart most
 
 - **Két telepítés, egy kódbázis** (lásd [`kornyezetek-terv.md`](kornyezetek-terv.md)):
