@@ -91,5 +91,5 @@ test("az összehasonlító táblázat adata: a funkciók egy forrásból (kvota.
   const a = await t.fizetesAllapotLogika(fs, "t1", BE);
   assert.deepEqual(a.funkciok, kvota.FUNKCIOK);
   assert.equal(a.ingyenes_keret, kvota.keret("ingyenes"));
-  assert.deepEqual(a.csomagok.map((c) => c.nev), ["profi", "alap"].filter((n) => ["alap", "profi"].includes(n)).sort((x, y) => (x === "alap" ? -1 : 1)));
+  assert.deepEqual(a.csomagok.map((c) => c.nev), ["alap", "profi"]);
 });

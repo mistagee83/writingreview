@@ -319,6 +319,9 @@ test("fizetés állapota a felületnek: kikapcsolva csak {fizetes:false}; bekapc
       { nev: "profi", keret: 500, ar: "19 EUR / hó" }
     ],
     csomag_forras: "stripe",
+    // az összehasonlító táblázat adata (egy forrás: kvota.FUNKCIOK)
+    funkciok: require("./kvota.js").FUNKCIOK,
+    ingyenes_keret: 20,
     elofizetes: { statusz: "active", periodus_vege: 5000, lemondva: false, van_ugyfel: true }
   });
   // Profi ár nélkül csak az alap kínálható
