@@ -213,6 +213,8 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **Pilot: önkiszolgáló tanári regisztráció BEKAPCSOLVA (2026-10-13, a tulajdonos döntése, pilotra deployolva):** a pilotban is van „Tanár vagyok” regisztráció (megerősített e-mail → automatikusan tanár). **A pilotban nincs AI-keret (`kvota: false`), ezért minden regisztrált tanár korlátlanul költhet** – kevés kolléga használja, de ha a cím szélesebb körbe kerül, a kvótát (vagy a kapcsolót vissza) be kell állítani: `config/pilot.json` + `functions/kornyezet.js`.
+
 - **Diákregisztráció e-mail nélkül (2026-10-13):** a diák felhasználónévvel regisztrál és lép be
   (`public/js/azonosito.js`; a háttérben kitalált `<név>@diak.invalid` cím, valódi e-mailt nem
   tárolunk), **Google nélkül**. A belépő és a regisztrációs űrlapon „Diák vagyok / Tanár vagyok”

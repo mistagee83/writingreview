@@ -16,7 +16,7 @@ export const KVOTA = false;
 // Önkiszolgáló tanári regisztráció (a regisztrációs űrlap „Tanár vagyok” választója).
 // A szerver ugyanezt a KORNYEZET-ből dönti el (functions/kornyezet.js), ezért a
 // kettőnek egyeznie kell – a tests/kornyezet.test.mjs ellenőrzi.
-export const TANARI_ONREGISZTRACIO = false;
+export const TANARI_ONREGISZTRACIO = true;
 export const TESZT_SAV = false;
 // A csomagok a nyitóoldalnak (a build a functions/.env.<alias>-ból és a functions/kvota.js-ből tölti ki; lásd
 // scripts/kornyezet-config.mjs, csomagAdatok). FIZETES: él-e a Stripe-fizetés (prod, beállított ár) – ha nem,

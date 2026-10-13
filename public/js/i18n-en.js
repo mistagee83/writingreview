@@ -95,6 +95,7 @@ export default {
   "index.ful_regisztracio": "Register",
   "index.email": "Email",
   "index.email_pelda": "name@example.com",
+  "index.tanari_jog_megjegyzes": "The operator grants teacher access: register, then let them know.",
   "index.diak_jelszo_sugo": "Forgot your password? Ask your teacher to give you a new one.",
   "index.elfelejtett_jelszo": "Forgot password",
   "index.elfelejtett_cim_kell": "Enter your email above, then click \"Forgot password\" again.",

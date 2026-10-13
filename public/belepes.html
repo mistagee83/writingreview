@@ -58,8 +58,8 @@
     </div>
 
     <!-- Diák / tanár választó. A diák felhasználónévvel és jelszóval lép be (nincs Google, nincs e-mail);
-         a tanár e-mail-címmel vagy Google-lal. Regisztrációnál csak ott látszik, ahol az önkiszolgáló
-         tanári regisztráció be van kapcsolva (kornyezet.js). -->
+         a tanár e-mail-címmel vagy Google-lal. Regisztrációnál is érvényes (ahol az önkiszolgáló
+         tanári regisztráció nincs bekapcsolva, a tanári jogot az admin adja meg). -->
     <div class="form-group" id="szerep-csoport">
       <div class="tabs szerep-valaszto" role="radiogroup">
         <button type="button" class="tab-btn" id="szerep-diak" role="radio" aria-checked="true" onclick="szerepValaszt('diak')" data-i18n="index.szerep_diak">Diák vagyok</button>
@@ -98,6 +98,7 @@
         <input type="text" id="reg-felhasznalonev" placeholder="Pl. kiss.peter" data-i18n-placeholder="index.felhasznalonev_pelda" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" />
         <small data-i18n="index.felhasznalonev_sugo">3–30 karakter: kisbetű, szám, pont, kötőjel, aláhúzás.</small>
       </div>
+      <p class="jelszo-sugo" id="tanari-jog-megjegyzes" data-i18n="index.tanari_jog_megjegyzes">A tanári jogot az üzemeltető adja meg: regisztrálj, majd jelezd neki.</p>
       <!-- Csak tanári regisztrációnál: ide megy a megerősítő levél. -->
       <div class="form-group" id="reg-email-csoport" hidden>
         <label for="reg-email" data-i18n="index.email">E-mail-cím</label>
@@ -227,15 +228,13 @@
 
   // A nézet a fül (belépés / regisztráció) és a szerep (diák / tanár) függvénye.
   // Diák: felhasználónév + jelszó, se Google, se e-mail. Tanár: e-mail-cím, Google,
-  // elfelejtett jelszó. Regisztrációnál a választó csak ott látszik, ahol tanár is
-  // regisztrálhat; máshol ott mindenki diák.
+  // elfelejtett jelszó. A választó a regisztrációnál is látszik: a tanár is e-mail-lel
+  // vagy Google-lal regisztrál.
   function nezetFrissit() {
     const regisztracio = aktivFul === 'register';
-    const valaszto = !regisztracio || TANARI_ONREGISZTRACIO;
-    if (regisztracio && !TANARI_ONREGISZTRACIO) valasztottSzerep = 'diak';
     const tanar = valasztottSzerep === 'tanar';
-
-    document.getElementById('szerep-csoport').style.display = valaszto ? '' : 'none';
+    // Ahol nincs önkiszolgáló tanári regisztráció, a tanár is diákfiókként jön létre, és az admin adja meg a tanári jogot.
+    document.getElementById('tanari-jog-megjegyzes').style.display = regisztracio && tanar && !TANARI_ONREGISZTRACIO ? '' : 'none';
     document.getElementById('szerep-diak').setAttribute('aria-checked', String(!tanar));
     document.getElementById('szerep-tanar').setAttribute('aria-checked', String(tanar));
     for (const el of document.querySelectorAll('.csak-tanar')) el.style.display = tanar ? '' : 'none';
@@ -471,7 +470,7 @@
   // ── EMAIL REGISZTRÁCIÓ ──
   window.emailRegister = async () => {
     const name = document.getElementById('reg-name').value.trim();
-    const tanar = TANARI_ONREGISZTRACIO && valasztottSzerep === 'tanar';
+    const tanar = valasztottSzerep === 'tanar';   // az űrlap alakja; a tanári kérelem külön, csak bekapcsolt önregisztrációnál megy
     const felhasznalonev = document.getElementById('reg-felhasznalonev').value;
     const tanariEmail = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;

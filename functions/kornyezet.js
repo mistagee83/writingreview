@@ -50,9 +50,9 @@ function beallitasok(env = process.env) {
     projekt,
     // A kvóta csak a kereskedelmi verzióban él (a pilot nem korlátoz).
     kvota: kornyezet === "prod",
-    // Az önkiszolgáló tanári regisztráció ugyanígy csak a kereskedelmi verzióban él;
-    // a pilotban a tanári szerepet továbbra is az admin adja.
-    tanariOnregisztracio: kornyezet === "prod",
+    // Az önkiszolgáló tanári regisztráció mindkét környezetben él (a pilotban 2026-10-13-tól, a tulajdonos döntése:
+    // kevés kolléga használja). FIGYELEM: a pilotban nincs AI-keret, így minden regisztrált tanár korlátlanul költhet.
+    tanariOnregisztracio: true,
     fizetes: kornyezet === "prod" && /^price_[A-Za-z0-9_]+$/.test(arAlap),
     fizetesArAlap: arAlap,
     fizetesArProfi: arAzonosito(arProfi),

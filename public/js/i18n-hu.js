@@ -93,6 +93,7 @@ export default {
   "index.ful_regisztracio": "Regisztráció",
   "index.email": "E-mail-cím",
   "index.email_pelda": "pelda@email.com",
+  "index.tanari_jog_megjegyzes": "A tanári jogot az üzemeltető adja meg: regisztrálj, majd jelezd neki.",
   "index.diak_jelszo_sugo": "Elfelejtetted a jelszavad? Kérd meg a tanárodat, hogy adjon újat.",
   "index.elfelejtett_jelszo": "Elfelejtett jelszó",
   "index.elfelejtett_cim_kell": "Írd be fent az e-mail-címed, aztán kattints újra az „Elfelejtett jelszó” gombra.",

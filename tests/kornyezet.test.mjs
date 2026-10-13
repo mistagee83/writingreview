@@ -66,16 +66,16 @@ test("a kereskedelmi verzió jellemzői: angol alapnyelv és kvóta; a pilot mag
   assert.equal(prod.kvota, true);
 });
 
-test("az önkiszolgáló tanári regisztráció csak a kereskedelmi verzióban él, a kliens és a szerver egyezően", () => {
-  assert.equal(pilot.tanari_onregisztracio, false);
+test("az önkiszolgáló tanári regisztráció mindkét környezetben él (a pilotban 2026-10-13-tól), a kliens és a szerver egyezően", () => {
+  assert.equal(pilot.tanari_onregisztracio, true);
   assert.equal(prod.tanari_onregisztracio, true);
   // a szerver ugyanazt dönti el a KORNYEZET-ből, mint a kliens konfigja
   assert.equal(beallitasok({ KORNYEZET: "pilot" }).tanariOnregisztracio, pilot.tanari_onregisztracio);
   assert.equal(beallitasok({ KORNYEZET: "prod" }).tanariOnregisztracio, prod.tanari_onregisztracio);
-  // ismeretlen/hiányzó környezet → pilot → kikapcsolva (a biztonságos irány)
-  assert.equal(beallitasok({}).tanariOnregisztracio, false);
-  // a public/ (helyi előnézet, pilot) kikapcsolva
-  assert.match(publikus("kornyezet.js"), /export const TANARI_ONREGISZTRACIO = false;/);
+  // ismeretlen/hiányzó környezet → pilot
+  assert.equal(beallitasok({}).tanariOnregisztracio, true);
+  // a public/ (helyi előnézet, pilot) a pilot értékét hordozza
+  assert.match(publikus("kornyezet.js"), /export const TANARI_ONREGISZTRACIO = true;/);
 });
 
 test("a konfig-ellenőrzés elkapja a hibás értékeket", () => {
