@@ -57,7 +57,7 @@
       </div>
       <div class="panel-body">
         <div class="code-input-row">
-          <input type="text" id="kereso" placeholder="Keresés név vagy e-mail-cím szerint…" data-i18n-placeholder="admin.kereso" />
+          <input type="text" id="kereso" placeholder="Keresés név, felhasználónév vagy e-mail-cím szerint…" data-i18n-placeholder="admin.kereso" />
           <select id="szuro" style="max-width:190px;">
             <option value="mind" data-i18n="admin.szuro_mind">Mindenki</option>
             <option value="tanar" data-i18n="admin.szuro_tanar">Csak tanárok</option>
@@ -78,14 +78,16 @@
 
 <script type="module">
   import { t } from './js/i18n.js';
+  import { azonositoMegjelenites } from './js/azonosito.js';
   import { vedettOldal, esc } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
-  import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar, diakJelszoVisszaallitas } from './js/ui.js';
   import { functions, httpsCallable } from './js/firebase-config.js';
 
   // Tanári szerep ÉS admin claim is kell
   const { user } = await vedettOldal('tanar', { admin: true });
   oldalsav('admin.html', { admin: true });
+  const diakJelszo = httpsCallable(functions, 'diakJelszoVisszaallitas');
 
   const felhasznalokListaja = httpsCallable(functions, 'felhasznalokListaja');
   const szerepBeallitas = httpsCallable(functions, 'szerepBeallitas');
@@ -138,7 +140,7 @@
       if (sz === 'diak' && f.szerep !== 'diak') return false;
       if (sz === 'admin' && !f.admin) return false;
       if (!q) return true;
-      return f.nev.toLowerCase().includes(q) || f.email.toLowerCase().includes(q);
+      return f.nev.toLowerCase().includes(q) || azonositoMegjelenites(f.email).toLowerCase().includes(q);
     });
   }
 
@@ -159,7 +161,7 @@
           <div>
             <h3>${esc(f.nev)}${enSajat ? ` <span class="badge inaktiv">${t('admin.te')}</span>` : ''}</h3>
             <div class="list-card-meta">
-              <span>${esc(f.email)}</span>
+              <span>${esc(azonositoMegjelenites(f.email))}</span>
               <span class="badge ${f.szerep === 'tanar' ? 'aktiv' : 'inaktiv'}">
                 ${f.szerep === 'tanar' ? t('admin.tanar_jelzo') : t('admin.diak_jelzo')}
               </span>
@@ -185,6 +187,7 @@
                     data-nev="${esc(f.nev)}">
               ${f.szerep === 'tanar' ? t('admin.diakka') : t('admin.tanarra')}
             </button>
+            ${f.szerep !== 'tanar' && !f.admin ? `<button class="btn-sm" data-akcio="jelszo" data-uid="${esc(f.uid)}" data-nev="${esc(f.nev)}">${t('jelszo.admin_gomb')}</button>` : ''}
             <button class="btn-sm ${f.admin ? 'danger' : ''}" data-akcio="admin"
                     data-uid="${esc(f.uid)}"
                     data-admin="${f.admin ? '0' : '1'}"
@@ -210,6 +213,18 @@
 
     const { akcio, uid, nev } = b.dataset;
     uzenetTorles('msg');
+
+    if (akcio === 'jelszo') {
+      b.disabled = true;
+      try {
+        await diakJelszoVisszaallitas(diakJelszo, uid, nev);
+      } catch (err) {
+        uzenet('msg', hibaSzoveg(err));
+      } finally {
+        b.disabled = false;
+      }
+      return;
+    }
 
     let keres;
     let kerdes;

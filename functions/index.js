@@ -21,7 +21,7 @@ const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
 const { getStorage } = require("firebase-admin/storage");
-const { randomUUID } = require("node:crypto");
+const { randomUUID, randomInt } = require("node:crypto");
 const logger = require("firebase-functions/logger");
 const kifejtos = require("./kifejtos");
 const kornyezet = require("./kornyezet");
@@ -195,7 +195,10 @@ const HIBA_SZOVEG = {
   szinvalasztas_alap_kell: () => "A színválasztás az Alap csomagtól érhető el.",
   tema_ervenytelen: () => "Ismeretlen színtéma.",
   szamla_nincs: () => "Ez a befizetés nem található a számlázandók között.",
-  szamlaszam_ervenytelen: () => "A számlaszám 1–60 karakter lehet."
+  szamlaszam_ervenytelen: () => "A számlaszám 1–60 karakter lehet.",
+  diak_jelszo_jog: () => "Diák jelszavát csak az az admin vagy tanár állíthatja vissza, akinek az osztályában a diák tag.",
+  nem_diak: () => "Csak diák jelszavát lehet így visszaállítani. A tanárok az e-mailes „Elfelejtett jelszó” hivatkozást használják.",
+  nincs_jelszavas_fiok: () => "Ez a fiók Google-belépéssel készült, nincs jelszava."
 };
 
 /** Kódolt HttpsError: magyar üzenet + details.kod a kliens fordításához. */
@@ -1698,6 +1701,8 @@ exports._teszt = {
   szempontokTisztitas,
   FOGLALAS_LEJARAT_MS,
   tanariRegisztracioLogika,
+  ideiglenesJelszo,
+  diakJelszoVisszaallitasLogika,
   kvotaFoglalas,
   kvotaVisszaadas,
   kvotaval,
@@ -1858,6 +1863,72 @@ exports.diakEltavolitas = onCall(HIVAS_OPCIOK, async (request) => {
     logger.info("Diák eltávolítva", { osztalyId, diakUid, tanar: uid });
     return { nev };
   });
+});
+
+// ══════════════════════════════════════════════════════
+// DIÁK JELSZAVÁNAK VISSZAÁLLÍTÁSA
+//
+// A diákról nem tárolunk valódi e-mail-címet, ezért nincs levélben küldött
+// visszaállítás. Helyette az admin, vagy az a tanár, akinek az osztályában
+// a diák tag, új ideiglenes jelszót kap, és szóban/írásban átadja.
+// A jelszót a szerver sorsolja és egyszer adja vissza; a régi
+// munkamenetek érvénytelenek lesznek.
+// ══════════════════════════════════════════════════════
+
+// Félreolvasható karakterek (0/O, 1/l/I) nélkül, hogy átdiktálható legyen.
+const JELSZO_BETUK = "abcdefghjkmnpqrstuvwxyz23456789";
+
+function ideiglenesJelszo(hossz = 10) {
+  let j = "";
+  for (let i = 0; i < hossz; i++) j += JELSZO_BETUK[randomInt(JELSZO_BETUK.length)];
+  return j;
+}
+
+/** A hívó admin, vagy olyan osztály tanára, amelynek a diák tagja. */
+async function diakJelszoJogosult(firestore, hivoUid, hivoAdmin, diakUid) {
+  if (hivoAdmin) return true;
+  const osztalyaim = await firestore
+    .collection("felhasznalok").doc(diakUid).collection("osztalyaim").get();
+  for (const d of osztalyaim.docs) {
+    const osztaly = await firestore.collection("osztalyok").doc(d.id).get();
+    if (!osztaly.exists || osztaly.data().tanar_id !== hivoUid) continue;
+    if ((await osztaly.ref.collection("tagok").doc(diakUid).get()).exists) return true;
+  }
+  return false;
+}
+
+async function diakJelszoVisszaallitasLogika(firestore, auth, hivo, diakUid) {
+  if (!(await diakJelszoJogosult(firestore, hivo.uid, hivo.admin, diakUid))) {
+    throw hiba("permission-denied", "diak_jelszo_jog");
+  }
+  let user;
+  try {
+    user = await auth.getUser(diakUid);
+  } catch (e) {
+    throw hiba("not-found", "nincs_felhasznalo");
+  }
+  if (user.customClaims?.szerep === "tanar" || user.customClaims?.admin === true) {
+    throw hiba("failed-precondition", "nem_diak");
+  }
+  if (!user.providerData.some((p) => p.providerId === "password")) {
+    throw hiba("failed-precondition", "nincs_jelszavas_fiok");
+  }
+  const jelszo = ideiglenesJelszo();
+  await auth.updateUser(diakUid, { password: jelszo });
+  await auth.revokeRefreshTokens(diakUid);
+  logger.info("Diák jelszava visszaállítva", { diak: diakUid, hivo: hivo.uid });
+  return { jelszo, azonosito: user.email || "" };
+}
+
+exports.diakJelszoVisszaallitas = onCall(HIVAS_OPCIOK, async (request) => {
+  const uid = belepve(request);
+  const adminJog = request.auth.token?.admin === true;
+  if (!adminJog && request.auth.token?.szerep !== "tanar") {
+    throw hiba("permission-denied", "tanar_kell");
+  }
+  const diakUid = request.data?.diakUid;
+  if (typeof diakUid !== "string" || !diakUid) throw hiba("invalid-argument", "felhasznalo_id_kell");
+  return await diakJelszoVisszaallitasLogika(db(), getAuth(), { uid, admin: adminJog }, diakUid);
 });
 
 // ══════════════════════════════════════════════════════

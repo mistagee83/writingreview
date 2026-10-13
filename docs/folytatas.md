@@ -213,6 +213,16 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **Diákregisztráció e-mail nélkül (2026-10-13):** a diák felhasználónévvel regisztrál és lép be
+  (`public/js/azonosito.js`; a háttérben kitalált `<név>@diak.invalid` cím, valódi e-mailt nem
+  tárolunk), **Google nélkül**. A belépő és a regisztrációs űrlapon „Diák vagyok / Tanár vagyok”
+  választó van: a diáknak csak felhasználónév + jelszó, a tanárnak e-mail, Google és e-mailes
+  „Elfelejtett jelszó”. Diák jelszavát az osztályának tanára (🔑 az osztály névsorában) vagy az admin
+  (Felhasználók oldal) állítja vissza: új ideiglenes jelszót kap (`diakJelszoVisszaallitas` Function).
+  Régi, Google-lal regisztrált diákfiók a „Tanár vagyok” nézetben még be tud lépni Google-lal, de
+  jelszót nem lehet neki adni. **A pilotra deployolva (2026-10-13, hosting + functions); a prod a régi
+  űrlapot használja, ott a címkés kiadás vár.**
+
 - **Bemutató, megoldókulcs és admin szövegek (2026-10-10):** a `tura.*`,
   `kf.*`, `kj.*`, `admin.*`, `aih.*` átnézve. Természetesebb útmutatók,
   pontosabb jogosultsági és pontozási üzenetek, javított árszorzó-felirat és

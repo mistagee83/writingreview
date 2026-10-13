@@ -63,9 +63,10 @@
 
 <script type="module">
   import { t } from './js/i18n.js';
+  import { azonositoMegjelenites } from './js/azonosito.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
-  import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra } from './js/ui.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra, diakJelszoVisszaallitas } from './js/ui.js';
   import {
     db, functions, httpsCallable,
     collection, doc, getDocs, updateDoc, deleteDoc,
@@ -80,6 +81,7 @@
 
   const osztalyLetrehozas = httpsCallable(functions, 'osztalyLetrehozas');
   const diakEltavolitas = httpsCallable(functions, 'diakEltavolitas');
+  const diakJelszo = httpsCallable(functions, 'diakJelszoVisszaallitas');
 
   // ── ÚJ OSZTÁLY ──
   const btn = document.getElementById('btn-letrehoz');
@@ -176,6 +178,19 @@
       return;
     }
 
+    if (akcio === 'diak-jelszo') {
+      const { diak, nev } = b.dataset;
+      b.disabled = true;
+      try {
+        await diakJelszoVisszaallitas(diakJelszo, diak, nev);
+      } catch (err) {
+        alert(t('osztalyok.nem_sikerult', { ok: hibaSzoveg(err) }));
+      } finally {
+        b.disabled = false;
+      }
+      return;
+    }
+
     if (akcio === 'diak-torol') {
       const { osztaly, diak, nev } = b.dataset;
       const ok = confirm(t('osztalyok.diak_torles_kerdes', { nev }));
@@ -221,9 +236,13 @@
     const tag = d.data();
     return `<tr>
       <td>${esc(tag.nev)}</td>
-      <td>${esc(tag.email)}</td>
+      <td>${esc(azonositoMegjelenites(tag.email))}</td>
       <td>${datum(tag.csatlakozott)}</td>
       <td class="tabla-akcio">
+        <button class="btn-sm" data-akcio="diak-jelszo"
+                data-diak="${esc(d.id)}"
+                data-nev="${esc(tag.nev)}"
+                title="${t('jelszo.gomb_cim')}">🔑</button>
         <button class="btn-sm danger" data-akcio="diak-torol"
                 data-osztaly="${esc(osztalyId)}"
                 data-diak="${esc(d.id)}"

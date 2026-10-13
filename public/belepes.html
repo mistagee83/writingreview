@@ -57,19 +57,31 @@
       <button class="tab-btn" id="tab-register" onclick="switchTab('register')" data-i18n="index.ful_regisztracio">Regisztráció</button>
     </div>
 
+    <!-- Diák / tanár választó. A diák felhasználónévvel és jelszóval lép be (nincs Google, nincs e-mail);
+         a tanár e-mail-címmel vagy Google-lal. Regisztrációnál csak ott látszik, ahol az önkiszolgáló
+         tanári regisztráció be van kapcsolva (kornyezet.js). -->
+    <div class="form-group" id="szerep-csoport">
+      <div class="tabs szerep-valaszto" role="radiogroup">
+        <button type="button" class="tab-btn" id="szerep-diak" role="radio" aria-checked="true" onclick="szerepValaszt('diak')" data-i18n="index.szerep_diak">Diák vagyok</button>
+        <button type="button" class="tab-btn" id="szerep-tanar" role="radio" aria-checked="false" onclick="szerepValaszt('tanar')" data-i18n="index.szerep_tanar">Tanár vagyok</button>
+      </div>
+    </div>
+
     <!-- LOGIN -->
     <div id="form-login">
       <div class="form-group">
-        <label for="login-email" data-i18n="index.email">E-mail-cím</label>
-        <input type="email" id="login-email" placeholder="pelda@email.com" data-i18n-placeholder="index.email_pelda" autocomplete="email" />
+        <label for="login-email" id="login-azonosito-cimke" data-i18n="index.felhasznalonev">Felhasználónév</label>
+        <input type="text" id="login-email" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" />
       </div>
       <div class="form-group">
         <label for="login-password" data-i18n="index.jelszo">Jelszó</label>
         <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
       </div>
       <button class="btn-primary" id="btn-login" onclick="emailLogin()" data-i18n="index.ful_belepes">Belépés</button>
-      <div class="divider" data-i18n="index.vagy">vagy</div>
-      <button class="btn-google" id="btn-google-login" onclick="googleLogin()">
+      <p class="jelszo-sugo csak-diak" data-i18n="index.diak_jelszo_sugo">Elfelejtetted a jelszavad? Kérd meg a tanárodat, hogy adjon újat.</p>
+      <button class="btn-kilepes csak-tanar" type="button" id="btn-elfelejtett" onclick="elfelejtettJelszo()" data-i18n="index.elfelejtett_jelszo">Elfelejtett jelszó</button>
+      <div class="divider csak-tanar" data-i18n="index.vagy">vagy</div>
+      <button class="btn-google csak-tanar" id="btn-google-login" onclick="googleLogin()">
         <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5L31.8 34c-2.1 1.4-4.7 2-7.8 2-5.2 0-9.5-2.9-11.2-7l-6.6 5C9.7 39.7 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l5.7 5c3.4-3.1 5.6-7.8 5.6-14.4 0-1.3-.1-2.7-.8-4z"/></svg>
         <span data-i18n="index.google_belepes">Folytatás Google-fiókkal</span>
       </button>
@@ -77,20 +89,17 @@
 
     <!-- REGISZTRÁCIÓ -->
     <div id="form-register" style="display:none;">
-      <!-- Diák / tanár választó: csak az önkiszolgáló tanári regisztrációt
-           bekapcsoló környezetben jelenik meg (kornyezet.js, lásd a szkriptet). -->
-      <div class="form-group" id="szerep-csoport" hidden>
-        <label data-i18n="index.szerep_cim">Kinek készül a fiók?</label>
-        <div class="tabs szerep-valaszto" role="radiogroup">
-          <button type="button" class="tab-btn" id="szerep-diak" role="radio" aria-checked="true" onclick="szerepValaszt('diak')" data-i18n="index.szerep_diak">Diák vagyok</button>
-          <button type="button" class="tab-btn" id="szerep-tanar" role="radio" aria-checked="false" onclick="szerepValaszt('tanar')" data-i18n="index.szerep_tanar">Tanár vagyok</button>
-        </div>
-      </div>
       <div class="form-group">
         <label for="reg-name" data-i18n="index.teljes_nev">Teljes név</label>
         <input type="text" id="reg-name" placeholder="Pl. Kiss Péter" data-i18n-placeholder="index.nev_pelda" autocomplete="name" />
       </div>
-      <div class="form-group">
+      <div class="form-group" id="reg-felhasznalonev-csoport">
+        <label for="reg-felhasznalonev" data-i18n="index.felhasznalonev">Felhasználónév</label>
+        <input type="text" id="reg-felhasznalonev" placeholder="Pl. kiss.peter" data-i18n-placeholder="index.felhasznalonev_pelda" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" />
+        <small data-i18n="index.felhasznalonev_sugo">3–30 karakter: kisbetű, szám, pont, kötőjel, aláhúzás.</small>
+      </div>
+      <!-- Csak tanári regisztrációnál: ide megy a megerősítő levél. -->
+      <div class="form-group" id="reg-email-csoport" hidden>
         <label for="reg-email" data-i18n="index.email">E-mail-cím</label>
         <input type="email" id="reg-email" placeholder="pelda@email.com" data-i18n-placeholder="index.email_pelda" autocomplete="email" />
       </div>
@@ -99,8 +108,8 @@
         <input type="password" id="reg-password" placeholder="min. 6 karakter" data-i18n-placeholder="index.jelszo_pelda" autocomplete="new-password" />
       </div>
       <button class="btn-primary" id="btn-register" onclick="emailRegister()" data-i18n="index.fiok_letrehozas">Fiók létrehozása</button>
-      <div class="divider" data-i18n="index.vagy">vagy</div>
-      <button class="btn-google" id="btn-google-reg" onclick="googleLogin(true)">
+      <div class="divider csak-tanar" data-i18n="index.vagy">vagy</div>
+      <button class="btn-google csak-tanar" id="btn-google-reg" onclick="googleLogin(true)">
         <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5L31.8 34c-2.1 1.4-4.7 2-7.8 2-5.2 0-9.5-2.9-11.2-7l-6.6 5C9.7 39.7 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l5.7 5c3.4-3.1 5.6-7.8 5.6-14.4 0-1.3-.1-2.7-.8-4z"/></svg>
         <span data-i18n="index.google_regisztracio">Regisztráció Google-fiókkal</span>
       </button>
@@ -146,11 +155,13 @@
   import { t, nyelv } from './js/i18n.js';
   import { hibaSzoveg } from './js/ui.js';
   import { TANARI_ONREGISZTRACIO } from './js/kornyezet.js';
+  import { belepesiEmail, felhasznalonevEmailre, felhasznalonevErvenyes } from './js/azonosito.js';
   import {
     auth, db, functions, googleProvider,
     doc, getDoc, setDoc, updateDoc, serverTimestamp,
     onAuthStateChanged,
     signInWithEmailAndPassword,
+    sendPasswordResetEmail,
     createUserWithEmailAndPassword,
     sendEmailVerification,
     signInWithPopup,
@@ -207,13 +218,40 @@
   // Most hoztuk létre a tanári fiókot: a megerősítő levelet egyszer magunk küldjük.
   let ujTanariFiok = false;
 
-  if (TANARI_ONREGISZTRACIO) document.getElementById('szerep-csoport').hidden = false;
+  let aktivFul = 'login';
 
   window.szerepValaszt = (szerep) => {
     valasztottSzerep = szerep === 'tanar' ? 'tanar' : 'diak';
-    document.getElementById('szerep-diak').setAttribute('aria-checked', String(valasztottSzerep === 'diak'));
-    document.getElementById('szerep-tanar').setAttribute('aria-checked', String(valasztottSzerep === 'tanar'));
+    nezetFrissit();
   };
+
+  // A nézet a fül (belépés / regisztráció) és a szerep (diák / tanár) függvénye.
+  // Diák: felhasználónév + jelszó, se Google, se e-mail. Tanár: e-mail-cím, Google,
+  // elfelejtett jelszó. Regisztrációnál a választó csak ott látszik, ahol tanár is
+  // regisztrálhat; máshol ott mindenki diák.
+  function nezetFrissit() {
+    const regisztracio = aktivFul === 'register';
+    const valaszto = !regisztracio || TANARI_ONREGISZTRACIO;
+    if (regisztracio && !TANARI_ONREGISZTRACIO) valasztottSzerep = 'diak';
+    const tanar = valasztottSzerep === 'tanar';
+
+    document.getElementById('szerep-csoport').style.display = valaszto ? '' : 'none';
+    document.getElementById('szerep-diak').setAttribute('aria-checked', String(!tanar));
+    document.getElementById('szerep-tanar').setAttribute('aria-checked', String(tanar));
+    for (const el of document.querySelectorAll('.csak-tanar')) el.style.display = tanar ? '' : 'none';
+    for (const el of document.querySelectorAll('.csak-diak')) el.style.display = tanar ? 'none' : '';
+
+    // Belépő mező: diáknak felhasználónév, tanárnak e-mail-cím.
+    const mezo = document.getElementById('login-email');
+    mezo.type = tanar ? 'email' : 'text';
+    mezo.autocomplete = tanar ? 'email' : 'username';
+    document.getElementById('login-azonosito-cimke').textContent = t(tanar ? 'index.email' : 'index.felhasznalonev');
+
+    // Regisztráció: a diák felhasználónevet ad, a tanárnak a megerősítő levélhez e-mail kell.
+    document.getElementById('reg-felhasznalonev-csoport').hidden = tanar;
+    document.getElementById('reg-email-csoport').hidden = !tanar;
+  }
+  nezetFrissit();
 
   // ── PROFIL LÉTREHOZÁS / LEKÉRÉS ──
   // Mindenki "diak" lesz alapból. A tanári regisztráció csak jelzés
@@ -379,10 +417,12 @@
   // ── FÜLVÁLTÁS ──
   window.switchTab = (tab) => {
     const isLogin = tab === 'login';
+    aktivFul = isLogin ? 'login' : 'register';
     document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
     document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
     document.getElementById('tab-login').classList.toggle('active', isLogin);
     document.getElementById('tab-register').classList.toggle('active', !isLogin);
+    nezetFrissit();
     clearMsg();
   };
 
@@ -395,9 +435,10 @@
 
   // ── EMAIL BELÉPÉS ──
   window.emailLogin = async () => {
-    const email = document.getElementById('login-email').value.trim();
+    const bevitel = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
-    if (!email || !password) { showMsg(t('index.tolts_ki')); return; }
+    if (!bevitel || !password) { showMsg(t('index.tolts_ki')); return; }
+    const email = belepesiEmail(bevitel);
     setLoading('btn-login', true, t('index.ful_belepes'));
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
@@ -408,12 +449,35 @@
     }
   };
 
+  // ── ELFELEJTETT JELSZÓ (tanár; a diákét a tanára vagy az admin állítja vissza) ──
+  // A válasz mindig ugyanaz, hogy ne derüljön ki, melyik cím regisztrált.
+  window.elfelejtettJelszo = async () => {
+    const email = document.getElementById('login-email').value.trim();
+    clearMsg();
+    if (!email) { showMsg(t('index.elfelejtett_cim_kell')); return; }
+    try {
+      auth.languageCode = nyelv();
+      await sendPasswordResetEmail(auth, email);
+      showMsg(t('index.elfelejtett_elkuldve'), 'success');
+    } catch (e) {
+      if (['auth/invalid-email', 'auth/network-request-failed', 'auth/too-many-requests'].includes(e.code)) {
+        showMsg(translateError(e.code));
+      } else {
+        showMsg(t('index.elfelejtett_elkuldve'), 'success');
+      }
+    }
+  };
+
   // ── EMAIL REGISZTRÁCIÓ ──
   window.emailRegister = async () => {
     const name = document.getElementById('reg-name').value.trim();
-    const email = document.getElementById('reg-email').value.trim();
+    const tanar = TANARI_ONREGISZTRACIO && valasztottSzerep === 'tanar';
+    const felhasznalonev = document.getElementById('reg-felhasznalonev').value;
+    const tanariEmail = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
-    if (!name || !email || !password) { showMsg(t('index.tolts_ki')); return; }
+    if (!name || !password || !(tanar ? tanariEmail : felhasznalonev.trim())) { showMsg(t('index.tolts_ki')); return; }
+    if (!tanar && !felhasznalonevErvenyes(felhasznalonev)) { showMsg(t('index.felhasznalonev_hibas')); return; }
+    const email = tanar ? tanariEmail : felhasznalonevEmailre(felhasznalonev);
     if (password.length < 6) { showMsg(t('index.jelszo_rovid')); return; }
     setLoading('btn-register', true, t('index.fiok_letrehozas'));
     try {
@@ -426,7 +490,7 @@
     } catch (e) {
       regisztracioNev = null;
       regisztracioSzerep = 'diak';
-      showMsg(translateError(e.code));
+      showMsg(!tanar && e.code === 'auth/email-already-in-use' ? t('index.felhasznalonev_foglalt') : translateError(e.code));
       setLoading('btn-register', false, t('index.fiok_letrehozas'));
     }
   };

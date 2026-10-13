@@ -3,6 +3,7 @@
 // ══════════════════════════════════════════════════════
 
 import { t, nyelv, vanKulcs, kulcsHibaSzoveg } from "./i18n.js";
+import { azonositoMegjelenites } from "./azonosito.js";
 
 /**
  * Státusz-címkék.
@@ -102,4 +103,16 @@ export async function vagolapra(szoveg, gomb) {
     gomb.textContent = t("vagolap.hiba");
   }
   setTimeout(() => { gomb.textContent = eredeti; }, 2000);
+}
+
+/**
+ * Diák jelszavának visszaállítása (tanár a saját osztályában, vagy admin).
+ * Megerősítés után a szerver új ideiglenes jelszót ad; azt a prompt mutatja
+ * másolható szövegként. Igazat ad, ha megtörtént.
+ */
+export async function diakJelszoVisszaallitas(hivas, diakUid, nev) {
+  if (!confirm(t("jelszo.kerdes", { nev }))) return false;
+  const { data } = await hivas({ diakUid });
+  prompt(t("jelszo.kesz", { nev, azonosito: azonositoMegjelenites(data.azonosito) }), data.jelszo);
+  return true;
 }
