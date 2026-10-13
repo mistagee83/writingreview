@@ -107,7 +107,7 @@ export default {
   "index.vagy": "vagy",
   "index.google_belepes": "Folytatás Google-fiókkal",
   "index.google_regisztracio": "Regisztráció Google-fiókkal",
-  "index.teljes_nev": "Teljes név",
+  "index.teljes_nev": "Neved (ahogy a tanárod ismer)",
   "index.nev_pelda": "Pl. Kiss Péter",
   "index.jelszo_pelda": "min. 6 karakter",
   "index.fiok_letrehozas": "Fiók létrehozása",

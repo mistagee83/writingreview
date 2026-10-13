@@ -109,7 +109,7 @@ export default {
   "index.vagy": "or",
   "index.google_belepes": "Continue with Google",
   "index.google_regisztracio": "Sign up with Google",
-  "index.teljes_nev": "Full name",
+  "index.teljes_nev": "Your name (as your teacher knows you)",
   "index.nev_pelda": "e.g. Jane Smith",
   "index.jelszo_pelda": "at least 6 characters",
   "index.fiok_letrehozas": "Create account",
