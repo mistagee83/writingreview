@@ -747,7 +747,7 @@ test("AI-használat: hibás JSON válasznál is rögzül a tokenadat (egyszer)",
   });
   try {
     await assert.rejects(
-      () => logika.geminiHivas("atiras", [], {}, { tanar_id: "t1", muvelet: "beadas_atiras", mod: "leveles" }),
+      () => logika.aiHivas("atiras", [], {}, { tanar_id: "t1", muvelet: "beadas_atiras", mod: "leveles" }),
       /nem érvényes JSON/
     );
   } finally {

@@ -304,7 +304,7 @@ test("a feladatElemzes a csomag-zárat az első adatolvasás és az AI-hívás e
   const kapu = torzs.indexOf("osztalyElemzesKapu(firestore, uid)");
   assert.ok(kapu > 0, "a zár nincs bekötve");
   assert.ok(kapu < torzs.indexOf('.collection("feladatok")'), "a zár az első olvasás után van");
-  assert.ok(kapu < torzs.indexOf("geminiHivas("), "a zár az AI-hívás után van");
+  assert.ok(kapu < torzs.indexOf("aiHivas("), "a zár az AI-hívás után van");
 });
 
 test("minden csomagnak van neve és tartalom-leírása a csomag-panelen, magyarul és angolul", async () => {

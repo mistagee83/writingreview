@@ -31,10 +31,17 @@ const fizetes = require("./fizetes");
 const szamlazz = require("./szamlazz");
 const fejlodes = require("./fejlodes");
 const tema = require("./tema");
+const Anthropic = require("@anthropic-ai/sdk");
 
 initializeApp();
 
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
+// Az AI-szolgáltató kapcsolója: AI_SZOLGALTATO=claude a functions/.env.<alias>-ban (alapból gemini).
+// Az Anthropic-kulcsot csak Claude-nál DEKLARÁLJUK (a Firebase CLI a deploynál minden deklarált titkot megkövetel),
+// így a Geminin maradó környezet deployához nem kell létrehozni. A Gemini-kulcs mindig deklarált, hogy vissza lehessen váltani.
+const CLAUDE_BE = kornyezet.beallitasok().aiSzolgaltato === "claude";
+const ANTHROPIC_API_KEY = CLAUDE_BE ? defineSecret("ANTHROPIC_API_KEY") : null;
+const AI_TITKOK = [GEMINI_API_KEY, ...(ANTHROPIC_API_KEY ? [ANTHROPIC_API_KEY] : [])];
 // A Stripe titkai (Secret Manager, projektenként). FIGYELEM: a Firebase CLI a deploynál MINDEN deklarált titkot megkövetel,
 // ezért csak akkor DEKLARÁLJUK őket, ha a fizetés be van kapcsolva (prod + beállított ár). A pilotban így nem kellenek;
 // a fizetési függvények ott a `fizetes_ki` hibával / 404-gyel válaszolnak, a titkot sosem olvassák.
@@ -118,12 +125,30 @@ const GONDOLKODAS = {
   atiras: "low"
 };
 
+// ── CLAUDE (AI_SZOLGALTATO=claude) ──
+// Minden lépés Claude Sonnet 5.5 ($2 be / $10 ki, 1M token; a gondolkodás kimenetként számlázódik).
+// Tartalék modell nincs: átmeneti hibánál ugyanazt a modellt próbálja újra (UJRAPROBA).
+// A gondolkodás mélysége itt az effort ("low" | "medium" | "high"); ami nincs felsorolva, a modell
+// alapértelmezését kapja. Az átírás (OCR) a Geminihez hasonlóan alacsony szinten megy.
+const CLAUDE_MODELLEK = {
+  atiras: "claude-sonnet-5-5",
+  ertekeles: "claude-sonnet-5-5",
+  rubrika: "claude-sonnet-5-5",
+  elemzes: "claude-sonnet-5-5"
+};
+const CLAUDE_TARTALEK = { atiras: [], ertekeles: [], rubrika: [], elemzes: [] };
+const CLAUDE_EFFORT = {
+  atiras: "low"
+};
+
 // A környezet (pilot/prod) beállításai: functions/kornyezet.js.
 const BEALLITASOK = kornyezet.beallitasok();
 const CORS = BEALLITASOK.cors;
+// Melyik szolgáltató dolgozik (objektumban, hogy a tesztek átállíthassák).
+const AI = { szolgaltato: BEALLITASOK.aiSzolgaltato };
 
 const HIVAS_OPCIOK = { region: REGION, cors: CORS };
-const AI_OPCIOK = { ...HIVAS_OPCIOK, secrets: [GEMINI_API_KEY], timeoutSeconds: 300 };
+const AI_OPCIOK = { ...HIVAS_OPCIOK, secrets: AI_TITKOK, timeoutSeconds: 300 };
 
 // ══════════════════════════════════════════════════════
 // SEGÉDFÜGGVÉNYEK
@@ -314,12 +339,6 @@ async function kvotaval(uid, muvelet, fn, beallitasok = BEALLITASOK) {
   }
 }
 
-/**
- * Gemini-hívás – ez az EGYETLEN pont, ahol a modellt hívjuk.
- *
- * Ha Vertex AI-ra váltunk (EU-s adatkezelés, API-kulcs helyett
- * szolgáltatásfiók, gs:// URI base64 helyett), csak ezt kell átírni.
- */
 const VARAKOZAS = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Újrapróbálkozási paraméterek. Objektumban, hogy a tesztek le tudják
@@ -396,8 +415,120 @@ async function geminiKeres(modell, parts, schema, gondolkodas) {
   }
 }
 
+// ── CLAUDE-KÉRÉS ──
+// A hívók Gemini-formátumú részeket (parts) és sémát adnak; ezeket itt alakítjuk át,
+// így a hívó kód (és az ai_hasznalat mérése) szolgáltatótól független marad.
+
+/** A JSON Schema kulcsai, amiket a Claude strukturált kimenete nem fogad el (elhagyjuk őket). */
+const CLAUDE_SEMA_TILTOTT = new Set([
+  "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
+  "minLength", "maxLength", "pattern", "minItems", "maxItems", "uniqueItems",
+  "minProperties", "maxProperties", "propertyOrdering", "nullable"
+]);
+
 /**
- * Gemini-hívás – ez az EGYETLEN pont, ahol a modellt hívjuk.
+ * Gemini-séma → Claude JSON Schema: kisbetűs típusok, minden objektumon
+ * additionalProperties: false, a nem támogatott megszorítások nélkül
+ * (a pontszám-határokat amúgy is a szerver köti a rubrikához), nullable → anyOf null.
+ */
+function claudeSema(s) {
+  if (Array.isArray(s)) return s.map(claudeSema);
+  if (!s || typeof s !== "object") return s;
+  const ki = {};
+  for (const [k, v] of Object.entries(s)) {
+    if (CLAUDE_SEMA_TILTOTT.has(k)) continue;
+    if (k === "properties") {
+      ki.properties = Object.fromEntries(Object.entries(v).map(([nev, x]) => [nev, claudeSema(x)]));
+    } else if (k === "enum" || k === "required") {
+      ki[k] = v;
+    } else {
+      ki[k] = claudeSema(v);
+    }
+  }
+  if (typeof ki.type === "string") ki.type = ki.type.toLowerCase();
+  if (ki.type === "object") ki.additionalProperties = false;
+  return s.nullable === true ? { anyOf: [ki, { type: "null" }] } : ki;
+}
+
+/** Gemini-részek (text / inline_data) → Claude tartalomblokkok (text / image / document). */
+function claudeTartalom(parts) {
+  const ki = [];
+  for (const p of parts || []) {
+    if (typeof p?.text === "string") {
+      if (p.text.length > 0) ki.push({ type: "text", text: p.text });
+      continue;
+    }
+    const d = p?.inline_data;
+    if (!d?.data) throw new Error("Ismeretlen kérésrész (sem szöveg, sem fájl).");
+    const media = String(d.mime_type || "");
+    const source = { type: "base64", media_type: media, data: d.data };
+    ki.push(media === "application/pdf" ? { type: "document", source } : { type: "image", source });
+  }
+  return ki;
+}
+
+/** A Claude-válasz usage mezőjéből a tokenszámok (a gondolkodás a kimenetben van benne). */
+function claudeHasznalat(usage) {
+  const n = (x) => (Number.isFinite(x) && x > 0 ? Math.round(x) : 0);
+  const prompt = n(usage?.input_tokens) + n(usage?.cache_creation_input_tokens) + n(usage?.cache_read_input_tokens);
+  const kimenet = n(usage?.output_tokens);
+  return { prompt, kimenet, gondolkodas: 0, ossz: prompt + kimenet };
+}
+
+let claudeKliensPeldany = null;
+function claudeKliens() {
+  if (!claudeKliensPeldany) {
+    claudeKliensPeldany = new Anthropic({
+      apiKey: ANTHROPIC_API_KEY ? ANTHROPIC_API_KEY.value() : process.env.ANTHROPIC_API_KEY,
+      maxRetries: 0,              // az újrapróbálást az aiHivas() végzi
+      timeout: 280 * 1000,        // a függvény 300 mp-es korlátja alatt
+      fetch: (...a) => globalThis.fetch(...a)   // a tesztek a globális fetch-et cserélik
+    });
+  }
+  return claudeKliensPeldany;
+}
+
+/** Egyetlen Claude-kérés, újrapróbálkozás nélkül. A visszatérés alakja ugyanaz, mint a geminiKeres()-é. */
+async function claudeKeres(modell, parts, schema, effort) {
+  let valasz;
+  try {
+    valasz = await claudeKliens().messages.create({
+      model: modell,
+      max_tokens: 16000,
+      messages: [{ role: "user", content: claudeTartalom(parts) }],
+      output_config: {
+        format: { type: "json_schema", schema: claudeSema(schema) },
+        ...(effort ? { effort } : {})
+      }
+    });
+  } catch (e) {
+    if (e instanceof Anthropic.APIError) {
+      const uj = new Error(`Claude (${modell}): ${e.message}`);
+      // kapcsolati hiba (nincs státusz) és túlterhelés (529) is átmeneti
+      uj.atmeneti = !e.status || e.status === 529 || atmenetiHiba(e.status, { message: e.message });
+      throw uj;
+    }
+    throw e;
+  }
+
+  const hasznalat = claudeHasznalat(valasz.usage);
+  if (valasz.stop_reason === "refusal" || valasz.stop_reason === "max_tokens") {
+    throw Object.assign(new Error(`A Claude (${modell}) nem adott teljes választ (${valasz.stop_reason}).`), { hasznalat });
+  }
+  const szoveg = (valasz.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+  if (!szoveg) {
+    throw Object.assign(new Error(`A Claude (${modell}) nem adott választ (${valasz.stop_reason || "ismeretlen ok"}).`), { hasznalat });
+  }
+  try {
+    return { eredmeny: JSON.parse(szoveg), hasznalat };
+  } catch (_) {
+    throw Object.assign(new Error(`A Claude válasza nem érvényes JSON: ${szoveg.slice(0, 200)}`), { hasznalat });
+  }
+}
+
+/**
+ * AI-hívás – ez az EGYETLEN pont, ahol a modellt hívjuk. A szolgáltatót (Gemini / Claude)
+ * az AI_SZOLGALTATO környezeti változó választja (AI.szolgaltato).
  *
  * Átmeneti hibánál (a modell túlterhelt) exponenciálisan növő várakozással
  * újrapróbál, majd ha a lépéshez van tartalék modell, azzal folytatja.
@@ -415,10 +546,15 @@ async function geminiKeres(modell, parts, schema, gondolkodas) {
  *   az, hogy VÉGÜL melyik modell adta – tartalékra váltás esetén nem a fő
  *   modellt kell elmenteni, különben hamis lenne a nyomonkövetés –, és a tokenszámok
  */
-async function geminiHivas(lepes, parts, schema, kontextus) {
+async function aiHivas(lepes, parts, schema, kontextus) {
   const { kiserlet: KISERLET, varakozasok: VARAKOZASOK } = UJRAPROBA;
 
-  const modellek = [MODELLEK[lepes], ...(TARTALEK[lepes] || [])];
+  const claude = AI.szolgaltato === "claude";
+  const keres = claude ? claudeKeres : geminiKeres;
+  const szint = claude ? CLAUDE_EFFORT[lepes] : GONDOLKODAS[lepes];
+  const modellek = claude
+    ? [CLAUDE_MODELLEK[lepes], ...(CLAUDE_TARTALEK[lepes] || [])]
+    : [MODELLEK[lepes], ...(TARTALEK[lepes] || [])];
   let utolso;
   let probalkozas = 0;
 
@@ -426,10 +562,10 @@ async function geminiHivas(lepes, parts, schema, kontextus) {
     for (let i = 0; i < KISERLET; i++) {
       try {
         if (i > 0 || modell !== modellek[0]) {
-          logger.info("Gemini újrapróbálkozás", { lepes, modell, kiserlet: i + 1 });
+          logger.info("AI újrapróbálkozás", { lepes, modell, kiserlet: i + 1 });
         }
         probalkozas++;
-        const { eredmeny, hasznalat } = await geminiKeres(modell, parts, schema, GONDOLKODAS[lepes]);
+        const { eredmeny, hasznalat } = await keres(modell, parts, schema, szint);
         await aiHasznalatNaplo(kontextus, { modell, fo_modell: modellek[0], hasznalat, probalkozas, parts });
         return { eredmeny, modell, hasznalat };
       } catch (e) {
@@ -440,7 +576,7 @@ async function geminiHivas(lepes, parts, schema, kontextus) {
         if (!e.atmeneti) throw e;   // véglegesnek tűnő hibát ne ismételjünk
         if (i < KISERLET - 1) {
           const ms = VARAKOZASOK[i] + Math.floor(Math.random() * 1000);
-          logger.warn("Gemini átmeneti hiba, várakozás", {
+          logger.warn("AI átmeneti hiba, várakozás", {
             lepes, modell, ms, hiba: e.message
           });
           await VARAKOZAS(ms);
@@ -1064,7 +1200,7 @@ exports.feladatlapElemzes = onCall(AI_OPCIOK, async (request) => {
   }
 
   try {
-    const { eredmeny: rubrika, modell } = await kvotaval(uid, "feladatlap", async () => geminiHivas(
+    const { eredmeny: rubrika, modell } = await kvotaval(uid, "feladatlap", async () => aiHivas(
       'rubrika',
       [{ text: rubrikaPrompt(nyelvTipp, request.data?.kimenetiNyelv) }, await fajlBase64(path)],
       rubrikaSchema(nyelvTipp),
@@ -1219,7 +1355,7 @@ async function feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat,
     });
   } else {
     const kepek = await kepekBetoltese(kepPaths);
-    const { eredmeny: atiratValasz, modell } = await geminiHivas(
+    const { eredmeny: atiratValasz, modell } = await aiHivas(
       'atiras',
       [{ text: atiratPrompt(nyelve(feladat.rubrika)) }, ...kepek],
       ATIRAT_SCHEMA,
@@ -1243,7 +1379,7 @@ async function feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat,
 
   // ── 2. lépés: értékelés a SZÖVEG alapján ──
   // Így a rubrika módosítása után fillérekért újrafuttatható, kép nélkül.
-  const { eredmeny: ertekeles, modell: ertekelesModell } = await geminiHivas(
+  const { eredmeny: ertekeles, modell: ertekelesModell } = await aiHivas(
     'ertekeles',
     [{ text: ertekelesPrompt({ ...feladat }, atirat, { beirt: beadas.forras === "szoveg" }) }],
     ERTEKELES_SCHEMA,
@@ -1302,7 +1438,7 @@ async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths, futas
 
   // ── 1. lépés: kérdésenkénti átírás ──
   const kepek = await kepekBetoltese(kepPaths);
-  const { eredmeny: atiras, modell: atirasModell } = await geminiHivas(
+  const { eredmeny: atiras, modell: atirasModell } = await aiHivas(
     "atiras",
     [{ text: kifejtos.kifejtosAtiratPrompt(kulcs, szoszedet) }, ...kepek],
     kifejtos.KIFEJTOS_ATIRAT_SCHEMA,
@@ -1335,7 +1471,7 @@ async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths, futas
   // A tananyag SZÁNDÉKOSAN nem kerül ide: a kulcs abból készült, és a
   // tanár jóváhagyta (lásd kifejtosErtekelesPrompt).
   const valaszok = kifejtos.valaszSzovegek(atiras);
-  const { eredmeny: ai, modell: ertekelesModell } = await geminiHivas(
+  const { eredmeny: ai, modell: ertekelesModell } = await aiHivas(
     "ertekeles",
     [{ text: kifejtos.kifejtosErtekelesPrompt(feladat, kulcs, valaszok) }],
     kifejtos.KIFEJTOS_ERTEKELES_SCHEMA,
@@ -1412,7 +1548,7 @@ exports.beadasFeldolgozas = onDocumentCreated(
   {
     document: "beadasok/{beadasId}",
     region: REGION,
-    secrets: [GEMINI_API_KEY],
+    secrets: AI_TITKOK,
     timeoutSeconds: 540,
     memory: "1GiB",
     retry: false
@@ -1675,6 +1811,11 @@ exports._teszt = {
   atiratPrompt,
   ATIRAT_SCHEMA,
   geminiKeres,
+  claudeKeres,
+  claudeSema,
+  claudeTartalom,
+  AI,
+  CLAUDE_MODELLEK,
   ertekelesPrompt,
   rubrikaPrompt,
   rubrikaSchema,
@@ -1728,7 +1869,7 @@ exports._teszt = {
   aiHasznalatJelentesLogika,
   BEALLITASOK,
   kodGeneralas,
-  geminiHivas,
+  aiHivas,
   atmenetiHiba,
   UJRAPROBA,
   MODELLEK,
@@ -3107,7 +3248,7 @@ exports.feladatElemzes = onCall(
       schema = kifejtos.KIFEJTOS_ELEMZES_SCHEMA;
     }
 
-    const { eredmeny, modell } = await kvotaval(uid, "elemzes", () => geminiHivas(
+    const { eredmeny, modell } = await kvotaval(uid, "elemzes", () => aiHivas(
       "elemzes",
       [{ text: prompt || elemzesPrompt(feladat, agg) }],
       schema,
@@ -3206,7 +3347,7 @@ exports.kulcsKeszites = onCall(
         if (vanTananyag) {
           reszek.push({ text: "=== TANANYAG ===" }, ...(await Promise.all(tananyag.map(fajlBase64))));
         }
-        return geminiHivas(
+        return aiHivas(
           "rubrika", reszek, kifejtos.KULCS_JAVASLAT_SCHEMA, { tanar_id: uid, muvelet: "kulcs" }
         );
       }));

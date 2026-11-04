@@ -93,7 +93,7 @@ test("átmeneti hiba után újrapróbál és sikerrel jár", async () => {
     return hivas < 3 ? HIBA_VALASZ(503, HIGH_DEMAND, "UNAVAILABLE") : OK_VALASZ({ atirat: "kész" });
   };
 
-  const { eredmeny, modell } = await t.geminiHivas("atiras", [], {});
+  const { eredmeny, modell } = await t.aiHivas("atiras", [], {});
   assert.equal(hivas, 3, "kétszer kell újrapróbálnia");
   assert.deepEqual(eredmeny, { atirat: "kész" });
   assert.equal(modell, t.MODELLEK.atiras, "a fő modell adta a választ");
@@ -106,7 +106,7 @@ test("véglegesnek tűnő hibát NEM ismételget", async () => {
     return HIBA_VALASZ(400, "Invalid JSON payload", "INVALID_ARGUMENT");
   };
 
-  await assert.rejects(() => t.geminiHivas("atiras", [], {}), /Invalid JSON payload/);
+  await assert.rejects(() => t.aiHivas("atiras", [], {}), /Invalid JSON payload/);
   assert.equal(hivas, 1, "egyetlen hívás után fel kell adnia");
 });
 
@@ -125,7 +125,7 @@ test("ha a fő modell végig túlterhelt, tartalékra vált", async () => {
       : OK_VALASZ({ atirat: "tartalékkal" });
   };
 
-  const { eredmeny, modell } = await t.geminiHivas("atiras", [], {});
+  const { eredmeny, modell } = await t.aiHivas("atiras", [], {});
 
   assert.deepEqual(eredmeny, { atirat: "tartalékkal" });
   assert.equal(modell, t.TARTALEK.atiras[0], "az első tartalék modellt kell visszaadni");
@@ -143,7 +143,7 @@ test("az ÉRTÉKELÉSNEK nincs tartaléka – inkább elhasal, mint más modelle
     return HIBA_VALASZ(503, HIGH_DEMAND, "UNAVAILABLE");
   };
 
-  await assert.rejects(() => t.geminiHivas("ertekeles", [], {}), /high demand/);
+  await assert.rejects(() => t.aiHivas("ertekeles", [], {}), /high demand/);
 
   assert.deepEqual(
     [...new Set(hivottModellek)],
@@ -154,7 +154,7 @@ test("az ÉRTÉKELÉSNEK nincs tartaléka – inkább elhasal, mint más modelle
 
 test("minden modell elhasalása után az utolsó hibát adja vissza", async () => {
   globalThis.fetch = async () => HIBA_VALASZ(503, HIGH_DEMAND, "UNAVAILABLE");
-  await assert.rejects(() => t.geminiHivas("rubrika", [], {}), /high demand/);
+  await assert.rejects(() => t.aiHivas("rubrika", [], {}), /high demand/);
 });
 
 // ══════════════════════════════════════════
@@ -168,7 +168,7 @@ test("üres válasz (finishReason) beszédes hibát ad", async () => {
     json: async () => ({ candidates: [{ finishReason: "SAFETY" }] })
   });
 
-  await assert.rejects(() => t.geminiHivas("atiras", [], {}), /SAFETY/);
+  await assert.rejects(() => t.aiHivas("atiras", [], {}), /SAFETY/);
 });
 
 test("nem-JSON válasz esetén a hibában ott van a szöveg eleje", async () => {
@@ -180,13 +180,13 @@ test("nem-JSON válasz esetén a hibában ott van a szöveg eleje", async () => 
     })
   });
 
-  await assert.rejects(() => t.geminiHivas("atiras", [], {}), /ez nem json/);
+  await assert.rejects(() => t.aiHivas("atiras", [], {}), /ez nem json/);
 });
 
 test("a hibaüzenet tartalmazza a modell nevét", async () => {
   globalThis.fetch = async () => HIBA_VALASZ(400, "Valami baj van", "INVALID_ARGUMENT");
   await assert.rejects(
-    () => t.geminiHivas("ertekeles", [], {}),
+    () => t.aiHivas("ertekeles", [], {}),
     new RegExp(t.MODELLEK.ertekeles.replace(/\./g, "\\."))
   );
 });
@@ -207,7 +207,7 @@ function configFigyelo() {
 
 test("az átírás (OCR) alacsony gondolkodási szinttel megy – a leveles és a kifejtős is ezt a lépést hívja", async () => {
   const configok = configFigyelo();
-  await t.geminiHivas("atiras", [], {});
+  await t.aiHivas("atiras", [], {});
   assert.equal(configok.length, 1);
   assert.deepEqual(configok[0].config.thinkingConfig, { thinkingLevel: "low" });
   // a többi beállítás érintetlen
@@ -223,7 +223,7 @@ test("az átírás tartalék modelljei is megkapják a szintet (a 'low' mindhár
     // a fő modell és az első tartalék elhasal, a legutolsó sikerül
     return modell === t.TARTALEK.atiras.at(-1) ? OK_VALASZ({ ok: true }) : HIBA_VALASZ(503, HIGH_DEMAND, "UNAVAILABLE");
   };
-  await t.geminiHivas("atiras", [], {});
+  await t.aiHivas("atiras", [], {});
   const modellek = new Set(configok.map((c) => c.modell));
   assert.deepEqual([...modellek], [t.MODELLEK.atiras, ...t.TARTALEK.atiras]);
   for (const c of configok) {
@@ -234,7 +234,7 @@ test("az átírás tartalék modelljei is megkapják a szintet (a 'low' mindhár
 test("az értékelés, a rubrika és az elemzés NEM kap gondolkodási beállítást (alapértelmezés marad)", async () => {
   for (const lepes of ["ertekeles", "rubrika", "elemzes"]) {
     const configok = configFigyelo();
-    await t.geminiHivas(lepes, [], {});
+    await t.aiHivas(lepes, [], {});
     assert.ok(!("thinkingConfig" in configok[0].config), lepes);
   }
 });
@@ -260,13 +260,13 @@ test("a hívás visszaadja a tokenszámokat a usageMetadata-ból", async () => {
       usageMetadata: { promptTokenCount: 1200, candidatesTokenCount: 150, thoughtsTokenCount: 800, totalTokenCount: 2150 }
     })
   });
-  const r = await t.geminiHivas("ertekeles", [], {});
+  const r = await t.aiHivas("ertekeles", [], {});
   assert.deepEqual(r.hasznalat, { prompt: 1200, kimenet: 150, gondolkodas: 800, ossz: 2150 });
 });
 
 test("usageMetadata nélküli válasz sem hiba: a tokenszámok 0", async () => {
   globalThis.fetch = async () => OK_VALASZ({ ok: true });
-  const r = await t.geminiHivas("atiras", [], {});
+  const r = await t.aiHivas("atiras", [], {});
   assert.deepEqual(r.hasznalat, { prompt: 0, kimenet: 0, gondolkodas: 0, ossz: 0 });
 });
 

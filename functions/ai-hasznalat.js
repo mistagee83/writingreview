@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════════════════
 // AI-használat mérése – a tiszta (adatbázis nélküli) rész
 //
-// Minden Gemini-hívásról egy rekord készül az `ai_hasznalat` gyűjteménybe:
+// Minden AI-hívásról (Gemini vagy Claude) egy rekord készül az `ai_hasznalat` gyűjteménybe:
 // ki (tanár), melyik művelet, melyik modell, hány token (bemenet / kimenet /
 // gondolkodás). A rekord NEM tartalmaz diákmunkát vagy szöveget, csak
 // azonosítókat és számokat. Csak a szerver írja és olvassa (admin SDK);
@@ -21,7 +21,8 @@
 const ARAK = {
   "gemini-3.8-flash": { be: 0.75, ki: 3.75 },
   "gemini-3.7-flash": { be: 0.75, ki: 3.75 },   // ugyanannyi, mint a 3.8 (a tulajdonos megerősítése)
-  "gemini-3.5-flash-lite": { be: 0.30, ki: 2.50 }
+  "gemini-3.5-flash-lite": { be: 0.30, ki: 2.50 },
+  "claude-sonnet-5-5": { be: 2.00, ki: 10.00 }   // a gondolkodás a kimenetben (a rekord gondolkodas mezője 0)
 };
 
 /** A műveletek, amiket a rekord `muvelet` mezője felvehet. */

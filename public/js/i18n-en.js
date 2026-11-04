@@ -259,7 +259,7 @@ export default {
   "nav.ai_hasznalat": "AI usage",
   "aih.oldalcim": "WritingReview – AI usage",
   "aih.cim": "AI usage and cost",
-  "aih.alcim": "Tokens and estimated cost of the Gemini calls. Measurement only: it limits nothing.",
+  "aih.alcim": "Tokens and estimated cost of the AI calls. Measurement only: it limits nothing.",
   "aih.honap": "Month",
   "aih.stat_hivas": "Calls",
   "aih.stat_koltseg": "Estimated cost",

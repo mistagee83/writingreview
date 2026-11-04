@@ -42,7 +42,7 @@ A kvóta előtti lépés: **mérni kell, mennyibe kerül egy dolgozat**, mert a 
 számolhatók. Mindkét környezetben fut, korlát nélkül.
 
 - Minden Gemini-hívás tokenszáma az `ai_hasznalat` gyűjteménybe kerül (`functions/ai-hasznalat.js`,
-  `aiHasznalatNaplo` az `index.js`-ben); a `geminiHivas()` 4. paramétere a kontextus (tanár, művelet,
+  `aiHasznalatNaplo` az `index.js`-ben); az `aiHivas()` 4. paramétere a kontextus (tanár, művelet,
   feladat, beadás, mód). Új AI-hívóhelynél a kontextus kötelező (teszt védi: `tests/ai-hasznalat.test.mjs`).
 - Új admin oldal: **📈 AI-használat** (`public/ai-hasznalat.html`, callable: `aiHasznalatJelentes`) –
   összesítés, bontások és egy csomagár-**számoló**. Lásd `mukodesi-leiras.md` 4.7.
@@ -53,7 +53,7 @@ számolhatók. Mindkét környezetben fut, korlát nélkül.
   értékelés ~$0,010; a tanári oldal +8%). A költség nagy része a kimenet+gondolkodás tokenje (átírás:
   ~2900 / hívás egy ~150 szavas levélnél). A kifejtős mód és a többoldalas beadás még nincs mérve.
 - **Gondolkodási szint (2026-10-06, kód kész; a PILOTRA deployolva (functions), a PRODRA a `v1.3.0`-val kiment):** az átírás
-  (`geminiHivas("atiras")`, leveles és kifejtős egyaránt) `thinkingConfig.thinkingLevel: "low"`-val megy
+  (`aiHivas("atiras")`, leveles és kifejtős egyaránt) `thinkingConfig.thinkingLevel: "low"`-val megy
   (`GONDOLKODAS` az `index.js`-ben; teszt: `tests/gemini.test.mjs`). A 3.8/3.7 Flash alapértelmezése
   `medium`, kikapcsolni nem lehet, a `minimal` csak a Flash-Lite-on érvényes. Az értékelés, rubrika és
   elemzés változatlan. **Deploy:** a pilotra kiment (`node scripts/deploy.mjs pilot --only functions`,
@@ -127,6 +127,22 @@ Required reviewers); ezt a tulajdonos állíthatja be.
 fejlődés-követés, osztályelemzés, színválasztó, új nyitóoldal (árak nélkül), az auditkörök javításai, helyi betűtípusok, az új magyar szövegek. A fizetési függvények
 (`stripeWebhook`, `fizetesIndit`, `fizetesKezeles`, `szamlazandoLista`, `szamlaJeloles`) létrejöttek, de a pilotban `fizetes_ki`-vel válaszolnak. A prod nem változott.
 **Hátra (ellenőrzés):** a fejlődés-követés nem kér-e összetett indexet; a beírt dolgozat végigpróbálása; a régi service worker frissülése a kollégáknál.
+
+## 0/e. AI-szolgáltató kapcsoló: Claude a pilotban (2026-11-04) – **a pilotra deployolva**, még nincs commitolva; a prod a régi kódon (Gemini) fut
+
+- Kapcsoló: `AI_SZOLGALTATO=claude` a `functions/.env.<alias>`-ban; nélküle (vagy bármi más értékkel) Gemini.
+  **A pilot (`functions/.env.pilot`) Claude-ra van állítva, a prod Geminin marad.** Visszaváltás: a sort
+  `gemini`-re írni és újra deployolni a functions-t.
+- Claude-nál minden lépés `claude-sonnet-5-5` (az átírás `effort: "low"`-val, a többi a modell alapértelmezésével),
+  tartalék modell nincs. A hívás a `claudeKeres()`-ben (`index.js`): a Gemini-formátumú részeket és sémát ott
+  alakítjuk át (`claudeTartalom`, `claudeSema`), a hívók változatlanok. Ár: `ai-hasznalat.js` ARAK; a Claude
+  a gondolkodást a kimenetben számolja, ezért ott a `gondolkodas` mező 0. Teszt: `tests/claude.test.mjs`.
+- **LEJÁRAT: 2026-11-30-án lejár az Anthropic ajándékkerete** (a kulcs ~1 hónapos lejáratú). Utána a Claude-hívás
+  végleges (nem átmeneti) hibával elhasal, a dolgozat „hiba” státuszba kerül. **November 30. előtt vissza kell
+  váltani:** `functions/.env.pilot` → `AI_SZOLGALTATO=gemini`, majd `node scripts/deploy.mjs pilot --only functions`.
+- A titok a pilot-projektben van (a CLI a deploynál megköveteli). Új kulcsnál:
+  `firebase functions:secrets:set ANTHROPIC_API_KEY --project pilot`, utána `node scripts/deploy.mjs pilot --only functions`.
+  A Gemini-kulcs továbbra is deklarált (a visszaváltáshoz).
 
 ## 1. Hol tart most
 

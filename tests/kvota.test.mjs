@@ -99,11 +99,11 @@ test("minden AI-művelet a kvótán át megy: a táblázat és a hívóhelyek eg
 });
 
 test("a Gemini-hívás csak kvótával védett helyről indul", () => {
-  // A geminiHivas() négy hívóhelye: a rubrika-javaslat, a beadás (két lépés, kétféle
+  // A aiHivas() négy hívóhelye: a rubrika-javaslat, a beadás (két lépés, kétféle
   // mód), az osztályelemzés és a kulcskészítés – mind kvotaval()-on belül vagy a
   // kvotaval()-lal védett feldolgozBeadas()-ból. Ha új hívóhely jön, ezt a számot
   // tudatosan kell átírni (és ellenőrizni, hogy az új hívás védett-e).
   const forras = readFileSync(new URL("../functions/index.js", import.meta.url), "utf8");
-  const hivasok = [...forras.matchAll(/await geminiHivas\(|=> geminiHivas\(|return geminiHivas\(/g)].length;
-  assert.equal(hivasok, 7, "a geminiHivas() hívóhelyeinek száma változott – nézd át a kvóta-védelmet");
+  const hivasok = [...forras.matchAll(/await aiHivas\(|=> aiHivas\(|return aiHivas\(/g)].length;
+  assert.equal(hivasok, 7, "a aiHivas() hívóhelyeinek száma változott – nézd át a kvóta-védelmet");
 });

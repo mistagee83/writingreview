@@ -257,7 +257,7 @@ export default {
   "nav.ai_hasznalat": "AI-használat",
   "aih.oldalcim": "WritingReview – AI-használat",
   "aih.cim": "AI-használat és költség",
-  "aih.alcim": "Itt látod, hány tokent használtak a Gemini-hívások, és mennyibe kerültek a becslés szerint. Ez az oldal csak mér, nem korlátozza a használatot.",
+  "aih.alcim": "Itt látod, hány tokent használtak az AI-hívások, és mennyibe kerültek a becslés szerint. Ez az oldal csak mér, nem korlátozza a használatot.",
   "aih.honap": "Hónap",
   "aih.stat_hivas": "Hívások",
   "aih.stat_koltseg": "Becsült költség",
