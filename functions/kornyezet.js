@@ -52,6 +52,10 @@ function beallitasok(env = process.env) {
     kvota: kornyezet === "prod",
     // Az AI-szolgáltató: "claude" (AI_SZOLGALTATO=claude a functions/.env.<alias>-ban) vagy alapból "gemini".
     aiSzolgaltato: String(env.AI_SZOLGALTATO || "").trim().toLowerCase() === "claude" ? "claude" : "gemini",
+    // Az Anthropic-munkaterület azonosítója (nem titok): akkor kell, ha a kulcs nem munkaterülethez kötött
+    // (a kérés anthropic-workspace-id fejlécet kap). Csak a "wrkspc_..." alak fogadható el.
+    anthropicWorkspace: /^wrkspc_[A-Za-z0-9_-]+$/.test(String(env.ANTHROPIC_WORKSPACE_ID || "").trim())
+      ? String(env.ANTHROPIC_WORKSPACE_ID).trim() : "",
     // Az önkiszolgáló tanári regisztráció mindkét környezetben él (a pilotban 2026-10-13-tól, a tulajdonos döntése:
     // kevés kolléga használja). FIGYELEM: a pilotban nincs AI-keret, így minden regisztrált tanár korlátlanul költhet.
     tanariOnregisztracio: true,

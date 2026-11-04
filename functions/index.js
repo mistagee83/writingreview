@@ -482,7 +482,9 @@ function claudeKliens() {
       apiKey: ANTHROPIC_API_KEY ? ANTHROPIC_API_KEY.value() : process.env.ANTHROPIC_API_KEY,
       maxRetries: 0,              // az újrapróbálást az aiHivas() végzi
       timeout: 280 * 1000,        // a függvény 300 mp-es korlátja alatt
-      fetch: (...a) => globalThis.fetch(...a)   // a tesztek a globális fetch-et cserélik
+      fetch: (...a) => globalThis.fetch(...a),  // a tesztek a globális fetch-et cserélik
+      // munkaterülethez nem kötött kulcsnál kötelező (ANTHROPIC_WORKSPACE_ID a functions/.env.<alias>-ban)
+      ...(BEALLITASOK.anthropicWorkspace ? { defaultHeaders: { "anthropic-workspace-id": BEALLITASOK.anthropicWorkspace } } : {})
     });
   }
   return claudeKliensPeldany;

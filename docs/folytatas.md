@@ -143,6 +143,8 @@ fejlődés-követés, osztályelemzés, színválasztó, új nyitóoldal (árak 
 - A titok a pilot-projektben van (a CLI a deploynál megköveteli). Új kulcsnál:
   `firebase functions:secrets:set ANTHROPIC_API_KEY --project pilot`, utána `node scripts/deploy.mjs pilot --only functions`.
   A Gemini-kulcs továbbra is deklarált (a visszaváltáshoz).
+- Ha a kulcs nem munkaterülethez kötött (400: „must include the anthropic-workspace-id header”), a
+  `functions/.env.pilot`-ba kell az `ANTHROPIC_WORKSPACE_ID=wrkspc_...` (nem titok; Console → Settings → Workspaces).
 
 ## 1. Hol tart most
 

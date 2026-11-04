@@ -13,6 +13,7 @@ process.env.GCLOUD_PROJECT = "wr-claude-teszt";
 process.env.GEMINI_API_KEY = "teszt-kulcs";
 process.env.ANTHROPIC_API_KEY = "teszt-kulcs";
 process.env.AI_SZOLGALTATO = "claude";
+process.env.ANTHROPIC_WORKSPACE_ID = "wrkspc_teszt123";
 
 const require = createRequire(new URL("../functions/package.json", import.meta.url));
 
@@ -52,7 +53,7 @@ const HIBA = (status, message) => json(status, { type: "error", error: { type: "
 /** A fetch-mock: a válaszokat sorban adja, a kéréseket eltárolja. */
 function mock(...valaszok) {
   globalThis.fetch = async (url, opciok) => {
-    keresek.push({ url: String(url), body: JSON.parse(opciok.body) });
+    keresek.push({ url: String(url), body: JSON.parse(opciok.body), fejlec: new Headers(opciok.headers) });
     const v = valaszok.shift();
     if (!v) throw new Error("nincs több válasz");
     return v;
@@ -177,4 +178,17 @@ test("a kapcsoló visszaállítható: gemini-re váltva a Gemini végpontját h�
 test("az ár ismert a Claude-modellre (a költségmérés nem 'ismeretlen ár')", () => {
   const ai = require("./ai-hasznalat.js");
   for (const m of Object.values(t.CLAUDE_MODELLEK)) assert.ok(ai.ARAK[m], m);
+});
+
+test("munkaterület-azonosító: a kérés anthropic-workspace-id fejlécet kap (nem munkaterülethez kötött kulcs)", async () => {
+  mock(OK({ atirat: "x" }));
+  await t.aiHivas("rubrika", [{ text: "x" }], SEMA);
+  assert.equal(keresek[0].fejlec.get("anthropic-workspace-id"), "wrkspc_teszt123");
+});
+
+test("munkaterület-azonosító: csak a wrkspc_ alak fogadható el, üresen nincs fejléc", () => {
+  const k = require("./kornyezet.js");
+  assert.equal(k.beallitasok({ ANTHROPIC_WORKSPACE_ID: " wrkspc_AbC-1 " }).anthropicWorkspace, "wrkspc_AbC-1");
+  assert.equal(k.beallitasok({ ANTHROPIC_WORKSPACE_ID: "valami" }).anthropicWorkspace, "");
+  assert.equal(k.beallitasok({}).anthropicWorkspace, "");
 });
