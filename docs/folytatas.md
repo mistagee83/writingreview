@@ -128,7 +128,7 @@ fejlődés-követés, osztályelemzés, színválasztó, új nyitóoldal (árak 
 (`stripeWebhook`, `fizetesIndit`, `fizetesKezeles`, `szamlazandoLista`, `szamlaJeloles`) létrejöttek, de a pilotban `fizetes_ki`-vel válaszolnak. A prod nem változott.
 **Hátra (ellenőrzés):** a fejlődés-követés nem kér-e összetett indexet; a beírt dolgozat végigpróbálása; a régi service worker frissülése a kollégáknál.
 
-## 0/e. AI-szolgáltató kapcsoló: Claude a pilotban (2026-11-04) – **a pilotra deployolva**, még nincs commitolva; a prod a régi kódon (Gemini) fut
+## 0/e. AI-szolgáltató kapcsoló: Claude a pilotban (2026-11-04) – **a pilotra deployolva** (a tokenkeret-javítással együtt); a prod a régi kódon (Gemini) fut
 
 - Kapcsoló: `AI_SZOLGALTATO=claude` a `functions/.env.<alias>`-ban; nélküle (vagy bármi más értékkel) Gemini.
   **A pilot (`functions/.env.pilot`) Claude-ra van állítva, a prod Geminin marad.** Visszaváltás: a sort

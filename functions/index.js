@@ -137,9 +137,15 @@ const CLAUDE_MODELLEK = {
   elemzes: "claude-sonnet-5-5"
 };
 const CLAUDE_TARTALEK = { atiras: [], ertekeles: [], rubrika: [], elemzes: [] };
+// A gondolkodás a max_tokens-be számít: az első éles rubrika-hívás (2026-11-04) alapszinten (high)
+// kifutott a 16 000 tokenből. A rubrikát a tanár úgyis átnézi, az elemzést ő olvassa: ott elég a medium.
 const CLAUDE_EFFORT = {
-  atiras: "low"
+  atiras: "low",
+  rubrika: "medium",
+  elemzes: "medium"
 };
+// A kimenet felső határa (gondolkodással együtt). Nem streamelt kérés: a ~280 mp-es timeouton belül kell maradnia.
+const CLAUDE_MAX_TOKENS = 32000;
 
 // A környezet (pilot/prod) beállításai: functions/kornyezet.js.
 const BEALLITASOK = kornyezet.beallitasok();
@@ -496,7 +502,7 @@ async function claudeKeres(modell, parts, schema, effort) {
   try {
     valasz = await claudeKliens().messages.create({
       model: modell,
-      max_tokens: 16000,
+      max_tokens: CLAUDE_MAX_TOKENS,
       messages: [{ role: "user", content: claudeTartalom(parts) }],
       output_config: {
         format: { type: "json_schema", schema: claudeSema(schema) },

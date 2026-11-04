@@ -142,6 +142,17 @@ test("az értékelés nem kap effortot (a modell alapértelmezése marad)", asyn
   assert.equal(keresek[0].body.output_config.effort, undefined);
 });
 
+test("regresszió: a rubrika és az elemzés medium efforttal, 32 000 tokenes kerettel megy (high-on kifutott a 16 000-ből)", async () => {
+  for (const lepes of ["rubrika", "elemzes"]) {
+    mock(OK({ atirat: "x" }));
+    await t.aiHivas(lepes, [{ text: "x" }], SEMA);
+  }
+  for (const k of keresek) {
+    assert.equal(k.body.output_config.effort, "medium");
+    assert.equal(k.body.max_tokens, 32000);
+  }
+});
+
 test("túlterhelés (529) után újrapróbál és sikerrel jár", async () => {
   mock(HIBA(529, "Overloaded"), OK({ atirat: "ok" }));
   const { eredmeny } = await t.aiHivas("ertekeles", [{ text: "x" }], SEMA);

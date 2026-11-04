@@ -814,7 +814,7 @@ export default {
   "fel.sablon_betolt_aria": "Load a template",
   "fel.sablon_torol_tipp": "Delete the selected template",
   "fel.sablon_ment": "💾 Save as template",
-  "fel.elemzes_tolt": "Gemini is analysing the worksheet...",
+  "fel.elemzes_tolt": "The AI is analysing the worksheet…",
   "fel.nyelv_label": "Language of the work",
   "fel.tipus_label": "Task type",
   "fel.szint_cefr": "Target level (CEFR)",
