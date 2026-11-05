@@ -231,6 +231,14 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **A PILOTON JAVÍTVA, A PRODON MÉG NEM (2026-11-05): a diák nem tudott beadni.** A `beadas.html`
+  a beadási felületet a módváltozók (`BEADASI_MOD` stb.) létrehozása előtt jelenítette meg →
+  `ReferenceError`, sem fotós, sem beírós felület nem látszott, egyetlen új beadásnál sem
+  (a `340bb97`, azaz a **v1.10.0** óta). Javítás: a döntés a script végére került; regressziós
+  teszt: `tests/beadas-sorrend.test.mjs`. **Pilot: deployolva** (2026-11-05, `--only hosting`,
+  élőben ellenőrizve: fotós és beírós felület is megjelenik). **Prod: még a hibás kódon fut**, új
+  címkés kiadás kell – addig a prodon a diákok nem tudnak beadni.
+
 - **Pilot: önkiszolgáló tanári regisztráció BEKAPCSOLVA (2026-10-13, a tulajdonos döntése, pilotra deployolva):** a pilotban is van „Tanár vagyok” regisztráció (megerősített e-mail → automatikusan tanár). **A pilotban nincs AI-keret (`kvota: false`), ezért minden regisztrált tanár korlátlanul költhet** – kevés kolléga használja, de ha a cím szélesebb körbe kerül, a kvótát (vagy a kapcsolót vissza) be kell állítani: `config/pilot.json` + `functions/kornyezet.js`.
 
 - **Diákregisztráció e-mail nélkül (2026-10-13):** a diák felhasználónévvel regisztrál és lép be

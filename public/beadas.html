@@ -175,25 +175,6 @@
       : ''}`;
 
   // ══════════════════════════════════════════
-  // VAN-E MÁR BEADÁSOM?
-  // ══════════════════════════════════════════
-  const sajatSnap = await getDocs(query(
-    collection(db, 'beadasok'),
-    where('diak_id', '==', user.uid),
-    where('feladat_id', '==', feladatId)
-  ));
-
-  if (!sajatSnap.empty) {
-    allapotFigyel(sajatSnap.docs[0].id);
-  } else if (!feladat.aktiv) {
-    document.getElementById('allapot-panel').style.display = 'block';
-    document.getElementById('allapot-torzs').innerHTML =
-      `<p class="halvany">${t('beadas.zart')}</p>`;
-  } else {
-    beadasiFelulet();
-  }
-
-  // ══════════════════════════════════════════
   // ÁLLAPOT KÖVETÉSE (onSnapshot – nem kell újratölteni)
   // ══════════════════════════════════════════
   function allapotFigyel(beadasId) {
@@ -446,6 +427,28 @@
       elonezetRajzol();
     }
   });
+
+  // ══════════════════════════════════════════
+  // VAN-E MÁR BEADÁSOM? – és mit mutatunk
+  // A SCRIPT VÉGÉN kell lennie: a beadasiFelulet() a fenti const-okat
+  // (BEADASI_MOD, fotoPanel, piszkozatKulcs…) használja, korábbi hívásnál
+  // ReferenceError-ral elszáll, és a diák nem lát beadási felületet.
+  // ══════════════════════════════════════════
+  const sajatSnap = await getDocs(query(
+    collection(db, 'beadasok'),
+    where('diak_id', '==', user.uid),
+    where('feladat_id', '==', feladatId)
+  ));
+
+  if (!sajatSnap.empty) {
+    allapotFigyel(sajatSnap.docs[0].id);
+  } else if (!feladat.aktiv) {
+    document.getElementById('allapot-panel').style.display = 'block';
+    document.getElementById('allapot-torzs').innerHTML =
+      `<p class="halvany">${t('beadas.zart')}</p>`;
+  } else {
+    beadasiFelulet();
+  }
 </script>
 </body>
 </html>
