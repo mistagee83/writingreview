@@ -128,18 +128,20 @@ fejlődés-követés, osztályelemzés, színválasztó, új nyitóoldal (árak 
 (`stripeWebhook`, `fizetesIndit`, `fizetesKezeles`, `szamlazandoLista`, `szamlaJeloles`) létrejöttek, de a pilotban `fizetes_ki`-vel válaszolnak. A prod nem változott.
 **Hátra (ellenőrzés):** a fejlődés-követés nem kér-e összetett indexet; a beírt dolgozat végigpróbálása; a régi service worker frissülése a kollégáknál.
 
-## 0/e. AI-szolgáltató kapcsoló: Claude a pilotban (2026-11-04) – **a pilotra deployolva** (a tokenkeret-javítással együtt); a prod a régi kódon (Gemini) fut
+## 0/e. AI-szolgáltató kapcsoló (2026-11-04) – a kód mindkét szolgáltatót tudja; **a pilot 2026-11-05 óta ismét Geminin fut** (deployolva), a prod a régi kódon (Gemini)
 
 - Kapcsoló: `AI_SZOLGALTATO=claude` a `functions/.env.<alias>`-ban; nélküle (vagy bármi más értékkel) Gemini.
-  **A pilot (`functions/.env.pilot`) Claude-ra van állítva, a prod Geminin marad.** Visszaváltás: a sort
-  `gemini`-re írni és újra deployolni a functions-t.
+  Váltás: a sort átírni és újra deployolni a functions-t.
+- **Miért vissza (2026-11-05):** egy osztályteszten Claude (Sonnet 5.5) jóval szigorúbban pontozott. A 11 dolgozatot
+  a `scripts/gemini-osszevetes.mjs` (csak olvas, nem ír vissza) Geminivel is lefuttatta: átlag 47% (Claude) vs 66% (Gemini),
+  9 dolgozatnál jobb jegy, a beírt (átírás nélküli) dolgozatoknál is. Az átiratok csak 3–8%-ban tértek el (szószinten):
+  a különbség a PONTOZÁSBÓL jön (a Geminire hangolt értékelő prompt), nem az olvasásból. Ha valaha újra Claude, az
+  értékelő promptot hozzá kell hangolni.
 - Claude-nál minden lépés `claude-sonnet-5-5` (az átírás `effort: "low"`-val, a többi a modell alapértelmezésével),
   tartalék modell nincs. A hívás a `claudeKeres()`-ben (`index.js`): a Gemini-formátumú részeket és sémát ott
   alakítjuk át (`claudeTartalom`, `claudeSema`), a hívók változatlanok. Ár: `ai-hasznalat.js` ARAK; a Claude
   a gondolkodást a kimenetben számolja, ezért ott a `gondolkodas` mező 0. Teszt: `tests/claude.test.mjs`.
-- **LEJÁRAT: 2026-11-30-án lejár az Anthropic ajándékkerete** (a kulcs ~1 hónapos lejáratú). Utána a Claude-hívás
-  végleges (nem átmeneti) hibával elhasal, a dolgozat „hiba” státuszba kerül. **November 30. előtt vissza kell
-  váltani:** `functions/.env.pilot` → `AI_SZOLGALTATO=gemini`, majd `node scripts/deploy.mjs pilot --only functions`.
+- Az Anthropic ajándékkerete és a kulcs 2026-11-30 / 12-04 körül lejár; Geminin ez már nem érint semmit.
 - A titok a pilot-projektben van (a CLI a deploynál megköveteli). Új kulcsnál:
   `firebase functions:secrets:set ANTHROPIC_API_KEY --project pilot`, utána `node scripts/deploy.mjs pilot --only functions`.
   A Gemini-kulcs továbbra is deklarált (a visszaváltáshoz).

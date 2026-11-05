@@ -1818,6 +1818,8 @@ exports._teszt = {
   elemzesPrompt,
   atiratPrompt,
   ATIRAT_SCHEMA,
+  ERTEKELES_SCHEMA,
+  kepekBetoltese,
   geminiKeres,
   claudeKeres,
   claudeSema,
