@@ -233,15 +233,15 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
-- **A PILOTON JAVÍTVA, A PRODON JÓVÁHAGYÁSRA VÁR (2026-11-05): a diák nem tudott beadni.** A `beadas.html`
+- **JAVÍTVA MINDKÉT KÖRNYEZETBEN (pilot 2026-11-05, prod 2026-11-09, `v1.19.1`): a diák nem tudott beadni.** A `beadas.html`
   a beadási felületet a módváltozók (`BEADASI_MOD` stb.) létrehozása előtt jelenítette meg →
   `ReferenceError`, sem fotós, sem beírós felület nem látszott, egyetlen új beadásnál sem
   (a `340bb97`, azaz a **v1.10.0** óta). Javítás: a döntés a script végére került; regressziós
   teszt: `tests/beadas-sorrend.test.mjs`. **Pilot: deployolva** (2026-11-05, `--only hosting`,
-  élőben ellenőrizve: fotós és beírós felület is megjelenik). **Prod: a `v1.19.1` címke kiment**
-  (2026-11-05, a `1065ba8`-ra; a CI-tesztek átmentek), a deploy a GitHub Actionsben **kézi jóváhagyásra
-  vár** – amíg nincs jóváhagyva, a prodon a diákok nem tudnak beadni. (A címke a Claude-kapcsolót is
-  viszi; a prodon nincs `AI_SZOLGALTATO`, ott Gemini marad.)
+  élőben ellenőrizve: fotós és beírós felület is megjelenik). **Prod: deployolva**
+  (2026-11-09, `v1.19.1` = `1065ba8`, GitHub Actions; a kiszolgált `beadas.html` a javított sorrendű).
+  A prodon diákfiókkal élőben nem próbáltuk ki (a kód azonos a pilotban ellenőrzöttel). A címke a
+  Claude-kapcsolót is vitte; a prodon nincs `AI_SZOLGALTATO`, ott Gemini marad.
 
 - **Pilot: önkiszolgáló tanári regisztráció BEKAPCSOLVA (2026-10-13, a tulajdonos döntése, pilotra deployolva):** a pilotban is van „Tanár vagyok” regisztráció (megerősített e-mail → automatikusan tanár). **A pilotban nincs AI-keret (`kvota: false`), ezért minden regisztrált tanár korlátlanul költhet** – kevés kolléga használja, de ha a cím szélesebb körbe kerül, a kvótát (vagy a kapcsolót vissza) be kell állítani: `config/pilot.json` + `functions/kornyezet.js`.
 
