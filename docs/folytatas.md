@@ -247,13 +247,13 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
-- **JAVÍTVA A `main`-EN (`eb595d9`) ÉS A `pilot` ÁGON (`d5625be`), 2026-11-12; ÉLESBEN MÉG SEHOL: az AI-használat mérése a beírt dolgozatot nem
+- **JAVÍTVA A `main`-EN (`eb595d9`) ÉS A `pilot` ÁGON (`d5625be`), 2026-11-12; A PILOTBAN DEPLOYOLVA, A PRODON MÉG NEM: az AI-használat mérése a beírt dolgozatot nem
   számolta futásnak.** A jelentés (`functions/ai-hasznalat.js`, `jelentesOsszeallitas`) a javítási futást az átírási
   hívásnál számolta, a beírt dolgozatnak viszont nincs átírása: a költsége beszámított, a darabszáma nem, ezért a
   dolgozatonkénti átlag (és a számoló ajánlott ára) túl magasra jött ki. Javítás: a futás az értékelési hívás
   (`beadas_ertekeles`), minden futásban pontosan egy van. Regressziós teszt: `tests/ai-hasznalat.test.mjs` („a beírt
-  dolgozat … is egy futás”). **Pilot:** a `pilot` ágon kész, deployra vár:
-  `git switch pilot`, majd `node scripts/deploy.mjs pilot --only functions`. (Az `eb595d9` a `main`-en véletlenül két
+  dolgozat … is egy futás”). **Pilot:** deployolva (2026-11-12, `--only functions`,
+  mind a 25 függvény frissült). (Az `eb595d9` a `main`-en véletlenül két
   pilot-szkript törlését is tartalmazza – a 2b úgyis törölte volna őket; a pilot ágra csak a javítás került.) **Prod:** a régi kódon fut; a prod az átalakítás kiadásával kapja meg.
   Csak a jelentés számolása változik, a tárolt adat nem: a javítás visszamenőleg is helyes átlagot ad.
 
