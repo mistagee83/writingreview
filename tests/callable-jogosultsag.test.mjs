@@ -31,7 +31,7 @@ const MINDEN_KAPUS = {
   ],
   admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas", "szamlazandoLista", "szamlaJeloles"],
   // Belépés NÉLKÜL hívható (a diák a feladatlinken): a jogosultság a token, a függvény maga ellenőrzi
-  nyilvanos: ["linkAdatok", "linkBeadas"]
+  nyilvanos: ["linkAdatok", "linkBeadas", "diakVisszajelzes"]
 };
 
 async function kod(nev, request) {

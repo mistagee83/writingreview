@@ -172,3 +172,13 @@ test("a diák böngészőjének jelzés-dokumentumát (tiltással) a szerver elf
   const regi = kliens.jelzesekDokumentum({ elhagyas: { elhagyas_db: 0 }, szoveg: "x", beillesztettek: [] });
   assert.equal(l.jelzesekErvenyesek(regi), false);
 });
+
+test("diáklink jóváhagyáskor: ha 7 napnál kevesebb van hátra, a jóváhagyástól 7 nap; különben nem változik", () => {
+  const most = Date.UTC(2026, 10, 12, 8, 0, 0);
+  const NAP = 24 * 60 * 60 * 1000;
+  assert.equal(l.diaklinkJovahagyasUtan(new Date(most + NAP), most).getTime(), most + 7 * NAP);
+  assert.equal(l.diaklinkJovahagyasUtan(new Date(most - NAP), most).getTime(), most + 7 * NAP, "már lejárt: újra él 7 napig");
+  assert.equal(l.diaklinkJovahagyasUtan({ toMillis: () => most + 2 * NAP }, most).getTime(), most + 7 * NAP, "Firestore-időbélyeg");
+  assert.equal(l.diaklinkJovahagyasUtan(new Date(most + 10 * NAP), most), null);
+  assert.equal(l.diaklinkJovahagyasUtan(undefined, most), null, "nem feladatlinkes beadás: nincs diáklink");
+});

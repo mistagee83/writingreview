@@ -193,6 +193,20 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
    `beadasok: tanar_id + feladat_id + statusz`. **Deploy-hatás:** új függvények (`ertekelesInditas`, `ertekelesSor`); a régi
    `beadasFeldolgozas` a deploykor törlődik.
 7. **Visszajelzés a diáknak.** `diakVisszajelzes` callable, diáklink-oldal, lejárat. Időzített takarítás (5. pont, megőrzés).
+   **Kész (2026-11-12).** `diakVisszajelzes` (belépés nélkül, a diák saját tokenje a jogosultság): a token lenyomata a
+   beadás azonosítója; csak a feladatlinken született beadásnak van diáklinkje. Állapotok: `varakozik` (a tanár még nem
+   hagyta jóvá – a diák azt sem látja, fut-e az értékelés), `kesz`, `lejart`. A `kesz` válasz kifejezett mezőlistával
+   csak a tanári visszajelzést adja (jegy, szöveg, szempontonkénti pont és megjegyzés, összesítés, jóváhagyás ideje) és a
+   diák saját szövegét; az AI nyers értékelése, az írás közbeni jelzések és az azonosítók nem mennek ki. **Lejárat:** a
+   diáklink a beadástól 14 napig él; ha a tanár ennél később vagy a vége felé hagy jóvá, a jóváhagyástól még legalább 7 napig
+   (`diaklinkJovahagyasUtan`). `visszajelzes.html`: jegy, tanári visszajelzés, pontozási táblázat, a beadott szöveg, a
+   lejárat; várakozó, lejárt és érvénytelen link üzenettel. **Takarítás** (`takaritas`, naponta 3:30, Europe/Budapest):
+   a lejárt linkek becenév-foglalásai (a lejárat után 1–30 nappal), a **12 hónapnál** régebbi beadások az értékelésekkel
+   együtt, és a 12 hónapnál régebben lejárt linkek; futásonként legfeljebb 300-300 dokumentum. A megőrzési idő (12 hónap) a
+   tulajdonos döntése (2026-11-12), a jogász válasza után egy konstans (`MEGORZES_MS`). Az osztályszintű elemzés
+   (`feladatok/{id}/elemzes`) nem törlődik vele. Helyi, Firebase-helyettesítős előnézetben ellenőrizve (mind a négy állapot,
+   telefonszélesség, angol felület). **Deploy-hatás:** új függvények (`diakVisszajelzes`, `takaritas` – ehhez a Cloud
+   Scheduler API kell, a deploy bekapcsolja).
 8. **Prod-előkészítés és kiadás.** A régi prod-adatok törlése (a tulajdonos végzi, vagy kifejezett engedélyével), a régi
    függvények törlése a deployban, a Storage-szabály szigorítása, nyitóoldal és csomagok frissítése, végigpróbálás, címkés
    kiadás.
@@ -217,6 +231,7 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
 
 ## 10. Nyitott kérdések (a megfelelő lépésnél kell dönteni)
 
-- A diáklink élettartama (javaslat: 14 nap) és a tanári megőrzés ideje (javaslat: 12 hónap).
+- ~~A diáklink élettartama és a tanári megőrzés ideje~~ – eldöntve (2026-11-12): 14 nap (jóváhagyás után legalább 7),
+  megőrzés 12 hónap.
 - Csomagok és árak a fejlődés-követés nélkül.
 - Az edtech hub bekötése: később (tanári belépés módja).

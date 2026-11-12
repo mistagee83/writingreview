@@ -116,6 +116,18 @@ export default {
   "beadas.pont": "Points",
 
   // ── vj (visszajelzes.html) ──
+  "vj.oldalcim": "WritingReview – Feedback",
+  "vj.cim": "Feedback",
+  "vj.alcim": "{becenev} · submitted: {datum}",
+  "vj.ervenytelen": "This link is not valid. Check that you opened it exactly (the link or QR code you got after submitting).",
+  "vj.lejart": "This link has expired; the feedback can no longer be viewed here. If you need it, ask your teacher.",
+  "vj.varakozik": "Your teacher hasn't sent the feedback yet. Check back later on this link. Valid until: {datum}",
+  "vj.jegy": "Grade",
+  "vj.tanari_cim": "💬 Your teacher's feedback",
+  "vj.elkuldve": "Sent: {datum}",
+  "vj.pontozas_cim": "📊 Scoring",
+  "vj.szoveged_cim": "✍️ Your submitted text",
+  "vj.eddig_el": "If you want to keep the feedback, save it or take a screenshot. This link is valid until: {datum}",
   "vj.pont_osszes": "{ossz} / {max} points",
   "vj.megjegyzes": "Comment",
   "vj.osszesen": "Total",
@@ -948,5 +960,6 @@ export default {
   "szerver.becenev_foglalt": "Someone is already using this nickname on this link. Choose another one.",
   "szerver.szoveg_ervenytelen": "The text is empty or too long (at most 20,000 characters).",
   "szerver.jelzesek_ervenytelen": "The submission data is invalid. Reload the page and try again.",
-  "szerver.ertekeles_lista_hibas": "The list of selected submissions is invalid (at most 100 IDs)."
+  "szerver.ertekeles_lista_hibas": "The list of selected submissions is invalid (at most 100 IDs).",
+  "szerver.diaklink_ervenytelen": "This link is not valid. Check that you opened it exactly."
 };

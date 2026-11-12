@@ -704,3 +704,102 @@ test("diák: a beadás után a tanár „Értékelés indítása” gombja (bead
   const f = (await firestore.collection("feladatok").doc("df1").get()).data();
   assert.equal(logika.beadasOsszerendeles(id, b, f), null);
 });
+
+// ══════════════════════════════════════════
+// A DIÁK VISSZAJELZÉSE (diakVisszajelzes) – belépés nélkül, a saját diáklinkjén
+// ══════════════════════════════════════════
+
+const lenyomat = async (tok) => (await import("node:crypto")).createHash("sha256").update(tok).digest("hex");
+const NAP = 24 * 60 * 60 * 1000;
+
+test("diáklink: jóváhagyás előtt csak a várakozás látszik, utána csak a tanár jóváhagyott visszajelzése", async () => {
+  const { token } = await diakLink();
+  const { diakToken } = await beadas(token);
+  const id = await lenyomat(diakToken);
+  const elotte = await logika.diakVisszajelzesLogika(firestore, { token: diakToken });
+  assert.equal(elotte.allapot, "varakozik");
+  assert.equal(elotte.cim, "Letter to Ben");
+  assert.equal(elotte.becenev, "Kék Sárkány");
+  assert.equal(elotte.visszajelzes, undefined);
+  assert.equal(elotte.szoveg, undefined);
+
+  // Az AI már értékelt (javitva), de a tanár még nem hagyta jóvá: a diák semmit nem lát belőle.
+  const ref = firestore.collection("beadasok").doc(id);
+  await ref.collection("ertekeles").doc("ai").set({
+    szempontok: [{ kulcs: "nyelvtan", pont: 7, max: 10, megjegyzes: "AI-TITOK" }], diak_szoveg: "AI-TITOK"
+  });
+  await ref.update({ statusz: "javitva" });
+  assert.equal((await logika.diakVisszajelzesLogika(firestore, { token: diakToken })).allapot, "varakozik");
+
+  await logika.jovahagyasLogika("tanar-uid", {
+    beadasId: id, jegy: 4, szoveg: "Szép munka!", szempontok: [{ kulcs: "nyelvtan", pont: 8, megjegyzes: "Jó" }]
+  });
+  const v = await logika.diakVisszajelzesLogika(firestore, { token: diakToken });
+  assert.equal(v.allapot, "kesz");
+  assert.equal(v.szoveg, "Dear Ben,\nthank you for your letter.");
+  assert.equal(v.visszajelzes.jegy, 4);
+  assert.equal(v.visszajelzes.szoveg, "Szép munka!");
+  assert.deepEqual(v.visszajelzes.szempontok, [{ cim: "Nyelvtan", pont: 8, max: 10, megjegyzes: "Jó" }]);
+  assert.equal(v.visszajelzes.osszpontszam, 8);
+  assert.ok(v.visszajelzes.jovahagyva);
+  const json = JSON.stringify(v);
+  assert.ok(!json.includes("AI-TITOK"), "az AI nyers értékelése nem megy ki");
+  assert.ok(!json.includes("tanar-uid"), "a tanár azonosítója nem megy ki");
+  assert.ok(!json.includes("beillesztes") && !json.includes("elhagyas"), "az írás közbeni jelzések nem mennek ki");
+  assert.ok(!json.includes(id), "a beadás azonosítója sem");
+});
+
+test("diáklink: lejárt link után csak az állapot; ismeretlen, rossz alakú és nem feladatlinkes token elutasítva", async () => {
+  const { token } = await diakLink();
+  const { diakToken } = await beadas(token);
+  await firestore.collection("beadasok").doc(await lenyomat(diakToken)).update({ diaklink_lejar: new Date(Date.now() - 1000) });
+  assert.deepEqual(await logika.diakVisszajelzesLogika(firestore, { token: diakToken }), { allapot: "lejart" });
+
+  assert.equal(await kodja(() => logika.diakVisszajelzesLogika(firestore, { token: "a".repeat(32) })), "diaklink_ervenytelen");
+  assert.equal(await kodja(() => logika.diakVisszajelzesLogika(firestore, { token: "rossz" })), "diaklink_ervenytelen");
+  assert.equal(await kodja(() => logika.diakVisszajelzesLogika(firestore, {})), "diaklink_ervenytelen");
+  // a lenyomat egyezik, de a beadás nem a feladatlinken született (nincs link_id): nincs diáklinkje
+  const kezi = "b".repeat(32);
+  await firestore.collection("beadasok").doc(await lenyomat(kezi)).set({ tanar_id: "tanar-uid", feladat_id: "df1", statusz: "elkuldve" });
+  assert.equal(await kodja(() => logika.diakVisszajelzesLogika(firestore, { token: kezi })), "diaklink_ervenytelen");
+});
+
+test("diáklink: a jóváhagyás a lejárathoz közeli linket 7 nappal meghosszabbítja, a távolihoz nem nyúl", async () => {
+  const { token } = await diakLink();
+  const { diakToken } = await beadas(token);
+  const id = await lenyomat(diakToken);
+  const ref = firestore.collection("beadasok").doc(id);
+  await ref.update({ statusz: "javitva", diaklink_lejar: new Date(Date.now() + NAP) });
+  await logika.jovahagyasLogika("tanar-uid", { beadasId: id, jegy: 4, szoveg: "Szép munka!" });
+  const uj = (await ref.get()).data().diaklink_lejar.toMillis();
+  assert.ok(uj >= Date.now() + 7 * NAP - 60 * 1000, "legalább 7 nap a jóváhagyástól");
+
+  const tavoli = new Date(Date.now() + 10 * NAP);
+  await ref.update({ diaklink_lejar: tavoli });
+  await logika.jovahagyasLogika("tanar-uid", { beadasId: id, jegy: 3, szoveg: "Javítva" });
+  assert.equal((await ref.get()).data().diaklink_lejar.toMillis(), tavoli.getTime());
+});
+
+test("takarítás: a 12 hónapnál régebbi beadás (értékeléssel) és link törlődik, a lejárt link becenevei is; a friss marad", async () => {
+  const most = Date.now();
+  const friss = await diakLink();
+  const { diakToken } = await beadas(friss.token);
+  const lejart = await diakLink({}, { most: most - 3 * NAP }); // két napja lejárt
+  await firestore.collection("linkek").doc(lejart.linkId).collection("becenevek").doc("kek-sarkany").set({ beadas_id: "x" });
+  const regi = firestore.collection("beadasok").doc("regi-beadas");
+  await regi.set({ tanar_id: "tanar-uid", feladat_id: "df1", statusz: "elkuldve", letrehozva: new Date(most - 400 * NAP) });
+  await regi.collection("ertekeles").doc("tanari").set({ szoveg: "régi" });
+  const regiLink = await diakLink({}, { most: most - 400 * NAP });
+
+  const r = await logika.takaritasLogika(firestore, { most });
+  assert.equal(r.beadasok, 1);
+  assert.equal(r.linkek, 1);
+  assert.equal((await regi.get()).exists, false);
+  assert.equal((await regi.collection("ertekeles").doc("tanari").get()).exists, false, "az értékelés is törlődik");
+  assert.equal((await firestore.collection("linkek").doc(regiLink.linkId).get()).exists, false);
+  assert.equal((await firestore.collection("linkek").doc(lejart.linkId).get()).exists, true, "a lejárt link a tanárnál marad");
+  assert.equal((await firestore.collection("linkek").doc(lejart.linkId).collection("becenevek").get()).size, 0);
+  assert.equal((await firestore.collection("beadasok").doc(await lenyomat(diakToken)).get()).exists, true);
+  assert.equal((await firestore.collection("linkek").doc(friss.linkId).collection("becenevek").get()).size, 1,
+    "az élő link becenév-foglalása megmarad");
+});

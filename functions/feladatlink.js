@@ -179,7 +179,23 @@ function ujBeadasAdat({ link, linkId, becenev, szoveg, jelzesek, most = Date.now
   };
 }
 
+/** A jóváhagyás után a diáklink legalább ennyi ideig él még (ha a tanár a 14 nap végén hagy jóvá). */
+const DIAKLINK_JOVAHAGYAS_UTAN_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * A diáklink új lejárata jóváhagyáskor: ha kevesebb mint 7 nap van hátra, a jóváhagyástól 7 nap.
+ * Ha nincs diáklink (nem a feladatlinken született beadás), vagy van még elég idő: null (nincs változás).
+ */
+function diaklinkJovahagyasUtan(lejar, most = Date.now()) {
+  const ms = lejar?.toMillis ? lejar.toMillis() : lejar instanceof Date ? lejar.getTime() : null;
+  if (ms === null) return null;
+  const minimum = most + DIAKLINK_JOVAHAGYAS_UTAN_MS;
+  return ms < minimum ? new Date(minimum) : null;
+}
+
 module.exports = {
+  DIAKLINK_JOVAHAGYAS_UTAN_MS,
+  diaklinkJovahagyasUtan,
   LINK_ERVENYESSEG_MS,
   DIAKLINK_ERVENYESSEG_MS,
   SZOVEG_MAX,

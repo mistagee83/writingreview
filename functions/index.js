@@ -16,6 +16,7 @@
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
@@ -183,6 +184,7 @@ const HIBA_SZOVEG = {
   link_nincs: () => "A link nem található.",
   nem_a_te_linked: () => "Ez nem a te feladatod linkje.",
   link_ervenytelen: () => "Ez a link nem érvényes. Ellenőrizd, hogy pontosan másoltad-e, vagy kérj újat a tanárodtól.",
+  diaklink_ervenytelen: () => "Ez a link nem érvényes. Ellenőrizd, hogy pontosan nyitottad-e meg.",
   link_lejart: () => "Ez a link lejárt, már nem lehet rajta beadni.",
   link_lezarva: () => "A tanár lezárta ezt a linket, már nem lehet rajta beadni.",
   link_betelt: () => "Ezen a linken már nem lehet több beadást fogadni. Szólj a tanárodnak.",
@@ -1384,8 +1386,10 @@ async function jovahagyasLogika(uid, adat) {
     jovahagyva_at: FieldValue.serverTimestamp()
   });
 
+  const diaklinkLejar = feladatlink.diaklinkJovahagyasUtan(beadas.diaklink_lejar);
   batch.update(beadasRef, {
     statusz: "elkuldve",
+    ...(diaklinkLejar ? { diaklink_lejar: diaklinkLejar } : {}),
     frissitve: FieldValue.serverTimestamp()
   });
 
@@ -2864,3 +2868,100 @@ exports.ertekelesSor = onDocumentUpdated(
 );
 
 Object.assign(exports._teszt, { sorbaAllithato, sorIndul, ertekelesInditasLogika, sorFeldolgozas, ERTEKELES_LISTA_MAX });
+
+// ══════════════════════════════════════════════════════
+// 15. A DIÁK VISSZAJELZÉSE (belépés nélkül, a diáklinken)
+//
+// A diák a beadáskor kapott saját tokenjével (visszajelzes.html?d=…) nézi meg a tanár által
+// JÓVÁHAGYOTT visszajelzést. A beadás azonosítója a token lenyomata, így a token más beadást
+// nem nyithat meg. Az AI nyers értékelése és az írás közbeni jelzések soha nem mennek ki:
+// csak a tanári visszajelzés (ertekeles/tanari) mezői, kifejezett listával. AI-t nem hív.
+// ══════════════════════════════════════════════════════
+
+const ms = (v) => (v?.toMillis ? v.toMillis() : v instanceof Date ? v.getTime() : null);
+const isoIdo = (v) => (ms(v) ? new Date(ms(v)).toISOString() : null);
+
+async function diakVisszajelzesLogika(firestore, adat, { most = Date.now() } = {}) {
+  const token = adat?.token;
+  if (!feladatlink.tokenErvenyes(token)) throw hiba("invalid-argument", "diaklink_ervenytelen");
+  const ref = firestore.collection("beadasok").doc(feladatlink.tokenHash(token));
+  const snap = await ref.get();
+  // Csak a feladatlinken született beadásnak van diáklinkje.
+  if (!snap.exists || !snap.data().link_id) throw hiba("not-found", "diaklink_ervenytelen");
+  const b = snap.data();
+  const lejar = ms(b.diaklink_lejar);
+  if (!lejar || most > lejar) return { allapot: "lejart" };
+
+  const feladatSnap = await firestore.collection("feladatok").doc(b.feladat_id).get();
+  const alap = {
+    cim: String(feladatSnap.data()?.cim || ""),
+    becenev: String(b.becenev || ""),
+    beadva: isoIdo(b.letrehozva),
+    lejar: new Date(lejar).toISOString()
+  };
+  // Amíg a tanár nem hagyta jóvá, a diák semmit nem lát (azt sem, hogy fut-e az értékelés).
+  if (b.statusz !== "elkuldve") return { allapot: "varakozik", ...alap };
+  const tanari = (await ref.collection("ertekeles").doc("tanari").get()).data();
+  if (!tanari) return { allapot: "varakozik", ...alap };
+
+  const szam = (v) => (Number.isFinite(v) ? v : null);
+  return {
+    allapot: "kesz",
+    ...alap,
+    szoveg: String(b.szoveg || ""),
+    visszajelzes: {
+      jegy: tanari.jegy ?? null,
+      jegy_tipus: typeof tanari.jegy_tipus === "string" ? tanari.jegy_tipus : null,
+      szoveg: String(tanari.szoveg || ""),
+      szempontok: (Array.isArray(tanari.szempontok) ? tanari.szempontok : []).map((sz) => ({
+        cim: String(sz?.cim || sz?.kulcs || ""),
+        pont: szam(sz?.pont),
+        max: szam(sz?.max),
+        megjegyzes: String(sz?.megjegyzes || "")
+      })),
+      osszpontszam: szam(tanari.osszpontszam),
+      max_pontszam: szam(tanari.max_pontszam),
+      szazalek: szam(tanari.szazalek),
+      jovahagyva: isoIdo(tanari.jovahagyva_at)
+    }
+  };
+}
+
+// Belépés nélkül hívható: a diák saját tokenje a jogosultság.
+exports.diakVisszajelzes = onCall(HIVAS_OPCIOK, async (request) => diakVisszajelzesLogika(db(), request.data));
+
+// ── Időzített takarítás (naponta) ──
+// 1. A lejárt feladatlinkek becenév-foglalásai (a lejárat után 1 nappal): már semmire nem kellenek.
+//    A lekérdezés a lejárat utáni 30 napot nézi, így néhány kimaradt futást is pótol.
+// 2. A megőrzési időnél (12 hónap) régebbi beadások az értékelésekkel együtt, és az ennél régebben
+//    lejárt linkek. Futásonként legfeljebb TAKARITAS_MAX dokumentum: a maradék másnap következik.
+const NAP_MS = 24 * 60 * 60 * 1000;
+const MEGORZES_MS = 365 * NAP_MS;
+const TAKARITAS_MAX = 300;
+
+async function takaritasLogika(firestore, { most = Date.now(), max = TAKARITAS_MAX } = {}) {
+  const linkek = firestore.collection("linkek");
+  const lejartLinkek = await linkek
+    .where("lejar", "<", new Date(most - NAP_MS))
+    .where("lejar", ">=", new Date(most - 30 * NAP_MS))
+    .get();
+  for (const l of lejartLinkek.docs) await firestore.recursiveDelete(l.ref.collection("becenevek"));
+
+  const regiBeadasok = await firestore.collection("beadasok")
+    .where("letrehozva", "<", new Date(most - MEGORZES_MS)).limit(max).get();
+  for (const d of regiBeadasok.docs) await firestore.recursiveDelete(d.ref);
+
+  const regiLinkek = await linkek.where("lejar", "<", new Date(most - MEGORZES_MS)).limit(max).get();
+  for (const d of regiLinkek.docs) await firestore.recursiveDelete(d.ref);
+
+  const eredmeny = { becenev_linkek: lejartLinkek.size, beadasok: regiBeadasok.size, linkek: regiLinkek.size };
+  logger.info("Takarítás", eredmeny);
+  return eredmeny;
+}
+
+exports.takaritas = onSchedule(
+  { schedule: "every day 03:30", timeZone: "Europe/Budapest", region: REGION, timeoutSeconds: 540 },
+  async () => { await takaritasLogika(db()); }
+);
+
+Object.assign(exports._teszt, { diakVisszajelzesLogika, takaritasLogika, MEGORZES_MS });

@@ -113,7 +113,19 @@ export default {
   "beadas.szempont": "Szempont",
   "beadas.pont": "Pont",
 
-  // ── vj (visszajelzes.html) ──
+  // ── vj (visszajelzes.html, a diák a saját diáklinkjén) ──
+  "vj.oldalcim": "WritingReview – Visszajelzés",
+  "vj.cim": "Visszajelzés",
+  "vj.alcim": "{becenev} · beadva: {datum}",
+  "vj.ervenytelen": "Ez a link nem érvényes. Ellenőrizd, hogy pontosan nyitottad-e meg (a beadás után kapott linket vagy QR-kódot).",
+  "vj.lejart": "Ez a link lejárt, a visszajelzés már nem nézhető meg rajta. Ha szükséged van rá, kérdezd meg a tanárodat.",
+  "vj.varakozik": "A tanárod még nem küldte el a visszajelzést. Nézz vissza később ezen a linken. Eddig él: {datum}",
+  "vj.jegy": "Jegy",
+  "vj.tanari_cim": "💬 A tanárod visszajelzése",
+  "vj.elkuldve": "Elküldve: {datum}",
+  "vj.pontozas_cim": "📊 Pontozás",
+  "vj.szoveged_cim": "✍️ A beadott szöveged",
+  "vj.eddig_el": "Ha meg akarod tartani a visszajelzést, mentsd el, vagy készíts róla képernyőképet. A link eddig él: {datum}",
   "vj.pont_osszes": "{ossz} / {max} pont",
   "vj.megjegyzes": "Megjegyzés",
   "vj.osszesen": "Összesen",
@@ -946,5 +958,6 @@ export default {
   "szerver.becenev_foglalt": "Ezt a becenevet valaki már használja ezen a linken. Válassz másikat.",
   "szerver.szoveg_ervenytelen": "A szöveg üres, vagy túl hosszú (legfeljebb 20 000 karakter).",
   "szerver.jelzesek_ervenytelen": "A beadás adatai hibásak. Töltsd újra az oldalt, és próbáld újra.",
-  "szerver.ertekeles_lista_hibas": "A kiválasztott beadások listája hibás (legfeljebb 100 azonosító)."
+  "szerver.ertekeles_lista_hibas": "A kiválasztott beadások listája hibás (legfeljebb 100 azonosító).",
+  "szerver.diaklink_ervenytelen": "Ez a link nem érvényes. Ellenőrizd, hogy pontosan nyitottad-e meg."
 };
