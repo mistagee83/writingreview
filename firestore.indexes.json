@@ -105,6 +105,24 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "beadasok",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "tanar_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "feladat_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "statusz",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

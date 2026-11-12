@@ -80,6 +80,7 @@
   oldalsav('feladatok.html', { admin });
 
   const linkInditas = httpsCallable(functions, 'linkInditas');
+  const ertekelesInditas = httpsCallable(functions, 'ertekelesInditas');
   const linkLezaras = httpsCallable(functions, 'linkLezaras');
 
   const feladatId = new URLSearchParams(location.search).get('feladat');
@@ -203,9 +204,33 @@
         <button class="btn-sm" id="btn-uj">${elo ? t('meg.uj_masik') : t('meg.uj')}</button>
       </div>`}
       <p class="halvany" style="margin-bottom:1.5rem;">${t('meg.tipp')}</p>
+      <div class="panel">
+        <div class="panel-header"><h2>${t('meg.beadasok_cim')}</h2></div>
+        <div class="panel-body">
+          <p>${t('meg.beadott_db', { db: beadottDb })}</p>
+          <div class="gomb-sor">
+            ${beadottDb > 0 ? `<button class="btn-primary" id="btn-ertekel">${t('meg.ertekeles_inditas', { db: beadottDb })}</button>` : ''}
+            <a class="btn-sm" href="javitas.html">${t('meg.javitasi_sor')}</a>
+          </div>
+          <p class="halvany" style="margin-top:0.75rem;">${t('meg.ertekeles_tipp')}</p>
+        </div>
+      </div>
       ${lista}`;
 
     document.getElementById('btn-uj')?.addEventListener('click', ujLink);
+    document.getElementById('btn-ertekel')?.addEventListener('click', async (e) => {
+      uzenetTorles('msg');
+      const vissza = gombVar(e.currentTarget, t('meg.ertekeles_folyamat'));
+      try {
+        const { data } = await ertekelesInditas({ feladatId });
+        uzenet('msg', data.kimaradt > 0
+          ? t('jav.sorba_reszben', { db: data.inditva, kimaradt: data.kimaradt })
+          : t('jav.sorba_kesz', { db: data.inditva }), data.kimaradt > 0 ? 'error' : 'success');
+      } catch (err) {
+        uzenet('msg', hibaSzoveg(err));
+        vissza();
+      }
+    });
     if (elo) {
       document.getElementById('btn-masol').addEventListener('click', (e) =>
         vagolapra(document.getElementById('link-url').value, e.currentTarget));
@@ -239,6 +264,14 @@
       vissza();
     }
   }
+
+  // A beadott, még nem értékelt szövegek száma ennél a feladatnál (élő)
+  let beadottDb = 0;
+  onSnapshot(
+    query(collection(db, 'beadasok'), where('tanar_id', '==', user.uid), where('feladat_id', '==', feladatId), where('statusz', '==', 'feltoltve')),
+    (snap) => { beadottDb = snap.size; rajzol(); },
+    (err) => console.error(err)
+  );
 
   onSnapshot(
     query(collection(db, 'linkek'), where('tanar_id', '==', user.uid), where('feladat_id', '==', feladatId), orderBy('letrehozva', 'desc')),

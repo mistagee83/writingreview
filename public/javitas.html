@@ -44,6 +44,13 @@
       <button class="szuro-btn" data-statusz="mind" data-i18n="jav.szuro_mind">Mind</button>
     </div>
 
+    <!-- A beadott (még nem értékelt) szövegek: a tanár indítja az AI-értékelést, egyszerre az összesre. -->
+    <div class="ertekeles-sav" id="ertekeles-sav" hidden>
+      <button class="btn-primary" id="btn-mind-ertekel"></button>
+      <span class="halvany" data-i18n="jav.mind_tipp">Az értékelés a háttérben fut, nem kell megvárnod. Az elkészült dolgozatok az „Ellenőrzésre vár” szűrőben jelennek meg.</span>
+    </div>
+    <div class="msg" id="lista-msg"></div>
+
     <div id="lista"><div class="empty-state bare"><p data-i18n="kozos.betoltes">Betöltés...</p></div></div>
   </main>
 </div>
@@ -146,13 +153,18 @@
     if (leiratkozas) leiratkozas();
 
     const alap = [collection(db, 'beadasok'), where('tanar_id', '==', user.uid)];
+    // A "Feldolgozás alatt" szűrő a sorban állókat is mutatja (a tanár már elindította őket).
     const q = statusz === 'mind'
       ? query(...alap, orderBy('letrehozva', 'desc'))
-      : query(...alap, where('statusz', '==', statusz), orderBy('letrehozva', 'desc'));
+      : statusz === 'folyamatban'
+        ? query(...alap, where('statusz', 'in', ['sorban', 'folyamatban']), orderBy('letrehozva', 'desc'))
+        : query(...alap, where('statusz', '==', statusz), orderBy('letrehozva', 'desc'));
+    aktivSzuro = statusz;
 
     lista.innerHTML = `<div class="empty-state bare"><p>${t('kozos.betoltes')}</p></div>`;
 
     leiratkozas = onSnapshot(q, async (snap) => {
+      savFrissit(statusz === 'feltoltve' ? snap.size : 0);
       if (snap.empty) {
         lista.innerHTML = `<div class="empty-state">
           <div class="empty-icon">📭</div><p>${t('jav.nincs_beadas')}</p></div>`;
@@ -180,7 +192,7 @@
             <div class="list-card-actions">
               <button class="btn-sm" data-akcio="nyit" data-id="${esc(d.id)}">${t('jav.megnyitas')}</button>
               ${b.statusz === 'feltoltve'
-                ? `<button class="btn-sm kiemelt" data-akcio="ujra" data-id="${esc(d.id)}">${t('jav.ertekeles_inditas')}</button>` : ''}
+                ? `<button class="btn-sm kiemelt" data-akcio="sorba" data-id="${esc(d.id)}">${t('jav.ertekeles_inditas')}</button>` : ''}
               ${['hiba', 'javitva'].includes(b.statusz)
                 ? `<button class="btn-sm" data-akcio="ujra" data-id="${esc(d.id)}">${t('jav.ujra')}</button>` : ''}
             </div>
@@ -202,6 +214,30 @@
     figyel(b.dataset.statusz);
   });
 
+  // ── Az összes beadott értékelése ──
+  let aktivSzuro = 'javitva';
+  const ertekelesInditas = httpsCallable(functions, 'ertekelesInditas');
+  const sav = document.getElementById('ertekeles-sav');
+  const mindGomb = document.getElementById('btn-mind-ertekel');
+  function savFrissit(db) {
+    sav.hidden = !(aktivSzuro === 'feltoltve' && db > 0);
+    mindGomb.textContent = t('jav.mind_ertekel', { db });
+  }
+  mindGomb.addEventListener('click', async () => {
+    uzenetTorles('lista-msg');
+    const vissza = gombVar(mindGomb, t('jav.sorba_folyamat'));
+    try {
+      const { data } = await ertekelesInditas({});
+      uzenet('lista-msg', data.kimaradt > 0
+        ? t('jav.sorba_reszben', { db: data.inditva, kimaradt: data.kimaradt })
+        : t('jav.sorba_kesz', { db: data.inditva }), data.kimaradt > 0 ? 'error' : 'success');
+    } catch (err) {
+      uzenet('lista-msg', hibaSzoveg(err));
+    } finally {
+      vissza();
+    }
+  });
+
   figyel('javitva');
 
   // ══════════════════════════════════════════
@@ -213,6 +249,18 @@
 
     if (b.dataset.akcio === 'nyit') {
       megnyit(b.dataset.id);
+      return;
+    }
+
+    if (b.dataset.akcio === 'sorba') {
+      const vissza = gombVar(b, t('jav.sorba_folyamat'));
+      try {
+        const { data } = await ertekelesInditas({ beadasIds: [b.dataset.id] });
+        if (data.kimaradt > 0) alert(t('jav.kvota_kimaradt', { db: data.kimaradt }));
+      } catch (err) {
+        alert(t('jav.nem_sikerult', { ok: hibaSzoveg(err) }));
+        vissza();
+      }
       return;
     }
 

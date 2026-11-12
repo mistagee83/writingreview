@@ -15,6 +15,7 @@
 // ══════════════════════════════════════════════════════
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
+const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
@@ -189,6 +190,7 @@ const HIBA_SZOVEG = {
   becenev_foglalt: () => "Ezt a becenevet valaki már használja ezen a linken. Válassz másikat.",
   szoveg_ervenytelen: () => "A szöveg üres, vagy túl hosszú (legfeljebb 20 000 karakter).",
   jelzesek_ervenytelen: () => "A beadás adatai hibásak. Töltsd újra az oldalt, és próbáld újra.",
+  ertekeles_lista_hibas: () => "A kiválasztott beadások listája hibás (legfeljebb 100 azonosító).",
   onregisztracio_ki: () => "Az önálló tanári regisztráció ebben a környezetben nincs bekapcsolva.",
   email_nincs_megerositve: () => "Előbb erősítsd meg az e-mail-címedet a kapott levélben.",
   tanari_kerelem_hianyzik: () => "Ez a fiók nem tanári regisztrációval jött létre. Regisztrálj új fiókot tanárként.",
@@ -1022,13 +1024,15 @@ function foglalasLejart(adat, most = Date.now()) {
 }
 
 /** @returns {Promise<string|null>} a futásazonosító; null, ha nem foglalható (más fut, vagy nem az induló állapot). */
-async function beadasFoglalas(firestore, beadasRef, { csakFeltoltve = false } = {}) {
+async function beadasFoglalas(firestore, beadasRef, { csakFeltoltve = false, csakSorban = false } = {}) {
   const futasId = randomUUID();
   const sikerult = await firestore.runTransaction(async (tx) => {
     const snap = await tx.get(beadasRef);
     if (!snap.exists) return false;
     const adat = snap.data();
     if (csakFeltoltve && adat.statusz !== "feltoltve") return false;
+    // A tanár sorba állította (ertekelesInditas): csak a sorban lévőt dolgozzuk fel, egyszer.
+    if (csakSorban && adat.statusz !== "sorban") return false;
     if (adat.statusz === "folyamatban" && !foglalasLejart(adat)) return false;
     tx.update(beadasRef, {
       statusz: "folyamatban",
@@ -2720,3 +2724,143 @@ exports.linkAdatok = onCall(HIVAS_OPCIOK, async (request) => linkAdatokLogika(db
 exports.linkBeadas = onCall(HIVAS_OPCIOK, async (request) => linkBeadasLogika(db(), request.data));
 
 Object.assign(exports._teszt, { linkInditasLogika, linkLezarasLogika, linkAdatokLogika, linkBeadasLogika });
+
+// ══════════════════════════════════════════════════════
+// 14. ÉRTÉKELÉS INDÍTÁSA (tanár) – sorba állítás és háttérfeldolgozás
+//
+// A tanár egy gombbal indítja az értékelést egy feladat (vagy az összes, vagy a kijelölt)
+// beadott szövegére. A hívás NEM várja meg az AI-t: a beadásokat "sorban" állapotba teszi,
+// és azonnal visszatér (egy 60 fős link sem fut ki az időkorlátból, és a böngészőt sem kell
+// nyitva tartani). A sort egy Firestore-trigger dolgozza fel, legfeljebb 5 példányban
+// egyszerre. A trigger CSAK a tanár sorba állítására indul (a "sorban" állapotba lépésre) –
+// a diák beadása (statusz: "feltoltve") nem indít AI-t (docs/prod-atalakitas-terv.md, 9.).
+//
+// A keret: a sorba állításkor a maradék keretig állítunk sorba (a többi "feltoltve" marad, a
+// tanár látja, hány maradt ki). Ha a feldolgozáskor mégis elfogy (pl. közben más is fogyasztott),
+// a beadás visszakerül "feltoltve" állapotba a keret-üzenettel – nem esik hibára.
+// ══════════════════════════════════════════════════════
+
+const ERTEKELES_LISTA_MAX = 100;
+
+/** Sorba állítható-e: beadott, vagy már sorban van, de a sorba állítás elakadt (lejárt). */
+function sorbaAllithato(adat, most = Date.now()) {
+  if (!adat) return false;
+  if (adat.statusz === "feltoltve") return true;
+  if (adat.statusz !== "sorban") return false;
+  const t = adat.sorba_allitva?.toMillis?.() ?? adat.frissitve?.toMillis?.();
+  return !t || most - t > FOGLALAS_LEJARAT_MS;
+}
+
+/** A trigger akkor dolgoz fel, ha a beadás most került sorba (vagy újra sorba állították). */
+function sorIndul(elotte, utana) {
+  if (utana?.statusz !== "sorban") return false;
+  if (elotte?.statusz !== "sorban") return true;
+  const ido = (x) => x?.sorba_allitva?.toMillis?.() ?? null;
+  return ido(elotte) !== ido(utana);
+}
+
+/**
+ * Sorba állítás. `adat`: { feladatId? } – egy feladat beadottjai (nélküle a tanár összes beadottja),
+ * vagy { beadasIds: [...] } – a kijelöltek. Csak a hívó tanár beadásai, csak a sorba állíthatók.
+ * @returns {{inditva: number, kimaradt: number, kimaradt_ok: "kvota" | null}}
+ */
+async function ertekelesInditasLogika(firestore, uid, adat, { beallitasok = BEALLITASOK, most = Date.now() } = {}) {
+  let jeloltek;
+  if (adat?.beadasIds !== undefined) {
+    const ids = adat.beadasIds;
+    if (!Array.isArray(ids) || ids.length === 0 || ids.length > ERTEKELES_LISTA_MAX
+        || !ids.every((x) => typeof x === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(x))) {
+      throw hiba("invalid-argument", "ertekeles_lista_hibas");
+    }
+    const snapok = await firestore.getAll(...[...new Set(ids)].map((id) => firestore.collection("beadasok").doc(id)));
+    jeloltek = snapok.filter((d) => d.exists);
+  } else {
+    let q = firestore.collection("beadasok").where("tanar_id", "==", uid).where("statusz", "in", ["feltoltve", "sorban"]);
+    if (adat?.feladatId !== undefined) {
+      if (typeof adat.feladatId !== "string" || !adat.feladatId) throw hiba("invalid-argument", "feladat_id_kell");
+      q = q.where("feladat_id", "==", adat.feladatId);
+    }
+    jeloltek = (await q.get()).docs;
+  }
+
+  const sorbaValok = jeloltek
+    .filter((d) => d.data().tanar_id === uid && sorbaAllithato(d.data(), most))
+    .sort((a, b) => (a.data().letrehozva?.toMillis?.() ?? 0) - (b.data().letrehozva?.toMillis?.() ?? 0));
+
+  // A maradék keretig (kvótás környezetben; a pilotban nincs korlát).
+  let kfer = sorbaValok.length;
+  if (beallitasok.kvota) {
+    const k = await kvotaAllapotLogika(firestore, uid, beallitasok, new Date(most));
+    if (k.limit !== null && k.limit !== undefined) {
+      const egyseg = kvota.EGYSEG_KOLTSEG.beadas;
+      kfer = Math.max(0, Math.min(kfer, Math.floor((k.limit - k.hasznalt) / egyseg)));
+    }
+  }
+  const inditando = sorbaValok.slice(0, kfer);
+
+  for (let i = 0; i < inditando.length; i += 400) {
+    const batch = firestore.batch();
+    for (const d of inditando.slice(i, i + 400)) {
+      batch.update(d.ref, {
+        statusz: "sorban",
+        sorba_allitva: FieldValue.serverTimestamp(),
+        hiba: null, hiba_kod: null, hiba_adat: null,
+        frissitve: FieldValue.serverTimestamp()
+      });
+    }
+    await batch.commit();
+  }
+
+  const kimaradt = sorbaValok.length - inditando.length;
+  logger.info("Értékelés sorba állítva", { tanar: uid, inditva: inditando.length, kimaradt });
+  return { inditva: inditando.length, kimaradt, kimaradt_ok: kimaradt > 0 ? "kvota" : null };
+}
+
+/** Egy sorban lévő beadás feldolgozása (a trigger hívja; a tesztek közvetlenül). */
+async function sorFeldolgozas(beadasId) {
+  try {
+    return await feldolgozBeadas(beadasId, { csakSorban: true });
+  } catch (e) {
+    const kod = String(e.details?.kod || "");
+    if (kod.startsWith("kvota_elfogyott")) {
+      // Elfogyott a keret: vissza a beadottak közé, az üzenettel – a tanár később újraindíthatja.
+      const ref = db().collection("beadasok").doc(beadasId);
+      await db().runTransaction(async (tx) => {
+        const adat = (await tx.get(ref)).data();
+        if (adat?.statusz !== "sorban") return;
+        tx.update(ref, {
+          statusz: "feltoltve", hiba: e.message, hiba_kod: kod, hiba_adat: e.details || null,
+          frissitve: FieldValue.serverTimestamp()
+        });
+      }).catch((m) => logger.error("A sor visszaállítása nem sikerült", { beadasId, hiba: m.message }));
+      return { kvota: true };
+    }
+    await hibaraAllit(beadasId, e, e.futasId);
+    return { hiba: true };
+  }
+}
+
+exports.ertekelesInditas = onCall(HIVAS_OPCIOK, async (request) => {
+  return ertekelesInditasLogika(db(), tanar(request), request.data);
+});
+
+// A sor feldolgozója. retry: false – egy elhasalt AI-hívást nem ismételgetünk (fizetős); a
+// tanár újraindíthatja. concurrency: 1 és maxInstances: 5 – legfeljebb 5 AI-hívás egyszerre.
+exports.ertekelesSor = onDocumentUpdated(
+  {
+    document: "beadasok/{beadasId}",
+    region: REGION,
+    secrets: AI_TITKOK,
+    timeoutSeconds: 540,
+    memory: "1GiB",
+    retry: false,
+    concurrency: 1,
+    maxInstances: 5
+  },
+  async (event) => {
+    if (!sorIndul(event.data?.before?.data(), event.data?.after?.data())) return;
+    await sorFeldolgozas(event.params.beadasId);
+  }
+);
+
+Object.assign(exports._teszt, { sorbaAllithato, sorIndul, ertekelesInditasLogika, sorFeldolgozas, ERTEKELES_LISTA_MAX });

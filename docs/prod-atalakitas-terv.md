@@ -182,6 +182,16 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
    A jobb klikkes menüt szándékosan nem tiltjuk (a beillesztés úgyis tiltott, a helyesírás-javaslatokhoz kell).
 6. **Tanári értékelésindítás.** A trigger helyett `ertekelesInditas` callable (egy vagy több beadás, párhuzamossági korláttal,
    kvótaegységgel). Az értékelő prompt csak a szöveget kapja.
+   **Kész (2026-11-12).** `ertekelesInditas` (tanár): egy feladat beadottjai, a tanár összes beadottja, vagy legfeljebb 100
+   kijelölt beadás kerül `sorban` állapotba (`sorba_allitva` időbélyeggel), a maradék AI-keretig – ami nem fér bele,
+   `feltoltve` marad, és a válasz jelzi. A hívás nem várja meg az AI-t. A sort az `ertekelesSor` Firestore-trigger dolgozza
+   fel (`onDocumentUpdated`, csak a `sorban` állapotba lépésre – a diák beadására nem; `retry: false`, `concurrency: 1`,
+   `maxInstances: 5`). Ha a feldolgozáskor fogy el a keret, a beadás visszakerül `feltoltve`-be a keret-üzenettel. Az elakadt
+   (10 percnél régebben sorban álló) beadás újra sorba állítható. Felület: a javítási sor „Beadva” szűrőjében „✨ Az összes
+   beadott értékelése (N)”, soronként „✨ Értékelés indítása” (ez is a sorba megy), a „Feldolgozás alatt” szűrő a sorban
+   állókat is mutatja; a megosztási oldalon a feladat beadottjainak száma és „✨ Értékelés indítása (N)”. Új index:
+   `beadasok: tanar_id + feladat_id + statusz`. **Deploy-hatás:** új függvények (`ertekelesInditas`, `ertekelesSor`); a régi
+   `beadasFeldolgozas` a deploykor törlődik.
 7. **Visszajelzés a diáknak.** `diakVisszajelzes` callable, diáklink-oldal, lejárat. Időzített takarítás (5. pont, megőrzés).
 8. **Prod-előkészítés és kiadás.** A régi prod-adatok törlése (a tulajdonos végzi, vagy kifejezett engedélyével), a régi
    függvények törlése a deployban, a Storage-szabály szigorítása, nyitóoldal és csomagok frissítése, végigpróbálás, címkés

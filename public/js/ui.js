@@ -13,6 +13,7 @@ import { t, nyelv, vanKulcs } from "./i18n.js";
  */
 export const STATUSZ_TANAR = {
   feltoltve:   { kulcs: "statusz.tanar.feltoltve", osztaly: "feltoltve" },
+  sorban:      { kulcs: "statusz.tanar.sorban", osztaly: "folyamatban" },
   folyamatban: { kulcs: "statusz.tanar.folyamatban", osztaly: "folyamatban" },
   javitva:     { kulcs: "statusz.tanar.javitva", osztaly: "javitva" },
   elkuldve:    { kulcs: "statusz.tanar.elkuldve", osztaly: "elkuldve" },
@@ -21,6 +22,7 @@ export const STATUSZ_TANAR = {
 
 export const STATUSZ_DIAK = {
   feltoltve:   { kulcs: "statusz.diak.feltoltve", osztaly: "feltoltve" },
+  sorban:      { kulcs: "statusz.diak.sorban", osztaly: "folyamatban" },
   folyamatban: { kulcs: "statusz.diak.folyamatban", osztaly: "folyamatban" },
   javitva:     { kulcs: "statusz.diak.javitva", osztaly: "javitva" },
   elkuldve:    { kulcs: "statusz.diak.elkuldve", osztaly: "elkuldve" },

@@ -110,3 +110,85 @@ test("fotós (képutas) beadás: nem fut AI-hívás, a feldolgozás elutasítja 
   await assert.rejects(() => logika.feldolgozBeadas("b1"), /nem egyeznek/);
   assert.equal(kerek.length, 0, "érvénytelen beadásra nincs AI-hívás");
 });
+
+// ── 6. lépés: a tanár indítja az értékelést (sorba állítás + háttérfeldolgozás) ──
+
+test("sorba állítás: a tanár beadottjai sorba kerülnek, az idegen és a már javított nem", async () => {
+  await beadasLetrehoz({ forras: "szoveg", szoveg: SZOVEG });
+  await firestore.collection("beadasok").doc("b2").set({ feladat_id: "f1", tanar_id: "t1", forras: "szoveg", szoveg: SZOVEG, statusz: "javitva" });
+  await firestore.collection("beadasok").doc("b3").set({ feladat_id: "f1", tanar_id: "mas-tanar", forras: "szoveg", szoveg: SZOVEG, statusz: "feltoltve" });
+  const kerek = [];
+  geminiStub(kerek);
+  const r = await logika.ertekelesInditasLogika(firestore, "t1", { feladatId: "f1" });
+  assert.deepEqual(r, { inditva: 1, kimaradt: 0, kimaradt_ok: null });
+  assert.equal(kerek.length, 0, "a sorba állítás maga nem hív AI-t");
+  const b1 = (await firestore.collection("beadasok").doc("b1").get()).data();
+  assert.equal(b1.statusz, "sorban");
+  assert.ok(b1.sorba_allitva);
+  assert.equal((await firestore.collection("beadasok").doc("b2").get()).data().statusz, "javitva");
+  assert.equal((await firestore.collection("beadasok").doc("b3").get()).data().statusz, "feltoltve");
+  // a kijelölt idegen beadás sem kerül sorba
+  const idegen = await logika.ertekelesInditasLogika(firestore, "t1", { beadasIds: ["b3"] });
+  assert.equal(idegen.inditva, 0);
+});
+
+test("sorba állítás: a hibás kijelölés-lista elutasítva", async () => {
+  for (const beadasIds of [[], "b1", [42], Array(101).fill("b"), ["../x"]]) {
+    await assert.rejects(() => logika.ertekelesInditasLogika(firestore, "t1", { beadasIds }),
+      (e) => e.details?.kod === "ertekeles_lista_hibas", JSON.stringify(beadasIds).slice(0, 30));
+  }
+});
+
+test("sor feldolgozása: a sorban lévő beadás egy értékeléssel javított lesz; a nem sorban lévőhöz nem nyúl", async () => {
+  await beadasLetrehoz({ forras: "szoveg", szoveg: SZOVEG });
+  const kerek = [];
+  geminiStub(kerek);
+  // nincs sorban: kihagyja, AI nélkül
+  const kihagy = await logika.sorFeldolgozas("b1");
+  assert.deepEqual(kihagy, { kihagyva: true });
+  assert.equal(kerek.length, 0);
+  await logika.ertekelesInditasLogika(firestore, "t1", { beadasIds: ["b1"] });
+  const r = await logika.sorFeldolgozas("b1");
+  assert.equal(r.osszpontszam, 7);
+  assert.equal(kerek.length, 1);
+  assert.equal((await firestore.collection("beadasok").doc("b1").get()).data().statusz, "javitva");
+});
+
+test("sor feldolgozása: elfogyott keretnél a beadás visszakerül a beadottak közé, nem hibára", async () => {
+  await beadasLetrehoz({ forras: "szoveg", szoveg: SZOVEG });
+  await logika.ertekelesInditasLogika(firestore, "t1", { beadasIds: ["b1"] });
+  // a keret közben elfogyott (ingyenes csomag: 20 egység)
+  await firestore.collection("tanarok").doc("t1").collection("hasznalat").doc("osszes").set({ egyseg: 20 });
+  const kerek = [];
+  geminiStub(kerek);
+  const eredeti = logika.BEALLITASOK.kvota;
+  logika.BEALLITASOK.kvota = true;
+  try {
+    const r = await logika.sorFeldolgozas("b1");
+    assert.deepEqual(r, { kvota: true });
+  } finally {
+    logika.BEALLITASOK.kvota = eredeti;
+    await firestore.collection("tanarok").doc("t1").collection("hasznalat").doc("osszes").delete();
+  }
+  assert.equal(kerek.length, 0);
+  const b = (await firestore.collection("beadasok").doc("b1").get()).data();
+  assert.equal(b.statusz, "feltoltve");
+  assert.equal(b.hiba_kod, "kvota_elfogyott_egyszeri");
+});
+
+test("sorba állítás a maradék keretig: ami nem fér bele, beadott marad, és a válasz jelzi", async () => {
+  await beadasLetrehoz({ forras: "szoveg", szoveg: SZOVEG });
+  await firestore.collection("beadasok").doc("b2").set({ feladat_id: "f1", tanar_id: "t1", forras: "szoveg", szoveg: SZOVEG, statusz: "feltoltve" });
+  await firestore.collection("tanarok").doc("t1").collection("hasznalat").doc("osszes").set({ egyseg: 19 });
+  const eredeti = logika.BEALLITASOK.kvota;
+  logika.BEALLITASOK.kvota = true;
+  try {
+    const r = await logika.ertekelesInditasLogika(firestore, "t1", { feladatId: "f1" });
+    assert.deepEqual(r, { inditva: 1, kimaradt: 1, kimaradt_ok: "kvota" });
+  } finally {
+    logika.BEALLITASOK.kvota = eredeti;
+    await firestore.collection("tanarok").doc("t1").collection("hasznalat").doc("osszes").delete();
+  }
+  const allapotok = (await firestore.collection("beadasok").get()).docs.map((d) => d.data().statusz).sort();
+  assert.deepEqual(allapotok, ["feltoltve", "sorban"]);
+});

@@ -25,7 +25,8 @@ ellenőrizve (élő bejelentkezéssel nem: a pilot a régi függvényeken fut). 
 **4. lépés (diákoldal: `iras.html`): kész.** Az automatikus AI-trigger kikerült (a tanár indítja az
 értékelést). Helyi, Firebase-helyettesítős előnézetben ellenőrizve; élő függvényekkel nem (a pilot a régi kódon fut).
 **5. lépés (csalásellenőrzés): kész.** A beillesztés tiltott, új jelzések (kísérlet, nagy betoldás,
-írási idő, időrend), tanári helyesírás-kapcsoló. Következő: 6. lépés (tanári értékelésindítás több beadásra).
+írási idő, időrend), tanári helyesírás-kapcsoló. **6. lépés (értékelés indítása több beadásra): kész (commitolva, nincs deployolva).** Sorba állítás + háttér-feldolgozó (legfeljebb 5
+egyszerre). Következő: 7. lépés (a diák visszajelzés-oldala: `visszajelzes.html?d=…`).
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 

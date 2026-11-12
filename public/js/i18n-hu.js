@@ -17,6 +17,7 @@ export default {
 
   // ── státuszok (tanári nézet) ──
   "statusz.tanar.feltoltve": "📥 Beadva, értékelésre vár",
+  "statusz.tanar.sorban": "⏳ Sorban az értékelésre",
   "statusz.tanar.folyamatban": "⚙️ AI dolgozik",
   "statusz.tanar.javitva": "📝 Jóváhagyásra vár",
   "statusz.tanar.elkuldve": "📧 Elküldve",
@@ -24,6 +25,7 @@ export default {
 
   // ── státuszok (diák nézet) ──
   "statusz.diak.feltoltve": "⏳ Beadva",
+  "statusz.diak.sorban": "⏳ A tanárod értékelteti",
   "statusz.diak.folyamatban": "⚙️ Az AI dolgozik",
   "statusz.diak.javitva": "👀 A tanárod ellenőrzi",
   "statusz.diak.elkuldve": "✅ Elkészült a visszajelzés",
@@ -416,6 +418,12 @@ export default {
   "jav.szuro_elkuldve": "📧 Elküldve",
   "jav.szuro_hiba": "⚠️ Hibás",
   "jav.szuro_mind": "Mind",
+  "jav.mind_ertekel": "✨ Az összes beadott értékelése ({db})",
+  "jav.mind_tipp": "Az értékelés a háttérben fut, nem kell megvárnod. Az elkészült dolgozatok az „Ellenőrzésre vár” szűrőben jelennek meg.",
+  "jav.sorba_folyamat": "Indítás…",
+  "jav.sorba_kesz": "Elindítottad {db} szöveg értékelését. A háttérben fut, nem kell megvárnod.",
+  "jav.sorba_reszben": "Elindítottad {db} szöveg értékelését. {kimaradt} szöveg kimaradt, mert elfogyott az AI-keret.",
+  "jav.kvota_kimaradt": "Ez a szöveg kimaradt, mert elfogyott az AI-keret.",
   "jav.megnyitas": "Megnyitás",
   "jav.ujra": "🔄 Újra",
   "jav.fut": "Fut...",
@@ -880,6 +888,12 @@ export default {
   "meg.inditas_folyamat": "Indítás…",
   "meg.tipp": "Lejárat vagy lezárás után a link már nem fogad beadást. A beérkezett szövegek a Javítási sorban maradnak.",
   "meg.korabbi_cim": "Korábbi linkek",
+  "meg.beadasok_cim": "📥 Beadott szövegek",
+  "meg.beadott_db": "Értékelésre vár: {db} szöveg.",
+  "meg.ertekeles_inditas": "✨ Értékelés indítása ({db})",
+  "meg.ertekeles_folyamat": "Indítás…",
+  "meg.ertekeles_tipp": "Az AI csak akkor értékel, ha elindítod. A háttérben fut, az elkészült dolgozatokat a Javítási sorban nézed át és hagyod jóvá.",
+  "meg.javitasi_sor": "Javítási sor →",
   "meg.v_hatra": "A link még {ido}-ig él",
   "szerver.feladat_zart": "Ez a feladat le van zárva. Nyisd meg újra a feladatlistában, ha linket indítanál hozzá.",
   "szerver.link_id_kell": "Nem derül ki, melyik linkről van szó.",
@@ -931,5 +945,6 @@ export default {
   "szerver.becenev_ervenytelen": "A becenév 2–30 karakter legyen, és legyen benne betű vagy szám.",
   "szerver.becenev_foglalt": "Ezt a becenevet valaki már használja ezen a linken. Válassz másikat.",
   "szerver.szoveg_ervenytelen": "A szöveg üres, vagy túl hosszú (legfeljebb 20 000 karakter).",
-  "szerver.jelzesek_ervenytelen": "A beadás adatai hibásak. Töltsd újra az oldalt, és próbáld újra."
+  "szerver.jelzesek_ervenytelen": "A beadás adatai hibásak. Töltsd újra az oldalt, és próbáld újra.",
+  "szerver.ertekeles_lista_hibas": "A kiválasztott beadások listája hibás (legfeljebb 100 azonosító)."
 };

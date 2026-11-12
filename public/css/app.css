@@ -1937,3 +1937,7 @@ body.theme-diak { background-image: none; }
 .jelzes-idorend summary { cursor: pointer; color: var(--muted); }
 .jelzes-idorend ol { margin: 0.5rem 0 0; padding-left: 1.2rem; }
 .idorend-ido { font-variant-numeric: tabular-nums; color: var(--muted); margin-right: 0.35rem; }
+
+/* ── „Az összes beadott értékelése” sáv (javitas.html) ── */
+.ertekeles-sav { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 0 0 1rem; }
+.ertekeles-sav[hidden] { display: none; }

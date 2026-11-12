@@ -19,6 +19,7 @@ export default {
 
   // ── statuses (teacher view) ──
   "statusz.tanar.feltoltve": "📥 Submitted, awaiting grading",
+  "statusz.tanar.sorban": "⏳ Queued for grading",
   "statusz.tanar.folyamatban": "⚙️ AI working",
   "statusz.tanar.javitva": "📝 Awaiting review",
   "statusz.tanar.elkuldve": "📧 Sent",
@@ -26,6 +27,7 @@ export default {
 
   // ── statuses (student view) ──
   "statusz.diak.feltoltve": "⏳ Submitted",
+  "statusz.diak.sorban": "⏳ Your teacher is having it graded",
   "statusz.diak.folyamatban": "⚙️ Processing",
   "statusz.diak.javitva": "👀 Teacher is reviewing",
   "statusz.diak.elkuldve": "✅ Feedback ready",
@@ -418,6 +420,12 @@ export default {
   "jav.szuro_elkuldve": "📧 Sent",
   "jav.szuro_hiba": "⚠️ Failed",
   "jav.szuro_mind": "All",
+  "jav.mind_ertekel": "✨ Grade all submitted ({db})",
+  "jav.mind_tipp": "Grading runs in the background – you don't have to wait. Finished papers appear under “Awaiting review”.",
+  "jav.sorba_folyamat": "Starting…",
+  "jav.sorba_kesz": "You started grading {db} text(s). It runs in the background – you don't have to wait.",
+  "jav.sorba_reszben": "You started grading {db} text(s). {kimaradt} were left out because the AI allowance ran out.",
+  "jav.kvota_kimaradt": "This text was left out because the AI allowance ran out.",
   "jav.megnyitas": "Open",
   "jav.ujra": "🔄 Re-run",
   "jav.fut": "Running...",
@@ -882,6 +890,12 @@ export default {
   "meg.inditas_folyamat": "Starting…",
   "meg.tipp": "Once a link expires or is closed, it accepts no more submissions. The texts already received stay in the review queue.",
   "meg.korabbi_cim": "Earlier links",
+  "meg.beadasok_cim": "📥 Submitted texts",
+  "meg.beadott_db": "Waiting to be graded: {db}.",
+  "meg.ertekeles_inditas": "✨ Start grading ({db})",
+  "meg.ertekeles_folyamat": "Starting…",
+  "meg.ertekeles_tipp": "The AI only grades when you start it. It runs in the background; you review and approve the finished papers in the review queue.",
+  "meg.javitasi_sor": "Review queue →",
   "meg.v_hatra": "The link works for another {ido}",
   "szerver.feladat_zart": "This task is closed. Reopen it in the task list if you want to start a link for it.",
   "szerver.link_id_kell": "It's not clear which link this is about.",
@@ -933,5 +947,6 @@ export default {
   "szerver.becenev_ervenytelen": "The nickname must be 2–30 characters and contain a letter or a number.",
   "szerver.becenev_foglalt": "Someone is already using this nickname on this link. Choose another one.",
   "szerver.szoveg_ervenytelen": "The text is empty or too long (at most 20,000 characters).",
-  "szerver.jelzesek_ervenytelen": "The submission data is invalid. Reload the page and try again."
+  "szerver.jelzesek_ervenytelen": "The submission data is invalid. Reload the page and try again.",
+  "szerver.ertekeles_lista_hibas": "The list of selected submissions is invalid (at most 100 IDs)."
 };
