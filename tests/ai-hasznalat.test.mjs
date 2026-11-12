@@ -171,6 +171,19 @@ test("jelentés: műveletenként, tanáronként (névvel) és feladatonként; a 
   assert.equal(j.feladat.find((f) => f.feladat_id === "F2").mod, "kifejtos");
 });
 
+test("jelentés: a beírt dolgozat (átírás nélkül) is egy futás – nem csak a fotós", () => {
+  // Regresszió: a futást az átírás számolta, a beírt dolgozatnak pedig nincs átírása – a költsége
+  // beszámított, a darabszáma nem, ezért a dolgozatonkénti átlag túl magas lett.
+  const beirt = rek({ tanar_id: "A", feladat_id: "F1", beadas_id: "b9", mod: "leveles", muvelet: "beadas_ertekeles", prompt: 2000, kimenet: 1000 });
+  const j = a.jelentesOsszeallitas([...mintaRekordok(), beirt]);
+  assert.equal(j.beadas.mind.futas_db, 4);
+  assert.equal(j.beadas.leveles.futas_db, 3);
+  assert.equal(j.tanar.find((t) => t.tanar_id === "A").futas_db, 3);
+  assert.equal(j.feladat.find((f) => f.feladat_id === "F1").futas_db, 3);
+  const lev = usd(10000, 500) + usd(2000, 1000, 3000) + usd(12000, 700) + usd(2200, 900, 2500) + usd(2000, 1000);
+  kozel(j.beadas.leveles.atlag_koltseg_usd, lev / 3, "a beírt dolgozat az átlagot lefelé húzza, nem felfelé");
+});
+
 test("jelentés: üres bemenetre nem dob, és az átlagok üresek", () => {
   const j = a.jelentesOsszeallitas([]);
   assert.equal(j.osszes.hivas, 0);

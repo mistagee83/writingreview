@@ -244,6 +244,13 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **JAVÍTVA A `pilot` ÁGON (2026-11-12, a `main` `eb595d9`-ének cherry-pickje), A PILOTBAN MÉG NEM DEPLOYOLVA: az
+  AI-használat mérése a beírt dolgozatot nem számolta futásnak.** A jelentés a javítási futást az átírási hívásnál
+  számolta; a beírt dolgozatnak nincs átírása, ezért a dolgozatonkénti átlag (és a számoló ajánlott ára) túl magas lett.
+  Most az értékelési hívás számít futásnak. Regressziós teszt: `tests/ai-hasznalat.test.mjs`. **Teendő:**
+  `node scripts/deploy.mjs pilot --only functions` (a `pilot` ágról). A tárolt adat nem változik, a jelentés
+  visszamenőleg is helyes lesz.
+
 - **JAVÍTVA MINDKÉT KÖRNYEZETBEN (pilot 2026-11-05, prod 2026-11-09, `v1.19.1`): a diák nem tudott beadni.** A `beadas.html`
   a beadási felületet a módváltozók (`BEADASI_MOD` stb.) létrehozása előtt jelenítette meg →
   `ReferenceError`, sem fotós, sem beírós felület nem látszott, egyetlen új beadásnál sem
