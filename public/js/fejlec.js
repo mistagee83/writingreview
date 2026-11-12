@@ -34,6 +34,7 @@ const KEZDOLAP = {
 const SZULO = {
   "feladatok.html": "tanar.html",
   "javitas.html": "tanar.html",
+  "csoportok.html": "tanar.html",
   "admin.html": "tanar.html",
   "ai-hasznalat.html": "tanar.html",
   "szamlazando.html": "tanar.html",

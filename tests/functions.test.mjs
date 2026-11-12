@@ -803,3 +803,37 @@ test("takarítás: a 12 hónapnál régebbi beadás (értékeléssel) és link t
   assert.equal((await firestore.collection("linkek").doc(friss.linkId).collection("becenevek").get()).size, 1,
     "az élő link becenév-foglalása megmarad");
 });
+
+// ══════════════════════════════════════════
+// CSOPORTOK (8b): a link és a beadás csoporthoz rendelése
+// ══════════════════════════════════════════
+
+test("csoport: a link a tanár saját, nyitott csoportjához rendelhető; a beadás és a diákoldal is tudja", async () => {
+  await firestore.collection("csoportok").doc("cs1").set({ tanar_id: "tanar-uid", nev: "9.B angol", aktiv: true });
+  await diakLink();
+  const r = await logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "df1", csoportId: "cs1" });
+  assert.equal((await firestore.collection("linkek").doc(r.linkId).get()).data().csoport_id, "cs1");
+  assert.equal((await logika.linkAdatokLogika(firestore, { token: r.token })).csoportos, true);
+  const { diakToken } = await beadas(r.token);
+  const id = (await import("node:crypto")).createHash("sha256").update(diakToken).digest("hex");
+  assert.equal((await firestore.collection("beadasok").doc(id).get()).data().csoport_id, "cs1");
+  // csoport nélkül: null, és a diákoldal nem kér állandó becenevet
+  const sima = await diakLink();
+  assert.equal((await firestore.collection("linkek").doc(sima.linkId).get()).data().csoport_id, null);
+  assert.equal((await logika.linkAdatokLogika(firestore, { token: sima.token })).csoportos, false);
+  await firestore.collection("csoportok").doc("cs1").delete();
+});
+
+test("csoport: idegen, archivált, nem létező és rossz alakú csoporttal nincs link", async () => {
+  await firestore.collection("csoportok").doc("idegen").set({ tanar_id: "masik-tanar", nev: "X", aktiv: true });
+  await firestore.collection("csoportok").doc("archiv").set({ tanar_id: "tanar-uid", nev: "Régi", aktiv: false });
+  await diakLink();
+  const elotte = (await firestore.collection("linkek").get()).size;
+  for (const csoportId of ["idegen", "archiv", "nincs-ilyen", "../x", 42, "a".repeat(129)]) {
+    assert.equal(await kodja(() => logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "df1", csoportId })),
+      "csoport_ervenytelen", String(csoportId).slice(0, 20));
+  }
+  assert.equal((await firestore.collection("linkek").get()).size, elotte, "nem jött létre link");
+  await firestore.collection("csoportok").doc("idegen").delete();
+  await firestore.collection("csoportok").doc("archiv").delete();
+});

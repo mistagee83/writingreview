@@ -15,7 +15,8 @@ const MENU = [
   { label: "nav.menu" },
   { href: "tanar.html",     ikon: "🏠", cim: "nav.fooldal" },
   { href: "feladatok.html", ikon: "📋", cim: "nav.feladatok" },
-  { href: "javitas.html",   ikon: "✏️", cim: "nav.javitas" }
+  { href: "javitas.html",   ikon: "✏️", cim: "nav.javitas" },
+  { href: "csoportok.html", ikon: "👥", cim: "nav.csoportok" }
 ];
 
 // Csak adminnak jelenik meg

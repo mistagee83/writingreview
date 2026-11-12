@@ -71,6 +71,7 @@
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra } from './js/ui.js';
   import { linkUrl, linkAllapot, hatralevo, elsoElo, qrSvg } from './js/megosztas.js';
+  import { valaszthatoCsoportok } from './js/csoport.js';
   import {
     db, functions, httpsCallable,
     collection, doc, getDoc, query, where, orderBy, onSnapshot
@@ -122,6 +123,15 @@
   let linkek = [];
   let kivetitve = false;
 
+  // A tanár csoportjai (8b): a link csoporthoz rendelhető, nem kötelező. Az utolsó választás
+  // ebben a böngészőben megmarad (privát ablakban nincs tároló: akkor csoport nélkül indul).
+  let csoportok = [];
+  const CSOPORT_TAR = 'wr-utolso-csoport';
+  let valasztottCsoport = (() => { try { return localStorage.getItem(CSOPORT_TAR) || ''; } catch (_) { return ''; } })();
+  const csoportNev = (id) => csoportok.find((c) => c.id === id)?.nev || '';
+  const csoportCimke = (l) => l.csoport_id
+    ? `<span class="badge">👥 ${esc(csoportNev(l.csoport_id) || t('meg.csoport_ismeretlen'))}</span>` : '';
+
   const allapotCimke = (a) => ({
     aktiv: `<span class="badge aktiv">${t('meg.allapot_aktiv')}</span>`,
     betelt: `<span class="badge feltoltve">${t('meg.allapot_betelt')}</span>`,
@@ -145,7 +155,7 @@
       return `
         <div class="panel">
           <div class="panel-header">
-            <h2>${t('meg.elo_cim')} ${allapotCimke(allapot)}</h2>
+            <h2>${t('meg.elo_cim')} ${allapotCimke(allapot)} ${csoportCimke(elo)}</h2>
           </div>
           <div class="panel-body">
             <div class="link-megosztas">
@@ -190,6 +200,7 @@
                 <h3>${esc(ido(l.letrehozva))}</h3>
                 <div class="list-card-meta">
                   ${allapotCimke(linkAllapot(l, most))}
+                  ${csoportCimke(l)}
                   <span>${t('meg.beadasok', { db: Number(l.beadas_db) || 0, max: Number(l.beadas_max) || 60 })}</span>
                 </div>
               </div>
@@ -200,8 +211,17 @@
     tartalom.innerHTML = `
       ${eloPanel}
       ${feladat.aktiv === false ? '' : `
-      <div class="gomb-sor" style="margin-bottom:1.5rem;">
-        <button class="btn-sm" id="btn-uj">${elo ? t('meg.uj_masik') : t('meg.uj')}</button>
+      <div class="link-inditas">
+        <label for="csoport-val">${t('meg.csoport_cimke')}</label>
+        <div class="code-input-row">
+          <select id="csoport-val">
+            <option value="">${t('meg.csoport_nelkul')}</option>
+            ${valaszthatoCsoportok(csoportok, t('meta.locale')).map((c) =>
+              `<option value="${esc(c.id)}"${c.id === valasztottCsoport ? ' selected' : ''}>${esc(c.nev)}</option>`).join('')}
+          </select>
+          <button class="btn-sm" id="btn-uj">${elo ? t('meg.uj_masik') : t('meg.uj')}</button>
+        </div>
+        <p class="halvany">${t('meg.csoport_tipp')} <a href="csoportok.html">${t('meg.csoportok_kezelese')}</a></p>
       </div>`}
       <p class="halvany" style="margin-bottom:1.5rem;">${t('meg.tipp')}</p>
       <div class="panel">
@@ -218,6 +238,10 @@
       ${lista}`;
 
     document.getElementById('btn-uj')?.addEventListener('click', ujLink);
+    document.getElementById('csoport-val')?.addEventListener('change', (e) => {
+      valasztottCsoport = e.currentTarget.value;
+      try { localStorage.setItem(CSOPORT_TAR, valasztottCsoport); } catch (_) { /* privát ablak */ }
+    });
     document.getElementById('btn-ertekel')?.addEventListener('click', async (e) => {
       uzenetTorles('msg');
       const vissza = gombVar(e.currentTarget, t('meg.ertekeles_folyamat'));
@@ -244,7 +268,9 @@
     uzenetTorles('msg');
     const vissza = gombVar(e.currentTarget, t('meg.inditas_folyamat'));
     try {
-      await linkInditas({ feladatId });
+      // csak létező, nem archivált csoportot küldünk (a tárolt választás elavulhat)
+      const csoportId = valaszthatoCsoportok(csoportok).some((c) => c.id === valasztottCsoport) ? valasztottCsoport : null;
+      await linkInditas({ feladatId, csoportId });
       // a lista az onSnapshot-tól frissül
     } catch (err) {
       uzenet('msg', hibaSzoveg(err));
@@ -270,6 +296,15 @@
   onSnapshot(
     query(collection(db, 'beadasok'), where('tanar_id', '==', user.uid), where('feladat_id', '==', feladatId), where('statusz', '==', 'feltoltve')),
     (snap) => { beadottDb = snap.size; rajzol(); },
+    (err) => console.error(err)
+  );
+
+  onSnapshot(
+    query(collection(db, 'csoportok'), where('tanar_id', '==', user.uid)),
+    (snap) => {
+      csoportok = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      rajzol();
+    },
     (err) => console.error(err)
   );
 

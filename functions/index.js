@@ -178,6 +178,7 @@ const HIBA_SZOVEG = {
   feladat_id_kell: () => "Nem derül ki, melyik feladatról van szó.",
   feladat_nincs: () => "A feladat nem található.",
   nem_a_te_feladatod: () => "Ez nem a te feladatod.",
+  csoport_ervenytelen: () => "A kiválasztott csoport nem található, vagy archiválva van.",
   nincs_kiertekelt: () => "Ehhez a feladathoz még nincs kiértékelt beadás.",
   feladat_zart: () => "Ez a feladat le van zárva. Nyisd meg újra a feladatlistában, ha linket indítanál hozzá.",
   link_id_kell: () => "Nem derül ki, melyik linkről van szó.",
@@ -2594,15 +2595,26 @@ async function linkInditasLogika(firestore, uid, adat, { most = Date.now(), toke
   if (feladatSnap.data().tanar_id !== uid) throw hiba("permission-denied", "nem_a_te_feladatod");
   if (feladatSnap.data().aktiv === false) throw hiba("failed-precondition", "feladat_zart");
 
+  // A csoport nem kötelező; ha van, a hívó tanár saját, nem archivált csoportja kell legyen.
+  let csoportId = null;
+  if (adat?.csoportId !== undefined && adat?.csoportId !== null && adat?.csoportId !== "") {
+    csoportId = adat.csoportId;
+    if (typeof csoportId !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(csoportId)) throw hiba("invalid-argument", "csoport_ervenytelen");
+    const csoportSnap = await firestore.collection("csoportok").doc(csoportId).get();
+    if (!csoportSnap.exists || csoportSnap.data().tanar_id !== uid || csoportSnap.data().aktiv === false) {
+      throw hiba("failed-precondition", "csoport_ervenytelen");
+    }
+  }
+
   const token = tokenFn();
   const linkId = feladatlink.tokenHash(token);
   const linkRef = firestore.collection("linkek").doc(linkId);
   // create(): egy (gyakorlatilag lehetetlen) ütközés ne írjon felül másik linket
   await linkRef.create({
-    ...feladatlink.ujLinkAdat({ feladatId, tanarId: uid, token, most }),
+    ...feladatlink.ujLinkAdat({ feladatId, tanarId: uid, token, csoportId, most }),
     letrehozva: FieldValue.serverTimestamp()
   });
-  logger.info("Feladatlink indítva", { feladatId, tanar: uid, linkId });
+  logger.info("Feladatlink indítva", { feladatId, tanar: uid, linkId, csoportId });
   return { linkId, token, lejar: new Date(most + feladatlink.LINK_ERVENYESSEG_MS).toISOString() };
 }
 
@@ -2666,6 +2678,7 @@ async function linkAdatokLogika(firestore, adat, { most = Date.now() } = {}) {
     allapot,
     cim,
     lejar: new Date(link.lejar.toMillis ? link.lejar.toMillis() : link.lejar).toISOString(),
+    csoportos: Boolean(link.csoport_id),
     feladat: {
       leiras: String(r.feladat_leiras || ""),
       nyelv: NYELVEK.includes(r.nyelv) ? r.nyelv : ALAP_NYELV,

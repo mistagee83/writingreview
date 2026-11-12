@@ -89,9 +89,8 @@ böngészője küldi és kijátszható.
 - Diákfiók: diákregisztráció és -belépés (`belepes.html` diák ága), `diak.html`, `diakok.html`, `osztalyok.html`,
   `osztalyLetrehozas`, `osztalyhozCsatlakozas`, `diakEltavolitas`, `diakJelszoVisszaallitas`, a diák szerep a szabályokban.
 - Automatikus feldolgozás beadáskor: a `beadasFeldolgozas` (Firestore-trigger) helyére tanári callable kerül.
-- **Fejlődés-követés:** diákazonosság nélkül feladatokon átívelő követés nincs. A nyitóoldal a Profi csomagnál ezt
-  ígéri (`landing` `fejlodes` pont), ezért **a csomagok tartalmát és az árakat újra kell gondolni.** Az osztályelemzés
-  feladatonként (linkenként) megmaradhat.
+- **Fejlődés-követés (diákfiókos):** a diákfiókra épülő követés kikerül. Helyette (2026-11-12-i döntés) becenév alapú
+  követés jön a tanár csoportjain belül – lásd a 7. pont 8b-jét.
 - A nyitóoldal, a működési leírás és a tájékoztató szövegei, amelyek diákfiókról vagy fotóról szólnak.
 
 A pilot (`pilot` ág) mindebből semmit nem veszít.
@@ -210,12 +209,41 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
 8. **Prod-előkészítés és kiadás.** A régi prod-adatok törlése (a tulajdonos végzi, vagy kifejezett engedélyével), a régi
    függvények törlése a deployban, a Storage-szabály szigorítása, nyitóoldal és csomagok frissítése, végigpróbálás, címkés
    kiadás.
-   Alrészek (egyszerre egy): **8a** csomagok, **8b** nyitóoldal, **8c** maradék takarítás (kifejtős CSS, AI-használat
-   „Kifejtős” típusa, működési leírás, jogi szövegek), **8d** App Check, **8e** a régi adatok törlése és a kiadás.
+   Alrészek (egyszerre egy): **8a** csomagok, **8b** csoportok és fejlődés-követés (lásd lent, 2026-11-12-én került be),
+   **8c** nyitóoldal, **8d** maradék takarítás (kifejtős CSS, AI-használat „Kifejtős” típusa, működési leírás, jogi
+   szövegek), **8e** App Check, **8f** a régi adatok törlése és a kiadás.
    **8a – csomagok: kész (2026-11-12).** A fejlődés-követés kikerült: a `kvota.js` funkciótáblájából, a nyitóoldal Profi
    kártyájáról, a tanári csomag-összehasonlításból és a csomagszövegekből (a Profi = az Alap mindene + nagyobb havi keret).
    Az Ingyenes kártya „Kézzel írt és beírt dolgozat” pontja helyett: „Feladatlink QR-kóddal, diákfiók nélkül”. Teszt: a
-   funkciótáblában nincs `fejlodes`, és a szótárak nem ígérik.
+   funkciótáblában nincs `fejlodes`, és a szótárak nem ígérik. (A 8b-ben a fejlődés-követés új alapon visszakerül a Profiba.)
+
+   **8b – csoportok és fejlődés-követés becenév alapján (terv, döntések 2026-11-12).** A diák továbbra is fiók és valódi
+   név nélkül, becenévvel ír; a követés a tanár csoportjain belül, a becenév szerint működik.
+   - **Csoport** (`csoportok/{id}`: `tanar_id`, `nev`, `letrehozva`): a tanár hozza létre (pl. „9.B angol”), új tanári
+     felületen. Csoportot **minden csomagban** lehet létrehozni.
+   - **A link csoporthoz rendelhető** a link indításakor, de **nem kötelező** (alkalmi, csoport nélküli link is van; az ilyen
+     beadás nem kerül a követésbe). A link és a beadás megkapja a `csoport_id`-t.
+   - **Párosítás:** a csoporton belül az azonos becenév (kis/nagybetű, ékezet, szóköz nem számít – a meglévő
+     `becenevKulcs`) **automatikusan** ugyanahhoz a diákhoz kerül (`csoportok/{id}/diakok/{kulcs}`). Eltérő becenévnél a
+     tanár kézzel kapcsolja egy meglévő diákhoz; a téves párosítást szétbonthatja.
+   - **Fejlődés-nézet** diákonként (a tanár jóváhagyott pontjai feladatról feladatra, ismétlődő hibák): a **Profi** csomag
+     többlete (`kvota.js` `fejlodes` funkció vissza). Alapja a pilot `fejlodes-grafikon.js`-e és `fejlodesDiak`-ja.
+   - **A diákoldalon** (`iras.html`) csoportos linknél tipp: ebben a csoportban mindig ugyanazt a becenevet használja.
+   - **Adatvédelem:** a több beadáson átívelő, összekapcsolt adat egy álnevesített diák tanulási profilja – az adatkezelési
+     tájékoztatóban jelezni kell, és a jogásznak megemlíteni. A 12 hónapos takarítás a csoport diák-bejegyzéseit is érinti
+     (beadás nélkül maradt diák törlődik).
+   - Rész-lépések (egyszerre egy): csoportok (adatmodell, szabályok, felület, link → csoport); párosítás (automatikus +
+     kézi összekapcsolás/szétbontás); fejlődés-nézet (Profi).
+   - **8b/1 – csoportok: kész (2026-11-12).** `csoportok/{id}` (`tanar_id`, `nev` 1–60 karakter, `aktiv`, `letrehozva`):
+     kliensről írható a szabály szerint (létrehozás, átnevezés, archiválás/visszaállítás), törölni nem lehet, idegen tanár
+     és diák nem éri el. Új oldal: `csoportok.html` (menüpont: 👥 Csoportok); tiszta rész: `public/js/csoport.js` (név,
+     sorrend – „9.B” a „10.A” előtt –, választható csoportok). A megosztási oldalon a link indítása előtt csoport választható
+     (alapból az utoljára választott, a böngészőben megjegyezve; archivált nem választható), a link és a korábbi linkek
+     mutatják a csoport nevét. `linkInditas` új, nem kötelező `csoportId`-ja: csak a hívó saját, nem archivált csoportja
+     (különben `csoport_ervenytelen`); a link és a beadás `csoport_id`-t kap. `linkAdatok`: `csoportos` – az
+     `iras.html` ilyenkor kéri, hogy a diák a csoportban mindig ugyanazt a becenevet használja. Helyi,
+     Firebase-helyettesítős előnézetben ellenőrizve (létrehozás, átnevezés, archiválás, linkindítás csoporttal és nélküle,
+     diák-tipp, telefonszélesség).
 
 ## 8. Tesztek
 

@@ -739,3 +739,36 @@ test("a tanárok csomagját, használatát és a Stripe-gyűjteményeket kliens 
   // a tanár a saját csomagját sem állíthatja magának (ez volna az ingyenes fizetés)
   await assertFails(setDoc(doc(tanar(), "tanarok", TANAR), { csomag: "korlatlan" }, { merge: true }));
 });
+
+// ══════════════════════════════════════════
+// CSOPORTOK (8b)
+// ══════════════════════════════════════════
+
+test("csoport: a tanár létrehozza, átnevezi és archiválja a sajátját; törölni, idegent olvasni nem lehet", async () => {
+  const { serverTimestamp } = await import("firebase/firestore");
+  const uj = (felul = {}) => ({ tanar_id: TANAR, nev: "9.B angol", aktiv: true, letrehozva: serverTimestamp(), ...felul });
+  await assertSucceeds(setDoc(doc(tanar(), "csoportok", "cs1"), uj()));
+  await assertSucceeds(getDoc(doc(tanar(), "csoportok", "cs1")));
+  await assertSucceeds(getDocs(query(collection(tanar(), "csoportok"), where("tanar_id", "==", TANAR))));
+  await assertSucceeds(updateDoc(doc(tanar(), "csoportok", "cs1"), { nev: "9.B angol (haladó)" }));
+  await assertSucceeds(updateDoc(doc(tanar(), "csoportok", "cs1"), { aktiv: false }));
+  await assertSucceeds(updateDoc(doc(tanar(), "csoportok", "cs1"), { aktiv: true }));
+  // rossz létrehozás: idegen tanar_id, üres vagy túl hosszú név, archivált indulás, extra mező, nem diák/nem belépett
+  await assertFails(setDoc(doc(tanar(), "csoportok", "cs2"), uj({ tanar_id: TANAR2 })));
+  await assertFails(setDoc(doc(tanar(), "csoportok", "cs2"), uj({ nev: "" })));
+  await assertFails(setDoc(doc(tanar(), "csoportok", "cs2"), uj({ nev: "x".repeat(61) })));
+  await assertFails(setDoc(doc(tanar(), "csoportok", "cs2"), uj({ aktiv: false })));
+  await assertFails(setDoc(doc(tanar(), "csoportok", "cs2"), uj({ diakok: [] })));
+  await assertFails(setDoc(doc(diak(), "csoportok", "cs2"), uj()));
+  await assertFails(setDoc(doc(nemBelepett(), "csoportok", "cs2"), uj()));
+  // módosítás: a tulajdonos nem cserélhető, más mező nem írható, idegen nem módosíthat
+  await assertFails(updateDoc(doc(tanar(), "csoportok", "cs1"), { tanar_id: TANAR2 }));
+  await assertFails(updateDoc(doc(tanar(), "csoportok", "cs1"), { nev: "" }));
+  await assertFails(updateDoc(doc(tanar(), "csoportok", "cs1"), { aktiv: "nem" }));
+  await assertFails(updateDoc(doc(tanar2(), "csoportok", "cs1"), { nev: "Enyém" }));
+  // olvasás és törlés
+  await assertFails(getDoc(doc(tanar2(), "csoportok", "cs1")));
+  await assertFails(getDoc(doc(diak(), "csoportok", "cs1")));
+  await assertFails(getDocs(collection(tanar(), "csoportok")), "szűrő nélküli lista");
+  await assertFails(deleteDoc(doc(tanar(), "csoportok", "cs1")));
+});

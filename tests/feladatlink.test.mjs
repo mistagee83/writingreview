@@ -53,8 +53,9 @@ test("az új link 24 óráig él, 60-as plafonnal, nyitva, nulla beadással", ()
   const d = l.ujLinkAdat({ feladatId: "f1", tanarId: "t1", token: "x", most });
   assert.equal(d.lejar.getTime() - most, 24 * 60 * 60 * 1000);
   assert.deepEqual({ ...d, lejar: undefined }, {
-    feladat_id: "f1", tanar_id: "t1", token: "x", lejar: undefined, lezarva: false, beadas_db: 0, beadas_max: 60
+    feladat_id: "f1", tanar_id: "t1", csoport_id: null, token: "x", lejar: undefined, lezarva: false, beadas_db: 0, beadas_max: 60
   });
+  assert.equal(l.ujLinkAdat({ feladatId: "f1", tanarId: "t1", token: "x", csoportId: "cs1", most }).csoport_id, "cs1");
 });
 
 test("linkAllapot: aktív, lejárt, lezárt, betelt; a lezárás a lejárat előtt is számít", () => {
@@ -156,6 +157,9 @@ test("az új beadás: a link feladatához és tanárához kötve, tisztított be
   assert.equal(b.forras, "szoveg");
   assert.equal(b.diaklink_lejar.getTime() - most, 14 * 24 * 3600 * 1000);
   assert.ok(!("diak_id" in b) && !("osztaly_id" in b), "diákfiók és osztály nincs");
+  assert.equal(b.csoport_id, null, "csoport nélküli link");
+  const cs = l.ujBeadasAdat({ link: { feladat_id: "f1", tanar_id: "t1", csoport_id: "cs1" }, linkId: "h", becenev: "Pisti", szoveg: "x", jelzesek: {}, most });
+  assert.equal(cs.csoport_id, "cs1", "a csoportos link beadása a csoporté");
 });
 
 test("a diák böngészőjének jelzés-dokumentumát (tiltással) a szerver elfogadja – a kettő alakja egyezik", async () => {

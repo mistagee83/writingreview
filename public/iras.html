@@ -153,7 +153,7 @@
             <label for="becenev">${t('iras.becenev')}</label>
             <input type="text" id="becenev" maxlength="30" autocomplete="off" spellcheck="false"
                    placeholder="${esc(t('iras.becenev_pelda'))}" />
-            <small>${t('iras.becenev_tipp')}</small>
+            <small>${t('iras.becenev_tipp')}${adat.csoportos ? ` <strong>${t('iras.becenev_csoport')}</strong>` : ''}</small>
           </div>
           <p class="halvany">${t('iras.mentes_tipp')}</p>
           <!-- A diák ELŐRE látja, mit jelzünk a tanárnak (átláthatóság). -->

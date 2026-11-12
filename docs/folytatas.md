@@ -29,7 +29,9 @@ ellenőrizve (élő bejelentkezéssel nem: a pilot a régi függvényeken fut). 
 egyszerre). **7. lépés (a diák visszajelzés-oldala): kész (commitolva, nincs deployolva).** `visszajelzes.html?d=…` +
 `diakVisszajelzes` (csak a jóváhagyott tanári visszajelzés), jóváhagyáskor legalább 7 nap a diáklinkből, napi
 takarítás (`takaritas`: 12 hónapos megőrzés, a lejárt linkek becenév-foglalásai). **8a (csomagok): kész (commitolva, nincs deployolva).** A Profi = az Alap mindene + nagyobb keret, a fejlődés-követés
-kikerült. Következő: 8b (a nyitóoldal szövegei: kézírás → feladatlink).
+kikerült. **Új (2026-11-12): 8b – csoportok és becenév alapú fejlődés-követés** (terv: `prod-atalakitas-terv.md` 7./8b).
+**8b/1 (csoportok, link → csoport): kész (commitolva, nincs deployolva).** Következő: 8b/2 (párosítás becenév szerint);
+utána 8c nyitóoldal, 8d takarítás, 8e App Check, 8f kiadás.
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 

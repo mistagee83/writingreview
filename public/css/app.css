@@ -1941,3 +1941,9 @@ body.theme-diak { background-image: none; }
 /* ── „Az összes beadott értékelése” sáv (javitas.html) ── */
 .ertekeles-sav { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 0 0 1rem; }
 .ertekeles-sav[hidden] { display: none; }
+
+/* ── Linkindítás csoportválasztóval (megosztas.html, 8b) ── */
+.link-inditas { margin-bottom: 1.5rem; }
+.link-inditas label { display: block; font-size: 0.85rem; margin-bottom: 0.35rem; }
+.link-inditas select { flex: 1; min-width: 0; }
+.link-inditas .halvany { margin-top: 0.5rem; }

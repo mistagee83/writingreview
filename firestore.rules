@@ -154,6 +154,36 @@ service cloud.firestore {
     }
 
     // ══════════════════════════════════════════
+    // CSOPORTOK (8b)
+    //
+    // A tanár saját csoportjai (pl. „9.B angol”): a feladatlink csoporthoz rendelhető, és a
+    // csoport linkjein a becenév a fejlődés-követés kulcsa. Diák-hozzáférés nincs. Kliensről
+    // írható (név, archiválás); törölni nem lehet (a linkek és a beadások hivatkoznak rá).
+    // ══════════════════════════════════════════
+    match /csoportok/{csoportId} {
+      function csoportNevOk(n) {
+        return n is string && n.size() > 0 && n.size() <= 60;
+      }
+
+      allow get, list: if tanar() && resource.data.tanar_id == request.auth.uid;
+
+      allow create: if tanar()
+        && request.resource.data.keys().hasOnly(['tanar_id', 'nev', 'aktiv', 'letrehozva'])
+        && request.resource.data.tanar_id == request.auth.uid
+        && csoportNevOk(request.resource.data.nev)
+        && request.resource.data.aktiv == true
+        && request.resource.data.letrehozva == request.time;
+
+      allow update: if tanar()
+        && resource.data.tanar_id == request.auth.uid
+        && csakEzekValtoznak(['nev', 'aktiv'])
+        && csoportNevOk(request.resource.data.nev)
+        && request.resource.data.aktiv is bool;
+
+      allow delete: if false;
+    }
+
+    // ══════════════════════════════════════════
     // RUBRIKA-SABLONOK
     //
     // A tanár elmentett értékelési rubrikái, hogy ne kelljen minden

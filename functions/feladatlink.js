@@ -75,10 +75,12 @@ function linkAllapot(link, most = Date.now()) {
 }
 
 /** Az új link dokumentuma (a hívó adja hozzá a szerver-időbélyeget). */
-function ujLinkAdat({ feladatId, tanarId, token, most = Date.now() }) {
+function ujLinkAdat({ feladatId, tanarId, token, csoportId = null, most = Date.now() }) {
   return {
     feladat_id: feladatId,
     tanar_id: tanarId,
+    // a tanár csoportja (nem kötelező): a csoportos link beadásai a csoport fejlődés-követésébe kerülnek
+    csoport_id: csoportId,
     token,
     lejar: new Date(most + LINK_ERVENYESSEG_MS),
     lezarva: false,
@@ -169,6 +171,7 @@ function ujBeadasAdat({ link, linkId, becenev, szoveg, jelzesek, most = Date.now
     feladat_id: link.feladat_id,
     tanar_id: link.tanar_id,
     link_id: linkId,
+    csoport_id: link.csoport_id || null,
     becenev: becenevTisztitas(becenev),
     forras: "szoveg",
     szoveg,

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="cs.oldalcim">WritingReview – Csoportok</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
+  <script src="js/tema-korai.js"></script>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
+  </div>
+</div>
+
+<!-- A TANÁR CSOPORTJAI (8b). A feladatlink egy csoporthoz rendelhető (megosztas.html); a csoport
+     linkjein a diák becenevéből lesz a fejlődés-követés kulcsa. Diákfiók és valódi név nincs.
+     A csoport kliensről írható (név, archiválás), törölni nem lehet: a linkek hivatkoznak rá. -->
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main narrow">
+    <div class="page-header">
+      <h1 data-i18n="cs.cim">Csoportok</h1>
+      <p data-i18n="cs.alcim">A feladatlinket egy csoporthoz rendelheted. A csoport linkjein a diákok becenevéből látod, ki hogyan fejlődik – diákfiók és valódi név nélkül.</p>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <div class="panel">
+      <div class="panel-header"><h2 data-i18n="cs.uj_cim">＋ Új csoport</h2></div>
+      <div class="panel-body">
+        <form id="uj-urlap" class="code-input-row">
+          <input type="text" id="uj-nev" maxlength="60" required autocomplete="off"
+                 data-i18n-placeholder="cs.nev_pelda" placeholder="Pl. 9.B angol" aria-label="Csoport neve" data-i18n-aria="cs.nev"/>
+          <button class="btn-primary" type="submit" id="uj-gomb" data-i18n="cs.letrehoz">Létrehozás</button>
+        </form>
+        <p class="halvany" style="margin-top:0.75rem;" data-i18n="cs.tipp">Kérd meg a diákokat, hogy a csoport minden feladatánál ugyanazt a becenevet használják.</p>
+      </div>
+    </div>
+
+    <div id="lista"><div class="empty-state bare"><div class="spinner"></div></div></div>
+  </main>
+</div>
+
+<script type="module">
+  import { t } from './js/i18n.js';
+  import { vedettOldal, esc, datum } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { csoportRendezes, csoportNevTisztitas, CSOPORT_NEV_MAX } from './js/csoport.js';
+  import {
+    db, collection, doc, addDoc, updateDoc, query, where, onSnapshot, serverTimestamp
+  } from './js/firebase-config.js';
+
+  const { user, admin } = await vedettOldal('tanar');
+  oldalsav('csoportok.html', { admin });
+
+  const lista = document.getElementById('lista');
+  let csoportok = [];
+  let szerkesztett = null;
+
+  // ── LÉTREHOZÁS ──
+  document.getElementById('uj-urlap').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    uzenetTorles('msg');
+    const input = document.getElementById('uj-nev');
+    const nev = csoportNevTisztitas(input.value);
+    if (!nev) { uzenet('msg', t('cs.nev_kell', { max: CSOPORT_NEV_MAX })); return; }
+    const vissza = gombVar(document.getElementById('uj-gomb'), '');
+    try {
+      await addDoc(collection(db, 'csoportok'), { tanar_id: user.uid, nev, aktiv: true, letrehozva: serverTimestamp() });
+      input.value = '';
+      uzenet('msg', t('cs.letrehozva', { nev }), 'success');
+    } catch (err) {
+      uzenet('msg', hibaSzoveg(err));
+    } finally {
+      vissza();
+    }
+  });
+
+  // ── LISTA (élő) ──
+  function sor(cs) {
+    if (szerkesztett === cs.id) {
+      return `<div class="list-card">
+        <form class="code-input-row" data-atnevez="${esc(cs.id)}" style="flex:1;">
+          <input type="text" maxlength="60" required value="${esc(cs.nev)}" aria-label="${esc(t('cs.nev'))}"/>
+          <button class="btn-sm" type="submit">${t('cs.mentes')}</button>
+          <button class="btn-sm" type="button" data-megse>${t('cs.megse')}</button>
+        </form>
+      </div>`;
+    }
+    return `<div class="list-card">
+      <div>
+        <h3>${esc(cs.nev)}</h3>
+        <div class="list-card-meta">
+          ${cs.aktiv === false ? `<span class="badge inaktiv">${t('cs.archivalt')}</span>` : ''}
+          <span>${t('cs.letrehozva_datum', { datum: esc(datum(cs.letrehozva)) })}</span>
+        </div>
+      </div>
+      <div class="gomb-sor" style="margin-top:0;">
+        <button class="btn-sm" data-szerkeszt="${esc(cs.id)}">${t('cs.atnevezes')}</button>
+        <button class="btn-sm" data-aktiv="${esc(cs.id)}" data-ertek="${cs.aktiv === false ? '1' : '0'}">
+          ${cs.aktiv === false ? t('cs.visszaallitas') : t('cs.archivalas')}</button>
+      </div>
+    </div>`;
+  }
+
+  function rajzol() {
+    const aktiv = csoportok.filter((c) => c.aktiv !== false);
+    const archiv = csoportok.filter((c) => c.aktiv === false);
+    lista.innerHTML = `
+      <div class="panel">
+        <div class="panel-header"><h2>${t('cs.lista_cim', { db: aktiv.length })}</h2></div>
+        <div class="panel-body flush">
+          ${aktiv.length ? aktiv.map(sor).join('') : `<div class="empty-state bare"><div class="empty-icon">👥</div><p>${t('cs.ures')}</p></div>`}
+        </div>
+      </div>
+      ${archiv.length ? `
+      <details class="panel">
+        <summary class="panel-header"><h2>${t('cs.archiv_cim', { db: archiv.length })}</h2></summary>
+        <div class="panel-body flush">${archiv.map(sor).join('')}</div>
+      </details>` : ''}`;
+
+    lista.querySelectorAll('[data-szerkeszt]').forEach((b) => b.addEventListener('click', () => {
+      szerkesztett = b.dataset.szerkeszt; rajzol();
+      lista.querySelector(`[data-atnevez] input`)?.focus();
+    }));
+    lista.querySelectorAll('[data-megse]').forEach((b) => b.addEventListener('click', () => { szerkesztett = null; rajzol(); }));
+    lista.querySelectorAll('[data-atnevez]').forEach((f) => f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      uzenetTorles('msg');
+      const nev = csoportNevTisztitas(f.querySelector('input').value);
+      if (!nev) { uzenet('msg', t('cs.nev_kell', { max: CSOPORT_NEV_MAX })); return; }
+      try {
+        await updateDoc(doc(db, 'csoportok', f.dataset.atnevez), { nev });
+        szerkesztett = null;
+        rajzol();
+      } catch (err) { uzenet('msg', hibaSzoveg(err)); }
+    }));
+    lista.querySelectorAll('[data-aktiv]').forEach((b) => b.addEventListener('click', async () => {
+      uzenetTorles('msg');
+      const aktivLesz = b.dataset.ertek === '1';
+      if (!aktivLesz && !confirm(t('cs.archivalas_kerdes'))) return;
+      try {
+        await updateDoc(doc(db, 'csoportok', b.dataset.aktiv), { aktiv: aktivLesz });
+      } catch (err) { uzenet('msg', hibaSzoveg(err)); }
+    }));
+  }
+
+  // A tanar_id szűrő nem hagyható el: a list-szabálynál a query bizonyítja a jogot.
+  onSnapshot(
+    query(collection(db, 'csoportok'), where('tanar_id', '==', user.uid)),
+    (snap) => {
+      csoportok = csoportRendezes(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      rajzol();
+    },
+    (err) => {
+      console.error(err);
+      lista.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>${t('cs.lista_hiba')}</p></div>`;
+    }
+  );
+</script>
+</body>
+</html>
