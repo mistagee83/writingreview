@@ -32,7 +32,8 @@ takarítás (`takaritas`: 12 hónapos megőrzés, a lejárt linkek becenév-fogl
 kikerült. **Új (2026-11-12): 8b – csoportok és becenév alapú fejlődés-követés** (terv: `prod-atalakitas-terv.md` 7./8b).
 **8b/1 (csoportok, link → csoport): kész (commitolva, nincs deployolva).** **8b/2 (párosítás becenév szerint,
 összevonás, leválasztás, `csoport.html`): kész (nincs deployolva).** **8b/3 (fejlődés-nézet, Profi): kész (nincs
-deployolva).** Ezzel a 8b teljes. Következő: 8c nyitóoldal, 8d takarítás, 8e App Check, 8f kiadás (a kiadás előtt
+deployolva).** Ezzel a 8b teljes. **8c (nyitóoldal az új folyamattal): kész (nincs deployolva).** Következő: 8d
+takarítás, 8e App Check, 8f kiadás (a kiadás előtt
 teljes végigpróbálás a helyi Firebase-emulátorokon: link, beadás, értékelés, jóváhagyás, diáklink, csoport, fejlődés).
 **Emulátoros tesztek helyben (2026-11-12):** a gépen van Java 21 JRE (`C:\Program Files\Eclipse Adoptium\jre-21.0.11.10-hotspot`);
 Git Bash-ben `export JAVA_HOME=".../jre-21.0.11.10-hotspot" PATH="$JAVA_HOME/bin:$PATH"`, majd `cd tests && npm test`

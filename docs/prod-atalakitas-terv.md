@@ -270,7 +270,19 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
      utolsó eredmény és az irány, a „📈 Fejlődés” gomb alatt a két grafikon, az ismétlődő hibák és a táblázat; nem Profi
      csomagnál egy tájékoztató a csomagok linkjével. Helyi, Firebase-helyettesítős előnézetben ellenőrizve (Profi és zárolt
      csomag, telefonszélesség). Teszt: `tests/fejlodes.test.mjs`. **Deploy-hatás:** új függvények
-     (`csoportFejlodesLista`, `csoportFejlodesDiak`). Ezzel a 8b kész; következő: **8c** nyitóoldal.
+     (`csoportFejlodesLista`, `csoportFejlodesDiak`). Ezzel a 8b kész.
+
+   **8c – nyitóoldal: kész (2026-11-12).** A `public/index.html` és a `landing.*` szövegek az új folyamatot írják le: az
+   ábra első lapja beírt dolgozat (nem kézírás; `landing.css`: `.lp-beadott`, `.lp-beirt`), a három lépés feladat és
+   link (QR, regisztráció nélkül, 24 óra) → a diák becenévvel megírja (beillesztés tiltva, ablakelhagyás látszik) → a
+   tanár indítja az értékelést és jóváhagy, a diák a saját linkjén látja. A kézírásos funkciókártya helyett „A diák
+   saját munkáját látod” (írás közbeni jelzések, helyesírás-kapcsoló); az adat-kártya és a „Mennyire megbízható az
+   AI?” válasz kézírás nélkül; „A te szempontjaid, a te nyelved” (a „tantárgy” a kifejtős módból maradt). Két új GYIK:
+   „Kell a diákoknak fiók?” és „Hogyan látom egy diák fejlődését, ha nincs fiókja?” (ez csak ott látszik, ahol a
+   fizetés él, mert a Profi csomagra hivatkozik). Törölt kulcsok: `landing.abra_kezirat`, `landing.fn_kezirat_*`. A
+   HTML-tartalékok a szótárhoz igazítva. A jogilag nyitott témákról az oldal továbbra sem állít semmit (teszt). A prod
+   builden böngészőben ellenőrizve (magyar, angol, telefonszélesség). **Maradt a 8d-re:** az admin AI-használat oldal
+   kifejtős és fotós mérési típusai (`aih.*`), a `jav.nincs_atirat` tartalék.
 
 ## 8. Tesztek
 

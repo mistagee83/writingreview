@@ -55,15 +55,16 @@
         <p class="lp-megjegyzes" id="hero-ingyenes" data-csak="fizetes" hidden></p>
       </div>
 
-      <!-- A termék működésének ábrája (nem képernyőkép): három dolgozatdarab → az AI javítása → osztályelemzés → gyakorló feladatok promptja.
+      <!-- A termék működésének ábrája (nem képernyőkép): a feladatlinken beírt dolgozat három mondata → az AI javítása → osztályelemzés →
+           gyakorló feladatok promptja.
            A példamondatok a tanult nyelv tartalma, nem felület-szöveg. -->
       <div class="lp-abra" role="img" data-i18n-aria="landing.abra_aria" aria-label="">
-        <div class="lp-lap lp-kezirat">
-          <span class="lp-cimke" data-i18n="landing.abra_kezirat">Kézírás</span>
+        <div class="lp-lap lp-beadott">
+          <span class="lp-cimke" data-i18n="landing.abra_beadas">Beadott dolgozat</span>
           <ul class="lp-darabok">
-            <li class="lp-kez">Yesterday I go to the cinema with my friends.</li>
-            <li class="lp-kez">Where you went last weekend?</li>
-            <li class="lp-kez">Did she went to school on Monday?</li>
+            <li class="lp-beirt">Yesterday I go to the cinema with my friends.</li>
+            <li class="lp-beirt">Where you went last weekend?</li>
+            <li class="lp-beirt">Did she went to school on Monday?</li>
           </ul>
         </div>
         <svg class="lp-nyil" viewBox="0 0 40 24" aria-hidden="true"><path d="M2 12 H34 M26 4 L34 12 L26 20" /></svg>
@@ -108,18 +109,18 @@
       <ol class="lp-lepesek">
         <li>
           <span class="lp-szam" aria-hidden="true">1</span>
-          <h3 data-i18n="landing.lepes1_cim">Feladat és osztálykód</h3>
-          <p data-i18n="landing.lepes1_leiras">Felveszel egy osztályt, és kiadsz egy feladatot. A diákok egy kóddal csatlakoznak, a feladat pedig megjelenik náluk.</p>
+          <h3 data-i18n="landing.lepes1_cim">Feladat és link</h3>
+          <p data-i18n="landing.lepes1_leiras">Kiadsz egy feladatot, és elindítod a linkjét. A diákok QR-kóddal vagy a linkkel nyitják meg, regisztráció nélkül. A link 24 óra után lezárul.</p>
         </li>
         <li>
           <span class="lp-szam" aria-hidden="true">2</span>
-          <h3 data-i18n="landing.lepes2_cim">A diák beadja</h3>
-          <p data-i18n="landing.lepes2_leiras">Lefényképezik a füzetoldalt, vagy rögtön az oldalon megírják – telefonról is.</p>
+          <h3 data-i18n="landing.lepes2_cim">A diák megírja és beadja</h3>
+          <p data-i18n="landing.lepes2_leiras">Becenévvel, az oldalon írja meg a dolgozatot, telefonról is. Beilleszteni nem tud, és látod, ha írás közben elhagyta az oldalt.</p>
         </li>
         <li>
           <span class="lp-szam" aria-hidden="true">3</span>
           <h3 data-i18n="landing.lepes3_cim">Az AI értékel, te döntesz</h3>
-          <p data-i18n="landing.lepes3_leiras">Az AI leiratot készít a dolgozatról, a te szempontjaid szerint értékeli, és minden hibához magyarázatot ad. Te átnézed, bármit átírhatsz, és elküldöd – addig a diák semmit nem lát.</p>
+          <p data-i18n="landing.lepes3_leiras">Egy gombbal indítod az értékelést. Az AI a te szempontjaid szerint értékel, és minden hibához magyarázatot ad. Te átnézed, bármit átírhatsz, és jóváhagyod. A diák csak ezután látja a visszajelzést, a saját linkjén.</p>
         </li>
       </ol>
     </div>
@@ -138,12 +139,12 @@
         <li class="lp-kartya">
           <span class="lp-ikon" aria-hidden="true">📊</span>
           <h3 data-i18n="landing.fn_adat_cim">A visszajelzés mögött adat áll</h3>
-          <p data-i18n="landing.fn_adat_leiras">Minden hibát megcímkéz és megszámol, így látod, mit hibázik újra és újra egy-egy diák, és hogy javul-e feladatról feladatra.</p>
+          <p data-i18n="landing.fn_adat_leiras">Minden hibát megcímkéz és megszámol, így látod, mit hibázik újra és újra egy-egy diák a csoportodban, és hogy javul-e feladatról feladatra.</p>
         </li>
         <li class="lp-kartya">
           <span class="lp-ikon" aria-hidden="true">✍️</span>
-          <h3 data-i18n="landing.fn_kezirat_cim">Azt látod, amit a diák írt</h3>
-          <p data-i18n="landing.fn_kezirat_leiras">Az AI a fotóból tiszta leiratot készít. Azt olvasod, amit a diák tényleg leírt – a kézírást nem neked kell kibogoznod. Ha az AI félreolvasott valamit, a fotó mellett azonnal látod, és a pontozásnál figyelembe veheted, így egy félreolvasott szó nem megy a diák rovására.</p>
+          <h3 data-i18n="landing.fn_iras_cim">A diák saját munkáját látod</h3>
+          <p data-i18n="landing.fn_iras_leiras">Az írómezőbe nem lehet beilleszteni. Azt is látod, ha a diák írás közben elhagyta az oldalt, mennyi ideig írt, és ha egyszerre nagy szövegrész került be. Ezek jelzések, nem bizonyítékok: a döntés a tiéd. A böngésző helyesírás-ellenőrzését feladatonként kapcsolhatod be.</p>
         </li>
         <li class="lp-kartya">
           <span class="lp-ikon" aria-hidden="true">🧭</span>
@@ -157,8 +158,8 @@
         </li>
         <li class="lp-kartya">
           <span class="lp-ikon" aria-hidden="true">📐</span>
-          <h3 data-i18n="landing.fn_rubrika_cim">A te szempontjaid, a te tantárgyad</h3>
-          <p data-i18n="landing.fn_rubrika_leiras">Te állítod be az értékelési szempontokat, a súlyozást és a jegyskálát (1–5, A–F vagy százalék). Nyolc nyelven működik – angol, német, francia, spanyol, olasz, orosz, latin, magyar –, kifejtős dolgozatoknál pedig bármelyik tantárgyból.</p>
+          <h3 data-i18n="landing.fn_rubrika_cim">A te szempontjaid, a te nyelved</h3>
+          <p data-i18n="landing.fn_rubrika_leiras">Te állítod be az értékelési szempontokat, a súlyozást és a jegyskálát (1–5, A–F vagy százalék). Nyolc nyelven működik: angol, német, francia, spanyol, olasz, orosz, latin és magyar.</p>
         </li>
       </ul>
     </div>
@@ -180,15 +181,23 @@
       <h2 id="gyik-cim" data-i18n="landing.gyik_cim">Gyakori kérdések</h2>
       <details class="lp-kerdes">
         <summary data-i18n="landing.gyik_mukodes_k">Hogyan működik?</summary>
-        <p data-i18n="landing.gyik_mukodes_v">A diákok lefényképezik a kézzel írt dolgozatukat, vagy az oldalon megírják. Az AI leiratot készít belőle – így pontosan látod, mit írt a diák –, és a te szempontjaid szerint értékeli. Te átnézed és jóváhagyod az eredményt, aztán a hibák mintázatai alapján eldöntheted, mit gyakoroljatok legközelebb.</p>
+        <p data-i18n="landing.gyik_mukodes_v">Kiadsz egy feladatot, és elindítod a linkjét. A diákok becenévvel, az oldalon írják meg a dolgozatot. Egy gombbal értékelteted az AI-jal a te szempontjaid szerint, te átnézed és jóváhagyod, a diák pedig a saját linkjén látja a visszajelzést. A hibák mintázataiból eldöntheted, mit gyakoroljatok legközelebb.</p>
+      </details>
+      <details class="lp-kerdes">
+        <summary data-i18n="landing.gyik_fiok_k">Kell a diákoknak fiók?</summary>
+        <p data-i18n="landing.gyik_fiok_v">Nem. A diák a feladatlinken, becenévvel ír: nem regisztrál, és nem ad meg e-mail-címet vagy jelszót. Beadáskor kap egy saját linket, ott nézheti meg a visszajelzést, amikor jóváhagytad.</p>
+      </details>
+      <details class="lp-kerdes" data-csak="fizetes" hidden>
+        <summary data-i18n="landing.gyik_kovetes_k">Hogyan látom egy diák fejlődését, ha nincs fiókja?</summary>
+        <p data-i18n="landing.gyik_kovetes_v">Létrehozol egy csoportot (például „9.B angol”), és a linket ehhez rendeled. A csoportban az azonos becenévvel beadott dolgozatok ugyanahhoz a diákhoz kerülnek. Ha valaki más becenevet használt, egy kattintással összevonod. A fejlődéskövetés a Profi csomag része.</p>
       </details>
       <details class="lp-kerdes">
         <summary data-i18n="landing.gyik1_k">Kinek készült?</summary>
-        <p data-i18n="landing.gyik1_v">Minden tanárnak, aki rendszeresen ad írásbeli feladatot: nyelvtanároknak, kifejtős dolgozatoknál pedig bármelyik tantárgy tanárának.</p>
+        <p data-i18n="landing.gyik1_v">Nyelvtanároknak, akik rendszeresen íratnak levelet vagy esszét.</p>
       </details>
       <details class="lp-kerdes">
         <summary data-i18n="landing.gyik2_k">Mennyire megbízható az AI?</summary>
-        <p data-i18n="landing.gyik2_v">Az AI csak javasol, te döntesz: minden pontot és megjegyzést átnézhetsz és módosíthatsz, mielőtt jóváhagyod. A kézírás-felismerés pontossága attól függ, mennyire olvasható a kézírás – a leiratot a fotó mellett látod, így észreveszed, ha az AI félreolvasott valamit.</p>
+        <p data-i18n="landing.gyik2_v">Az AI csak javasol, az utolsó szó a tiéd: minden pontot és megjegyzést átnézhetsz és módosíthatsz, mielőtt jóváhagyod. A diák csak a jóváhagyott visszajelzést látja.</p>
       </details>
       <details class="lp-kerdes">
         <summary data-i18n="landing.gyik3_k">Milyen nyelveken működik?</summary>
@@ -196,7 +205,7 @@
       </details>
       <details class="lp-kerdes" data-csak="fizetes" hidden>
         <summary data-i18n="landing.gyik4_k">Mi számít egy egységnek?</summary>
-        <p data-i18n="landing.gyik4_v">A keretet egységekben számoljuk: egy dolgozat javítása egy egység. Egységbe kerül a feladatlap feldolgozása, az osztályelemzés és a megoldókulcs készítése is, mert ezek is az AI-t használják.</p>
+        <p data-i18n="landing.gyik4_v">A keretet egységekben számoljuk: egy dolgozat javítása egy egység. Egységbe kerül a feladatlap feldolgozása és az osztályelemzés is, mert ezek is az AI-t használják.</p>
       </details>
       <details class="lp-kerdes" data-csak="fizetes" hidden>
         <summary data-i18n="landing.gyik5_k">Mi történik, ha elfogy a keret?</summary>

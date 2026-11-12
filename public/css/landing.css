@@ -59,15 +59,10 @@
   box-shadow: 0 12px 32px rgba(15, 15, 15, 0.07);
 }
 .lp-cimke { display: block; margin-bottom: 8px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6862; }
-.lp-kezirat { background: #fffdf6; transform: rotate(-1deg); }
+.lp-beadott { background: #fff; }
 .lp-darabok, .lp-javitottak { list-style: none; display: grid; gap: 10px; }
-.lp-kez {
-  font-family: 'Segoe Script', 'Bradley Hand', 'Comic Sans MS', cursive; font-size: 1.02rem; line-height: 1.5; color: #2b3a67;
-  padding: 6px 0; border-bottom: 1.5px solid var(--border);
-}
-.lp-darabok .lp-kez:nth-child(2) { transform: rotate(0.6deg); }
-.lp-darabok .lp-kez:nth-child(3) { transform: rotate(-0.4deg); }
-.lp-darabok .lp-kez:last-child { border-bottom: none; }
+.lp-beirt { font-size: 0.98rem; line-height: 1.5; color: #2b3a67; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.lp-darabok .lp-beirt:last-child { border-bottom: none; }
 .lp-nyil { width: 26px; height: 18px; margin: 0 auto; transform: rotate(90deg); }
 .lp-nyil path { fill: none; stroke: #6b6862; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 .lp-javitottak li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
