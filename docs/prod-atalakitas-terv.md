@@ -306,6 +306,13 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
    a visszajátszás elleni egyszer használatos token (`limitedUseAppCheckTokens` + `consumeAppCheckToken`) – a beadás
    már tranzakciós és becenév-egyedi, később érdemes megfontolni.
 
+   **8f – kiadás: előkészítve (2026-11-12), a kiadás a tulajdonosé.** Ellenőrizve (a prodon csak olvasás): a prodon 25 függvény
+   fut, ebből 8 a forrásból eltűnt (`beadasFeldolgozas`, `diakEltavolitas`, `diakJelszoVisszaallitas`, `fejlodesDiak`,
+   `fejlodesLista`, `kulcsKeszites`, `osztalyLetrehozas`, `osztalyhozCsatlakozas`) – a nem interaktív CI-deploy ezen leállna;
+   12 új jön létre. A Cloud Scheduler API nincs bekapcsolva, és a `github-deploy` fióknak nincs joga bekapcsolni (az új
+   `takaritas` miatt kell). A teendők sorrendben, parancsokkal: `folytatas.md` 00. Helyi, emulátoros végigpróbálás a teljes
+   folyamaton: sikeres, három elavult szöveg javítva (`tests/prod-szovegek.test.mjs`).
+
 ## 8. Tesztek
 
 - Tiszta tesztek: token-ellenőrzés és lejárat, becenév-ütközés, beillesztés-tiltás döntési logikája, új jelzések összegzése.

@@ -47,6 +47,35 @@ kész, kikapcsolva** – kulcs és kapcsoló nélkül semmit nem változtat. Kö
    diák-beadás elbukna (401). Visszakapcsolás: a sor kiürítése és functions-deploy.
 6. Jogi: a reCAPTCHA új adatfeldolgozó a diákoldalon (`docs/jogi/README.md`) – a jogásznak jelezni.
 
+**8f – kiadás előtti ellenőrzés (2026-11-12, csak olvasás a prodon; részletek: `prod-atalakitas-terv.md` 8f).**
+A címkés kiadás **a mostani állapotban elbukna**, két okból. Teendők a tulajdonosra, a címke ELŐTT, ebben a sorrendben:
+1. **Cloud Scheduler** (az új, ütemezett `takaritas` függvényhez; a prodban még nincs bekapcsolva, és a CI fióknak nincs joga
+   bekapcsolni):
+   `gcloud services enable cloudscheduler.googleapis.com --project writerev2`
+   `gcloud projects add-iam-policy-binding writerev2 --member=serviceAccount:github-deploy@writerev2.iam.gserviceaccount.com --role=roles/cloudscheduler.admin`
+2. **A régi prod-adatok törlése** (régi diákfiókok, osztályok, beadások, fotók) – a tulajdonos döntése és végrehajtása.
+3. **A 8 régi függvény törlése** (a nem interaktív CI-deploy törlést nem végez, hanem leáll). Ettől a régi prod-felület
+   (osztály, diákbelépés) nem működik tovább – a prodnak nincs éles felhasználója, és a következő lépés a kiadás:
+   `firebase functions:delete beadasFeldolgozas diakEltavolitas diakJelszoVisszaallitas fejlodesDiak fejlodesLista kulcsKeszites osztalyLetrehozas osztalyhozCsatlakozas --region europe-west1 --project prod`
+4. GitHub → Settings → Environments → `prod` → **Required reviewers** (különben a címke jóváhagyás nélkül megy ki).
+5. Címke: `git tag v2.0.0 && git push origin v2.0.0` (nagy verzióváltás: új termék a prodon).
+6. Kiadás után a prodon élőben végigpróbálni (tanári regisztráció, feladat, link, beadás telefonról, értékelés, jóváhagyás,
+   diáklink), és a konzolon megnézni, hogy a `takaritas` ütemezett feladat létrejött.
+
+A Firestore-indexek nem akadályozzák a kiadást: a régiek közül három (`beadasok: diak_id+letrehozva`,
+`feladatok: osztaly_id+aktiv+hatarido`, `osztalyok: tanar_id+letrehozva`) a prodon marad, a deploy nem törli (ártalmatlan;
+később a konzolon törölhető).
+
+**Helyi végigpróbálás emulátorokon (2026-11-12): sikeres.** Valódi függvényekkel, `demo-wr` projektazonosítóval (semmilyen valódi
+projektet nem ér el), prod-beállításokkal (kvóta), az AI helyett egy előre betöltött `fetch`-helyettesítővel (a kódhoz nem nyúl).
+Végigment: tanári belépés → feladat → csoport → link csoporttal → diák beadás (két becenév; a foglalt becenév elutasítva) →
+diáklink jóváhagyás előtt (várakozik) → értékelés indítása (sor + háttér-trigger) → javító ablak (jelzések, AI, jegyjavaslat) →
+jóváhagyás → diáklink (jegy, pontok, szöveg; AI-nyersanyag nélkül) → második link, automatikus párosítás becenév szerint →
+csoport-diákok, fejlődés-nézet (Profi) → összevonás és leválasztás → osztályelemzés → kvóta (3 egység: 2 értékelés + 1
+elemzés). Szerveroldali hiba nem volt. **Talált és javított hibák:** három elavult szöveg (a feladat mentésének üzenete, a
+bemutató két lépése, a javítási sor súgója nem létező szűrőnévvel); regressziós teszt: `tests/prod-szovegek.test.mjs`. A pilot
+ágon ezek a szövegek helyesek (ott van osztály és automatikus AI), oda nem kell átvinni.
+
 **Emulátoros tesztek másik porton (2026-11-12):** a tesztek a `firebase emulators:exec` által beállított címet használják
 (`FIRESTORE_EMULATOR_HOST`, `FIREBASE_STORAGE_EMULATOR_HOST`), alapból 8080/9199. Ha a 8080 foglalt (pl. egy másik
 projekt emulátora fut), egy ideiglenes konfiggal más porton is futtatható (`--config`, a `firebase.json` másolata más
