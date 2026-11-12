@@ -485,9 +485,11 @@ test("a DIÁK NEM olvashatja az elemzést (más diákok hibái vannak benne)", a
       osszegzes: "Az osztály jól teljesített.", tipushibak: [], gyakorlatok: []
     });
   });
-  // A feladatot olvashatja, az elemzést nem
-  await assertSucceeds(getDoc(doc(diak(), "feladatok", FELADAT)));
+  // 2026-11-12 óta a diák a feladatot sem olvassa (csak a tanára), az elemzést végképp nem;
+  // a tanár olvassa (kontroll: a dokumentum létezik, a tiltás a szabályé)
+  await assertFails(getDoc(doc(diak(), "feladatok", FELADAT)));
   await assertFails(getDoc(doc(diak(), "feladatok", FELADAT, "elemzes", "osszegzes")));
+  await assertSucceeds(getDoc(doc(tanar(), "feladatok", FELADAT, "elemzes", "osszegzes")));
 });
 
 test("idegen tanár NEM olvashatja az elemzést", async () => {
