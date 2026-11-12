@@ -12,7 +12,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
-process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+process.env.FIRESTORE_EMULATOR_HOST ||= "127.0.0.1:8080";
 process.env.GCLOUD_PROJECT = "wr-callable-teszt";
 process.env.GEMINI_API_KEY = "teszt-kulcs";
 

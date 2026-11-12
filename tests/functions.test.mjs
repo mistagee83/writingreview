@@ -13,7 +13,7 @@ import { test, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
-process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+process.env.FIRESTORE_EMULATOR_HOST ||= "127.0.0.1:8080";
 // SZÁNDÉKOSAN más projekt-azonosító, mint a rules.test.mjs-ben: az
 // ottani clearFirestore() különben kitörölné az itteni adatokat.
 process.env.GCLOUD_PROJECT = "wr-functions-teszt";

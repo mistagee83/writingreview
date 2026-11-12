@@ -113,6 +113,10 @@ export function konfigHibak(cfg, { kitoltott = false, elvartKornyezet, celProjek
   if (typeof cfg?.teszt_sav !== "boolean") hibak.push("teszt_sav: logikai érték kell");
   if (typeof cfg?.kvota !== "boolean") hibak.push("kvota: logikai érték kell");
   if (typeof cfg?.tanari_onregisztracio !== "boolean") hibak.push("tanari_onregisztracio: logikai érték kell");
+  // Az App Check (reCAPTCHA Enterprise) webkulcsa: nem titok, a böngészőbe kerül; üresen nincs App Check.
+  if (typeof cfg?.app_check_kulcs !== "string" || !/^[A-Za-z0-9_-]{0,100}$/.test(cfg.app_check_kulcs)) {
+    hibak.push("app_check_kulcs: a reCAPTCHA Enterprise webkulcsa (betű, szám, _ vagy -), vagy üres szöveg");
+  }
   if (typeof cfg?.projekt !== "string") hibak.push("projekt: szöveg kell");
   const wc = cfg?.webConfig;
   for (const k of WEB_KONFIG_KULCSOK) {
@@ -182,7 +186,8 @@ export function kornyezetJs(cfg, sablon, csomag = PILOT_CSOMAG) {
     ALAPNYELV: JSON.stringify(cfg.alapnyelv),
     KVOTA: JSON.stringify(cfg.kvota),
     TANARI_ONREGISZTRACIO: JSON.stringify(cfg.tanari_onregisztracio),
-    TESZT_SAV: JSON.stringify(cfg.teszt_sav)
+    TESZT_SAV: JSON.stringify(cfg.teszt_sav),
+    APP_CHECK_KULCS: JSON.stringify(cfg.app_check_kulcs || "")
   };
   let ki = sablon;
   for (const [nev, ertek] of Object.entries(csere)) {

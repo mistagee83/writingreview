@@ -32,8 +32,25 @@ takarítás (`takaritas`: 12 hónapos megőrzés, a lejárt linkek becenév-fogl
 kikerült. **Új (2026-11-12): 8b – csoportok és becenév alapú fejlődés-követés** (terv: `prod-atalakitas-terv.md` 7./8b).
 **8b/1 (csoportok, link → csoport): kész (commitolva, nincs deployolva).** **8b/2 (párosítás becenév szerint,
 összevonás, leválasztás, `csoport.html`): kész (nincs deployolva).** **8b/3 (fejlődés-nézet, Profi): kész (nincs
-deployolva).** Ezzel a 8b teljes. **8c (nyitóoldal az új folyamattal): kész (nincs deployolva).** Következő: 8d
-takarítás, 8e App Check, 8f kiadás (a kiadás előtt
+deployolva).** Ezzel a 8b teljes. **8c (nyitóoldal az új folyamattal): kész (nincs deployolva).** **8d (takarítás:
+kifejtős CSS, AI-használat típusai, működési leírás újraírva, jogi piszkozatok igazítva): kész.** **8e (App Check): a kód
+kész, kikapcsolva** – kulcs és kapcsoló nélkül semmit nem változtat. Következő: 8f kiadás
+
+**8e – teendők a bekapcsoláshoz (tulajdonos, a `writerev2` projektben, ebben a sorrendben):**
+1. Google Cloud Console → *reCAPTCHA Enterprise* API engedélyezése, és egy **webes kulcs** (pontozásos, nem jelölőnégyzetes)
+   a prod címeire: `writing-review.web.app`, `writerev2.web.app`, `writerev2.firebaseapp.com` (és az egyéni domain, ha lesz).
+2. Firebase-konzol → *App Check* → a webapp regisztrálása **reCAPTCHA Enterprise** szolgáltatóval, ezzel a kulccsal.
+   A Firestore/Storage „Enforce” kapcsolóit NE kapcsold be (a tanári oldalak nem küldenek tokent).
+3. A webkulcs a `config/prod.json` `app_check_kulcs` mezőjébe (nem titok) → commit → a kiadással kimegy a hosting.
+4. A konzolon (*App Check → APIs → Cloud Functions*, metrikák) megnézni, hogy a diákoldali kérések **igazoltak**.
+5. Csak ezután: `APP_CHECK=igen` a `functions/.env.prod`-ban → újabb kiadás (functions). Fordított sorrendben minden
+   diák-beadás elbukna (401). Visszakapcsolás: a sor kiürítése és functions-deploy.
+6. Jogi: a reCAPTCHA új adatfeldolgozó a diákoldalon (`docs/jogi/README.md`) – a jogásznak jelezni.
+
+**Emulátoros tesztek másik porton (2026-11-12):** a tesztek a `firebase emulators:exec` által beállított címet használják
+(`FIRESTORE_EMULATOR_HOST`, `FIREBASE_STORAGE_EMULATOR_HOST`), alapból 8080/9199. Ha a 8080 foglalt (pl. egy másik
+projekt emulátora fut), egy ideiglenes konfiggal más porton is futtatható (`--config`, a `firebase.json` másolata más
+`emulators` portokkal). (a kiadás előtt
 teljes végigpróbálás a helyi Firebase-emulátorokon: link, beadás, értékelés, jóváhagyás, diáklink, csoport, fejlődés).
 **Emulátoros tesztek helyben (2026-11-12):** a gépen van Java 21 JRE (`C:\Program Files\Eclipse Adoptium\jre-21.0.11.10-hotspot`);
 Git Bash-ben `export JAVA_HOME=".../jre-21.0.11.10-hotspot" PATH="$JAVA_HOME/bin:$PATH"`, majd `cd tests && npm test`

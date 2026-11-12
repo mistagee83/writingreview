@@ -34,7 +34,12 @@
   // Csak az escape-függvény kell innen; a védett oldal kapuja (vedettOldal) itt NEM fut.
   import { esc } from './js/guard.js';
   import { hibaSzoveg, jegyMegjelenit } from './js/ui.js';
-  import { functions, httpsCallable } from './js/firebase-config.js';
+  import { functions, httpsCallable, appCheckInditas } from './js/firebase-config.js';
+  import { APP_CHECK_KULCS } from './js/kornyezet.js';
+
+  // App Check (8e): a hívások előtt, ha a környezetben van kulcs. Hibánál az oldal megy tovább: ha a szerver
+  // megköveteli, a hívás érthető hibát ad, ha nem, semmi nem változik.
+  await appCheckInditas(APP_CHECK_KULCS).catch((e) => console.error('App Check:', e));
 
   const diakVisszajelzes = httpsCallable(functions, 'diakVisszajelzes');
   const token = new URLSearchParams(location.search).get('d') || '';

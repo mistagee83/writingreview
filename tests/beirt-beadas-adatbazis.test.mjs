@@ -11,7 +11,7 @@ import { test, before, after, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
-process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+process.env.FIRESTORE_EMULATOR_HOST ||= "127.0.0.1:8080";
 // Más projekt-azonosító, mint a többi emulátoros tesztben (azok törlik az adatot).
 process.env.GCLOUD_PROJECT = "wr-beirt-adatbazis-teszt";
 process.env.GEMINI_API_KEY = "teszt-kulcs";

@@ -140,6 +140,8 @@ const CORS = BEALLITASOK.cors;
 const AI = { szolgaltato: BEALLITASOK.aiSzolgaltato };
 
 const HIVAS_OPCIOK = { region: REGION, cors: CORS };
+// A diákoldali (belépés nélküli) függvények: App Check-kel, ha a környezetben be van kapcsolva (APP_CHECK=igen).
+const DIAK_HIVAS_OPCIOK = { ...HIVAS_OPCIOK, enforceAppCheck: BEALLITASOK.appCheck };
 const AI_OPCIOK = { ...HIVAS_OPCIOK, secrets: AI_TITKOK, timeoutSeconds: 300 };
 
 // ══════════════════════════════════════════════════════
@@ -2768,8 +2770,8 @@ async function linkBeadasLogika(firestore, adat, { most = Date.now(), tokenFn = 
 }
 
 // Belépés nélkül hívható: a token a jogosultság (a függvény maga ellenőrzi).
-exports.linkAdatok = onCall(HIVAS_OPCIOK, async (request) => linkAdatokLogika(db(), request.data));
-exports.linkBeadas = onCall(HIVAS_OPCIOK, async (request) => linkBeadasLogika(db(), request.data));
+exports.linkAdatok = onCall(DIAK_HIVAS_OPCIOK, async (request) => linkAdatokLogika(db(), request.data));
+exports.linkBeadas = onCall(DIAK_HIVAS_OPCIOK, async (request) => linkBeadasLogika(db(), request.data));
 
 Object.assign(exports._teszt, { linkInditasLogika, linkLezarasLogika, linkAdatokLogika, linkBeadasLogika });
 
@@ -3151,7 +3153,7 @@ async function diakVisszajelzesLogika(firestore, adat, { most = Date.now() } = {
 }
 
 // Belépés nélkül hívható: a diák saját tokenje a jogosultság.
-exports.diakVisszajelzes = onCall(HIVAS_OPCIOK, async (request) => diakVisszajelzesLogika(db(), request.data));
+exports.diakVisszajelzes = onCall(DIAK_HIVAS_OPCIOK, async (request) => diakVisszajelzesLogika(db(), request.data));
 
 // ── Időzített takarítás (naponta) ──
 // 1. A lejárt feladatlinkek becenév-foglalásai (a lejárat után 1 nappal): már semmire nem kellenek.

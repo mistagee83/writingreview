@@ -59,6 +59,9 @@ function beallitasok(env = process.env) {
     // Az önkiszolgáló tanári regisztráció mindkét környezetben él (a pilotban 2026-10-13-tól, a tulajdonos döntése:
     // kevés kolléga használja). FIGYELEM: a pilotban nincs AI-keret, így minden regisztrált tanár korlátlanul költhet.
     tanariOnregisztracio: true,
+    // App Check a diákoldali függvényeken (linkAdatok, linkBeadas, diakVisszajelzes): csak ha APP_CHECK=igen.
+    // Előbb a kliensnek kell küldenie a tokent (config/<env>.json: app_check_kulcs), különben minden diákhívás elbukik.
+    appCheck: String(env.APP_CHECK || "").trim().toLowerCase() === "igen",
     fizetes: kornyezet === "prod" && /^price_[A-Za-z0-9_]+$/.test(arAlap),
     fizetesArAlap: arAlap,
     fizetesArProfi: arAzonosito(arProfi),

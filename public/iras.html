@@ -39,7 +39,12 @@
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra } from './js/ui.js';
   import { jelzesFigyelo, szoszam, SZOVEG_MAX } from './js/iras-jelzes.js';
   import { qrSvg } from './js/megosztas.js';
-  import { functions, httpsCallable } from './js/firebase-config.js';
+  import { functions, httpsCallable, appCheckInditas } from './js/firebase-config.js';
+  import { APP_CHECK_KULCS } from './js/kornyezet.js';
+
+  // App Check (8e): a hívások előtt, ha a környezetben van kulcs. Hibánál az oldal megy tovább: ha a szerver
+  // megköveteli, a hívás érthető hibát ad, ha nem, semmi nem változik.
+  await appCheckInditas(APP_CHECK_KULCS).catch((e) => console.error('App Check:', e));
 
   const linkAdatok = httpsCallable(functions, 'linkAdatok');
   const linkBeadas = httpsCallable(functions, 'linkBeadas');

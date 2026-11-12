@@ -34,6 +34,20 @@ export const storage = getStorage(app);
 export const functions = getFunctions(app, REGION);
 export const googleProvider = new GoogleAuthProvider();
 
+/**
+ * App Check a diákoldalakon (8e): a reCAPTCHA Enterprise igazolja, hogy a hívás a valódi oldalról jön, nem egy
+ * szkriptből. Csak ha a környezet konfigjában van webkulcs (kornyezet.js: APP_CHECK_KULCS); kulcs nélkül semmit
+ * nem tölt be. A tanári oldalak nem hívják. A token a callable hívásokhoz magától csatolódik.
+ * @returns {Promise<boolean>} elindult-e
+ */
+export async function appCheckInditas(kulcs) {
+  if (!kulcs) return false;
+  const { initializeAppCheck, ReCaptchaEnterpriseProvider } =
+    await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js");
+  initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(kulcs), isTokenAutoRefreshEnabled: true });
+  return true;
+}
+
 // ── SDK ÚJRAEXPORTÁLÁS ──
 // Az oldalak ezeket innen importálják, nem a CDN-ről.
 

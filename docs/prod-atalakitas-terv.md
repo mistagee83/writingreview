@@ -284,6 +284,28 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
    builden böngészőben ellenőrizve (magyar, angol, telefonszélesség). **Maradt a 8d-re:** az admin AI-használat oldal
    kifejtős és fotós mérési típusai (`aih.*`), a `jav.nincs_atirat` tartalék.
 
+   **8d – maradék takarítás: kész (2026-11-12).** (1) A kifejtős CSS az `app.css`-ből: szabályonként ellenőrizve, hogy
+   osztálya előfordul-e a `public/` HTML/JS-ében; ~150 sor törölve, ami élt (`.jelolo` a helyesírás-kapcsolóhoz, a
+   jelvényes panelfejléc), az új fejléc alá került. (2) Az AI-használat oldal típus nélkül (egyféle dolgozat van): a
+   „Leveles/Kifejtős” bontás, a számoló típusválasztója, a feladat-tábla típusoszlopa és a fotós leirat-művelet felirata
+   kikerült; a szerveroldali jelentőmodul (`ai-hasznalat.js`) változatlan (általános, a régi rekordokat is kezeli).
+   `jav.nincs_atirat` → `jav.nincs_szoveg` („(nincs szöveg)”). Három maradvány kulcs törölve (`nav.feladataim`,
+   `tura.demo_diak2/3`). (3) A `mukodesi-leiras.md` újraírva a prod működésére (1857 → ~820 sor; a pilot leírása a
+   `pilot` ágon); a 8. fejezet promptjai a mostani kódból renderelve. (4) A jogi piszkozatok (`docs/jogi/`) a link +
+   becenév modellhez igazítva: diákadat, MI (csak tanári indításra), automatikus törlés (12 hónap – megépítve),
+   adatfeldolgozók (a reCAPTCHA új), a feltételek fogalmai; a jelölések (`[JOGÁSZ]` stb.) megmaradtak.
+
+   **8e – App Check: a kód kész (2026-11-12), kulcs és bekapcsolás nélkül semmit nem változtat.** Kliens: a
+   `config/<env>.json` `app_check_kulcs` mezője (reCAPTCHA Enterprise webkulcs, nem titok; a konfig-ellenőrzés csak
+   biztonságos karaktereket enged) → `kornyezet.js` `APP_CHECK_KULCS` → a két diákoldal (`iras.html`,
+   `visszajelzes.html`) a hívások előtt `appCheckInditas(kulcs)`-ot hív (`firebase-config.js`; dinamikus import, kulcs
+   nélkül semmi nem töltődik be; a tanári oldalak nem hívják). Szerver: `APP_CHECK=igen` a `functions/.env.<alias>`-ban →
+   `enforceAppCheck` a `linkAdatok`, `linkBeadas`, `diakVisszajelzes` függvényen (`DIAK_HIVAS_OPCIOK`); a tanári
+   függvények nem kapják. Teszt: `tests/app-check.test.mjs` (kérés-szinten is: kapcsoló nélkül a hívás eljut a
+   függvényig, kapcsolóval token nélkül 401). **Teendő (tulajdonos), sorrendben:** lásd `folytatas.md` 00. Nem készült:
+   a visszajátszás elleni egyszer használatos token (`limitedUseAppCheckTokens` + `consumeAppCheckToken`) – a beadás
+   már tranzakciós és becenév-egyedi, később érdemes megfontolni.
+
 ## 8. Tesztek
 
 - Tiszta tesztek: token-ellenőrzés és lejárat, becenév-ütközés, beillesztés-tiltás döntési logikája, új jelzések összegzése.
