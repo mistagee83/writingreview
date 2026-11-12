@@ -28,7 +28,8 @@ ellenőrizve (élő bejelentkezéssel nem: a pilot a régi függvényeken fut). 
 írási idő, időrend), tanári helyesírás-kapcsoló. **6. lépés (értékelés indítása több beadásra): kész (commitolva, nincs deployolva).** Sorba állítás + háttér-feldolgozó (legfeljebb 5
 egyszerre). **7. lépés (a diák visszajelzés-oldala): kész (commitolva, nincs deployolva).** `visszajelzes.html?d=…` +
 `diakVisszajelzes` (csak a jóváhagyott tanári visszajelzés), jóváhagyáskor legalább 7 nap a diáklinkből, napi
-takarítás (`takaritas`: 12 hónapos megőrzés, a lejárt linkek becenév-foglalásai). Következő: 8. lépés (prod-előkészítés).
+takarítás (`takaritas`: 12 hónapos megőrzés, a lejárt linkek becenév-foglalásai). **8a (csomagok): kész (commitolva, nincs deployolva).** A Profi = az Alap mindene + nagyobb keret, a fejlődés-követés
+kikerült. Következő: 8b (a nyitóoldal szövegei: kézírás → feladatlink).
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 

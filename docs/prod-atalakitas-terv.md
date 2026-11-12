@@ -210,6 +210,12 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
 8. **Prod-előkészítés és kiadás.** A régi prod-adatok törlése (a tulajdonos végzi, vagy kifejezett engedélyével), a régi
    függvények törlése a deployban, a Storage-szabály szigorítása, nyitóoldal és csomagok frissítése, végigpróbálás, címkés
    kiadás.
+   Alrészek (egyszerre egy): **8a** csomagok, **8b** nyitóoldal, **8c** maradék takarítás (kifejtős CSS, AI-használat
+   „Kifejtős” típusa, működési leírás, jogi szövegek), **8d** App Check, **8e** a régi adatok törlése és a kiadás.
+   **8a – csomagok: kész (2026-11-12).** A fejlődés-követés kikerült: a `kvota.js` funkciótáblájából, a nyitóoldal Profi
+   kártyájáról, a tanári csomag-összehasonlításból és a csomagszövegekből (a Profi = az Alap mindene + nagyobb havi keret).
+   Az Ingyenes kártya „Kézzel írt és beírt dolgozat” pontja helyett: „Feladatlink QR-kóddal, diákfiók nélkül”. Teszt: a
+   funkciótáblában nincs `fejlodes`, és a szótárak nem ígérik.
 
 ## 8. Tesztek
 
@@ -233,5 +239,6 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
 
 - ~~A diáklink élettartama és a tanári megőrzés ideje~~ – eldöntve (2026-11-12): 14 nap (jóváhagyás után legalább 7),
   megőrzés 12 hónap.
-- Csomagok és árak a fejlődés-követés nélkül.
+- ~~Csomagok és árak a fejlődés-követés nélkül~~ – eldöntve (2026-11-12): a Profi = az Alap mindene + nagyobb havi keret.
+  Az árakról külön nem volt döntés (a `functions/.env.prod` értékei maradnak).
 - Az edtech hub bekötése: később (tanári belépés módja).

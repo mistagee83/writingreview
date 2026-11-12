@@ -39,7 +39,7 @@ test("a nyitóoldal minden szótári kulcsa létezik magyarul és angolul, és a
   const csomagNevek = [...html.matchAll(/nev: '(\w+)'/g)].map((m) => m[1]);
   const pontok = [...html.matchAll(/pontok: \[([^\]]+)\]/g)].flatMap((m) => m[1].match(/'(\w+)'/g).map((s) => s.slice(1, -1)));
   assert.deepEqual(csomagNevek.sort(), ["alap", "ingyenes", "profi"]);
-  assert.equal(pontok.length, 9);
+  assert.equal(pontok.length, 8, "Ingyenes 3, Alap 3, Profi 2 (az Alap mindene + nagyobb keret)");
   for (const n of csomagNevek) assert.ok(hu[`landing.csomag_${n}`] && en[`landing.csomag_${n}`], `csomag_${n}`);
   for (const p of pontok) assert.ok(hu[`landing.pont_${p}`] && en[`landing.pont_${p}`], `pont_${p}`);
   for (const k of ["landing.hero_ingyenes", "landing.per_ho", "landing.ingyenes_ar", "landing.keret_egyszeri", "landing.keret_havi"]) {
@@ -66,9 +66,14 @@ test("a szövegek állításai egyeznek a kóddal: nyolc nyelv, a dolgozat egy e
   assert.equal(kvota.EGYSEG_KOLTSEG.beadas, 1, "a GYIK szerint egy dolgozat javítása egy egység");
   assert.ok(kvota.EGYSEG_KOLTSEG.feladatlap > 0 && kvota.EGYSEG_KOLTSEG.elemzes > 0,
     "a GYIK szerint a feladatlap és az elemzés is fogyaszt");
-  // a csomag-pontok a funkciótáblát követik: az elemzés az Alaptól, a fejlődés-követés a Profitól, a színválasztás az Alaptól
+  // a csomag-pontok a funkciótáblát követik: az elemzés és a színválasztás az Alaptól; a Profi többlete a nagyobb keret
   assert.ok(kvota.FUNKCIOK.osztaly_elemzes.includes("alap") && !kvota.FUNKCIOK.osztaly_elemzes.includes("ingyenes"));
-  assert.ok(kvota.FUNKCIOK.fejlodes.includes("profi") && !kvota.FUNKCIOK.fejlodes.includes("alap"));
+  // a fejlődés-követés a prodban nincs (diákfiók nélkül nincs diákazonosság): se funkció, se ígéret
+  assert.equal(kvota.FUNKCIOK.fejlodes, undefined);
+  for (const nyelv of ["hu", "en"]) {
+    const szotar = readFileSync(new URL(`../public/js/i18n-${nyelv}.js`, import.meta.url), "utf8");
+    assert.doesNotMatch(szotar, /fejlődéskövetés|fejlődésének követése|progress tracking/i, nyelv);
+  }
   assert.ok(kvota.FUNKCIOK.szinvalasztas.includes("alap") && !kvota.FUNKCIOK.szinvalasztas.includes("ingyenes"));
   assert.ok(kvota.CSOMAGOK.profi.keret > kvota.CSOMAGOK.alap.keret, "a Profi 'nagyobb havi keret'");
 });
