@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="csd.oldalcim">WritingReview – A csoport diákjai</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
+  <script src="js/tema-korai.js"></script>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
+  </div>
+</div>
+
+<!-- EGY CSOPORT DIÁKJAI (8b/2). A szerver a beadáskor a becenév szerint párosít (a csoporton
+     belül az azonos becenév ugyanaz a diák). Itt a tanár összevonja azt a két diákot, aki
+     valójában egy (más becenevet használt), vagy leválaszt egy tévesen párosított beadást.
+     Mindkettő Cloud Function: a beadások és a becenév-hozzárendelés együtt változik. -->
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main narrow">
+    <div class="page-header">
+      <h1 id="cim" data-i18n="csd.cim">A csoport diákjai</h1>
+      <p data-i18n="csd.alcim">Az azonos becenévvel beadott szövegek automatikusan ugyanahhoz a diákhoz kerülnek. Ha valaki más becenevet használt, vond össze a két diákot. Ha két diák írt ugyanazzal a becenévvel, válaszd le a téves beadást.</p>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <div id="lista"><div class="empty-state bare"><div class="spinner"></div></div></div>
+  </main>
+</div>
+
+<script type="module">
+  import { t, nyelv } from './js/i18n.js';
+  import { vedettOldal, esc, datum } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar, statuszBadge } from './js/ui.js';
+  import { csoportDiakjai } from './js/csoport.js';
+  import {
+    db, functions, httpsCallable,
+    collection, doc, getDoc, getDocs, query, where, onSnapshot
+  } from './js/firebase-config.js';
+
+  const { user, admin } = await vedettOldal('tanar');
+  oldalsav('csoportok.html', { admin });
+
+  const osszevonas = httpsCallable(functions, 'csoportDiakOsszevonas');
+  const levalasztas = httpsCallable(functions, 'csoportBeadasLevalasztas');
+
+  const csoportId = new URLSearchParams(location.search).get('id');
+  const lista = document.getElementById('lista');
+  const hibaAllapot = (kulcs) => {
+    lista.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>${t(kulcs)}</p></div>`;
+  };
+
+  let csoport = null;
+  try {
+    const snap = csoportId ? await getDoc(doc(db, 'csoportok', csoportId)) : null;
+    csoport = snap?.exists() ? snap.data() : null;
+  } catch (err) { console.error(err); }
+  if (!csoport) {
+    hibaAllapot('csd.nincs');
+  } else {
+    document.getElementById('cim').textContent = t('csd.cim_nevvel', { nev: csoport.nev });
+    document.title = `WritingReview – ${csoport.nev}`;
+    indit();
+  }
+
+  function indit() {
+    let diakok = null, beadasok = null;
+    const feladatCim = new Map();
+    let nyitott = new Set();     // a kinyitott diákok (újrarajzoláskor is maradjon nyitva)
+    let osszevonoNyitva = null;  // melyik diáknál látszik az összevonás űrlapja
+
+    // A feladatok címe a beadások listájához (egyszer; a tanar_id szűrő a szabály miatt kell).
+    getDocs(query(collection(db, 'feladatok'), where('tanar_id', '==', user.uid)))
+      .then((snap) => { snap.forEach((d) => feladatCim.set(d.id, d.data().cim || '')); rajzol(); })
+      .catch((err) => console.error(err));
+
+    function beadasSor(b, levalaszthato) {
+      return `<div class="list-card">
+        <div>
+          <h3>${esc(feladatCim.get(b.feladat_id) || t('csd.feladat_ismeretlen'))}</h3>
+          <div class="list-card-meta">
+            <span>${t('csd.becenevvel', { becenev: esc(b.becenev || '–') })}</span>
+            <span>${esc(datum(b.letrehozva))}</span>
+            ${statuszBadge(b.statusz)}
+          </div>
+        </div>
+        ${levalaszthato ? `<div class="gomb-sor" style="margin-top:0;">
+          <button class="btn-sm" data-levalaszt="${esc(b.id)}" data-becenev="${esc(b.becenev || '')}">${t('csd.levalasztas')}</button>
+        </div>` : ''}
+      </div>`;
+    }
+
+    function diakBlokk(d, mind) {
+      const tobbi = mind.filter((x) => x.id !== d.id);
+      const urlap = osszevonoNyitva === d.id ? `
+        <form class="code-input-row" data-osszevon="${esc(d.id)}">
+          <select required aria-label="${esc(t('csd.osszevonas_kivel'))}">
+            <option value="">${t('csd.osszevonas_valassz')}</option>
+            ${tobbi.map((x) => `<option value="${esc(x.id)}">${esc(x.nev)} (${t('csd.beadas_db', { db: x.beadasok.length })})</option>`).join('')}
+          </select>
+          <button class="btn-sm" type="submit">${t('csd.osszevonas_gomb')}</button>
+          <button class="btn-sm" type="button" data-megse>${t('cs.megse')}</button>
+        </form>
+        <p class="halvany" style="margin-top:0.5rem;">${t('csd.osszevonas_magyarazat', { nev: esc(d.nev) })}</p>` : '';
+      const tobbBecenev = d.becenevAlakok.length > 1
+        ? `<span>${t('csd.becenevek', { lista: esc(d.becenevAlakok.join(', ')) })}</span>` : '';
+      return `<details class="panel" data-diak="${esc(d.id)}" ${nyitott.has(d.id) ? 'open' : ''}>
+        <summary class="panel-header">
+          <div>
+            <h2>${esc(d.nev)}</h2>
+            <div class="list-card-meta">
+              <span>${t('csd.beadas_db', { db: d.beadasok.length })}</span>
+              ${d.utolso ? `<span>${t('csd.utolso', { datum: esc(datum(d.utolso)) })}</span>` : ''}
+              ${tobbBecenev}
+            </div>
+          </div>
+        </summary>
+        ${!tobbi.length ? '' : urlap ? `<div class="panel-body">${urlap}</div>` : `<div class="panel-body">
+          <div class="gomb-sor" style="margin-top:0;">
+            <button class="btn-sm" data-osszevon-nyit="${esc(d.id)}">${t('csd.osszevonas')}</button>
+          </div>
+        </div>`}
+        <div class="panel-body flush">${d.beadasok.map((b) => beadasSor(b, d.beadasok.length > 1)).join('')}</div>
+      </details>`;
+    }
+
+    function rajzol() {
+      if (diakok === null || beadasok === null) return;
+      const { diakok: mind } = csoportDiakjai(diakok, beadasok, nyelv());
+      if (!mind.length) {
+        lista.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><p>${t('csd.ures')}</p></div>`;
+        return;
+      }
+      lista.innerHTML = `<p class="halvany" style="margin-bottom:0.75rem;">${t('csd.osszesen', { db: mind.length })}</p>`
+        + mind.map((d) => diakBlokk(d, mind)).join('');
+
+      lista.querySelectorAll('details[data-diak]').forEach((el) => el.addEventListener('toggle', () => {
+        if (el.open) nyitott.add(el.dataset.diak); else nyitott.delete(el.dataset.diak);
+      }));
+      lista.querySelectorAll('[data-osszevon-nyit]').forEach((b) => b.addEventListener('click', () => {
+        osszevonoNyitva = b.dataset.osszevonNyit; nyitott.add(osszevonoNyitva); rajzol();
+        lista.querySelector('[data-osszevon] select')?.focus();
+      }));
+      lista.querySelectorAll('[data-megse]').forEach((b) => b.addEventListener('click', () => { osszevonoNyitva = null; rajzol(); }));
+      lista.querySelectorAll('[data-osszevon]').forEach((f) => f.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        uzenetTorles('msg');
+        const forras = mind.find((x) => x.id === f.dataset.osszevon);
+        const cel = mind.find((x) => x.id === f.querySelector('select').value);
+        if (!forras || !cel) return;
+        if (!confirm(t('csd.osszevonas_kerdes', { forras: forras.nev, cel: cel.nev }))) return;
+        const vissza = gombVar(f.querySelector('button[type=submit]'), '');
+        try {
+          await osszevonas({ csoportId, celDiakId: cel.id, forrasDiakId: forras.id });
+          osszevonoNyitva = null;
+          nyitott.add(cel.id);
+          uzenet('msg', t('csd.osszevonva', { forras: forras.nev, cel: cel.nev }), 'success');
+        } catch (err) {
+          uzenet('msg', hibaSzoveg(err));
+        } finally { vissza(); }
+      }));
+      lista.querySelectorAll('[data-levalaszt]').forEach((b) => b.addEventListener('click', async () => {
+        uzenetTorles('msg');
+        if (!confirm(t('csd.levalasztas_kerdes', { becenev: b.dataset.becenev }))) return;
+        const vissza = gombVar(b, '');
+        try {
+          const r = await levalasztas({ beadasId: b.dataset.levalaszt });
+          if (r.data?.diakId) nyitott.add(r.data.diakId);
+          uzenet('msg', t('csd.levalasztva', { becenev: b.dataset.becenev }), 'success');
+        } catch (err) {
+          uzenet('msg', hibaSzoveg(err));
+          vissza();
+        }
+      }));
+    }
+
+    const hiba = (err) => { console.error(err); hibaAllapot('csd.lista_hiba'); };
+    onSnapshot(collection(db, 'csoportok', csoportId, 'diakok'), (snap) => {
+      diakok = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      rajzol();
+    }, hiba);
+    // A tanar_id szűrő nem hagyható el: a list-szabálynál a query bizonyítja a jogot.
+    onSnapshot(query(collection(db, 'beadasok'), where('tanar_id', '==', user.uid), where('csoport_id', '==', csoportId)), (snap) => {
+      beadasok = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      rajzol();
+    }, hiba);
+  }
+</script>
+</body>
+</html>

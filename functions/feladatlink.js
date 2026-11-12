@@ -166,12 +166,14 @@ function jelzesekErvenyesek(j) {
  * A beadás dokumentuma. Az azonosítója a DIÁK tokenjének lenyomata (beadasok/{hash}): a diák
  * a saját visszajelzés-linkjével (diaklink) ezt találja meg, a tanár pedig nem látja a tokent.
  */
-function ujBeadasAdat({ link, linkId, becenev, szoveg, jelzesek, most = Date.now() }) {
+function ujBeadasAdat({ link, linkId, becenev, szoveg, jelzesek, csoportDiakId = null, most = Date.now() }) {
   return {
     feladat_id: link.feladat_id,
     tanar_id: link.tanar_id,
     link_id: linkId,
     csoport_id: link.csoport_id || null,
+    // a csoport diákja (8b/2): csoportos linknél a becenév szerint párosítva, különben null
+    csoport_diak_id: link.csoport_id ? csoportDiakId : null,
     becenev: becenevTisztitas(becenev),
     forras: "szoveg",
     szoveg,
@@ -196,7 +198,55 @@ function diaklinkJovahagyasUtan(lejar, most = Date.now()) {
   return ms < minimum ? new Date(minimum) : null;
 }
 
+// ── A CSOPORT DIÁKJAI (8b/2): párosítás becenév szerint ──
+//
+// csoportok/{cs}/diakok/{id}:      { nev, becenevek: [kulcs, …], letrehozva, utolso_beadas }
+// csoportok/{cs}/becenevek/{kulcs}: { diak_id } – melyik diákhoz kerül az adott becenév
+// A csoporton belül az azonos kulcsú becenév (becenevKulcs) automatikusan ugyanaz a diák.
+// Eltérő becenevet a tanár összevonással kapcsol össze; a téves párosítást leválasztással bontja.
+
+/** Új csoport-diák dokumentuma az első beadás becenevéből (az időbélyegeket a hívó adja). */
+function ujCsoportDiakAdat(becenev) {
+  return { nev: becenevTisztitas(becenev), becenevek: [becenevKulcs(becenev)] };
+}
+
+/** Két diák összevonása: a cél megtartja a nevét, megkapja a forrás beceneveit, a későbbi utolsó beadást. */
+function osszevonasTerv(cel, forras) {
+  const becenevek = [...new Set([...(cel.becenevek || []), ...(forras.becenevek || [])])];
+  const c = ms(cel.utolso_beadas), f = ms(forras.utolso_beadas);
+  const utolso = !Number.isFinite(f) || (Number.isFinite(c) && c >= f) ? cel.utolso_beadas : forras.utolso_beadas;
+  return { becenevek, utolso_beadas: utolso ?? null };
+}
+
+/**
+ * Egy beadás leválasztása a diákjáról (új diák lesz belőle). `tobbi`: a forrásdiák MARADÓ beadásai.
+ * A becenév akkor költözik az új diákhoz, ha a forrásnál ezzel a becenévvel nincs más beadás – így egy
+ * téves összevonás visszacsinálható (a „Peter” újra külön diák, a következő „Peter” is oda kerül).
+ * Ha maradt azonos becenevű beadás (két diák írt ugyanazzal a becenévvel), az új diák becenév nélkül
+ * jön létre: a következő ilyen beadás a régihez kerül, a tanár kézzel teheti át.
+ */
+function levalasztasTerv(forras, beadas, tobbi) {
+  const kulcs = becenevKulcs(beadas.becenev);
+  const forrasBecenevei = forras.becenevek || [];
+  const viszi = forrasBecenevei.includes(kulcs) && !tobbi.some((b) => becenevKulcs(b.becenev) === kulcs);
+  const maradBecenevek = viszi ? forrasBecenevei.filter((k) => k !== kulcs) : forrasBecenevei;
+  const legujabb = [...tobbi].sort((a, b) => (ms(b.letrehozva) || 0) - (ms(a.letrehozva) || 0))[0];
+  // A név marad, ha a becenevei között még szerepel; különben a legutóbbi maradó beadás beceneve.
+  const forrasNev = maradBecenevek.includes(becenevKulcs(forras.nev)) || !legujabb
+    ? forras.nev : becenevTisztitas(legujabb.becenev);
+  const utolso = legujabb && Number.isFinite(ms(legujabb.letrehozva)) ? legujabb.letrehozva : forras.utolso_beadas ?? null;
+  return {
+    becenevViszi: viszi,
+    kulcs,
+    uj: { nev: becenevTisztitas(beadas.becenev), becenevek: viszi ? [kulcs] : [] },
+    forras: { nev: forrasNev, becenevek: maradBecenevek, utolso_beadas: utolso }
+  };
+}
+
 module.exports = {
+  ujCsoportDiakAdat,
+  osszevonasTerv,
+  levalasztasTerv,
   DIAKLINK_JOVAHAGYAS_UTAN_MS,
   diaklinkJovahagyasUtan,
   LINK_ERVENYESSEG_MS,

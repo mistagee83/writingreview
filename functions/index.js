@@ -179,6 +179,11 @@ const HIBA_SZOVEG = {
   feladat_nincs: () => "A feladat nem található.",
   nem_a_te_feladatod: () => "Ez nem a te feladatod.",
   csoport_ervenytelen: () => "A kiválasztott csoport nem található, vagy archiválva van.",
+  csoport_nincs: () => "A csoport nem található.",
+  csoport_diak_nincs: () => "A diák nem található a csoportban. Lehet, hogy közben összevontad vagy leválasztottad: töltsd újra az oldalt.",
+  osszevonas_onmagaval: () => "Egy diákot nem vonhatsz össze önmagával.",
+  levalasztas_egyetlen: () => "Ez a diák egyetlen beadása, nincs mit leválasztani.",
+  csoport_tul_sok_beadas: () => "Ennél a diáknál túl sok a beadás ahhoz, hogy egyszerre áthelyezzük.",
   nincs_kiertekelt: () => "Ehhez a feladathoz még nincs kiértékelt beadás.",
   feladat_zart: () => "Ez a feladat le van zárva. Nyisd meg újra a feladatlistában, ha linket indítanál hozzá.",
   link_id_kell: () => "Nem derül ki, melyik linkről van szó.",
@@ -2722,9 +2727,33 @@ async function linkBeadasLogika(firestore, adat, { most = Date.now(), tokenFn = 
     const becenevRef = linkRef.collection("becenevek").doc(becenevKulcs);
     if ((await tx.get(becenevRef)).exists) throw hiba("already-exists", "becenev_foglalt");
 
+    // Csoportos link (8b/2): a becenév a csoporton belül ugyanahhoz a diákhoz kerül; új becenévből új diák.
+    // Az olvasások itt is az írások előtt vannak (tranzakció).
+    let csoportDiakId = null;
+    if (link.csoport_id) {
+      const csRef = firestore.collection("csoportok").doc(link.csoport_id);
+      const aliasRef = csRef.collection("becenevek").doc(becenevKulcs);
+      const alias = await tx.get(aliasRef);
+      const regiId = alias.exists ? alias.data().diak_id : null;
+      const regiRef = typeof regiId === "string" && regiId ? csRef.collection("diakok").doc(regiId) : null;
+      if (regiRef && (await tx.get(regiRef)).exists) {
+        tx.update(regiRef, { utolso_beadas: FieldValue.serverTimestamp() });
+        csoportDiakId = regiRef.id;
+      } else {
+        const ujRef = csRef.collection("diakok").doc();
+        tx.set(ujRef, {
+          ...feladatlink.ujCsoportDiakAdat(adat.becenev),
+          letrehozva: FieldValue.serverTimestamp(),
+          utolso_beadas: FieldValue.serverTimestamp()
+        });
+        tx.set(aliasRef, { diak_id: ujRef.id });
+        csoportDiakId = ujRef.id;
+      }
+    }
+
     const beadasRef = firestore.collection("beadasok").doc(beadasId);
     tx.create(beadasRef, {
-      ...feladatlink.ujBeadasAdat({ link, linkId: linkRef.id, becenev: adat.becenev, szoveg, jelzesek: adat.jelzesek, most }),
+      ...feladatlink.ujBeadasAdat({ link, linkId: linkRef.id, becenev: adat.becenev, szoveg, jelzesek: adat.jelzesek, csoportDiakId, most }),
       letrehozva: FieldValue.serverTimestamp(),
       frissitve: FieldValue.serverTimestamp()
     });
@@ -2741,6 +2770,99 @@ exports.linkAdatok = onCall(HIVAS_OPCIOK, async (request) => linkAdatokLogika(db
 exports.linkBeadas = onCall(HIVAS_OPCIOK, async (request) => linkBeadasLogika(db(), request.data));
 
 Object.assign(exports._teszt, { linkInditasLogika, linkLezarasLogika, linkAdatokLogika, linkBeadasLogika });
+
+// ══════════════════════════════════════════════════════
+// 13/b. A CSOPORT DIÁKJAI (tanár, 8b/2) – kézi párosítás
+//
+// A beadáskor a becenév automatikusan párosul (linkBeadasLogika). Ha a diák más becenevet
+// használt, a tanár összevonja a két diákot; ha a párosítás téves, egy beadást leválaszt.
+// Kliensről a diakok/becenevek nem írhatók: a beadások és a becenév-hozzárendelés együtt,
+// egy tranzakcióban változik (egy közben érkező beadás sem kerülhet rossz helyre).
+// ══════════════════════════════════════════════════════
+
+const AZONOSITO_MINTA = /^[A-Za-z0-9_-]{1,128}$/;
+/** Egy tranzakcióban legfeljebb ennyi beadás helyezhető át (a Firestore 500 írásos korlátja alatt). */
+const CSOPORT_ATHELYEZES_MAX = 400;
+
+async function sajatCsoportRef(firestore, uid, csoportId) {
+  if (typeof csoportId !== "string" || !AZONOSITO_MINTA.test(csoportId)) throw hiba("invalid-argument", "csoport_nincs");
+  const ref = firestore.collection("csoportok").doc(csoportId);
+  const snap = await ref.get();
+  if (!snap.exists || snap.data().tanar_id !== uid) throw hiba("not-found", "csoport_nincs");
+  return ref;
+}
+
+const csoportDiakBeadasai = (firestore, uid, csoportId, diakId) => firestore.collection("beadasok")
+  .where("tanar_id", "==", uid).where("csoport_id", "==", csoportId).where("csoport_diak_id", "==", diakId);
+
+/** A forrásdiák minden beadása és beceneve a célhoz kerül; a forrás megszűnik. */
+async function csoportDiakOsszevonasLogika(firestore, uid, adat) {
+  const { celDiakId, forrasDiakId } = adat || {};
+  const csRef = await sajatCsoportRef(firestore, uid, adat?.csoportId);
+  if (![celDiakId, forrasDiakId].every((x) => typeof x === "string" && AZONOSITO_MINTA.test(x))) {
+    throw hiba("invalid-argument", "csoport_diak_nincs");
+  }
+  if (celDiakId === forrasDiakId) throw hiba("invalid-argument", "osszevonas_onmagaval");
+
+  const athelyezve = await firestore.runTransaction(async (tx) => {
+    const celRef = csRef.collection("diakok").doc(celDiakId);
+    const forrasRef = csRef.collection("diakok").doc(forrasDiakId);
+    const [cel, forras] = await tx.getAll(celRef, forrasRef);
+    if (!cel.exists || !forras.exists) throw hiba("not-found", "csoport_diak_nincs");
+    const beadasok = await tx.get(csoportDiakBeadasai(firestore, uid, csRef.id, forrasDiakId));
+    if (beadasok.size > CSOPORT_ATHELYEZES_MAX) throw hiba("failed-precondition", "csoport_tul_sok_beadas");
+
+    const terv = feladatlink.osszevonasTerv(cel.data(), forras.data());
+    for (const b of beadasok.docs) tx.update(b.ref, { csoport_diak_id: celDiakId });
+    for (const k of forras.data().becenevek || []) tx.set(csRef.collection("becenevek").doc(k), { diak_id: celDiakId });
+    tx.update(celRef, terv);
+    tx.delete(forrasRef);
+    return beadasok.size;
+  });
+  logger.info("Csoport: diákok összevonva", { tanar: uid, csoport: csRef.id, celDiakId, forrasDiakId, athelyezve });
+  return { diakId: celDiakId, athelyezve };
+}
+
+/** Egy beadás leválasztása a diákjáról: új diák lesz belőle (a téves párosítás bontása). */
+async function csoportBeadasLevalasztasLogika(firestore, uid, adat) {
+  const beadasId = adat?.beadasId;
+  if (typeof beadasId !== "string" || !AZONOSITO_MINTA.test(beadasId)) throw hiba("invalid-argument", "beadas_nincs");
+  const beadasRef = firestore.collection("beadasok").doc(beadasId);
+
+  const eredmeny = await firestore.runTransaction(async (tx) => {
+    const bSnap = await tx.get(beadasRef);
+    const b = bSnap.data();
+    if (!bSnap.exists || b.tanar_id !== uid) throw hiba("not-found", "beadas_nincs");
+    if (!b.csoport_id || !b.csoport_diak_id) throw hiba("failed-precondition", "csoport_diak_nincs");
+    const csRef = firestore.collection("csoportok").doc(b.csoport_id);
+    const forrasRef = csRef.collection("diakok").doc(b.csoport_diak_id);
+    const forras = await tx.get(forrasRef);
+    if (!forras.exists) throw hiba("not-found", "csoport_diak_nincs");
+    const tobbi = (await tx.get(csoportDiakBeadasai(firestore, uid, b.csoport_id, b.csoport_diak_id))).docs
+      .filter((d) => d.id !== beadasId).map((d) => d.data());
+    if (tobbi.length === 0) throw hiba("failed-precondition", "levalasztas_egyetlen");
+
+    const terv = feladatlink.levalasztasTerv(forras.data(), b, tobbi);
+    const ujRef = csRef.collection("diakok").doc();
+    tx.set(ujRef, { ...terv.uj, letrehozva: FieldValue.serverTimestamp(), utolso_beadas: b.letrehozva ?? FieldValue.serverTimestamp() });
+    if (terv.becenevViszi) tx.set(csRef.collection("becenevek").doc(terv.kulcs), { diak_id: ujRef.id });
+    tx.update(forrasRef, terv.forras);
+    tx.update(beadasRef, { csoport_diak_id: ujRef.id });
+    return { diakId: ujRef.id, csoportId: b.csoport_id };
+  });
+  logger.info("Csoport: beadás leválasztva", { tanar: uid, beadasId, ...eredmeny });
+  return { diakId: eredmeny.diakId };
+}
+
+exports.csoportDiakOsszevonas = onCall(HIVAS_OPCIOK, async (request) => {
+  return csoportDiakOsszevonasLogika(db(), tanar(request), request.data);
+});
+
+exports.csoportBeadasLevalasztas = onCall(HIVAS_OPCIOK, async (request) => {
+  return csoportBeadasLevalasztasLogika(db(), tanar(request), request.data);
+});
+
+Object.assign(exports._teszt, { csoportDiakOsszevonasLogika, csoportBeadasLevalasztasLogika });
 
 // ══════════════════════════════════════════════════════
 // 14. ÉRTÉKELÉS INDÍTÁSA (tanár) – sorba állítás és háttérfeldolgozás
@@ -2967,7 +3089,24 @@ async function takaritasLogika(firestore, { most = Date.now(), max = TAKARITAS_M
   const regiLinkek = await linkek.where("lejar", "<", new Date(most - MEGORZES_MS)).limit(max).get();
   for (const d of regiLinkek.docs) await firestore.recursiveDelete(d.ref);
 
-  const eredmeny = { becenev_linkek: lejartLinkek.size, beadasok: regiBeadasok.size, linkek: regiLinkek.size };
+  // 3. A csoportok diákjai, akiknek az utolsó beadása is régebbi a megőrzési időnél (a beadásaik már
+  //    törlődtek): a diák és a rá mutató becenév-hozzárendelések. A csoport maga megmarad.
+  const regiDiakok = await firestore.collectionGroup("diakok")
+    .where("utolso_beadas", "<", new Date(most - MEGORZES_MS)).limit(max).get();
+  for (const d of regiDiakok.docs) {
+    const csRef = d.ref.parent.parent;
+    if (!csRef || csRef.parent.id !== "csoportok") continue;
+    await firestore.runTransaction(async (tx) => {
+      const friss = await tx.get(d.ref);
+      if (!friss.exists || ms(friss.data().utolso_beadas) >= most - MEGORZES_MS) return; // közben új beadás jött
+      const aliasRefek = (friss.data().becenevek || []).map((k) => csRef.collection("becenevek").doc(k));
+      const aliasok = aliasRefek.length ? await tx.getAll(...aliasRefek) : [];
+      for (const a of aliasok) if (a.exists && a.data().diak_id === d.id) tx.delete(a.ref);
+      tx.delete(d.ref);
+    });
+  }
+
+  const eredmeny = { becenev_linkek: lejartLinkek.size, beadasok: regiBeadasok.size, linkek: regiLinkek.size, csoport_diakok: regiDiakok.size };
   logger.info("Takarítás", eredmeny);
   return eredmeny;
 }

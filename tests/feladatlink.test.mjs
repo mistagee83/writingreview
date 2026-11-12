@@ -186,3 +186,52 @@ test("diáklink jóváhagyáskor: ha 7 napnál kevesebb van hátra, a jóváhagy
   assert.equal(l.diaklinkJovahagyasUtan(new Date(most + 10 * NAP), most), null);
   assert.equal(l.diaklinkJovahagyasUtan(undefined, most), null, "nem feladatlinkes beadás: nincs diáklink");
 });
+
+// ── A csoport diákjai (8b/2): párosítás becenév szerint ──
+
+test("csoport-diák: az első beadás becenevéből; a kulcs ugyanaz, mint a linken belüli egyediségé", () => {
+  assert.deepEqual(l.ujCsoportDiakAdat("  Kék   Sárkány "), { nev: "Kék Sárkány", becenevek: ["keksarkany"] });
+  assert.equal(l.becenevKulcs("kek-SARKANY"), "keksarkany", "a „Kek-Sarkany” ugyanaz a diák");
+});
+
+test("összevonás: a cél neve marad, a becenevek uniója, a későbbi utolsó beadás", () => {
+  const cel = { nev: "Peti", becenevek: ["peti"], utolso_beadas: new Date(1000) };
+  const forras = { nev: "Peter", becenevek: ["peter", "peti"], utolso_beadas: new Date(5000) };
+  const t = l.osszevonasTerv(cel, forras);
+  assert.deepEqual(t.becenevek, ["peti", "peter"]);
+  assert.equal(t.utolso_beadas.getTime(), 5000);
+  assert.equal(l.osszevonasTerv({ ...cel, utolso_beadas: new Date(9000) }, forras).utolso_beadas.getTime(), 9000);
+  assert.equal(l.osszevonasTerv({ becenevek: [] }, {}).utolso_beadas, null, "hiányzó adatnál sem hibázik");
+});
+
+test("leválasztás: egy téves összevonás visszacsinálható – a becenév az új diákhoz költözik", () => {
+  const forras = { nev: "Peti", becenevek: ["peti", "peter"], utolso_beadas: new Date(9000) };
+  const t = l.levalasztasTerv(forras, { becenev: "Peter", letrehozva: new Date(9000) },
+    [{ becenev: "Peti", letrehozva: new Date(3000) }]);
+  assert.equal(t.becenevViszi, true);
+  assert.equal(t.kulcs, "peter");
+  assert.deepEqual(t.uj, { nev: "Peter", becenevek: ["peter"] });
+  assert.deepEqual(t.forras.becenevek, ["peti"]);
+  assert.equal(t.forras.nev, "Peti");
+  assert.equal(t.forras.utolso_beadas.getTime(), 3000, "az utolsó beadás a maradókból");
+});
+
+test("leválasztás: ugyanazzal a becenévvel írt két diák – az új diák becenév nélkül jön létre", () => {
+  const forras = { nev: "Anna", becenevek: ["anna"], utolso_beadas: new Date(5000) };
+  const t = l.levalasztasTerv(forras, { becenev: "anna", letrehozva: new Date(5000) },
+    [{ becenev: "Anna", letrehozva: new Date(2000) }]);
+  assert.equal(t.becenevViszi, false, "a következő „Anna” a régihez kerül");
+  assert.deepEqual(t.uj, { nev: "anna", becenevek: [] });
+  assert.deepEqual(t.forras.becenevek, ["anna"]);
+  assert.equal(t.forras.nev, "Anna");
+});
+
+test("leválasztás: ha a forrás neve elköltözik, a legutóbbi maradó beadás becenevét kapja", () => {
+  const forras = { nev: "Peter", becenevek: ["peter", "peti"] };
+  const t = l.levalasztasTerv(forras, { becenev: "Peter" }, [
+    { becenev: "Peti", letrehozva: new Date(1000) },
+    { becenev: "Pityu", letrehozva: { toMillis: () => 7000 } }
+  ]);
+  assert.equal(t.forras.nev, "Pityu");
+  assert.equal(t.forras.utolso_beadas.toMillis(), 7000);
+});

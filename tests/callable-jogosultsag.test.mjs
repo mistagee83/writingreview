@@ -27,7 +27,8 @@ const MINDEN_KAPUS = {
   tanar: [
     "feladatlapElemzes", "beadasUjrafuttatas",
     "visszajelzesJovahagyas", "feladatElemzes", "kvotaAllapot",
-    "fizetesIndit", "fizetesKezeles", "temaBeallitas", "linkInditas", "linkLezaras", "ertekelesInditas"
+    "fizetesIndit", "fizetesKezeles", "temaBeallitas", "linkInditas", "linkLezaras", "ertekelesInditas",
+    "csoportDiakOsszevonas", "csoportBeadasLevalasztas"
   ],
   admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas", "szamlazandoLista", "szamlaJeloles"],
   // Belépés NÉLKÜL hívható (a diák a feladatlinken): a jogosultság a token, a függvény maga ellenőrzi

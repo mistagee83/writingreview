@@ -113,6 +113,7 @@
         </div>
       </div>
       <div class="gomb-sor" style="margin-top:0;">
+        <a class="btn-sm" href="csoport.html?id=${encodeURIComponent(cs.id)}">${t('cs.diakok')}</a>
         <button class="btn-sm" data-szerkeszt="${esc(cs.id)}">${t('cs.atnevezes')}</button>
         <button class="btn-sm" data-aktiv="${esc(cs.id)}" data-ertek="${cs.aktiv === false ? '1' : '0'}">
           ${cs.aktiv === false ? t('cs.visszaallitas') : t('cs.archivalas')}</button>

@@ -30,8 +30,12 @@ egyszerre). **7. lépés (a diák visszajelzés-oldala): kész (commitolva, ninc
 `diakVisszajelzes` (csak a jóváhagyott tanári visszajelzés), jóváhagyáskor legalább 7 nap a diáklinkből, napi
 takarítás (`takaritas`: 12 hónapos megőrzés, a lejárt linkek becenév-foglalásai). **8a (csomagok): kész (commitolva, nincs deployolva).** A Profi = az Alap mindene + nagyobb keret, a fejlődés-követés
 kikerült. **Új (2026-11-12): 8b – csoportok és becenév alapú fejlődés-követés** (terv: `prod-atalakitas-terv.md` 7./8b).
-**8b/1 (csoportok, link → csoport): kész (commitolva, nincs deployolva).** Következő: 8b/2 (párosítás becenév szerint);
+**8b/1 (csoportok, link → csoport): kész (commitolva, nincs deployolva).** **8b/2 (párosítás becenév szerint,
+összevonás, leválasztás, `csoport.html`): kész (nincs deployolva).** Következő: 8b/3 (fejlődés-nézet, Profi);
 utána 8c nyitóoldal, 8d takarítás, 8e App Check, 8f kiadás.
+**Emulátoros tesztek helyben (2026-11-12):** a gépen van Java 21 JRE (`C:\Program Files\Eclipse Adoptium\jre-21.0.11.10-hotspot`);
+Git Bash-ben `export JAVA_HOME=".../jre-21.0.11.10-hotspot" PATH="$JAVA_HOME/bin:$PATH"`, majd `cd tests && npm test`
+– így a teljes csomag (702 teszt) helyben is lefut.
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 
@@ -202,7 +206,7 @@ fejlődés-követés, osztályelemzés, színválasztó, új nyitóoldal (árak 
   kifejtős modulok, bemutató. A szerveroldal is: feladatonként állítható visszajelzés-nyelv
   (`rubrika.kimeneti_nyelv`), kódolt szerverhibák.
 - A `main` ág és az `origin/main` megegyezik (GitHub: `mistagee83/writingreview`); az A. és B. lépés
-  a `main`-en van. A régi `claude/happy-ritchie-kel1hp` ág már nem hordoz újat.
+  a `main`-en van. A régi `claude/happy-ritchie-kel1hp` és `kvota-wip` ág be volt olvasztva, 2026-11-12-én törölve (helyben és a GitHubon).
 - **Cél:** nemzetközi piac, elsősorban nyelvtanároknak; a mostani (magyar, pilot) verzió
   megmarad kollégákkal való teszteléshez. Konkrét célország még nincs.
 

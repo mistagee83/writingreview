@@ -837,3 +837,110 @@ test("csoport: idegen, archivált, nem létező és rossz alakú csoporttal ninc
   await firestore.collection("csoportok").doc("idegen").delete();
   await firestore.collection("csoportok").doc("archiv").delete();
 });
+
+// ── 8b/2: párosítás becenév szerint ──
+
+async function csoportosLink(csoportId = "csp") {
+  await firestore.collection("csoportok").doc(csoportId).set({ tanar_id: "tanar-uid", nev: "9.B angol", aktiv: true });
+  await diakLink();
+  return logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "df1", csoportId });
+}
+const csDiakok = async (cs = "csp") => (await firestore.collection("csoportok").doc(cs).collection("diakok").get()).docs;
+const beadasAdat = async (diakToken) => (await firestore.collection("beadasok").doc(await lenyomat(diakToken)).get()).data();
+const csoportTorles = async (cs = "csp") => firestore.recursiveDelete(firestore.collection("csoportok").doc(cs));
+
+test("párosítás: a csoportban az azonos becenév (kis/nagybetű, ékezet nélkül is) ugyanaz a diák, más becenév új diák", async () => {
+  const a = await csoportosLink();
+  const b = await csoportosLink();
+  const elso = await beadas(a.token, { becenev: "Kék Sárkány" });
+  const masodik = await beadas(b.token, { becenev: "kek sarkany" });
+  const harmadik = await beadas(b.token, { becenev: "Zöld Béka" });
+  const diakok = await csDiakok();
+  assert.equal(diakok.length, 2);
+  const d1 = (await beadasAdat(elso.diakToken)).csoport_diak_id;
+  assert.ok(d1);
+  assert.equal((await beadasAdat(masodik.diakToken)).csoport_diak_id, d1);
+  assert.notEqual((await beadasAdat(harmadik.diakToken)).csoport_diak_id, d1);
+  const kek = diakok.find((d) => d.id === d1).data();
+  assert.equal(kek.nev, "Kék Sárkány", "az első beadás beceneve a név");
+  assert.deepEqual(kek.becenevek, ["keksarkany"]);
+  assert.ok(kek.utolso_beadas);
+  // csoport nélküli link: nincs párosítás
+  const sima = await diakLink();
+  const s = await beadas(sima.token, { becenev: "Kék Sárkány" });
+  assert.equal((await beadasAdat(s.diakToken)).csoport_diak_id, null);
+  await csoportTorles();
+});
+
+test("összevonás: a forrás beadásai és becenevei a célhoz kerülnek, a következő beadás is oda; idegen nem vonhat össze", async () => {
+  const l1 = await csoportosLink();
+  const peti = await beadas(l1.token, { becenev: "Peti" });
+  const peter = await beadas(l1.token, { becenev: "Peter" });
+  const cel = (await beadasAdat(peti.diakToken)).csoport_diak_id;
+  const forras = (await beadasAdat(peter.diakToken)).csoport_diak_id;
+
+  assert.equal(await kodja(() => logika.csoportDiakOsszevonasLogika(firestore, "masik-tanar",
+    { csoportId: "csp", celDiakId: cel, forrasDiakId: forras })), "csoport_nincs");
+  assert.equal(await kodja(() => logika.csoportDiakOsszevonasLogika(firestore, "tanar-uid",
+    { csoportId: "csp", celDiakId: cel, forrasDiakId: cel })), "osszevonas_onmagaval");
+  assert.equal(await kodja(() => logika.csoportDiakOsszevonasLogika(firestore, "tanar-uid",
+    { csoportId: "csp", celDiakId: cel, forrasDiakId: "nincs-ilyen" })), "csoport_diak_nincs");
+
+  const r = await logika.csoportDiakOsszevonasLogika(firestore, "tanar-uid", { csoportId: "csp", celDiakId: cel, forrasDiakId: forras });
+  assert.deepEqual(r, { diakId: cel, athelyezve: 1 });
+  assert.equal((await beadasAdat(peter.diakToken)).csoport_diak_id, cel);
+  const diakok = await csDiakok();
+  assert.equal(diakok.length, 1, "a forrás megszűnt");
+  assert.deepEqual(diakok[0].data().becenevek.sort(), ["peter", "peti"]);
+  assert.equal(diakok[0].data().nev, "Peti");
+  // a tanár megtanította: a következő „Peter” már a célhoz kerül
+  const l2 = await csoportosLink();
+  const ujra = await beadas(l2.token, { becenev: "Peter" });
+  assert.equal((await beadasAdat(ujra.diakToken)).csoport_diak_id, cel);
+  await csoportTorles();
+});
+
+test("leválasztás: a téves összevonás visszacsinálható; az egyetlen beadás nem választható le; idegen nem bonthat", async () => {
+  const l1 = await csoportosLink();
+  const peti = await beadas(l1.token, { becenev: "Peti" });
+  const peter = await beadas(l1.token, { becenev: "Peter" });
+  const cel = (await beadasAdat(peti.diakToken)).csoport_diak_id;
+  const forras = (await beadasAdat(peter.diakToken)).csoport_diak_id;
+  const peterId = await lenyomat(peter.diakToken);
+  assert.equal(await kodja(() => logika.csoportBeadasLevalasztasLogika(firestore, "tanar-uid", { beadasId: peterId })),
+    "levalasztas_egyetlen");
+  await logika.csoportDiakOsszevonasLogika(firestore, "tanar-uid", { csoportId: "csp", celDiakId: cel, forrasDiakId: forras });
+
+  assert.equal(await kodja(() => logika.csoportBeadasLevalasztasLogika(firestore, "masik-tanar", { beadasId: peterId })),
+    "beadas_nincs");
+  const r = await logika.csoportBeadasLevalasztasLogika(firestore, "tanar-uid", { beadasId: peterId });
+  assert.notEqual(r.diakId, cel);
+  assert.equal((await beadasAdat(peter.diakToken)).csoport_diak_id, r.diakId);
+  const diakok = Object.fromEntries((await csDiakok()).map((d) => [d.id, d.data()]));
+  assert.deepEqual(diakok[cel].becenevek, ["peti"]);
+  assert.deepEqual(diakok[r.diakId].becenevek, ["peter"]);
+  assert.equal(diakok[r.diakId].nev, "Peter");
+  // a következő „Peter” az új (leválasztott) diákhoz kerül
+  const l2 = await csoportosLink();
+  const ujra = await beadas(l2.token, { becenev: "Peter" });
+  assert.equal((await beadasAdat(ujra.diakToken)).csoport_diak_id, r.diakId);
+  await csoportTorles();
+});
+
+test("takarítás: a 12 hónapja nem beadó csoport-diák és a becenevei törlődnek, az aktív marad", async () => {
+  const most = Date.now();
+  const cs = firestore.collection("csoportok").doc("cst");
+  await cs.set({ tanar_id: "tanar-uid", nev: "Régi", aktiv: true });
+  await cs.collection("diakok").doc("regi").set({ nev: "Régi", becenevek: ["regi"], utolso_beadas: new Date(most - 400 * NAP) });
+  await cs.collection("becenevek").doc("regi").set({ diak_id: "regi" });
+  await cs.collection("diakok").doc("friss").set({ nev: "Friss", becenevek: ["friss"], utolso_beadas: new Date(most - 10 * NAP) });
+  await cs.collection("becenevek").doc("friss").set({ diak_id: "friss" });
+  const r = await logika.takaritasLogika(firestore, { most });
+  assert.equal(r.csoport_diakok, 1);
+  assert.equal((await cs.collection("diakok").doc("regi").get()).exists, false);
+  assert.equal((await cs.collection("becenevek").doc("regi").get()).exists, false);
+  assert.equal((await cs.collection("diakok").doc("friss").get()).exists, true);
+  assert.equal((await cs.collection("becenevek").doc("friss").get()).exists, true);
+  assert.equal((await cs.get()).exists, true, "a csoport megmarad");
+  await csoportTorles("cst");
+});

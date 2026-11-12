@@ -772,3 +772,26 @@ test("csoport: a tanár létrehozza, átnevezi és archiválja a sajátját; tö
   await assertFails(getDocs(collection(tanar(), "csoportok")), "szűrő nélküli lista");
   await assertFails(deleteDoc(doc(tanar(), "csoportok", "cs1")));
 });
+
+test("csoport diákjai (8b/2): csak a csoport tanára olvassa, kliensről senki nem írja; a becenév-hozzárendelés zárt", async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, "csoportok", "csd"), { tanar_id: TANAR, nev: "9.B", aktiv: true });
+    await setDoc(doc(db, "csoportok", "csd", "diakok", "d1"), { nev: "Kék Sárkány", becenevek: ["keksarkany"] });
+    await setDoc(doc(db, "csoportok", "csd", "becenevek", "keksarkany"), { diak_id: "d1" });
+  });
+  await assertSucceeds(getDoc(doc(tanar(), "csoportok", "csd", "diakok", "d1")));
+  await assertSucceeds(getDocs(collection(tanar(), "csoportok", "csd", "diakok")));
+  await assertFails(getDoc(doc(tanar2(), "csoportok", "csd", "diakok", "d1")));
+  await assertFails(getDocs(collection(tanar2(), "csoportok", "csd", "diakok")));
+  await assertFails(getDoc(doc(diak(), "csoportok", "csd", "diakok", "d1")));
+  await assertFails(getDoc(doc(nemBelepett(), "csoportok", "csd", "diakok", "d1")));
+  // a tanár sem írhatja: a párosítás a beadásokkal együtt, a szerveren változik
+  await assertFails(setDoc(doc(tanar(), "csoportok", "csd", "diakok", "d2"), { nev: "X", becenevek: [] }));
+  await assertFails(updateDoc(doc(tanar(), "csoportok", "csd", "diakok", "d1"), { nev: "Más" }));
+  await assertFails(deleteDoc(doc(tanar(), "csoportok", "csd", "diakok", "d1")));
+  for (const kliens of [tanar(), tanar2(), diak(), nemBelepett()]) {
+    await assertFails(getDoc(doc(kliens, "csoportok", "csd", "becenevek", "keksarkany")));
+    await assertFails(setDoc(doc(kliens, "csoportok", "csd", "becenevek", "masik"), { diak_id: "d1" }));
+  }
+});

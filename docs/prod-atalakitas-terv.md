@@ -244,6 +244,21 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
      `iras.html` ilyenkor kéri, hogy a diák a csoportban mindig ugyanazt a becenevet használja. Helyi,
      Firebase-helyettesítős előnézetben ellenőrizve (létrehozás, átnevezés, archiválás, linkindítás csoporttal és nélküle,
      diák-tipp, telefonszélesség).
+   - **8b/2 – párosítás becenév szerint: kész (2026-11-12).** Adat: `csoportok/{cs}/diakok/{id}` (`nev`, `becenevek` –
+     kulcsok –, `letrehozva`, `utolso_beadas`) és `csoportok/{cs}/becenevek/{kulcs}` (`diak_id`); a beadás új mezője
+     `csoport_diak_id`. A `linkBeadas` ugyanabban a tranzakcióban párosít: ismert becenév → a meglévő diák, új becenév →
+     új diák. Kézi javítás (tanári callable-ök, tranzakcióban a beadásokkal együtt): **`csoportDiakOsszevonas`** (a
+     forrás beadásai és becenevei a célhoz kerülnek, a forrás megszűnik; a következő ilyen becenevű beadás is a célhoz
+     megy) és **`csoportBeadasLevalasztas`** (egy beadásból új diák; ha a forrásnál nincs más beadás ezzel a becenévvel,
+     a becenév is átköltözik – így egy téves összevonás visszacsinálható; ha van, két diák írt ugyanazzal a becenévvel,
+     és a következő ilyen beadás a régihez kerül). Tiszta rész: `feladatlink.js` (`ujCsoportDiakAdat`, `osszevonasTerv`,
+     `levalasztasTerv`). Szabály: a `diakok`-at a csoport tanára olvassa, írni senki; a `becenevek` zárt. Takarítás: a
+     12 hónapja nem beadó csoport-diák és a hozzárendelései törlődnek (collection group lekérdezés, a
+     `firestore.indexes.json` `fieldOverrides`-ában). Felület: `csoport.html?id=…` (a Csoportok oldal „👤 Diákok”
+     gombjáról): diákonként a beadások (feladat, becenév, dátum, állapot), „🔗 Összevonás másik diákkal”, beadásonként
+     „✂️ Leválasztás”. Helyi, Firebase-helyettesítős előnézetben ellenőrizve (összevonás, leválasztás, telefonszélesség,
+     angol felület). **Deploy-hatás:** új függvények (`csoportDiakOsszevonas`, `csoportBeadasLevalasztas`),
+     `firestore:rules`, `firestore:indexes`. Következő: **8b/3** fejlődés-nézet (Profi).
 
 ## 8. Tesztek
 

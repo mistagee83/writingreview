@@ -25,3 +25,28 @@ export function csoportRendezes(csoportok, locale = "hu") {
 export function valaszthatoCsoportok(csoportok, locale = "hu") {
   return csoportRendezes(csoportok.filter((c) => c.aktiv !== false), locale);
 }
+
+const idoMs = (v) => (v?.toMillis ? v.toMillis() : v instanceof Date ? v.getTime() : typeof v === "number" ? v : 0);
+
+/**
+ * A csoport diákjai a beadásaikkal (8b/2), a csoport.html-hez. A diák a szerver által párosított
+ * `csoport_diak_id` szerint kapja a beadásait (a legújabb elöl); a becenevek a beadásokon látszó
+ * alakok, ismétlés nélkül. A diákok ábécérendben. Ha egy beadás diákja (még) nem érkezett meg
+ * (élő frissítés közben), a beadás a `parositatlan` listába kerül.
+ */
+export function csoportDiakjai(diakok, beadasok, locale = "hu") {
+  const szerint = new Map(diakok.map((d) => [d.id, { ...d, beadasok: [] }]));
+  const parositatlan = [];
+  for (const b of beadasok) (szerint.get(b.csoport_diak_id)?.beadasok ?? parositatlan).push(b);
+  const lista = [...szerint.values()].map((d) => {
+    d.beadasok.sort((a, b) => idoMs(b.letrehozva) - idoMs(a.letrehozva));
+    const latott = new Map();
+    for (const b of d.beadasok) {
+      const k = String(b.becenev || "").toLocaleLowerCase(locale);
+      if (k && !latott.has(k)) latott.set(k, b.becenev);
+    }
+    return { ...d, becenevAlakok: [...latott.values()], utolso: d.beadasok[0]?.letrehozva ?? d.utolso_beadas ?? null };
+  }).filter((d) => d.beadasok.length > 0);
+  lista.sort((a, b) => String(a.nev || "").localeCompare(String(b.nev || ""), locale, { numeric: true, sensitivity: "base" }));
+  return { diakok: lista, parositatlan };
+}

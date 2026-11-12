@@ -181,6 +181,20 @@ service cloud.firestore {
         && request.resource.data.aktiv is bool;
 
       allow delete: if false;
+
+      // ── A CSOPORT DIÁKJAI (8b/2) ──
+      // A becenév szerint párosított diákok: a tanár olvassa, írni csak a szerver írja (a beadás,
+      // az összevonás és a leválasztás egy tranzakcióban mozgatja a beadásokkal együtt).
+      match /diakok/{diakId} {
+        allow read: if tanar()
+          && get(/databases/$(database)/documents/csoportok/$(csoportId)).data.tanar_id == request.auth.uid;
+        allow write: if false;
+      }
+
+      // A becenév → diák hozzárendelés: belső, csak a szerver használja.
+      match /becenevek/{kulcs} {
+        allow read, write: if false;
+      }
     }
 
     // ══════════════════════════════════════════

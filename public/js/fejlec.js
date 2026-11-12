@@ -41,7 +41,9 @@ const SZULO = {
   // Az elemzést egy feladat sorából indítja a tanár, tehát oda tér vissza
   "elemzes.html": "feladatok.html",
   // A megosztási oldalt is egy feladat sorából nyitja a tanár
-  "megosztas.html": "feladatok.html"
+  "megosztas.html": "feladatok.html",
+  // Egy csoport diákjai: a csoportlistáról nyílik
+  "csoport.html": "csoportok.html"
 };
 
 /** A vissza gomb feliratának szótári kulcsai (a t() fordítja le megjelenítéskor). */
@@ -49,6 +51,7 @@ const NEVEK = {
   "tanar.html": "nav.fooldal",
   "feladatok.html": "nav.feladatok",
   "javitas.html": "nav.javitas",
+  "csoportok.html": "nav.csoportok",
   "admin.html": "nav.szerepkezeles",
   "ai-hasznalat.html": "nav.ai_hasznalat",
   "szamlazando.html": "nav.szamlazando"
