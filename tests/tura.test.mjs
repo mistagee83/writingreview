@@ -144,8 +144,8 @@ test("a menü nem ír ki időt, csak lépésszámot", () => {
   assert.match(SZOTARAK.hu["tura.lepes_db"], /^\{db\} lépés$/, "a lépésszám felirata megváltozott");
 
   // A nagy gomb szám nélkül
-  assert.match(motor, /tura\.mind_negy/, "a nagy gomb eltűnt");
-  assert.equal(SZOTARAK.hu["tura.mind_negy"], "Mind a négy, sorban", "a nagy gomb felirata megváltozott");
+  assert.match(motor, /tura\.mind_harom/, "a nagy gomb eltűnt");
+  assert.equal(SZOTARAK.hu["tura.mind_harom"], "Mind a három, sorban", "a nagy gomb felirata megváltozott");
 });
 
 test("minden lépésnek van címe és szövege", () => {
@@ -319,7 +319,7 @@ test("diáknál SOHA nem nyílik fel", () => {
 });
 
 test("csak a tanári kezdőlapon nyílik fel, munka közben nem", () => {
-  for (const oldal of ["feladatok.html", "javitas.html", "osztalyok.html",
+  for (const oldal of ["feladatok.html", "javitas.html",
                        "admin.html", "index.html", "elemzes.html"]) {
     assert.equal(felnyiljon({ ...alap, oldal }), false, `${oldal}-en felnyílt`);
   }

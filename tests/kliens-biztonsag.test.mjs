@@ -36,16 +36,8 @@ test("biztonsagosUrl: javascript:, data:, http, idegen host, nem szöveg elutas�
   }
 });
 
-// ── XSS: a szószám a diák listájában ──
-test("diak.html: a szószám-szöveg escape-elve kerül az innerHTML-be", () => {
-  const diak = forras("diak.html");
-  assert.match(diak, /esc\(t\('diak\.szo_tartomany'/);
-  assert.equal(/\$\{t\('diak\.szo_tartomany'/.test(diak), false,
-    "a t() kimenete (benne a tanár által írt szám-mező) nyersen kerülne a HTML-be");
-});
-
 test("a feladatlap URL-jét egyik oldal sem rendereli ellenőrzés nélkül", () => {
-  for (const lap of ["beadas.html", "feladatok.html"]) {
+  for (const lap of ["feladatok.html"]) {
     const src = forras(lap);
     assert.match(src, /biztonsagosUrl\(/, `${lap}: nincs URL-ellenőrzés`);
     assert.equal(/esc\(feladat\.feladatlap\.url\)/.test(src), false, `${lap}: nyers feladatlap-URL`);

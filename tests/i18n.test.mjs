@@ -43,11 +43,11 @@ test("a {helyőrzők} minden nyelven azonosak, és nincs üres fordítás", () =
 
 test("t(): helyettesítés, tartalék nyelv, tartalék kulcs", () => {
   nyelvCsere("en");
-  assert.equal(t("diak.mar_tag", { nev: "A1" }), 'You are already a member of "A1".');
+  assert.equal(t("elz.perc", { db: 5 }), "5 min");
   nyelvCsere("hu");
-  assert.equal(t("diak.mar_tag", { nev: "A1" }), "Már tagja vagy ennek az osztálynak: „A1”.");
+  assert.equal(t("elz.perc", { db: 5 }), "5 perc");
   assert.equal(t("nincs.ilyen.kulcs"), "nincs.ilyen.kulcs");
-  assert.equal(t("diak.szo_tartomany"), "{min}–{max} szó", "hiányzó paraméter nem tűnhet el");
+  assert.equal(t("jav.jelzes_elhagyas", { db: 2 }), "Elhagyta az ablakot: 2 alkalommal (összesen {mp} mp).", "hiányzó paraméter nem tűnhet el");
 });
 
 test("a böngésző nyelvéből támogatott nyelv lesz, különben null", () => {
@@ -71,9 +71,9 @@ test("a státusz-táblák minden kulcsa létezik minden nyelven", async () => {
 // Az átalakított lapok minden t('…') hívása és data-i18n* kulcsa
 // létezik-e. Új lap átalakításakor add hozzá ide.
 const ATALAKITOTT = [
-  "diak.html", "index.html", "belepes.html", "beadas.html", "visszajelzes.html",
-  "tanar.html", "osztalyok.html", "diakok.html", "admin.html", "ai-hasznalat.html", "szamlazando.html", "javitas.html", "elemzes.html", "feladatok.html",
-  "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js", "js/fejlodes-grafikon.js", "js/tema-menu.js",
+  "index.html", "belepes.html",
+  "tanar.html", "admin.html", "ai-hasznalat.html", "szamlazando.html", "javitas.html", "elemzes.html", "feladatok.html",
+  "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js", "js/tema-menu.js",
   "js/skala-urlap.js",
   "js/tura.js", "js/tura-demo.js", "js/tura-lepesek.js"
 ];

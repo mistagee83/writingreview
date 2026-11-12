@@ -40,14 +40,6 @@
       </button>
     </div>
 
-    <!-- FIGYELMEZTETÉS, HA NINCS OSZTÁLY -->
-    <div class="panel gated" id="nincs-osztaly-panel">
-      <div class="panel-body">
-        <p data-i18n-html="fel.nincs_osztaly">Feladatot csak osztályhoz lehet létrehozni, és még nincs osztályod.
-          <a href="osztalyok.html">Hozz létre egyet →</a></p>
-      </div>
-    </div>
-
     <!-- ÚJ FELADAT -->
     <div class="panel" id="uj-panel" style="display:none;">
       <div class="panel-header">
@@ -57,14 +49,6 @@
       <div class="panel-body">
 
         <div class="ket-hasab">
-          <div class="form-group">
-            <label for="f-osztaly" data-i18n="fel.osztaly">Osztály</label>
-            <select id="f-osztaly"></select>
-            <p class="halvany" id="osztaly-hint" data-i18n="fel.osztaly_hint" style="display:none;margin-top:0.4rem;">
-              Meglévő feladat osztálya nem módosítható – a beadások hozzá tartoznak.
-              Másik osztálynak a listából add ki.
-            </p>
-          </div>
           <div class="form-group">
             <label for="f-hatarido" data-i18n="fel.hatarido">Határidő (nem kötelező)</label>
             <input type="date" id="f-hatarido" />
@@ -268,7 +252,6 @@
   // Szerkesztés/kiadás esetén a meglévő letöltési URL-t átvesszük, hogy
   // ne kelljen újra lekérni egy változatlan fájlra.
   let fajlUrl = null;
-  let osztalyNevek = {};
 
   // A visszajelzés nyelvének alapértéke a tanár felületi nyelve; régi
   // feladatnál (nincs mező) magyar – ahogy a szerver is értelmezi.
@@ -286,34 +269,13 @@
   skalaUi.torles();
 
   // ══════════════════════════════════════════
-  // OSZTÁLYOK BETÖLTÉSE
-  // ══════════════════════════════════════════
-  const osztalySelect = document.getElementById('f-osztaly');
-  const osztalySnap = await getDocs(query(
-    collection(db, 'osztalyok'),
-    where('tanar_id', '==', user.uid),
-    orderBy('letrehozva', 'desc')
-  ));
-
-  if (osztalySnap.empty) {
-    document.getElementById('nincs-osztaly-panel').classList.remove('gated');
-    document.getElementById('btn-panel').disabled = true;
-  } else {
-    osztalySelect.innerHTML = osztalySnap.docs.map((d) => {
-      osztalyNevek[d.id] = d.data().nev;
-      return `<option value="${esc(d.id)}">${esc(d.data().nev)}</option>`;
-    }).join('');
-  }
-
-  // ══════════════════════════════════════════
   // PANEL
   // ══════════════════════════════════════════
   // A panel három módban működik, ugyanazzal az űrlappal:
   //   'uj'          – üres űrlap, új dokumentum
-  //   'szerkesztes' – meglévő feladat módosítása (osztály nem váltható,
-  //                   mert a beadások ahhoz az osztályhoz tartoznak)
-  //   'kiadas'      – meglévő feladat kiadása MÁSIK osztálynak: minden
-  //                   adat átvéve, de új dokumentum jön létre
+  //   'szerkesztes' – meglévő feladat módosítása
+  //   'masolas'     – meglévő feladat másolata: minden adat átvéve, de új
+  //                   dokumentum jön létre
   let mod = 'uj';
   let szerkesztesId = null;
   let nyitva = false;
@@ -325,7 +287,7 @@
   const FELIRATOK = {
     uj:          { cim: 'fel.panel_uj',          mentes: 'fel.mentes_uj' },
     szerkesztes: { cim: 'fel.panel_szerkesztes', mentes: 'fel.mentes_szerkesztes' },
-    kiadas:      { cim: 'fel.panel_kiadas',      mentes: 'fel.mentes_kiadas' }
+    masolas:     { cim: 'fel.panel_masolas',     mentes: 'fel.mentes_masolas' }
   };
 
   function panelZar() {
@@ -345,11 +307,6 @@
     document.getElementById('panel-ikon').textContent = '✕';
     document.getElementById('panel-cim').textContent = t(FELIRATOK[mod].cim);
     document.getElementById('btn-mentes').textContent = t(FELIRATOK[mod].mentes);
-
-    // Szerkesztéskor az osztály zárolt
-    const szerk = mod === 'szerkesztes';
-    osztalySelect.disabled = szerk;
-    document.getElementById('osztaly-hint').style.display = szerk ? 'block' : 'none';
 
     // Meglévő feladatlap átvéve
     const vanFajl = mod !== 'uj';
@@ -382,9 +339,6 @@
     document.getElementById('f-hatarido').value = f.hatarido?.toDate
       ? datumInputnak(f.hatarido.toDate())
       : '';
-    if (osztalySelect.querySelector(`option[value="${f.osztaly_id}"]`)) {
-      osztalySelect.value = f.osztaly_id;
-    }
 
     rubrikaKitolt(f.rubrika || {});
     document.getElementById('r-leiras').value = f.rubrika?.feladat_leiras || '';
@@ -793,10 +747,8 @@
   document.getElementById('btn-mentes').addEventListener('click', async (e) => {
     uzenetTorles('form-msg');
 
-    const osztalyId = osztalySelect.value;
     const cim = document.getElementById('f-cim').value.trim();
 
-    if (!osztalyId) { uzenet('form-msg', t('fel.valassz_osztaly')); return; }
     if (!cim) { uzenet('form-msg', t('fel.add_cim')); return; }
 
     const szempontok = szempontokBeolvas();
@@ -834,8 +786,8 @@
         : null;
 
       if (mod === 'szerkesztes') {
-        // A szabály csak ezeket a mezőket engedi módosítani – az
-        // osztaly_id és a tanar_id szándékosan nem változtatható.
+        // A szabály csak ezeket a mezőket engedi módosítani – a
+        // tanar_id szándékosan nem változtatható.
         const feladatRef = doc(db, 'feladatok', szerkesztesId);
         const mezok = { cim, hatarido, rubrika };
         // A feladatlap cseréje (a szerkesztő ígéri): az új path/url is mentődik.
@@ -849,7 +801,6 @@
         uzenet('form-msg', t('fel.mentve_rubrika'), 'success');
       } else {
         const feladat = {
-          osztaly_id: osztalyId,
           tanar_id: user.uid,
           cim,
           hatarido,
@@ -861,7 +812,7 @@
         // A feladatlap NEM kötelező. Ha nincs, a mező egyszerűen nem
         // kerül a dokumentumba: egy { path: null, url: undefined } a
         // Firestore-ban hibát dobna, egy üres map pedig azt sugallná,
-        // hogy van feladatlap. A diák oldala (beadas.html) ?.-vel olvassa.
+        // hogy van feladatlap.
         if (fajlPath) {
           // Változatlan fájlnál az URL már megvan; új feltöltésnél lekérjük
           const url = fajlUrl || await getDownloadURL(storageRef(storage, fajlPath));
@@ -870,9 +821,7 @@
 
         await addDoc(collection(db, 'feladatok'), feladat);
         uzenet('form-msg',
-          mod === 'kiadas'
-            ? t('fel.kiadva', { nev: osztalyNevek[osztalyId] })
-            : t('fel.mentve'),
+          mod === 'masolas' ? t('fel.masolva') : t('fel.mentve'),
           'success');
       }
 
@@ -905,8 +854,6 @@
     fajlPath = null;
     fajlUrl = null;
     document.getElementById('fajl-hint').style.display = 'none';
-    document.getElementById('osztaly-hint').style.display = 'none';
-    osztalySelect.disabled = false;
     alapSzempontok();
     sablonValaszto.value = '';
     document.getElementById('btn-sablon-torol').disabled = true;
@@ -1024,7 +971,6 @@
             <div>
               <h3>${esc(f.cim)}</h3>
               <div class="list-card-meta">
-                <span>🎓 ${esc(osztalyNevek[f.osztaly_id] || '–')}</span>
                 <span>${esc(nyelvNev(r.nyelv || 'angol'))} · ${esc(tipusNev(r.tipus || '–'))} · ${esc(szintNev(r.szint || '–'))}</span>
                 ${f.hatarido ? `<span>⏰ ${datum(f.hatarido)}</span>` : ''}
                 <span class="badge ${f.aktiv ? 'aktiv' : 'inaktiv'}">
@@ -1036,7 +982,7 @@
               <button class="btn-sm" data-akcio="vetit" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_vetit'))}">👁</button>
               <button class="btn-sm" data-akcio="elemzes" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_elemzes'))}">📊</button>
               <button class="btn-sm" data-akcio="szerkeszt" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_szerkeszt'))}">✏️</button>
-              <button class="btn-sm" data-akcio="kiadas" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_kiadas'))}">📤</button>
+              <button class="btn-sm" data-akcio="masolas" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_masolas'))}" aria-label="${esc(t('fel.tipp_masolas'))}">📄</button>
               <button class="btn-sm" data-akcio="toggle" data-id="${esc(d.id)}" data-aktiv="${f.aktiv ? '1' : '0'}">
                 ${f.aktiv ? t('osztalyok.zaras_gomb') : t('osztalyok.nyitas_gomb')}
               </button>
@@ -1066,18 +1012,17 @@
       return;
     }
 
-    if (akcio === 'szerkeszt' || akcio === 'kiadas') {
+    if (akcio === 'szerkeszt' || akcio === 'masolas') {
       if (!(await feladatBetolt(id))) {
         alert(t('fel.nem_elerheto'));
         return;
       }
-      panelNyit(akcio === 'szerkeszt' ? 'szerkesztes' : 'kiadas', id);
+      panelNyit(akcio === 'szerkeszt' ? 'szerkesztes' : 'masolas', id);
 
-      if (akcio === 'kiadas') {
-        // Kiadásnál más osztályt kell választani, a határidő pedig
-        // jellemzően más – ezt ne vegye át csendben.
+      if (akcio === 'masolas') {
+        // A másolat határideje jellemzően más – ezt ne vegye át csendben.
         document.getElementById('f-hatarido').value = '';
-        uzenet('form-msg', fajlPath ? t('fel.kiadas_uzenet_lap') : t('fel.kiadas_uzenet'), 'success');
+        uzenet('form-msg', fajlPath ? t('fel.masolas_uzenet_lap') : t('fel.masolas_uzenet'), 'success');
       }
       return;
     }

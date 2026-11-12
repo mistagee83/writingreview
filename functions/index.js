@@ -21,7 +21,7 @@ const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
 const { getStorage } = require("firebase-admin/storage");
-const { randomUUID, randomInt } = require("node:crypto");
+const { randomUUID } = require("node:crypto");
 const logger = require("firebase-functions/logger");
 const skala = require("./skala");
 const kornyezet = require("./kornyezet");
@@ -29,7 +29,6 @@ const kvota = require("./kvota");
 const aiHasznalat = require("./ai-hasznalat");
 const fizetes = require("./fizetes");
 const szamlazz = require("./szamlazz");
-const fejlodes = require("./fejlodes");
 const tema = require("./tema");
 const Anthropic = require("@anthropic-ai/sdk");
 
@@ -157,13 +156,6 @@ const HIBA_SZOVEG = {
   belepes_kell: () => "Belépés szükséges.",
   tanar_kell: () => "Ehhez tanári jogosultság kell.",
   admin_kell: () => "Ehhez admin jogosultság kell.",
-  kod_generalas: () => "Nem sikerült egyedi kódot generálni. Próbáld újra.",
-  osztaly_nev_kell: () => "Az osztály nevét add meg.",
-  osztaly_nev_hosszu: () => "Túl hosszú név.",
-  kod_nincs: () => "Nem találtam osztályt ezzel a kóddal.",
-  osztaly_megszunt: () => "Az osztály már nem létezik.",
-  osztaly_zart: () => "Ez az osztály már nem fogad új diákokat.",
-  kod_formatum: () => "Az osztálykód így néz ki: 3 karakter, kötőjel, 4 karakter (pl. 9BK-4M2T).",
   feladatlap_utvonal: () => "Nem derül ki, melyik feladatlapot kell feldolgozni.",
   nem_a_tied_feltoltes: () => "Ez nem a te feltöltésed.",
   beadas_id_kell: () => "Nem derül ki, melyik dolgozatról van szó.",
@@ -175,10 +167,6 @@ const HIBA_SZOVEG = {
   statusz_nem_kuldheto: (p) => `Ebben az állapotban nem küldhető el: ${p.statusz}`,
   nev_rovid: () => "A név legalább 2 karakter legyen.",
   nev_hosszu: () => "A név legfeljebb 80 karakter lehet.",
-  osztaly_diak_id_kell: () => "Nem derül ki, melyik osztályról vagy diákról van szó.",
-  osztaly_nincs: () => "Az osztály nem található.",
-  nem_a_te_osztalyod: () => "Ez nem a te osztályod.",
-  diak_nem_tag: () => "Ez a diák nem tagja az osztálynak.",
   felhasznalo_id_kell: () => "Nem derül ki, melyik felhasználóról van szó.",
   szerep_ervenytelen: (p) => `Érvénytelen szerep: ${p.szerep}`,
   admin_jog_logikai: () => "Az admin jog beállítása nem érvényes.",
@@ -201,15 +189,11 @@ const HIBA_SZOVEG = {
   csomag_kezi: () => "A csomagodat az üzemeltető állította be, ezért itt nem fizethetsz elő. Írj az üzemeltetőnek.",
   nincs_ugyfel: () => "Még nincs előfizetésed, ezért nincs mit kezelni.",
   fizetes_hiba: () => "A fizetési szolgáltatás nem válaszolt. Próbáld újra egy perc múlva.",
-  csomag_profi_kell: () => "A fejlődés-követés a Profi csomag része.",
   csomag_alap_kell: () => "Az osztályszintű elemzés az Alap csomagtól érhető el.",
   szinvalasztas_alap_kell: () => "A színválasztás az Alap csomagtól érhető el.",
   tema_ervenytelen: () => "Ismeretlen színtéma.",
   szamla_nincs: () => "Ez a befizetés nem található a számlázandók között.",
-  szamlaszam_ervenytelen: () => "A számlaszám 1–60 karakter lehet.",
-  diak_jelszo_jog: () => "Diák jelszavát csak az az admin vagy tanár állíthatja vissza, akinek az osztályában a diák tag.",
-  nem_diak: () => "Csak diák jelszavát lehet így visszaállítani. A tanárok az e-mailes „Elfelejtett jelszó” hivatkozást használják.",
-  nincs_jelszavas_fiok: () => "Ez a fiók Google-belépéssel készült, nincs jelszava."
+  szamlaszam_ervenytelen: () => "A számlaszám 1–60 karakter lehet."
 };
 
 /** Kódolt HttpsError: magyar üzenet + details.kod a kliens fordításához. */
@@ -598,8 +582,8 @@ const BEIRT_SZOVEG_MAX = 20000;
 
 /**
  * A beadás dokumentumot a kliens hozza létre, ezért a benne lévő hivatkozásokban
- * nem bízunk: a feladatnak ugyanahhoz az osztályhoz és tanárhoz kell tartoznia,
- * különben más tanár nevében lehetne beadni/jóváhagyni. A beadás mindig beírt
+ * nem bízunk: a feladatnak ugyanahhoz a tanárhoz kell tartoznia, különben más
+ * tanár nevében lehetne beadni/jóváhagyni. A beadás mindig beírt
  * szöveg (fotós beadás 2026-11-12 óta nincs a prodban). Hibakódot ad vissza
  * (vagy null, ha rendben van); az AI-hívás előtt hívandó.
  */
@@ -607,9 +591,7 @@ const BEIRT_SZOVEG_MAX = 20000;
 function beadasOsszerendeles(beadasId, beadas, feladat) {
   const szoveg = (v) => typeof v === "string" && v.length > 0;
   if (!feladat) return "feladat_nincs";
-  if (!szoveg(beadas.osztaly_id) || beadas.osztaly_id !== feladat.osztaly_id) return "osztaly_nem_egyezik";
   if (!szoveg(beadas.tanar_id) || beadas.tanar_id !== feladat.tanar_id) return "tanar_nem_egyezik";
-  if (!szoveg(beadas.diak_id)) return "diak_hianyzik";
 
   // A szöveget a kliens írta, ezért a hosszát itt is ellenőrizzük (a szabály ugyanezt teszi).
   if (beadas.forras !== "szoveg") return "mod_nem_egyezik";
@@ -629,15 +611,6 @@ async function fajlBase64(path) {
       data: buffer.toString("base64")
     }
   };
-}
-
-/** Osztálykód: összetéveszthető karakterek (I, O, 0, 1) nélkül. */
-function kodGeneralas() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const { randomBytes } = require("node:crypto");
-  const veletlen = (n) =>
-    Array.from(randomBytes(n), (b) => chars[b % chars.length]).join("");
-  return `${veletlen(3)}-${veletlen(4)}`;
 }
 
 // ══════════════════════════════════════════════════════
@@ -972,122 +945,6 @@ Ha valamit nem lehet kiolvasni a feladatlapból, adj józan
 alapértelmezést – KIVÉVE a szintet: azt inkább hagyd üresen.
 Egy kitalált szint rosszabb, mint a semmi, mert az értékelés ahhoz mér.`;
 }
-
-// ══════════════════════════════════════════════════════
-// 1. OSZTÁLY LÉTREHOZÁSA
-// Azért Function, mert a kód egyediségét a kodok/ nyilvántartóval
-// tranzakciósan kell biztosítani – a kliens ezt nem tudja megtenni.
-// ══════════════════════════════════════════════════════
-async function osztalyLetrehozasLogika(firestore, uid, nev, kodGenerator = kodGeneralas) {
-  const osztalyRef = firestore.collection("osztalyok").doc();
-
-  // Ütközés esetén új kóddal próbálkozunk.
-  for (let kiserlet = 0; kiserlet < 10; kiserlet++) {
-    const kod = kodGenerator();
-    try {
-      await firestore.runTransaction(async (tx) => {
-        const kodRef = firestore.collection("kodok").doc(kod);
-        if ((await tx.get(kodRef)).exists) throw new Error("KOD_UTKOZES");
-
-        tx.set(kodRef, {
-          osztaly_id: osztalyRef.id,
-          letrehozva: FieldValue.serverTimestamp()
-        });
-        tx.set(osztalyRef, {
-          nev,
-          kod,
-          tanar_id: uid,
-          aktiv: true,
-          diak_szam: 0,
-          letrehozva: FieldValue.serverTimestamp()
-        });
-      });
-
-      logger.info("Osztály létrehozva", { osztalyId: osztalyRef.id, tanar: uid });
-      return { osztalyId: osztalyRef.id, kod };
-    } catch (e) {
-      if (e.message !== "KOD_UTKOZES") throw e;
-    }
-  }
-
-  throw hiba("resource-exhausted", "kod_generalas");
-}
-
-exports.osztalyLetrehozas = onCall(HIVAS_OPCIOK, async (request) => {
-  const uid = tanar(request);
-
-  const nev = (request.data?.nev || "").trim();
-  if (!nev) throw hiba("invalid-argument", "osztaly_nev_kell");
-  if (nev.length > 100) throw hiba("invalid-argument", "osztaly_nev_hosszu");
-
-  return await osztalyLetrehozasLogika(db(), uid, nev);
-});
-
-// ══════════════════════════════════════════════════════
-// 2. CSATLAKOZÁS OSZTÁLYHOZ KÓD ALAPJÁN
-// Azért Function, mert így a diákoknak NEM kell olvasási jog az
-// osztalyok kollekcióra, és a kódpróbálgatás naplózható/limitálható.
-// ══════════════════════════════════════════════════════
-async function csatlakozasLogika(firestore, uid, kod) {
-  return await firestore.runTransaction(async (tx) => {
-    const kodSnap = await tx.get(firestore.collection("kodok").doc(kod));
-    if (!kodSnap.exists) {
-      logger.warn("Ismeretlen osztálykód", { kod, uid });
-      throw hiba("not-found", "kod_nincs");
-    }
-
-    const osztalyRef = firestore.collection("osztalyok").doc(kodSnap.data().osztaly_id);
-    const osztalySnap = await tx.get(osztalyRef);
-    if (!osztalySnap.exists) {
-      throw hiba("not-found", "osztaly_megszunt");
-    }
-    if (!osztalySnap.data().aktiv) {
-      throw hiba("failed-precondition", "osztaly_zart");
-    }
-
-    const tagRef = osztalyRef.collection("tagok").doc(uid);
-    if ((await tx.get(tagRef)).exists) {
-      return { osztalyId: osztalyRef.id, nev: osztalySnap.data().nev, mar_tag: true };
-    }
-
-    const profilSnap = await tx.get(firestore.collection("felhasznalok").doc(uid));
-    const profil = profilSnap.data() || {};
-
-    tx.set(tagRef, {
-      nev: profil.nev || "Névtelen",
-      email: profil.email || "",
-      csatlakozott: FieldValue.serverTimestamp()
-    });
-
-    // Tükör a felhasználó alatt: a diák így ki tudja listázni a saját
-    // osztályait egyetlen olvasással, collection-group index nélkül.
-    tx.set(
-      firestore.collection("felhasznalok").doc(uid)
-        .collection("osztalyaim").doc(osztalyRef.id),
-      {
-        nev: osztalySnap.data().nev,
-        kod,
-        tanar_id: osztalySnap.data().tanar_id,
-        csatlakozott: FieldValue.serverTimestamp()
-      }
-    );
-
-    tx.update(osztalyRef, { diak_szam: FieldValue.increment(1) });
-
-    return { osztalyId: osztalyRef.id, nev: osztalySnap.data().nev, mar_tag: false };
-  });
-}
-
-exports.osztalyhozCsatlakozas = onCall(HIVAS_OPCIOK, async (request) => {
-  const uid = belepve(request);
-
-  const kod = (request.data?.kod || "").trim().toUpperCase();
-  if (!/^[A-Z2-9]{3}-[A-Z2-9]{4}$/.test(kod)) {
-    throw hiba("invalid-argument", "kod_formatum");
-  }
-
-  return await csatlakozasLogika(db(), uid, kod);
-});
 
 // ══════════════════════════════════════════════════════
 // 3. FELADATLAP ELEMZÉSE → RUBRIKA JAVASLAT
@@ -1506,8 +1363,7 @@ async function jovahagyasLogika(uid, adat) {
   ]);
   // A beadás tanar_id-ját a kliens írta: a jóváhagyó csak a feladat valódi
   // tanára lehet (különben idegen feladat rubrikája kerülne a visszajelzésbe).
-  if (feladatSnap.data()?.tanar_id !== uid
-      || feladatSnap.data()?.osztaly_id !== beadas.osztaly_id) {
+  if (feladatSnap.data()?.tanar_id !== uid) {
     throw hiba("permission-denied", "nem_a_te_beadasod");
   }
   // A jegy a FELADAT skáláján értelmezett (magyar 1–5, A–F, százalék…);
@@ -1592,8 +1448,6 @@ exports._teszt = {
   ANYANYELVEK,
   CEFR_SZINTEK,
   EVFOLYAMOK,
-  osztalyLetrehozasLogika,
-  csatlakozasLogika,
   jovahagyasLogika,
   beadasOsszerendeles,
   BEIRT_SZOVEG_MAX,
@@ -1604,21 +1458,16 @@ exports._teszt = {
   szempontokTisztitas,
   FOGLALAS_LEJARAT_MS,
   tanariRegisztracioLogika,
-  ideiglenesJelszo,
-  diakJelszoVisszaallitasLogika,
   kvotaFoglalas,
   kvotaVisszaadas,
   kvotaval,
   kvotaAllapotLogika,
   csomagBeallitasLogika,
   fizetesAllapotLogika,
-  fejlodesKapu,
   osztalyElemzesKapu,
   szinvalasztasKapu,
   temaBeallitasLogika,
   temaElveszik,
-  fejlodesListaLogika,
-  fejlodesDiakLogika,
   stripeEsemenyFeldolgozas,
   stripeWebhookKezeles,
   szamlaKiallitas,
@@ -1630,7 +1479,6 @@ exports._teszt = {
   aiHasznalatNaplo,
   aiHasznalatJelentesLogika,
   BEALLITASOK,
-  kodGeneralas,
   aiHivas,
   atmenetiHiba,
   UJRAPROBA,
@@ -1641,28 +1489,9 @@ exports._teszt = {
 
 // ══════════════════════════════════════════════════════
 // 7. SAJÁT NÉV MÓDOSÍTÁSA
-//
-// Azért Function és nem kliensoldali írás: a megjelenítendő név
-// denormalizálva van három helyre, és a szabályok szerint a kliens
-// csak az elsőt írhatja:
-//   felhasznalok/{uid}.nev            ← a kliens írhatná
-//   osztalyok/{oid}/tagok/{uid}.nev   ← a tanár ezt látja a névsorban
-//   beadasok/*.diak_nev               ← a tanár ezt látja a javítási sorban
-//
-// Ha csak a profilt írnánk át, a diák azt hinné, megjavította a nevét,
-// a tanár viszont továbbra is a régit látná.
+// A tanár megjelenítendő neve (felhasznalok/{uid}.nev). Diák és osztálynévsor
+// 2026-11-12 óta nincs, ezért máshová nem kell denormalizálni.
 // ══════════════════════════════════════════════════════
-
-/** Batch-ek 400-as darabokban – a Firestore korlát 500 írás. */
-async function darabolvaCommit(firestore, muveletek) {
-  const MERET = 400;
-  for (let i = 0; i < muveletek.length; i += MERET) {
-    const batch = firestore.batch();
-    for (const m of muveletek.slice(i, i + MERET)) m(batch);
-    await batch.commit();
-  }
-}
-
 exports.nevModositas = onCall(HIVAS_OPCIOK, async (request) => {
   const uid = belepve(request);
 
@@ -1674,164 +1503,9 @@ exports.nevModositas = onCall(HIVAS_OPCIOK, async (request) => {
     throw hiba("invalid-argument", "nev_hosszu");
   }
 
-  const firestore = db();
-  const muveletek = [];
-
-  // 1. A profil
-  muveletek.push((b) => b.update(firestore.collection("felhasznalok").doc(uid), { nev }));
-
-  // 2. Osztálynévsorok. A tükörből tudjuk, melyik osztályokban van;
-  //    a tagok dokumentum létét ellenőrizzük, hogy egy törölt osztály
-  //    ne buktassa el az egész batch-et.
-  const osztalyaim = await firestore
-    .collection("felhasznalok").doc(uid)
-    .collection("osztalyaim").get();
-
-  let nevsorDb = 0;
-  for (const d of osztalyaim.docs) {
-    const tagRef = firestore
-      .collection("osztalyok").doc(d.id)
-      .collection("tagok").doc(uid);
-    if ((await tagRef.get()).exists) {
-      muveletek.push((b) => b.update(tagRef, { nev }));
-      nevsorDb++;
-    }
-  }
-
-  // 3. Korábbi beadások
-  const beadasok = await firestore
-    .collection("beadasok").where("diak_id", "==", uid).get();
-
-  for (const d of beadasok.docs) {
-    muveletek.push((b) => b.update(d.ref, { diak_nev: nev }));
-  }
-
-  await darabolvaCommit(firestore, muveletek);
-
-  logger.info("Név módosítva", { uid, nevsorDb, beadasDb: beadasok.size });
-  return { nev, nevsor: nevsorDb, beadas: beadasok.size };
-});
-
-// ══════════════════════════════════════════════════════
-// 8. DIÁK ELTÁVOLÍTÁSA OSZTÁLYBÓL
-//
-// Három helyet kell egyszerre módosítani, ezért tranzakció:
-//   osztalyok/{oid}/tagok/{uid}            – törlés (a névsor)
-//   felhasznalok/{uid}/osztalyaim/{oid}    – törlés (a diák tükre)
-//   osztalyok/{oid}.diak_szam              – csökkentés
-//
-// A diák BEADÁSAIT SZÁNDÉKOSAN MEGHAGYJUK: a tanárnak szüksége lehet a
-// korábbi dolgozatokra, és a diák is megtarthatja a visszajelzéseit
-// (azok olvasása nem tagságtól függ). Új feladatot viszont nem fog
-// látni, és beadni sem tud.
-// ══════════════════════════════════════════════════════
-exports.diakEltavolitas = onCall(HIVAS_OPCIOK, async (request) => {
-  const uid = tanar(request);
-
-  const { osztalyId, diakUid } = request.data || {};
-  if (!osztalyId || !diakUid) {
-    throw hiba("invalid-argument", "osztaly_diak_id_kell");
-  }
-
-  const firestore = db();
-  const osztalyRef = firestore.collection("osztalyok").doc(osztalyId);
-
-  return await firestore.runTransaction(async (tx) => {
-    const osztalySnap = await tx.get(osztalyRef);
-    if (!osztalySnap.exists) {
-      throw hiba("not-found", "osztaly_nincs");
-    }
-    if (osztalySnap.data().tanar_id !== uid) {
-      throw hiba("permission-denied", "nem_a_te_osztalyod");
-    }
-
-    const tagRef = osztalyRef.collection("tagok").doc(diakUid);
-    const tagSnap = await tx.get(tagRef);
-    if (!tagSnap.exists) {
-      throw hiba("not-found", "diak_nem_tag");
-    }
-
-    const nev = tagSnap.data().nev || "a diák";
-
-    tx.delete(tagRef);
-    tx.delete(
-      firestore.collection("felhasznalok").doc(diakUid)
-        .collection("osztalyaim").doc(osztalyId)
-    );
-
-    // Nem increment(-1): egy elszállt számláló ne menjen negatívba.
-    const jelenlegi = Number(osztalySnap.data().diak_szam) || 0;
-    tx.update(osztalyRef, { diak_szam: Math.max(0, jelenlegi - 1) });
-
-    logger.info("Diák eltávolítva", { osztalyId, diakUid, tanar: uid });
-    return { nev };
-  });
-});
-
-// ══════════════════════════════════════════════════════
-// DIÁK JELSZAVÁNAK VISSZAÁLLÍTÁSA
-//
-// A diákról nem tárolunk valódi e-mail-címet, ezért nincs levélben küldött
-// visszaállítás. Helyette az admin, vagy az a tanár, akinek az osztályában
-// a diák tag, új ideiglenes jelszót kap, és szóban/írásban átadja.
-// A jelszót a szerver sorsolja és egyszer adja vissza; a régi
-// munkamenetek érvénytelenek lesznek.
-// ══════════════════════════════════════════════════════
-
-// Félreolvasható karakterek (0/O, 1/l/I) nélkül, hogy átdiktálható legyen.
-const JELSZO_BETUK = "abcdefghjkmnpqrstuvwxyz23456789";
-
-function ideiglenesJelszo(hossz = 10) {
-  let j = "";
-  for (let i = 0; i < hossz; i++) j += JELSZO_BETUK[randomInt(JELSZO_BETUK.length)];
-  return j;
-}
-
-/** A hívó admin, vagy olyan osztály tanára, amelynek a diák tagja. */
-async function diakJelszoJogosult(firestore, hivoUid, hivoAdmin, diakUid) {
-  if (hivoAdmin) return true;
-  const osztalyaim = await firestore
-    .collection("felhasznalok").doc(diakUid).collection("osztalyaim").get();
-  for (const d of osztalyaim.docs) {
-    const osztaly = await firestore.collection("osztalyok").doc(d.id).get();
-    if (!osztaly.exists || osztaly.data().tanar_id !== hivoUid) continue;
-    if ((await osztaly.ref.collection("tagok").doc(diakUid).get()).exists) return true;
-  }
-  return false;
-}
-
-async function diakJelszoVisszaallitasLogika(firestore, auth, hivo, diakUid) {
-  if (!(await diakJelszoJogosult(firestore, hivo.uid, hivo.admin, diakUid))) {
-    throw hiba("permission-denied", "diak_jelszo_jog");
-  }
-  let user;
-  try {
-    user = await auth.getUser(diakUid);
-  } catch (e) {
-    throw hiba("not-found", "nincs_felhasznalo");
-  }
-  if (user.customClaims?.szerep === "tanar" || user.customClaims?.admin === true) {
-    throw hiba("failed-precondition", "nem_diak");
-  }
-  if (!user.providerData.some((p) => p.providerId === "password")) {
-    throw hiba("failed-precondition", "nincs_jelszavas_fiok");
-  }
-  const jelszo = ideiglenesJelszo();
-  await auth.updateUser(diakUid, { password: jelszo });
-  await auth.revokeRefreshTokens(diakUid);
-  logger.info("Diák jelszava visszaállítva", { diak: diakUid, hivo: hivo.uid });
-  return { jelszo, azonosito: user.email || "" };
-}
-
-exports.diakJelszoVisszaallitas = onCall(HIVAS_OPCIOK, async (request) => {
-  const uid = belepve(request);
-  const adminJog = request.auth.token?.admin === true;
-  if (!adminJog && request.auth.token?.szerep !== "tanar") {
-    throw hiba("permission-denied", "tanar_kell");
-  }
-  const diakUid = request.data?.diakUid;
-  if (typeof diakUid !== "string" || !diakUid) throw hiba("invalid-argument", "felhasznalo_id_kell");
-  return await diakJelszoVisszaallitasLogika(db(), getAuth(), { uid, admin: adminJog }, diakUid);
+  await db().collection("felhasznalok").doc(uid).set({ nev }, { merge: true });
+  logger.info("Név módosítva", { uid });
+  return { nev };
 });
 
 // ══════════════════════════════════════════════════════
@@ -2053,11 +1727,10 @@ exports.kvotaAllapot = onCall(HIVAS_OPCIOK, async (request) => {
 });
 
 // ══════════════════════════════════════════════════════
-// FEJLŐDÉS AZ IDŐ MENTÉN (Profi csomag; a számtan: functions/fejlodes.js)
+// CSOMAG-ZÁRAK ÉS SZÍNTÉMA
 //
-// A zár a SZERVEREN van: a tanár a szabályok szerint olvashatná a beadásokat,
-// ezért a felület-zár önmagában kiskapu lenne. A két callable csomagot és az
-// osztály tulajdonosát is ellenőrzi, mielőtt adatot ad.
+// A zár a SZERVEREN van: a felület-zár önmagában kiskapu lenne. (A fejlődés-követés
+// 2026-11-12 óta nincs a prodban: diákazonosság nélkül nem követhető.)
 // ══════════════════════════════════════════════════════
 
 /**
@@ -2068,13 +1741,6 @@ async function funkcioEngedett(firestore, uid, funkcio, beallitasok = BEALLITASO
   if (!beallitasok.kvota) return true;
   const tanarSnap = await firestore.collection("tanarok").doc(uid).get();
   return kvota.funkcioEngedelyezett(true, tanarSnap.data()?.csomag, funkcio);
-}
-
-/** A fejlődés-követés zárja: Profi és korlátlan csomag. */
-async function fejlodesKapu(firestore, uid, beallitasok) {
-  if (!(await funkcioEngedett(firestore, uid, "fejlodes", beallitasok))) {
-    throw hiba("permission-denied", "csomag_profi_kell");
-  }
 }
 
 /** A színválasztás zárja: Alap, Profi és korlátlan csomag (az alapszínre visszaállás nem zárolt). */
@@ -2089,82 +1755,6 @@ async function osztalyElemzesKapu(firestore, uid, beallitasok) {
   if (!(await funkcioEngedett(firestore, uid, "osztaly_elemzes", beallitasok))) {
     throw hiba("permission-denied", "csomag_alap_kell");
   }
-}
-
-/** Az osztály a hívó tanáré-e (a kapu után). */
-async function fejlodesOsztaly(firestore, uid, osztalyId) {
-  if (!osztalyId || typeof osztalyId !== "string") throw hiba("invalid-argument", "osztaly_diak_id_kell");
-  const snap = await firestore.collection("osztalyok").doc(osztalyId).get();
-  if (!snap.exists) throw hiba("not-found", "osztaly_nincs");
-  if (snap.data().tanar_id !== uid) throw hiba("permission-denied", "nem_a_te_osztalyod");
-  return snap;
-}
-
-/**
- * A jóváhagyott beadások idővonal-pontjai (beadás-dokumentumok → pontok).
- * A feladat címét feladatonként egyszer olvassuk.
- */
-async function fejlodesPontok(firestore, uid, beadasDokumentumok) {
-  const feladatCimek = new Map();
-  const pontok = [];
-  for (const d of beadasDokumentumok) {
-    const beadas = d.data();
-    // a tanar_id-t a kliens írta: csak a saját beadásokat számoljuk
-    if (beadas.tanar_id !== uid) continue;
-    const [tanari, ai] = await Promise.all([
-      d.ref.collection("ertekeles").doc("tanari").get(),
-      d.ref.collection("ertekeles").doc("ai").get()
-    ]);
-    if (!feladatCimek.has(beadas.feladat_id)) {
-      const f = await firestore.collection("feladatok").doc(beadas.feladat_id).get();
-      feladatCimek.set(beadas.feladat_id, f.data()?.cim || null);
-    }
-    const pont = fejlodes.idovonalPont({
-      beadas, tanari: tanari.data(), ai: ai.data(), feladatCim: feladatCimek.get(beadas.feladat_id)
-    });
-    if (pont) pontok.push({ ...pont, diak_id: beadas.diak_id, diak_nev: beadas.diak_nev || "" });
-  }
-  return fejlodes.idovonalRendezes(pontok);
-}
-
-/** Egy osztály diáklistája: név, beadások száma, utolsó pontszázalék, trend. */
-async function fejlodesListaLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
-  await fejlodesKapu(firestore, uid, beallitasok);
-  const osztalyId = adat?.osztalyId;
-  await fejlodesOsztaly(firestore, uid, osztalyId);
-
-  const [tagok, beadasok] = await Promise.all([
-    firestore.collection("osztalyok").doc(osztalyId).collection("tagok").get(),
-    firestore.collection("beadasok")
-      .where("osztaly_id", "==", osztalyId).where("statusz", "==", "elkuldve").get()
-  ]);
-  const pontok = await fejlodesPontok(firestore, uid, beadasok.docs);
-  const diakonkent = new Map();
-  for (const p of pontok) {
-    if (!diakonkent.has(p.diak_id)) diakonkent.set(p.diak_id, []);
-    diakonkent.get(p.diak_id).push(p);
-  }
-  return {
-    diakok: fejlodes.diakLista(tagok.docs.map((t) => ({ uid: t.id, nev: t.data().nev })), diakonkent)
-  };
-}
-
-/** Egy diák idővonala az osztályban: pontszázalék és hibák feladatról feladatra. */
-async function fejlodesDiakLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
-  await fejlodesKapu(firestore, uid, beallitasok);
-  const { osztalyId, diakId } = adat || {};
-  if (!diakId || typeof diakId !== "string") throw hiba("invalid-argument", "osztaly_diak_id_kell");
-  await fejlodesOsztaly(firestore, uid, osztalyId);
-
-  const beadasok = await firestore.collection("beadasok")
-    .where("diak_id", "==", diakId).where("osztaly_id", "==", osztalyId)
-    .where("statusz", "==", "elkuldve").get();
-  const pontok = await fejlodesPontok(firestore, uid, beadasok.docs);
-  const nev = pontok.length ? pontok[pontok.length - 1].diak_nev : "";
-  return {
-    nev,
-    ...fejlodes.diakNezet(pontok.map(({ diak_id, diak_nev, ...pont }) => pont))
-  };
 }
 
 /**
@@ -2184,14 +1774,6 @@ async function temaBeallitasLogika(firestore, uid, adat, beallitasok = BEALLITAS
 
 exports.temaBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
   return temaBeallitasLogika(db(), tanar(request), request.data);
-});
-
-exports.fejlodesLista = onCall(HIVAS_OPCIOK, async (request) => {
-  return fejlodesListaLogika(db(), tanar(request), request.data);
-});
-
-exports.fejlodesDiak = onCall(HIVAS_OPCIOK, async (request) => {
-  return fejlodesDiakLogika(db(), tanar(request), request.data);
 });
 
 // ══════════════════════════════════════════════════════
@@ -2957,7 +2539,8 @@ exports.feladatElemzes = onCall(
       if (!ai.exists) continue;
       const ert = {
         ...ai.data(),
-        diak_id: d.data().diak_id
+        // diákonként egy beadás: a beadás azonosítója a diák (diákfiók 2026-11-12 óta nincs)
+        diak_id: d.id
       };
       ertekelesek.push(ert);
     }

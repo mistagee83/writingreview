@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════════════════
 // WritingReview – a bemutató tartalma
 //
-// Négy szakasz, egymástól függetlenül is végignézhető. A motor
+// Három szakasz, egymástól függetlenül is végignézhető. A motor
 // (tura.js) ebből a fájlból dolgozik, tehát a szöveg és a lépéssorrend
 // itt szerkeszthető anélkül, hogy a motorhoz hozzá kellene nyúlni.
 //
@@ -20,7 +20,7 @@
 // ══════════════════════════════════════════════════════
 
 import {
-  osztalyKartya, javitasKartya, javitasModal, javitasModalZar, elemzesDemo
+  javitasKartya, javitasModal, javitasModalZar, elemzesDemo
 } from "./tura-demo.js";
 
 // ══════════════════════════════════════════
@@ -32,13 +32,6 @@ import {
 // ══════════════════════════════════════════
 
 export const SZAKASZOK = [
-  {
-    id: "osztalyok",
-    ikon: "🎓",
-    cim: "tura.osztalyok_cim",
-    kimenet: "tura.osztalyok_kimenet",
-    zaro: "tura.osztalyok_zaro"
-  },
   {
     id: "feladatok",
     ikon: "📋",
@@ -113,39 +106,7 @@ async function modalNyitas() {
 
 export const LEPESEK = [
 
-  // ── 1. OSZTÁLY ÉS KÓD ──────────────────────────────
-  {
-    szakasz: "osztalyok",
-    oldal: "osztalyok.html",
-    cel: "#osztaly-nev",
-    cim: "tura.osztalyok_1_cim",
-    szoveg: "tura.osztalyok_1_szoveg"
-  },
-  {
-    szakasz: "osztalyok",
-    oldal: "osztalyok.html",
-    cel: "#btn-letrehoz",
-    cim: "tura.osztalyok_2_cim",
-    szoveg: "tura.osztalyok_2_szoveg"
-  },
-  {
-    szakasz: "osztalyok",
-    oldal: "osztalyok.html",
-    cel: "#tura-demo-kod",
-    cim: "tura.osztalyok_3_cim",
-    szoveg: "tura.osztalyok_3_szoveg",
-    elokeszit: () => { osztalyKartya(); }
-  },
-  {
-    szakasz: "osztalyok",
-    oldal: "osztalyok.html",
-    cel: "#tura-demo-nevsor",
-    cim: "tura.osztalyok_4_cim",
-    szoveg: "tura.osztalyok_4_szoveg",
-    elokeszit: () => { osztalyKartya({ nevsor: true }); }
-  },
-
-  // ── 2. FELADAT KIADÁSA ─────────────────────────────
+  // ── 1. FELADAT ─────────────────────────────
   {
     szakasz: "feladatok",
     oldal: "feladatok.html",

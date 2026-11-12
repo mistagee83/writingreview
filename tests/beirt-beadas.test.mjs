@@ -16,9 +16,9 @@ const require = createRequire(new URL("../functions/package.json", import.meta.u
 let t;
 before(() => { t = require("./index.js")._teszt; });
 
-const feladat = (rubrika = {}) => ({ osztaly_id: "o1", tanar_id: "t1", rubrika });
+const feladat = (rubrika = {}) => ({ tanar_id: "t1", rubrika });
 const beirt = (felul = {}) => ({
-  osztaly_id: "o1", tanar_id: "t1", diak_id: "d1",
+  tanar_id: "t1",
   forras: "szoveg", szoveg: "Dear Ben, I think your plan is great.", ...felul
 });
 
@@ -29,7 +29,7 @@ test("beírt beadás: a feladat beadási módjától függetlenül elfogadott (a
 });
 
 test("a fotós (nem beírt) beadás elutasítva, régi feladatra is", () => {
-  const fotos = { osztaly_id: "o1", tanar_id: "t1", diak_id: "d1", kep_paths: ["beadasok/d1/b1/1.jpg"] };
+  const fotos = { tanar_id: "t1", kep_paths: ["beadasok/d1/b1/1.jpg"] };
   assert.equal(t.beadasOsszerendeles("b1", fotos, feladat()), "mod_nem_egyezik");
   assert.equal(t.beadasOsszerendeles("b1", { ...fotos, forras: "foto" }, feladat()), "mod_nem_egyezik");
   assert.equal(t.beadasOsszerendeles("b1", beirt({ forras: undefined }), feladat()), "mod_nem_egyezik");
@@ -43,11 +43,11 @@ test("beírt beadás: üres, szóközös, túl hosszú vagy nem szöveg elutasí
   assert.equal(t.beadasOsszerendeles("b1", beirt({ szoveg: "a".repeat(t.BEIRT_SZOVEG_MAX) }), f), null);
 });
 
-test("beírt beadás: az osztály/tanár/diák összetartozását ellenőrzi", () => {
+test("beírt beadás: a tanár összetartozását ellenőrzi (osztály és diákfiók 2026-11-12 óta nincs)", () => {
   const f = feladat();
   assert.equal(t.beadasOsszerendeles("b1", beirt({ tanar_id: "mas" }), f), "tanar_nem_egyezik");
-  assert.equal(t.beadasOsszerendeles("b1", beirt({ osztaly_id: "mas" }), f), "osztaly_nem_egyezik");
-  assert.equal(t.beadasOsszerendeles("b1", beirt({ diak_id: "" }), f), "diak_hianyzik");
+  // a régi osztály/diák mező nem számít
+  assert.equal(t.beadasOsszerendeles("b1", beirt({ osztaly_id: "mas", diak_id: "" }), f), null);
 });
 
 test("az értékelő prompt nem állítja, hogy kézírásból átírt, és nem említ olvashatatlan részt", () => {

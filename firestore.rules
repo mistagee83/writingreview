@@ -6,7 +6,7 @@ rules_version = '2';
 //
 // Alapelvek:
 //  - a szerepkör token-claim (request.auth.token.szerep), nem Firestore-mező
-//  - hiányzó claim = diák (legkisebb jogosultság)
+//  - hiányzó claim = nem tanár (legkisebb jogosultság)
 //  - státuszt és értékelést CSAK Cloud Function ír (admin SDK, ezt kihagyja)
 //  - minden, ami itt nincs engedélyezve, tiltott
 // ══════════════════════════════════════════════════════
@@ -29,18 +29,6 @@ service cloud.firestore {
       return belepve()
         && 'szerep' in request.auth.token
         && request.auth.token.szerep == 'tanar';
-    }
-
-    function osztaly(osztalyId) {
-      return get(/databases/$(database)/documents/osztalyok/$(osztalyId)).data;
-    }
-
-    function sajatOsztaly(osztalyId) {
-      return tanar() && osztaly(osztalyId).tanar_id == request.auth.uid;
-    }
-
-    function feladatAdat(feladatId) {
-      return get(/databases/$(database)/documents/feladatok/$(feladatId)).data;
     }
 
     // Szám vagy null (a szószámhatárok): egy tanár által írt mező a diák felületén
@@ -66,32 +54,6 @@ service cloud.firestore {
         && f.url.matches('https://firebasestorage\\.googleapis\\.com/.*');
     }
 
-    function egeszHatarral(v, max) {
-      return v is int && v >= 0 && v <= max;
-    }
-
-    // A beírt dolgozat írás közbeni jelzései (public/js/iras-jelzes.js): csupa egész szám, a
-    // kiemelt tartományok kezdet-vég párok (a lista tartalmát a szabály nem járhatja be, a
-    // megjelenítés érvényesíti: tartomanyokRendben). A beillesztett SZÖVEG nem tárolódik.
-    function jelzesekOk(j) {
-      return j is map
-        && j.keys().hasOnly(['elhagyas_db', 'elhagyas_mp', 'beillesztes_db',
-             'beillesztett_karakter', 'beillesztett_tartomanyok'])
-        && j.keys().hasAll(['elhagyas_db', 'elhagyas_mp', 'beillesztes_db',
-             'beillesztett_karakter', 'beillesztett_tartomanyok'])
-        && egeszHatarral(j.elhagyas_db, 100000)
-        && egeszHatarral(j.elhagyas_mp, 10000000)
-        && egeszHatarral(j.beillesztes_db, 100000)
-        && egeszHatarral(j.beillesztett_karakter, 100000000)
-        && j.beillesztett_tartomanyok is list
-        && j.beillesztett_tartomanyok.size() <= 100;
-    }
-
-    function osztalyTag(osztalyId) {
-      return belepve()
-        && exists(/databases/$(database)/documents/osztalyok/$(osztalyId)/tagok/$(request.auth.uid));
-    }
-
     // Csak a megadott mezők változhatnak egy update során.
     function csakEzekValtoznak(mezok) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(mezok);
@@ -103,8 +65,7 @@ service cloud.firestore {
     match /felhasznalok/{uid} {
       allow get: if sajat(uid);
 
-      // Listázni senki nem tud – a tanár a névsort a tagok alkollekcióból
-      // olvassa, ahol a nevek denormalizáltan szerepelnek.
+      // Listázni senki nem tud (az admin a felhasznalokListaja Functionön át).
       allow list: if false;
 
       // Regisztrációkor mindenki diák. A szerepet csak a szerver (claim +
@@ -133,72 +94,22 @@ service cloud.firestore {
                 && request.resource.data.tura_latott.size() <= 20));
 
       allow delete: if false;
-
-      // ── SAJÁT OSZTÁLYOK (tükör) ──
-      // A diák innen listázza az osztályait – a tagok alkollekciót
-      // collection-group query nélkül nem tudná végigkeresni.
-      match /osztalyaim/{osztalyId} {
-        allow read: if sajat(uid);
-        allow write: if false;
-      }
-    }
-
-    // ══════════════════════════════════════════
-    // OSZTÁLYOK
-    // ══════════════════════════════════════════
-    match /osztalyok/{osztalyId} {
-      // Tanár a sajátját; diák azt, aminek tagja.
-      allow get: if (tanar() && resource.data.tanar_id == request.auth.uid)
-                 || osztalyTag(osztalyId);
-
-      // Listázás csak tanárnak, és a query-nek tanar_id-re kell szűrnie.
-      allow list: if tanar() && resource.data.tanar_id == request.auth.uid;
-
-      // Létrehozás CSAK Function-ön (osztalyLetrehozas): az osztálykód
-      // egyediségét a kodok/ nyilvántartóval tranzakciósan kell
-      // biztosítani, és kód nélküli osztály használhatatlan lenne.
-      allow create: if false;
-
-      allow update: if tanar()
-        && resource.data.tanar_id == request.auth.uid
-        && csakEzekValtoznak(['nev', 'aktiv']);
-
-      allow delete: if tanar() && resource.data.tanar_id == request.auth.uid;
-
-      // ── TAGOK (osztálynévsor) ──
-      match /tagok/{diakUid} {
-        allow get: if sajat(diakUid) || sajatOsztaly(osztalyId);
-        allow list: if sajatOsztaly(osztalyId);
-
-        // A csatlakozás tranzakciós, Function végzi (kodok/ + diak_szam).
-        allow write: if false;
-      }
-    }
-
-    // ══════════════════════════════════════════
-    // KÓD-NYILVÁNTARTÓ
-    // Kliensről elérhetetlen: a kódokat nem lehet végigpróbálni.
-    // ══════════════════════════════════════════
-    match /kodok/{kod} {
-      allow read, write: if false;
     }
 
     // ══════════════════════════════════════════
     // FELADATOK
-    // A rubrika szándékosan látható a diáknak – nincs benne titok,
-    // a Gemini-prompt a szerveren áll össze belőle.
+    // Csak a tanár sajátja (2026-11-12 óta nincs diákfiók és osztály; a diák a
+    // feladatleírást a feladatlinken, szerveroldalon kapja meg).
     // ══════════════════════════════════════════
     match /feladatok/{feladatId} {
-      allow get: if (tanar() && resource.data.tanar_id == request.auth.uid)
-                 || osztalyTag(resource.data.osztaly_id);
+      allow get: if tanar() && resource.data.tanar_id == request.auth.uid;
 
-      // Tanári lista (tanar_id szűrő) VAGY diák lista (osztaly_id szűrő).
-      allow list: if (tanar() && resource.data.tanar_id == request.auth.uid)
-                  || osztalyTag(resource.data.osztaly_id);
+      // Tanári lista (tanar_id szűrő).
+      allow list: if tanar() && resource.data.tanar_id == request.auth.uid;
 
       allow create: if tanar()
         && request.resource.data.tanar_id == request.auth.uid
-        && sajatOsztaly(request.resource.data.osztaly_id)
+        && !('osztaly_id' in request.resource.data)
         && rubrikaMezokOk(request.resource.data.rubrika)
         && (!('feladatlap' in request.resource.data) || feladatlapOk(request.resource.data.feladatlap))
         && request.resource.data.cim is string
@@ -264,35 +175,11 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/beadasok/$(beadasId)).data;
       }
 
-      allow get, list: if sajat(resource.data.diak_id)
-                       || (tanar() && resource.data.tanar_id == request.auth.uid);
+      allow get, list: if tanar() && resource.data.tanar_id == request.auth.uid;
 
-      // A diák a sajátját adja be, kötelezően 'feltoltve' státusszal,
-      // és csak olyan osztályba, aminek tagja.
-      // Egy diák egy feladatra egyszer adhat be: az azonosító kötött
-      // (<feladat_id>_<diak_uid>), így a második létrehozás magától elhasal (update tiltott).
-      // A korábbi, véletlen azonosítójú beadások érintetlenek.
-      // A feladat, az osztály és a tanár összetartozását a szabály kényszeríti
-      // (a kliens ezeket maga írja, de nem hamisíthatja); lezárt feladatra
-      // nem lehet beadni. A beadás mindig beírt szöveg (fotós beadás 2026-11-12 óta
-      // nincs a prodban); a szerveroldali ellenőrzés: functions/index.js, beadasOsszerendeles.
-      allow create: if belepve()
-        && request.resource.data.keys().hasOnly(['feladat_id', 'osztaly_id', 'diak_id',
-             'diak_nev', 'tanar_id', 'statusz', 'hiba',
-             'letrehozva', 'frissitve', 'forras', 'szoveg', 'jelzesek'])
-        && request.resource.data.diak_id == request.auth.uid
-        && request.resource.data.statusz == 'feltoltve'
-        && osztalyTag(request.resource.data.osztaly_id)
-        && request.resource.data.feladat_id is string
-        && beadasId == request.resource.data.feladat_id + '_' + request.auth.uid
-        && feladatAdat(request.resource.data.feladat_id).osztaly_id == request.resource.data.osztaly_id
-        && feladatAdat(request.resource.data.feladat_id).tanar_id == request.resource.data.tanar_id
-        && feladatAdat(request.resource.data.feladat_id).aktiv == true
-        && request.resource.data.get('forras', '') == 'szoveg'
-        && request.resource.data.get('szoveg', null) is string
-        && request.resource.data.szoveg.size() > 0
-        && request.resource.data.szoveg.size() <= 20000
-        && jelzesekOk(request.resource.data.get('jelzesek', null));
+      // Kliensről nem hozható létre: diákfiók 2026-11-12 óta nincs; a beadás a
+      // feladatlinken, Cloud Functionön át jön létre (docs/prod-atalakitas-terv.md).
+      allow create: if false;
 
       // Státuszváltás, javítás, jóváhagyás: mind Cloud Function.
       // Így a diák nem tudja 'elkuldve'-re állítani a saját beadását,
@@ -304,12 +191,7 @@ service cloud.firestore {
         // Ez az a pont, amiért az értékelés nem a szülő dokumentumban van:
         // a szabályok nem tudnak mező szintjén szűrni, dokumentum szintjén
         // viszont igen.
-        allow get: if (tanar() && beadas().tanar_id == request.auth.uid)
-                   || (
-                        sajat(beadas().diak_id)
-                        && docId == 'tanari'
-                        && beadas().statusz == 'elkuldve'
-                      );
+        allow get: if tanar() && beadas().tanar_id == request.auth.uid;
 
         allow list: if tanar() && beadas().tanar_id == request.auth.uid;
 

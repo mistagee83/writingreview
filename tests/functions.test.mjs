@@ -39,19 +39,17 @@ after(async () => {
 });
 
 async function torolMindent() {
-  // A felhasznalok alatti osztalyaim tükröt is takarítani kell, különben
-  // átszivárog a következő tesztbe.
+  // A felhasznalok alatti osztalyaim tükröt (a tanári regisztráció diákmúlt-tesztje
+  // írja) is takarítani kell, különben átszivárog a következő tesztbe.
   const felh = await firestore.collection("felhasznalok").get();
   for (const d of felh.docs) {
     const sajat = await d.ref.collection("osztalyaim").get();
     await Promise.all(sajat.docs.map((x) => x.ref.delete()));
   }
-  for (const koll of ["osztalyok", "kodok", "felhasznalok", "ai_hasznalat", "feladatok"]) {
+  for (const koll of ["felhasznalok", "ai_hasznalat", "feladatok"]) {
     const snap = await firestore.collection(koll).get();
     await Promise.all(snap.docs.map((d) => d.ref.delete()));
   }
-  // tagok alkollekció a szülővel együtt már nem elérhető, de a teszt
-  // minden futásban új osztály-id-t kap, így nem zavar.
 }
 
 beforeEach(async () => {
@@ -62,214 +60,9 @@ beforeEach(async () => {
 });
 
 // ══════════════════════════════════════════
-// KÓDGENERÁLÁS
-// ══════════════════════════════════════════
-
-test("a kód formátuma XXX-XXXX és nincs benne összetéveszthető karakter", () => {
-  for (let i = 0; i < 500; i++) {
-    const kod = logika.kodGeneralas();
-    assert.match(kod, /^[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{4}$/, `rossz kód: ${kod}`);
-    assert.ok(!/[IO01]/.test(kod), `összetéveszthető karakter: ${kod}`);
-  }
-});
-
-// ══════════════════════════════════════════
-// OSZTÁLY LÉTREHOZÁSA
-// ══════════════════════════════════════════
-
-test("osztály létrehozása kódot is regisztrál a kodok nyilvántartóba", async () => {
-  const { osztalyId, kod } = await logika.osztalyLetrehozasLogika(
-    firestore, "tanar-uid", "9.B angol"
-  );
-
-  const osztaly = (await firestore.collection("osztalyok").doc(osztalyId).get()).data();
-  assert.equal(osztaly.nev, "9.B angol");
-  assert.equal(osztaly.tanar_id, "tanar-uid");
-  assert.equal(osztaly.kod, kod);
-  assert.equal(osztaly.aktiv, true);
-  assert.equal(osztaly.diak_szam, 0);
-
-  const kodDoc = (await firestore.collection("kodok").doc(kod).get()).data();
-  assert.equal(kodDoc.osztaly_id, osztalyId, "a kód az osztályra mutat");
-});
-
-test("20 osztály létrehozása után is minden kód egyedi", async () => {
-  const kodok = [];
-  for (let i = 0; i < 20; i++) {
-    const { kod } = await logika.osztalyLetrehozasLogika(firestore, "tanar-uid", `Osztály ${i}`);
-    kodok.push(kod);
-  }
-  assert.equal(new Set(kodok).size, 20, "van duplikált kód");
-});
-
-test("már létező kód nem írható felül (a tranzakció újrapróbál)", async () => {
-  // A generátor először a foglalt kódot adja, csak másodszor egy szabadot –
-  // így az ütközésvédő ág ténylegesen lefut.
-  const foglaltKod = "AAA-AAAA";
-  const szabadKod = "BBB-BBBB";
-  await firestore.collection("kodok").doc(foglaltKod).set({ osztaly_id: "idegen-osztaly" });
-  const sor = [foglaltKod, szabadKod];
-  let hivasok = 0;
-
-  const { osztalyId, kod } = await logika.osztalyLetrehozasLogika(
-    firestore, "tanar-uid", "Ütközés teszt", () => { hivasok++; return sor.shift(); }
-  );
-
-  assert.equal(hivasok, 2, "az ütközésvédő ág nem futott le");
-  assert.equal(kod, szabadKod, "nem a szabad kódot kapta");
-
-  // A foglalt kód továbbra is az idegen osztályra mutat
-  const foglalt = (await firestore.collection("kodok").doc(foglaltKod).get()).data();
-  assert.equal(foglalt.osztaly_id, "idegen-osztaly", "felülírta a foglalt kódot");
-
-  const ujKod = (await firestore.collection("kodok").doc(kod).get()).data();
-  assert.equal(ujKod.osztaly_id, osztalyId);
-});
-
-test("ha minden próbált kód foglalt: resource-exhausted, részleges írás nélkül", async () => {
-  await firestore.collection("kodok").doc("AAA-AAAA").set({ osztaly_id: "idegen-osztaly" });
-  const osztalyokElotte = (await firestore.collection("osztalyok").get()).size;
-  const kodokElotte = (await firestore.collection("kodok").get()).size;
-
-  await assert.rejects(
-    logika.osztalyLetrehozasLogika(firestore, "tanar-uid", "Telt ház", () => "AAA-AAAA"),
-    (e) => e.code === "resource-exhausted"
-  );
-
-  assert.equal((await firestore.collection("osztalyok").get()).size, osztalyokElotte);
-  assert.equal((await firestore.collection("kodok").get()).size, kodokElotte);
-});
-
-// ══════════════════════════════════════════
-// CSATLAKOZÁS
-// ══════════════════════════════════════════
-
-test("csatlakozás létrehozza a tag bejegyzést és növeli a létszámot", async () => {
-  const { osztalyId, kod } = await logika.osztalyLetrehozasLogika(
-    firestore, "tanar-uid", "9.B angol"
-  );
-
-  const eredmeny = await logika.csatlakozasLogika(firestore, "diak-uid", kod);
-  assert.equal(eredmeny.osztalyId, osztalyId);
-  assert.equal(eredmeny.mar_tag, false);
-  assert.equal(eredmeny.nev, "9.B angol");
-
-  const tag = (
-    await firestore.collection("osztalyok").doc(osztalyId)
-      .collection("tagok").doc("diak-uid").get()
-  ).data();
-  assert.equal(tag.nev, "Diák Dóra", "a nevet denormalizálva kell menteni");
-  assert.equal(tag.email, "diak@iskola.hu");
-
-  const osztaly = (await firestore.collection("osztalyok").doc(osztalyId).get()).data();
-  assert.equal(osztaly.diak_szam, 1);
-
-  // Tükör a felhasználó alatt – ebből listázza a diák az osztályait
-  const tukor = (
-    await firestore.collection("felhasznalok").doc("diak-uid")
-      .collection("osztalyaim").doc(osztalyId).get()
-  ).data();
-  assert.ok(tukor, "a tükör bejegyzésnek létre kell jönnie");
-  assert.equal(tukor.nev, "9.B angol");
-  assert.equal(tukor.kod, kod);
-  assert.equal(tukor.tanar_id, "tanar-uid");
-});
-
-test("a diák több osztályt is kilistázhat a tükörből", async () => {
-  const a = await logika.osztalyLetrehozasLogika(firestore, "tanar-uid", "9.B angol");
-  const b = await logika.osztalyLetrehozasLogika(firestore, "tanar-2", "Szakmai angol");
-
-  await logika.csatlakozasLogika(firestore, "diak-uid", a.kod);
-  await logika.csatlakozasLogika(firestore, "diak-uid", b.kod);
-
-  const snap = await firestore.collection("felhasznalok").doc("diak-uid")
-    .collection("osztalyaim").get();
-  assert.equal(snap.size, 2);
-  assert.deepEqual(
-    snap.docs.map((d) => d.data().nev).sort(),
-    ["9.B angol", "Szakmai angol"]
-  );
-});
-
-test("kétszeri csatlakozás nem duplázza a létszámot", async () => {
-  const { osztalyId, kod } = await logika.osztalyLetrehozasLogika(
-    firestore, "tanar-uid", "9.B angol"
-  );
-
-  await logika.csatlakozasLogika(firestore, "diak-uid", kod);
-  const masodik = await logika.csatlakozasLogika(firestore, "diak-uid", kod);
-
-  assert.equal(masodik.mar_tag, true, "jelezni kell, hogy már tag");
-
-  const osztaly = (await firestore.collection("osztalyok").doc(osztalyId).get()).data();
-  assert.equal(osztaly.diak_szam, 1, "a létszám nem növekedhet újra");
-});
-
-test("három diák csatlakozása után a létszám 3", async () => {
-  const { osztalyId, kod } = await logika.osztalyLetrehozasLogika(
-    firestore, "tanar-uid", "9.B angol"
-  );
-
-  for (const uid of ["diak-1", "diak-2", "diak-3"]) {
-    await firestore.collection("felhasznalok").doc(uid).set({
-      nev: `Diák ${uid}`, email: `${uid}@iskola.hu`, szerep: "diak"
-    });
-    await logika.csatlakozasLogika(firestore, uid, kod);
-  }
-
-  const osztaly = (await firestore.collection("osztalyok").doc(osztalyId).get()).data();
-  assert.equal(osztaly.diak_szam, 3);
-});
-
-test("ismeretlen kóddal a csatlakozás elhasal", async () => {
-  await assert.rejects(
-    () => logika.csatlakozasLogika(firestore, "diak-uid", "ZZZ-9999"),
-    /nem találtam|not-found/i
-  );
-});
-
-test("inaktív osztályhoz nem lehet csatlakozni", async () => {
-  const { osztalyId, kod } = await logika.osztalyLetrehozasLogika(
-    firestore, "tanar-uid", "Lezárt osztály"
-  );
-  await firestore.collection("osztalyok").doc(osztalyId).update({ aktiv: false });
-
-  await assert.rejects(
-    () => logika.csatlakozasLogika(firestore, "diak-uid", kod),
-    /nem fogad|failed-precondition/i
-  );
-});
-
-test("törölt osztály kódjával a csatlakozás elhasal", async () => {
-  const { osztalyId, kod } = await logika.osztalyLetrehozasLogika(
-    firestore, "tanar-uid", "Törlendő"
-  );
-  await firestore.collection("osztalyok").doc(osztalyId).delete();
-
-  await assert.rejects(
-    () => logika.csatlakozasLogika(firestore, "diak-uid", kod),
-    /már nem létezik|not-found/i
-  );
-});
-
-test("profil nélküli felhasználó is csatlakozhat, 'Névtelen' néven", async () => {
-  const { osztalyId, kod } = await logika.osztalyLetrehozasLogika(
-    firestore, "tanar-uid", "9.B angol"
-  );
-
-  await logika.csatlakozasLogika(firestore, "profil-nelkuli", kod);
-
-  const tag = (
-    await firestore.collection("osztalyok").doc(osztalyId)
-      .collection("tagok").doc("profil-nelkuli").get()
-  ).data();
-  assert.equal(tag.nev, "Névtelen");
-});
-
-// ══════════════════════════════════════════
 // VISSZAJELZÉS JÓVÁHAGYÁSA (visszajelzesJovahagyas)
-// A diák egyedül itt láthat bármit: a skála betöltése, a jegy
-// ellenőrzése és a tárolás bekötését ellenőrzi végponttól végpontig.
+// A skála betöltése, a jegy ellenőrzése és a tárolás bekötését ellenőrzi
+// végponttól végpontig.
 // ══════════════════════════════════════════
 
 const kodja = async (fn) => {
@@ -278,9 +71,9 @@ const kodja = async (fn) => {
 };
 
 async function beadasFelvetel({ rubrika, statusz = "javitva", ai } = {}) {
-  await firestore.collection("feladatok").doc("f1").set({ tanar_id: "tanar-uid", osztaly_id: "o1", rubrika: rubrika || {} });
+  await firestore.collection("feladatok").doc("f1").set({ tanar_id: "tanar-uid", rubrika: rubrika || {} });
   const ref = firestore.collection("beadasok").doc("b1");
-  await ref.set({ tanar_id: "tanar-uid", feladat_id: "f1", osztaly_id: "o1", statusz });
+  await ref.set({ tanar_id: "tanar-uid", feladat_id: "f1", statusz });
   await ref.collection("ertekeles").doc("ai").set(ai || {
     szempontok: [
       { kulcs: "tartalom", pont: 8, max: 10, megjegyzes: "jó" },
@@ -560,10 +353,10 @@ test("mérés: a jelentés a hónap rekordjaiból összesít, a más hónapét k
 
 const rendes = () => ({
   beadas: {
-    diak_id: "diak-uid", osztaly_id: "o1", tanar_id: "tanar-uid", feladat_id: "f1",
+    tanar_id: "tanar-uid", feladat_id: "f1",
     forras: "szoveg", szoveg: "Dear Ben, thank you for your letter."
   },
-  feladat: { osztaly_id: "o1", tanar_id: "tanar-uid" }
+  feladat: { tanar_id: "tanar-uid" }
 });
 
 test("beadás-összerendelés: a szabályos beadás átmegy", () => {
@@ -578,19 +371,16 @@ test("beadás-összerendelés: a fotós (képutas) beadás elutasítva", () => {
   assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "mod_nem_egyezik");
 });
 
-test("beadás-összerendelés: hamis tanár, másik osztály, hiányzó feladat elutasítva", () => {
+test("beadás-összerendelés: hamis tanár és hiányzó feladat elutasítva", () => {
   let { beadas, feladat } = rendes();
   beadas.tanar_id = "masik-tanar";
   assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "tanar_nem_egyezik");
-  ({ beadas, feladat } = rendes());
-  feladat.osztaly_id = "masik-osztaly";
-  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "osztaly_nem_egyezik");
   ({ beadas } = rendes());
   assert.equal(logika.beadasOsszerendeles("b1", beadas, undefined), "feladat_nincs");
-  // mindkét oldalon hiányzó mező nem számít egyezésnek
+  // mindkét oldalon hiányzó tanár nem számít egyezésnek
   ({ beadas, feladat } = rendes());
-  delete beadas.osztaly_id; delete feladat.osztaly_id;
-  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "osztaly_nem_egyezik");
+  delete beadas.tanar_id; delete feladat.tanar_id;
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "tanar_nem_egyezik");
 });
 
 test("jóváhagyás: hamis tanar_id-jú beadást az idegen tanár nem hagyhat jóvá", async () => {
@@ -600,12 +390,6 @@ test("jóváhagyás: hamis tanar_id-jú beadást az idegen tanár nem hagyhat j�
   assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 4, szoveg: "x" })), "nem_a_te_beadasod");
   assert.equal((await ref.get()).data().statusz, "javitva");
   assert.equal(await tanariErtekeles(ref), undefined);
-});
-
-test("jóváhagyás: másik osztály feladatára hivatkozó beadás elutasítva", async () => {
-  await beadasFelvetel();
-  await firestore.collection("feladatok").doc("f1").update({ osztaly_id: "masik-osztaly" });
-  assert.equal(await kodja(() => logika.jovahagyasLogika("tanar-uid", { beadasId: "b1", jegy: 4, szoveg: "x" })), "nem_a_te_beadasod");
 });
 
 

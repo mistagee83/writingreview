@@ -122,7 +122,22 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
      **Közben javítva (a pilotot is érinti):** az AI-használat mérése a futást az értékelési hívásnál számolja (lásd
      `folytatas.md`, Ismert hiányosságok). **Maradt:** a nyitóoldal kézírásról szóló részei (a 8. lépés írja át); a
      `beadas.html` és a diákfiók a 2c-ben megy.
-   - **2c – diákfiók, osztályok, fejlődés-követés.**
+   - **2c – diákfiók, osztályok, fejlődés-követés.** Két részben:
+     - **2c-1 – osztályok, fejlődés-követés, diákoldalak: kész (2026-11-12).** A feladat nem kötődik osztályhoz (a szabály
+       `osztaly_id`-vel el is utasítja), csak a tanára olvassa. A beadást kliensről senki nem hozhatja létre és a diák nem
+       olvassa (a 4. lépés callable-je hozza létre); az összerendelés csak a tanárt ellenőrzi. Törölve: `osztalyLetrehozas`,
+       `osztalyhozCsatlakozas`, `diakEltavolitas`, `diakJelszoVisszaallitas`, `fejlodesLista`/`fejlodesDiak` (és
+       `functions/fejlodes.js`), az osztálykód-generálás, az `osztalyok`/`kodok`/`tagok`/`osztalyaim` szabálya, a
+       `diak.html`, `beadas.html`, `visszajelzes.html`, `osztalyok.html`, `diakok.html`, `fejlodes-grafikon.js`, a menüpontok,
+       a kezdőlap osztály-/diák-kártyái, a túra osztályos szakasza (négy helyett három szakasz), a PWA „Dolgozat beadása”
+       parancsa, az admin diák-jelszó gombja, kb. 195 szótári szöveg. A `nevModositas` csak a tanár profilját írja.
+       A „Kiadás másik osztálynak” helyett **„Másolat készítése”** van a feladatlistán. Az osztályelemzés a beadást veszi
+       diáknak (a beadás azonosítója).
+       **Maradt (8. lépés):** a csomagok összehasonlító táblázata és a nyitóoldal még a fejlődés-követést hirdeti
+       (`kvota.FUNKCIOK.fejlodes`, Profi csomag) – a csomagok tartalmáról a tulajdonos dönt.
+     - **2c-2 – a diák szerep:** a belépés és regisztráció diák ága (`belepes.html`, `azonosito.js`), a `guard.js`/`fejlec.js`
+       diák-kezdőlapja, a `tanariRegisztracio` diákmúlt-ellenőrzése, a szerepkezelés `diak` szerepe, az admin oldal
+       diák-szűrője, a `felhasznalok` szabály `szerep: 'diak'` alapértéke.
 3. **Link és megosztási oldal (tanár).** `linkek` gyűjtemény, `linkInditas` / `linkLezaras` callable, megosztási oldal QR-kóddal
    (helyben tárolt QR-könyvtár, nem CDN), visszaszámlálóval, kivetítéssel.
 4. **Diákoldal.** Új `iras.html?k=…`: feladatleírás, becenév, írómező, piszkozat, beadás callable-en át, nyugta a diáklinkkel.

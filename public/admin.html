@@ -81,13 +81,12 @@
   import { azonositoMegjelenites } from './js/azonosito.js';
   import { vedettOldal, esc } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
-  import { uzenet, uzenetTorles, hibaSzoveg, gombVar, diakJelszoVisszaallitas } from './js/ui.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import { functions, httpsCallable } from './js/firebase-config.js';
 
   // Tanári szerep ÉS admin claim is kell
   const { user } = await vedettOldal('tanar', { admin: true });
   oldalsav('admin.html', { admin: true });
-  const diakJelszo = httpsCallable(functions, 'diakJelszoVisszaallitas');
 
   const felhasznalokListaja = httpsCallable(functions, 'felhasznalokListaja');
   const szerepBeallitas = httpsCallable(functions, 'szerepBeallitas');
@@ -187,7 +186,6 @@
                     data-nev="${esc(f.nev)}">
               ${f.szerep === 'tanar' ? t('admin.diakka') : t('admin.tanarra')}
             </button>
-            ${f.szerep !== 'tanar' && !f.admin ? `<button class="btn-sm" data-akcio="jelszo" data-uid="${esc(f.uid)}" data-nev="${esc(f.nev)}">${t('jelszo.admin_gomb')}</button>` : ''}
             <button class="btn-sm ${f.admin ? 'danger' : ''}" data-akcio="admin"
                     data-uid="${esc(f.uid)}"
                     data-admin="${f.admin ? '0' : '1'}"
@@ -213,18 +211,6 @@
 
     const { akcio, uid, nev } = b.dataset;
     uzenetTorles('msg');
-
-    if (akcio === 'jelszo') {
-      b.disabled = true;
-      try {
-        await diakJelszoVisszaallitas(diakJelszo, uid, nev);
-      } catch (err) {
-        uzenet('msg', hibaSzoveg(err));
-      } finally {
-        b.disabled = false;
-      }
-      return;
-    }
 
     let keres;
     let kerdes;

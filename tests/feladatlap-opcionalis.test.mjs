@@ -98,23 +98,6 @@ test("szerkesztéskor csak akkor nyúl a Storage-hoz, ha van (cserélt) feladatl
 // AMI OLVASSA A MEZŐT
 // ══════════════════════════════════════════
 
-test("a diák oldala hiányzó feladatlapot is elbír", () => {
-  const beadas = kodCsak(readFileSync(new URL("beadas.html", PUBLIC), "utf8"));
-  assert.match(beadas, /feladat\.feladatlap\?\.url/, "a beadas.html nem ?.-vel olvassa");
-
-  // Egy `feladat.feladatlap.url` olvasás rendben van, ha egy
-  // `feladat.feladatlap?.url ? …` feltétel igaz ágában áll (ahogy a
-  // hivatkozás kirajzolásánál). Védelem nélkül viszont hiányzó
-  // feladatlapnál TypeError, és a diák üres oldalt kap.
-  for (const m of beadas.matchAll(/feladat\.feladatlap\.[a-z]+/g)) {
-    const elotte = beadas.slice(Math.max(0, m.index - 250), m.index);
-    assert.match(
-      elotte, /feladat\.feladatlap\?\.url\)?\s*\?/,
-      `a beadas.html védelem nélkül olvas a feladatlapból (${m.index}. karakter)`
-    );
-  }
-});
-
 test("a szerver nem függ a feladatlap meglététől", () => {
   // A javítás a rubrikából és az átiratból dolgozik, nem a feladatlapból.
   const szerver = kodCsak(readFileSync(new URL("index.js", FUNCTIONS), "utf8"));
@@ -146,21 +129,21 @@ test("amit a felület és a bemutató ígér, azt a mentés nem cáfolhatja", as
   assert.equal(/Töltsd fel a feladatlapot/.test(feladatok), false);
 });
 
-test("a kiadás üzenete nem hazudik feladatlapról, ha nincs", () => {
+test("a másolás üzenete nem hazudik feladatlapról, ha nincs", () => {
   // A kiadás egy meglévő feladatot másol másik osztálynak. Ha annak nem
   // volt feladatlapja, az „A feladatlap … átvéve" félrevezető.
   // Az üzenet szótári kulcsokból áll; a feltétel a fajlPath megléte.
   assert.match(
     feladatok,
-    /fajlPath \? t\('fel\.kiadas_uzenet_lap'\) : t\('fel\.kiadas_uzenet'\)/
+    /fajlPath \? t\('fel\.masolas_uzenet_lap'\) : t\('fel\.masolas_uzenet'\)/
   );
   // A „feladatlap nélküli" változat NEM említhet feladatlapot – egyik nyelven sem.
   for (const nyelv of ["hu", "en"]) {
     const szotar = SZOTARAK[nyelv];
     // az értékelési szempontok átvételét mondja ki (magyarul "értékelési szempontok", angolul "rubric")
-    assert.match(szotar["fel.kiadas_uzenet_lap"], nyelv === "hu" ? /szempont/i : /rubri/i);
+    assert.match(szotar["fel.masolas_uzenet_lap"], nyelv === "hu" ? /szempont/i : /rubri/i);
     assert.doesNotMatch(
-      szotar["fel.kiadas_uzenet"],
+      szotar["fel.masolas_uzenet"],
       /feladatlap|worksheet/i,
       `${nyelv}: a feladatlap nélküli kiadás üzenete feladatlapot említ`
     );

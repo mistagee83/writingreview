@@ -294,7 +294,7 @@ function menuNyit() {
     </div>
     <div class="tura-menu-labs">
       <button class="tura-teljes" type="button" data-akcio="teljes">
-        ${esc(t("tura.mind_negy"))}
+        ${esc(t("tura.mind_harom"))}
       </button>
       <button class="tura-menu-zar" type="button" data-akcio="kesz">
         ${esc(t("tura.most_nem"))}

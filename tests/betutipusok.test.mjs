@@ -20,7 +20,7 @@ const olvas = (f) => readFileSync(join(PUBLIC, f), "utf8");
 const lapok = readdirSync(PUBLIC).filter((f) => f.endsWith(".html"));
 
 test("egyetlen lap sem tölt be betűtípust külső szolgáltatótól", () => {
-  assert.ok(lapok.length >= 12, "a lapok listája üres?");
+  assert.ok(lapok.length >= 8, "a lapok listája üres?");
   for (const lap of lapok) {
     const t = olvas(lap);
     assert.ok(!/fonts\.googleapis\.com|fonts\.gstatic\.com/.test(t), `${lap}: külső betűtípus`);

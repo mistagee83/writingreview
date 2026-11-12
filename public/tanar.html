@@ -44,14 +44,6 @@
         <div class="stat-label" data-i18n="tanar.stat_feladatok">Aktív feladatok</div>
         <div class="stat-value" id="stat-feladatok">–</div>
       </a>
-      <a class="stat-card" href="osztalyok.html">
-        <div class="stat-label" data-i18n="tanar.stat_osztalyok">Osztályok</div>
-        <div class="stat-value" id="stat-osztalyok">–</div>
-      </a>
-      <a class="stat-card" href="osztalyok.html">
-        <div class="stat-label" data-i18n="tanar.stat_diakok">Összes diák</div>
-        <div class="stat-value" id="stat-diakok">–</div>
-      </a>
       <!-- Havi AI-keret: csak ott látszik, ahol a kvóta él (prod). -->
       <div class="stat-card" id="kvota-kartya" style="display:none;">
         <div class="stat-label" data-i18n="tanar.stat_keret">AI-keret (e hónap)</div>
@@ -85,11 +77,6 @@
     </div>
 
     <div class="modules-grid">
-      <a class="module-card" href="osztalyok.html">
-        <div class="module-icon">🎓</div>
-        <div class="module-title" data-i18n="tanar.modul_osztalyok_cim">Osztályok</div>
-        <div class="module-desc" data-i18n="tanar.modul_osztalyok_leiras">Osztály létrehozása, osztálykód megosztása, névsor megtekintése.</div>
-      </a>
       <a class="module-card" href="feladatok.html">
         <div class="module-icon">📋</div>
         <div class="module-title" data-i18n="tanar.modul_feladatok_cim">Feladatkezelés</div>
@@ -99,11 +86,6 @@
         <div class="module-icon">✏️</div>
         <div class="module-title" data-i18n="tanar.modul_javitas_cim">Javítási sor</div>
         <div class="module-desc" data-i18n="tanar.modul_javitas_leiras">Az AI javaslatainak ellenőrzése, jegy és visszajelzés elküldése.</div>
-      </a>
-      <a class="module-card" href="diakok.html">
-        <div class="module-icon">👥</div>
-        <div class="module-title" data-i18n="tanar.modul_diakok_cim">Diákok fejlődése</div>
-        <div class="module-desc"><span data-i18n="tanar.modul_diakok_leiras">Diákonként a pontszázalék és az ismétlődő hibák alakulása feladatról feladatra.</span> <strong class="csomag-jegyzet" data-i18n="tanar.jegyzet_profi" hidden>A Profi csomag része.</strong></div>
       </a>
       <a class="module-card" href="feladatok.html">
         <div class="module-icon">📊</div>
@@ -137,19 +119,16 @@
 
   async function statisztika() {
     try {
-      const [osztalyok, feladatok, varakozik] = await Promise.all([
-        getDocs(query(collection(db, 'osztalyok'), where('tanar_id', '==', user.uid))),
+      const [feladatok, varakozik] = await Promise.all([
         getDocs(query(collection(db, 'feladatok'), where('tanar_id', '==', user.uid), where('aktiv', '==', true))),
         getDocs(query(collection(db, 'beadasok'), where('tanar_id', '==', user.uid), where('statusz', '==', 'javitva')))
       ]);
 
-      kiir('stat-osztalyok', osztalyok.size);
       kiir('stat-feladatok', feladatok.size);
       kiir('stat-varakozik', varakozik.size);
-      kiir('stat-diakok', osztalyok.docs.reduce((s, d) => s + (d.data().diak_szam || 0), 0));
     } catch (e) {
       console.error('Statisztika hiba:', e);
-      ['stat-osztalyok', 'stat-feladatok', 'stat-varakozik', 'stat-diakok']
+      ['stat-feladatok', 'stat-varakozik']
         .forEach((id) => kiir(id, '?'));
     }
   }

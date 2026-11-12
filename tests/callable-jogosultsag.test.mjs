@@ -23,11 +23,11 @@ const kerel = (token, data = {}) =>
   token === null ? { data } : { auth: { uid: "u1", token }, data };
 
 const MINDEN_KAPUS = {
-  belepes: ["osztalyhozCsatlakozas", "nevModositas", "tanariRegisztracio", "diakJelszoVisszaallitas"],
+  belepes: ["nevModositas", "tanariRegisztracio"],
   tanar: [
-    "osztalyLetrehozas", "feladatlapElemzes", "beadasUjrafuttatas",
-    "visszajelzesJovahagyas", "diakEltavolitas", "feladatElemzes", "kvotaAllapot",
-    "fizetesIndit", "fizetesKezeles", "fejlodesLista", "fejlodesDiak", "temaBeallitas"
+    "feladatlapElemzes", "beadasUjrafuttatas",
+    "visszajelzesJovahagyas", "feladatElemzes", "kvotaAllapot",
+    "fizetesIndit", "fizetesKezeles", "temaBeallitas"
   ],
   admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas", "szamlazandoLista", "szamlaJeloles"]
 };
@@ -89,9 +89,3 @@ test("a kapuk listája teljes: minden callable export szerepel a csoportokban", 
   assert.deepEqual(hianyzik, [], "új callable: vegyük fel a jogosultsági tesztbe");
 });
 
-// Diák jelszavának visszaállítása: tanár VAGY admin hívhatja, diák nem.
-test("diakJelszoVisszaallitas: diák és claim nélküli felhasználó elutasít, hamis kliensadat mellett is", async () => {
-  for (const token of [{ szerep: "diak" }, {}, { szerep: "diak", admin: "true" }]) {
-    assert.equal(await kod("diakJelszoVisszaallitas", kerel(token, { ...HAMIS, diakUid: "d1" })), "permission-denied");
-  }
-});

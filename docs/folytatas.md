@@ -16,7 +16,9 @@ Pilot-deploy innentől: `git switch pilot`, majd `node scripts/deploy.mjs pilot 
 **2a (a kifejtős mód kivezetése a `main`-ről): kész (`f05a6bc`)** (részletek: a terv 7. pont). Az emulátoros
 tesztek (`rules`, `storage`, `functions`, `*-adatbazis`) helyben nem futottak (Java 26 van a gépen, 21 kell): a CI futtatja.
 **2b (a fotós beadás és az átírás kivezetése a `main`-ről): kész** (részletek: a terv 7. pont).
-Az emulátoros tesztek itt sem futottak helyben. Következő: 2c (diákfiók, osztályok, fejlődés-követés).
+Az emulátoros tesztek itt sem futottak helyben.
+**2c-1 (osztályok, fejlődés-követés, diákoldalak): kész** (részletek: a terv 7. pont). Az emulátoros
+tesztek (`rules`, `functions`) átírva, helyben nem futottak. Következő: 2c-2 (a diák szerep a belépésből és a jogosultságból).
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 

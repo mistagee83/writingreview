@@ -33,17 +33,13 @@ const KEZDOLAP = {
  * hova visszalépni, ott nem is jelenik meg a gomb.
  */
 const SZULO = {
-  "osztalyok.html": "tanar.html",
-  "diakok.html": "tanar.html",
   "feladatok.html": "tanar.html",
   "javitas.html": "tanar.html",
   "admin.html": "tanar.html",
   "ai-hasznalat.html": "tanar.html",
   "szamlazando.html": "tanar.html",
   // Az elemzést egy feladat sorából indítja a tanár, tehát oda tér vissza
-  "elemzes.html": "feladatok.html",
-  "beadas.html": "diak.html",
-  "visszajelzes.html": "diak.html"
+  "elemzes.html": "feladatok.html"
 };
 
 /** A vissza gomb feliratának szótári kulcsai (a t() fordítja le megjelenítéskor). */
@@ -51,8 +47,6 @@ const NEVEK = {
   "tanar.html": "nav.fooldal",
   "diak.html": "nav.feladataim",
   "feladatok.html": "nav.feladatok",
-  "osztalyok.html": "nav.osztalyok",
-  "diakok.html": "nav.diakok",
   "javitas.html": "nav.javitas",
   "admin.html": "nav.szerepkezeles",
   "ai-hasznalat.html": "nav.ai_hasznalat",

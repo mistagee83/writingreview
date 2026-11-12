@@ -45,7 +45,7 @@ const kapuzottLapok = readdirSync(new URL(".", PUBLIC))
 test("MINDEN kapuzott lap vagy kezdőlap, vagy van szülője", () => {
   // Ez a lényegi védelem: egy később hozzávett lapról könnyű lemaradni,
   // és akkor arról telefonon nincs visszaút.
-  assert.ok(kapuzottLapok.length >= 8, `csak ${kapuzottLapok.length} kapuzott lap`);
+  assert.ok(kapuzottLapok.length >= 6, `csak ${kapuzottLapok.length} kapuzott lap`);
   for (const lap of kapuzottLapok) {
     const kezdo = KEZDOLAPOK.includes(lap);
     const szulo = szuloLapja(lap);
@@ -110,14 +110,6 @@ test("a lánc rövid – legfeljebb két lépés a kezdőlapig", () => {
 test("minden szülőnek van emberi neve a gombhoz", () => {
   for (const szulo of new Set(Object.values(SZULO))) {
     assert.ok(NEVEK[szulo], `nincs felirat ehhez: ${szulo}`);
-  }
-});
-
-test("a diák lapjai a diák kezdőlapjára vezetnek, nem a tanáriba", () => {
-  // Egy elrontott hierarchia a diákot a tanári felületre küldené, ahol
-  // a guard visszairányítja – végtelen pattogás lenne belőle.
-  for (const lap of ["beadas.html", "visszajelzes.html"]) {
-    assert.equal(szuloLapja(lap), KEZDOLAP.diak, `${lap} rossz kezdőlapra vezet`);
   }
 });
 

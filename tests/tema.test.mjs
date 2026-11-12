@@ -128,10 +128,10 @@ test("a diák felület kék marad: a téma a <html>-en van, a body.theme-diak sa
   assert.match(css, /body\.theme-diak \{[^}]*--accent:\s+#2563eb/);
   assert.match(css, /body\.theme-diak \{ background-image: none; \}/);
   // a tanári oldalak kapják a korai szkriptet, a diák oldalak nem
-  for (const f of ["tanar", "osztalyok", "diakok", "feladatok", "javitas", "elemzes", "admin", "ai-hasznalat", "szamlazando"]) {
+  for (const f of ["tanar", "feladatok", "javitas", "elemzes", "admin", "ai-hasznalat", "szamlazando"]) {
     assert.ok(olvas(`../public/${f}.html`).includes("js/tema-korai.js"), f);
   }
-  for (const f of ["diak", "beadas", "visszajelzes", "belepes", "index"]) {
+  for (const f of ["belepes", "index"]) {
     assert.ok(!olvas(`../public/${f}.html`).includes("js/tema-korai.js"), `${f}: nem kaphat tanári témát`);
   }
 });

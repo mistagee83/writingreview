@@ -36,12 +36,6 @@
       "short_name": "Javítás",
       "description": "A beérkezett dolgozatok ellenőrzése és visszajelzés",
       "url": "/javitas.html"
-    },
-    {
-      "name": "Dolgozat beadása",
-      "short_name": "Beadás",
-      "description": "Feladatok, amikre be lehet adni dolgozatot",
-      "url": "/diak.html"
     }
   ]
 }
