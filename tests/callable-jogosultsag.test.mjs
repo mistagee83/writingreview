@@ -29,7 +29,9 @@ const MINDEN_KAPUS = {
     "visszajelzesJovahagyas", "feladatElemzes", "kvotaAllapot",
     "fizetesIndit", "fizetesKezeles", "temaBeallitas", "linkInditas", "linkLezaras"
   ],
-  admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas", "szamlazandoLista", "szamlaJeloles"]
+  admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas", "szamlazandoLista", "szamlaJeloles"],
+  // Belépés NÉLKÜL hívható (a diák a feladatlinken): a jogosultság a token, a függvény maga ellenőrzi
+  nyilvanos: ["linkAdatok", "linkBeadas"]
 };
 
 async function kod(nev, request) {
@@ -79,6 +81,16 @@ for (const nev of MINDEN_KAPUS.admin) {
 for (const nev of MINDEN_KAPUS.tanar) {
   test(`${nev}: admin claim szerep nélkül nem helyettesíti a tanári szerepet`, async () => {
     assert.equal(await kod(nev, kerel({ admin: true }, HAMIS)), "permission-denied");
+  });
+}
+
+// A nyilvános (diák) függvények belépés nélkül is futnak, de érvénytelen tokennel adatbázis-olvasás
+// előtt elutasítanak – a hamis kliensadat (szerep, admin) itt sem számít.
+for (const nev of MINDEN_KAPUS.nyilvanos) {
+  test(`${nev}: belépés nélkül, hiányzó vagy hibás tokennel invalid-argument (nem olvas adatbázist)`, async () => {
+    for (const token of [undefined, "", "rovid", "a".repeat(31) + "/", 42]) {
+      assert.equal(await kod(nev, kerel(null, { ...HAMIS, token })), "invalid-argument", String(token));
+    }
   });
 }
 

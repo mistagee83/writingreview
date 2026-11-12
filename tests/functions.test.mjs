@@ -39,7 +39,7 @@ after(async () => {
 });
 
 async function torolMindent() {
-  for (const koll of ["felhasznalok", "ai_hasznalat", "feladatok", "linkek"]) {
+  for (const koll of ["felhasznalok", "ai_hasznalat", "feladatok", "linkek", "beadasok"]) {
     const snap = await firestore.collection(koll).get();
     await Promise.all(snap.docs.map((d) => d.ref.delete()));
   }
@@ -576,4 +576,129 @@ test("link lezárása: a tulajdonos lezárhatja (ismételten is), idegen és ros
   for (const rossz of [undefined, "", "x", "../" + "a".repeat(61), 42]) {
     assert.equal(await kodja(() => logika.linkLezarasLogika(firestore, "tanar-uid", { linkId: rossz })), "link_id_kell", String(rossz));
   }
+});
+
+// ══════════════════════════════════════════
+// A DIÁK A FELADATLINKEN (linkAdatok / linkBeadas) – belépés nélkül
+// ══════════════════════════════════════════
+
+const JELZES_OK = { elhagyas_db: 1, elhagyas_mp: 5, beillesztes_db: 0, beillesztett_karakter: 0, beillesztett_tartomanyok: [] };
+
+async function diakLink(feladatFelul = {}, { most = Date.now() } = {}) {
+  await firestore.collection("feladatok").doc("df1").set({
+    tanar_id: "tanar-uid", cim: "Letter to Ben", aktiv: true,
+    rubrika: { nyelv: "angol", feladat_leiras: "Write a letter.", min_szo: 120, max_szo: 180, egyeb_utasitas: "TITKOS",
+      szempontok: [{ kulcs: "nyelvtan", cim: "Nyelvtan", suly: 10 }] },
+    ...feladatFelul
+  });
+  return logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "df1" }, { most });
+}
+const beadas = (token, felul = {}) => logika.linkBeadasLogika(firestore, {
+  token, becenev: "Kék Sárkány", szoveg: "Dear Ben,\r\nthank you for your letter.", jelzesek: JELZES_OK, ...felul
+});
+
+test("diák: a linkAdatok a feladat diáknak szóló részét adja, a tanár belső mezőit nem", async () => {
+  const { token } = await diakLink();
+  const r = await logika.linkAdatokLogika(firestore, { token });
+  assert.equal(r.allapot, "aktiv");
+  assert.equal(r.cim, "Letter to Ben");
+  assert.equal(r.feladat.leiras, "Write a letter.");
+  assert.equal(r.feladat.min_szo, 120);
+  assert.deepEqual(r.feladat.szempontok, [{ cim: "Nyelvtan", suly: 10 }]);
+  assert.ok(!JSON.stringify(r).includes("TITKOS"), "a tanár külön kérése az AI-nak nem megy ki");
+  assert.ok(!JSON.stringify(r).includes("tanar-uid"), "a tanár azonosítója nem megy ki");
+});
+
+test("diák: lejárt, lezárt link és lezárt feladat – csak az állapot és a cím megy ki", async () => {
+  const most = Date.now();
+  const regi = await diakLink({}, { most: most - 25 * 3600 * 1000 });
+  assert.deepEqual(await logika.linkAdatokLogika(firestore, { token: regi.token }), { allapot: "lejart", cim: "Letter to Ben" });
+  const { token, linkId } = await diakLink();
+  await logika.linkLezarasLogika(firestore, "tanar-uid", { linkId });
+  assert.equal((await logika.linkAdatokLogika(firestore, { token })).allapot, "lezarva");
+  const harmadik = await diakLink();
+  await firestore.collection("feladatok").doc("df1").update({ aktiv: false });
+  assert.equal((await logika.linkAdatokLogika(firestore, { token: harmadik.token })).allapot, "lezarva");
+});
+
+test("diák: ismeretlen token ugyanazt a hibát adja, mint a rossz alakú", async () => {
+  assert.equal(await kodja(() => logika.linkAdatokLogika(firestore, { token: "a".repeat(32) })), "link_ervenytelen");
+  assert.equal(await kodja(() => logika.linkAdatokLogika(firestore, { token: "rossz" })), "link_ervenytelen");
+});
+
+test("diák: a beadás létrejön (azonosító = a diák tokenjének lenyomata), nő a számláló, NEM indul AI", async () => {
+  const { token, linkId } = await diakLink();
+  const eredeti = globalThis.fetch;
+  let aiHivas = 0;
+  globalThis.fetch = async () => { aiHivas++; throw new Error("nem szabad AI-t hívni"); };
+  try {
+    const r = await beadas(token);
+    const { createHash } = await import("node:crypto");
+    assert.match(r.diakToken, /^[A-Za-z0-9_-]{32}$/);
+    const id = createHash("sha256").update(r.diakToken).digest("hex");
+    const b = (await firestore.collection("beadasok").doc(id).get()).data();
+    assert.equal(b.feladat_id, "df1");
+    assert.equal(b.tanar_id, "tanar-uid");
+    assert.equal(b.link_id, linkId);
+    assert.equal(b.becenev, "Kék Sárkány");
+    assert.equal(b.szoveg, "Dear Ben,\nthank you for your letter.", "a sorvégek egységesítve");
+    assert.equal(b.statusz, "feltoltve");
+    assert.deepEqual(b.jelzesek, JELZES_OK);
+    assert.ok(b.diaklink_lejar && b.letrehozva);
+    assert.equal((await firestore.collection("linkek").doc(linkId).get()).data().beadas_db, 1);
+    assert.equal(aiHivas, 0);
+    assert.equal((await firestore.collection("ai_hasznalat").get()).size, 0);
+  } finally {
+    globalThis.fetch = eredeti;
+  }
+});
+
+test("diák: a becenév linkenként egyedi (kis/nagybetű, ékezet, szóköz nem számít); másik linken szabad", async () => {
+  const elso = await diakLink();
+  await beadas(elso.token);
+  for (const nev of ["kék sárkány", "KEK-SARKANY", " Kék  Sárkány "]) {
+    assert.equal(await kodja(() => beadas(elso.token, { becenev: nev })), "becenev_foglalt", nev);
+  }
+  await beadas(elso.token, { becenev: "Kék Sárkány 2" });
+  const masodik = await diakLink();
+  await beadas(masodik.token);
+  assert.equal((await firestore.collection("linkek").doc(elso.linkId).get()).data().beadas_db, 2);
+});
+
+test("diák: lejárt, lezárt, betelt link és lezárt feladat – nincs beadás, a számláló nem nő", async () => {
+  const most = Date.now();
+  const regi = await diakLink({}, { most: most - 25 * 3600 * 1000 });
+  assert.equal(await kodja(() => beadas(regi.token)), "link_lejart");
+  const lezart = await diakLink();
+  await logika.linkLezarasLogika(firestore, "tanar-uid", { linkId: lezart.linkId });
+  assert.equal(await kodja(() => beadas(lezart.token)), "link_lezarva");
+  const tele = await diakLink();
+  await firestore.collection("linkek").doc(tele.linkId).update({ beadas_db: 60 });
+  assert.equal(await kodja(() => beadas(tele.token)), "link_betelt");
+  const zartFeladat = await diakLink();
+  await firestore.collection("feladatok").doc("df1").update({ aktiv: false });
+  assert.equal(await kodja(() => beadas(zartFeladat.token)), "link_lezarva");
+  assert.equal((await firestore.collection("beadasok").get()).size, 0);
+});
+
+test("diák: hibás bemenet adatbázis-írás előtt elutasítva", async () => {
+  const { token } = await diakLink();
+  assert.equal(await kodja(() => beadas("rossz")), "link_ervenytelen");
+  assert.equal(await kodja(() => beadas(token, { becenev: "x" })), "becenev_ervenytelen");
+  assert.equal(await kodja(() => beadas(token, { becenev: "a".repeat(31) })), "becenev_ervenytelen");
+  assert.equal(await kodja(() => beadas(token, { szoveg: "   " })), "szoveg_ervenytelen");
+  assert.equal(await kodja(() => beadas(token, { szoveg: "a".repeat(20001) })), "szoveg_ervenytelen");
+  assert.equal(await kodja(() => beadas(token, { jelzesek: { ...JELZES_OK, extra: 1 } })), "jelzesek_ervenytelen");
+  assert.equal(await kodja(() => beadas(token, { jelzesek: undefined })), "jelzesek_ervenytelen");
+  assert.equal((await firestore.collection("beadasok").get()).size, 0);
+});
+
+test("diák: a beadás után a tanár „Értékelés indítása” gombja (beadasUjrafuttatas) feldolgozhatja – az összerendelés rendben", async () => {
+  const { token } = await diakLink();
+  const r = await beadas(token);
+  const { createHash } = await import("node:crypto");
+  const id = createHash("sha256").update(r.diakToken).digest("hex");
+  const b = (await firestore.collection("beadasok").doc(id).get()).data();
+  const f = (await firestore.collection("feladatok").doc("df1").get()).data();
+  assert.equal(logika.beadasOsszerendeles(id, b, f), null);
 });

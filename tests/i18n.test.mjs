@@ -72,7 +72,7 @@ test("a státusz-táblák minden kulcsa létezik minden nyelven", async () => {
 // létezik-e. Új lap átalakításakor add hozzá ide.
 const ATALAKITOTT = [
   "index.html", "belepes.html",
-  "tanar.html", "admin.html", "ai-hasznalat.html", "szamlazando.html", "javitas.html", "elemzes.html", "feladatok.html", "megosztas.html",
+  "tanar.html", "admin.html", "ai-hasznalat.html", "szamlazando.html", "javitas.html", "elemzes.html", "feladatok.html", "megosztas.html", "iras.html",
   "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js", "js/tema-menu.js",
   "js/skala-urlap.js",
   "js/tura.js", "js/tura-demo.js", "js/tura-lepesek.js"

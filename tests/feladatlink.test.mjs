@@ -83,3 +83,69 @@ test("linkAllapot: Firestore Timestamp (toMillis) és ms is jó lejáratnak", ()
   assert.equal(l.linkAllapot({ lejar: 6000, beadas_db: 0 }, most), "aktiv");
   assert.equal(l.linkAllapot({ lejar: 4000, beadas_db: 0 }, most), "lejart");
 });
+
+// ── A diák beadásának ellenőrzői ──
+
+test("becenév: tisztítás (szélek, belső szóközök, láthatatlan és vezérlőkarakterek)", () => {
+  assert.equal(l.becenevTisztitas("  Kis   Pisti  "), "Kis Pisti");
+  assert.equal(l.becenevTisztitas("Pi​sti\u0007"), "Pisti");
+  assert.equal(l.becenevTisztitas("a‮b"), "ab", "írásirány-váltó karakter nem maradhat benne");
+  assert.equal(l.becenevTisztitas(42), "");
+  assert.equal(l.becenevTisztitas(null), "");
+});
+
+test("becenév: 2–30 karakter, betűvel vagy számmal; a határ még jó", () => {
+  for (const jo of ["Ab", "Ábel", "kis pisti", "Zsófi_2", "7B", "a".repeat(30)]) assert.ok(l.becenevErvenyes(jo), jo);
+  for (const rossz of ["", " ", "a", "--", "!!", "a".repeat(31), 5, undefined, "​​"]) {
+    assert.equal(l.becenevErvenyes(rossz), false, JSON.stringify(rossz));
+  }
+});
+
+test("becenév kulcsa: kis- és nagybetű, ékezet, szóköz és írásjel nem különböztet meg; nincs benne /", () => {
+  assert.equal(l.becenevKulcs("Kis Pisti"), "kispisti");
+  assert.equal(l.becenevKulcs("kis-pisti!"), "kispisti");
+  assert.equal(l.becenevKulcs("KISPISTI"), "kispisti");
+  assert.equal(l.becenevKulcs("Ábel"), l.becenevKulcs("abel"));
+  assert.equal(l.becenevKulcs("Őrs"), "ors");
+  assert.equal(l.becenevKulcs("a/b"), "ab");
+  assert.notEqual(l.becenevKulcs("Pisti1"), l.becenevKulcs("Pisti2"));
+});
+
+test("szöveg: nem üres, nem csak szóköz, legfeljebb 20 000 karakter", () => {
+  assert.ok(l.szovegErvenyes("Dear Ben,"));
+  assert.ok(l.szovegErvenyes("a".repeat(20000)));
+  for (const rossz of ["", "   \n\t", "a".repeat(20001), 42, null, undefined, ["x"]]) {
+    assert.equal(l.szovegErvenyes(rossz), false, JSON.stringify(rossz)?.slice(0, 20));
+  }
+});
+
+test("jelzések: pontosan a várt mezők, korlátos egészek, legfeljebb 100 tartomány-szám", () => {
+  const J = { elhagyas_db: 2, elhagyas_mp: 14, beillesztes_db: 1, beillesztett_karakter: 120, beillesztett_tartomanyok: [10, 130] };
+  assert.ok(l.jelzesekErvenyesek(J));
+  assert.ok(l.jelzesekErvenyesek({ ...J, beillesztett_tartomanyok: [] }));
+  const { elhagyas_db, ...hianyos } = J;
+  for (const rossz of [
+    null, undefined, [], "x", hianyos, { ...J, extra: 1 },
+    { ...J, elhagyas_db: -1 }, { ...J, elhagyas_mp: 1.5 }, { ...J, beillesztes_db: "sok" },
+    { ...J, beillesztett_karakter: 1e9 }, { ...J, beillesztett_tartomanyok: "10-130" },
+    { ...J, beillesztett_tartomanyok: Array(101).fill(1) }, { ...J, beillesztett_tartomanyok: [1, "2"] },
+    { ...J, beillesztett_tartomanyok: [1, 30000] }
+  ]) {
+    assert.equal(l.jelzesekErvenyesek(rossz), false, JSON.stringify(rossz)?.slice(0, 60));
+  }
+});
+
+test("az új beadás: a link feladatához és tanárához kötve, tisztított becenévvel, 14 napos diáklinkkel", () => {
+  const most = Date.UTC(2026, 10, 12, 9, 0, 0);
+  const b = l.ujBeadasAdat({
+    link: { feladat_id: "f1", tanar_id: "t1" }, linkId: "h", becenev: "  Kis  Pisti ", szoveg: "Dear Ben", jelzesek: { x: 1 }, most
+  });
+  assert.equal(b.feladat_id, "f1");
+  assert.equal(b.tanar_id, "t1");
+  assert.equal(b.link_id, "h");
+  assert.equal(b.becenev, "Kis Pisti");
+  assert.equal(b.statusz, "feltoltve");
+  assert.equal(b.forras, "szoveg");
+  assert.equal(b.diaklink_lejar.getTime() - most, 14 * 24 * 3600 * 1000);
+  assert.ok(!("diak_id" in b) && !("osztaly_id" in b), "diákfiók és osztály nincs");
+});

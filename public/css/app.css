@@ -1926,3 +1926,8 @@ body.theme-diak { background-image: none; }
   .csomag-tabla th:first-child { width: 31%; }
   .csomag-tabla .btn-sm { padding: 0.35rem 0.1rem; font-size: 0.66rem; white-space: normal; width: 100%; }
 }
+
+/* ── A DIÁK OLDALA A FELADATLINKEN (iras.html) ──
+   Nincs oldalsáv és belépés: egy keskeny, telefonon is kényelmes oszlop. */
+.diak-main { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.feladat-leiras { white-space: pre-line; line-height: 1.6; overflow-wrap: anywhere; }

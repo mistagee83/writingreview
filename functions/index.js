@@ -15,7 +15,6 @@
 // ══════════════════════════════════════════════════════
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
@@ -182,6 +181,14 @@ const HIBA_SZOVEG = {
   link_id_kell: () => "Nem derül ki, melyik linkről van szó.",
   link_nincs: () => "A link nem található.",
   nem_a_te_linked: () => "Ez nem a te feladatod linkje.",
+  link_ervenytelen: () => "Ez a link nem érvényes. Ellenőrizd, hogy pontosan másoltad-e, vagy kérj újat a tanárodtól.",
+  link_lejart: () => "Ez a link lejárt, már nem lehet rajta beadni.",
+  link_lezarva: () => "A tanár lezárta ezt a linket, már nem lehet rajta beadni.",
+  link_betelt: () => "Ezen a linken már nem lehet több beadást fogadni. Szólj a tanárodnak.",
+  becenev_ervenytelen: () => "A becenév 2–30 karakter legyen, és legyen benne betű vagy szám.",
+  becenev_foglalt: () => "Ezt a becenevet valaki már használja ezen a linken. Válassz másikat.",
+  szoveg_ervenytelen: () => "A szöveg üres, vagy túl hosszú (legfeljebb 20 000 karakter).",
+  jelzesek_ervenytelen: () => "A beadás adatai hibásak. Töltsd újra az oldalt, és próbáld újra.",
   onregisztracio_ki: () => "Az önálló tanári regisztráció ebben a környezetben nincs bekapcsolva.",
   email_nincs_megerositve: () => "Előbb erősítsd meg az e-mail-címedet a kapott levélben.",
   tanari_kerelem_hianyzik: () => "Ez a fiók nem tanári regisztrációval jött létre. Regisztrálj új fiókot tanárként.",
@@ -1178,36 +1185,9 @@ async function hibaraAllit(beadasId, e, futasId = null) {
   }
 }
 
-/**
- * Trigger: új beadás → automatikus javítás.
- *
- * Azért trigger és nem kliens-hívás: több kép Gemini-elemzése simán
- * túlfut az onCall alapértelmezett 60 másodpercén, és a diáknak nem
- * kell nyitva tartania a böngészőt. A kliens onSnapshot-tal figyeli
- * a statusz mezőt.
- *
- * retry: false – egy elhasalt Gemini-hívást nem akarunk vég nélkül
- * (és fizetős módon) újrapróbálni. Kézi újrafuttatás: lásd alább.
- */
-exports.beadasFeldolgozas = onDocumentCreated(
-  {
-    document: "beadasok/{beadasId}",
-    region: REGION,
-    secrets: AI_TITKOK,
-    timeoutSeconds: 540,
-    memory: "1GiB",
-    retry: false
-  },
-  async (event) => {
-    const beadasId = event.params.beadasId;
-    try {
-      // Csak az induló állapotból: egy duplán kézbesített esemény hatástalan.
-      await feldolgozBeadas(beadasId, { csakFeltoltve: true });
-    } catch (e) {
-      await hibaraAllit(beadasId, e, e.futasId);
-    }
-  }
-);
+// Az automatikus javítás (beadasFeldolgozas, Firestore-trigger) 2026-11-12 óta NINCS: a beadást
+// a diák a feladatlinken adja be, az AI-értékelést a TANÁR indítja (beadasUjrafuttatas; a 6. lépésben
+// több beadásra egyszerre). A diák beadása így nem indít AI-hívást (docs/prod-atalakitas-terv.md, 9.).
 
 // ══════════════════════════════════════════════════════
 // 5. ÚJRAFUTTATÁS (tanár)
@@ -2641,5 +2621,100 @@ exports.linkLezaras = onCall(HIVAS_OPCIOK, async (request) => {
   return linkLezarasLogika(db(), tanar(request), request.data);
 });
 
-exports._teszt.linkInditasLogika = linkInditasLogika;
-exports._teszt.linkLezarasLogika = linkLezarasLogika;
+
+// ══════════════════════════════════════════════════════
+// 13. A DIÁK A FELADATLINKEN (belépés nélkül)
+//
+// A diáknak nincs fiókja: a feladatlink tokenje az egyetlen jogosultsága.
+// Minden bemenetét ellenőrizzük, mielőtt bármit olvasnánk vagy írnánk.
+// Ezek a függvények SOHA nem hívnak AI-t: az értékelést a tanár indítja.
+// ══════════════════════════════════════════════════════
+
+/** A link (token alapján) és az állapota; érvénytelen token esetén ugyanaz a hiba, mint nem létezőnél. */
+async function linkTokenbol(firestore, token, tx = null) {
+  if (!feladatlink.tokenErvenyes(token)) throw hiba("invalid-argument", "link_ervenytelen");
+  const ref = firestore.collection("linkek").doc(feladatlink.tokenHash(token));
+  const snap = tx ? await tx.get(ref) : await ref.get();
+  if (!snap.exists) throw hiba("not-found", "link_ervenytelen");
+  return { ref, link: snap.data() };
+}
+
+/**
+ * A diákoldal adatai: a link állapota és – ha beadható – a feladat diáknak szóló része
+ * (cím, leírás, szószám, szempontok címe és pontja). Más nem megy ki: a rubrika egyéb
+ * mezői (pl. a tanár külön kérése az AI-nak) a tanáré.
+ */
+async function linkAdatokLogika(firestore, adat, { most = Date.now() } = {}) {
+  const { link } = await linkTokenbol(firestore, adat?.token);
+  let allapot = feladatlink.linkAllapot(link, most);
+  const feladatSnap = await firestore.collection("feladatok").doc(link.feladat_id).get();
+  const feladat = feladatSnap.exists ? feladatSnap.data() : null;
+  if (!feladat || feladat.aktiv === false) allapot = allapot === "aktiv" || allapot === "betelt" ? "lezarva" : allapot;
+  const cim = String(feladat?.cim || "");
+  if (allapot !== "aktiv") return { allapot, cim };
+  const r = feladat.rubrika || {};
+  const szam = (v) => (Number.isFinite(v) && v > 0 ? v : null);
+  return {
+    allapot,
+    cim,
+    lejar: new Date(link.lejar.toMillis ? link.lejar.toMillis() : link.lejar).toISOString(),
+    feladat: {
+      leiras: String(r.feladat_leiras || ""),
+      nyelv: NYELVEK.includes(r.nyelv) ? r.nyelv : ALAP_NYELV,
+      min_szo: szam(r.min_szo),
+      max_szo: szam(r.max_szo),
+      szempontok: (Array.isArray(r.szempontok) ? r.szempontok : [])
+        .filter((sz) => sz && typeof sz === "object")
+        .map((sz) => ({ cim: String(sz.cim || sz.kulcs || ""), suly: Number(sz.suly) || 0 }))
+    }
+  };
+}
+
+/**
+ * A diák beadása. Egy tranzakcióban: a link még él és nincs betelve, a feladat nyitott, a
+ * becenév szabad ezen a linken; létrejön a beadás (azonosítója a diák új tokenjének
+ * lenyomata), lefoglalódik a becenév, és nő a link beadásszáma. A diák a tokent kapja vissza:
+ * ebből lesz a saját visszajelzés-linkje. NEM indít AI-t.
+ */
+async function linkBeadasLogika(firestore, adat, { most = Date.now(), tokenFn = feladatlink.tokenGeneralas } = {}) {
+  const token = adat?.token;
+  if (!feladatlink.tokenErvenyes(token)) throw hiba("invalid-argument", "link_ervenytelen");
+  if (!feladatlink.becenevErvenyes(adat?.becenev)) throw hiba("invalid-argument", "becenev_ervenytelen");
+  const szoveg = typeof adat?.szoveg === "string" ? adat.szoveg.replace(/\r\n?/g, "\n") : adat?.szoveg;
+  if (!feladatlink.szovegErvenyes(szoveg)) throw hiba("invalid-argument", "szoveg_ervenytelen");
+  if (!feladatlink.jelzesekErvenyesek(adat?.jelzesek)) throw hiba("invalid-argument", "jelzesek_ervenytelen");
+  const becenevKulcs = feladatlink.becenevKulcs(adat.becenev);
+
+  const diakToken = tokenFn();
+  const beadasId = feladatlink.tokenHash(diakToken);
+
+  await firestore.runTransaction(async (tx) => {
+    const { ref: linkRef, link } = await linkTokenbol(firestore, token, tx);
+    const allapot = feladatlink.linkAllapot(link, most);
+    if (allapot === "lejart") throw hiba("failed-precondition", "link_lejart");
+    if (allapot === "lezarva") throw hiba("failed-precondition", "link_lezarva");
+    if (allapot === "betelt") throw hiba("failed-precondition", "link_betelt");
+    const feladatSnap = await tx.get(firestore.collection("feladatok").doc(link.feladat_id));
+    if (!feladatSnap.exists || feladatSnap.data().aktiv === false) throw hiba("failed-precondition", "link_lezarva");
+    const becenevRef = linkRef.collection("becenevek").doc(becenevKulcs);
+    if ((await tx.get(becenevRef)).exists) throw hiba("already-exists", "becenev_foglalt");
+
+    const beadasRef = firestore.collection("beadasok").doc(beadasId);
+    tx.create(beadasRef, {
+      ...feladatlink.ujBeadasAdat({ link, linkId: linkRef.id, becenev: adat.becenev, szoveg, jelzesek: adat.jelzesek, most }),
+      letrehozva: FieldValue.serverTimestamp(),
+      frissitve: FieldValue.serverTimestamp()
+    });
+    tx.set(becenevRef, { beadas_id: beadasId, letrehozva: FieldValue.serverTimestamp() });
+    tx.update(linkRef, { beadas_db: FieldValue.increment(1) });
+  });
+
+  logger.info("Beadás a feladatlinken", { beadasId });
+  return { diakToken, diaklinkLejar: new Date(most + feladatlink.DIAKLINK_ERVENYESSEG_MS).toISOString() };
+}
+
+// Belépés nélkül hívható: a token a jogosultság (a függvény maga ellenőrzi).
+exports.linkAdatok = onCall(HIVAS_OPCIOK, async (request) => linkAdatokLogika(db(), request.data));
+exports.linkBeadas = onCall(HIVAS_OPCIOK, async (request) => linkBeadasLogika(db(), request.data));
+
+Object.assign(exports._teszt, { linkInditasLogika, linkLezarasLogika, linkAdatokLogika, linkBeadasLogika });

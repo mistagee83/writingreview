@@ -36,6 +36,7 @@
     </div>
 
     <div class="szuro" id="szuro">
+      <button class="szuro-btn" data-statusz="feltoltve" data-i18n="jav.szuro_feltoltve">📥 Beadva</button>
       <button class="szuro-btn active" data-statusz="javitva" data-i18n="jav.szuro_javitva">📝 Ellenőrzésre vár</button>
       <button class="szuro-btn" data-statusz="folyamatban" data-i18n="jav.szuro_folyamatban">⚙️ Feldolgozás alatt</button>
       <button class="szuro-btn" data-statusz="elkuldve" data-i18n="jav.szuro_elkuldve">📧 Elküldve</button>
@@ -167,7 +168,7 @@
         return `
           <div class="list-card">
             <div>
-              <h3>${esc(b.diak_nev || t('jav.nevtelen_diak'))}</h3>
+              <h3>${esc(b.becenev || b.diak_nev || t('jav.nevtelen_diak'))}</h3>
               <div class="list-card-meta">
                 <span>${esc(f?.cim || t('jav.torolt_feladat'))}</span>
                 <span>${datum(b.letrehozva)}</span>
@@ -178,6 +179,8 @@
             </div>
             <div class="list-card-actions">
               <button class="btn-sm" data-akcio="nyit" data-id="${esc(d.id)}">${t('jav.megnyitas')}</button>
+              ${b.statusz === 'feltoltve'
+                ? `<button class="btn-sm kiemelt" data-akcio="ujra" data-id="${esc(d.id)}">${t('jav.ertekeles_inditas')}</button>` : ''}
               ${['hiba', 'javitva'].includes(b.statusz)
                 ? `<button class="btn-sm" data-akcio="ujra" data-id="${esc(d.id)}">${t('jav.ujra')}</button>` : ''}
             </div>
@@ -253,7 +256,7 @@
       if (elavult()) return;
 
       document.getElementById('m-cim').textContent =
-        `${b.diak_nev || t('jav.nevtelen')} – ${f?.cim || t('jav.torolt_feladat')}`;
+        `${b.becenev || b.diak_nev || t('jav.nevtelen')} – ${f?.cim || t('jav.torolt_feladat')}`;
 
       const aiSnap = await getDoc(doc(db, 'beadasok', beadasId, 'ertekeles', 'ai'));
       const ai = aiSnap.exists() ? aiSnap.data() : null;

@@ -154,6 +154,21 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
    diákoldalra mutat (`iras.html?k=<token>`), ami a 4. lépésben készül – addig a link 404-et ad.
    Döntések: a QR-könyvtár helyben (nem CDN), a plafon 60, egy feladathoz több link is lehet.
 4. **Diákoldal.** Új `iras.html?k=…`: feladatleírás, becenév, írómező, piszkozat, beadás callable-en át, nyugta a diáklinkkel.
+   **Kész (2026-11-12).** `linkAdatok` (a feladat diáknak szóló része: cím, leírás, nyelv, szószám, szempontok címe és
+   pontja – a tanár AI-nak szóló kérése és azonosítója nem) és `linkBeadas` (egy tranzakcióban: a link él és nincs
+   betelve, a feladat nyitott, a becenév linkenként egyedi – `linkek/{id}/becenevek/{kulcs}`, kis/nagybetű, ékezet, szóköz
+   nem számít –, létrejön a beadás, nő a számláló). Mindkettő belépés nélkül hívható, a token a jogosultság; hibás
+   bemenetnél adatbázis-olvasás előtt elutasít. A beadás azonosítója a **diák saját tokenjének SHA-256 lenyomata**; a
+   diák a tokenből lett diáklinket kapja (`visszajelzes.html?d=…`, 14 napig él – az oldal a 7. lépésben készül).
+   Az ellenőrzők a `functions/feladatlink.js`-ben (becenév, szöveg ≤ 20 000, írás közbeni jelzések – a korábbi
+   Firestore-szabály határaival). `iras.html`: feladat, becenév, írómező (helyesírás-ellenőrzés ki), szószámláló,
+   piszkozat és nyugta a böngészőben, a meglévő írás közbeni jelzésekkel (ablakelhagyás, beillesztés), nyugta QR-kóddal.
+   **Az automatikus AI-trigger (`beadasFeldolgozas`) kikerült:** a diák beadása nem indít AI-t. Átmenetileg a javítási sor
+   „Beadva” szűrőjében egyenként indítható az értékelés („✨ Értékelés indítása” = `beadasUjrafuttatas`); a 6. lépés teszi
+   kényelmessé. A javítási sor a becenevet mutatja. Ellenőrizve helyi, Firebase-helyettesítős előnézetben (beadás,
+   foglalt becenév, nyugta újratöltés után, lejárt link, telefonszélesség).
+   **Nyitott:** App Check a diákoldali függvényeken (még nincs beállítva a projektben); a diáklink élettartama (14 nap a
+   javaslat).
 5. **Csalásellenőrzés.** A 4. pont: beillesztés-tiltás, új jelzések, helyesírás-kapcsoló, a tanári megjelenítés bővítése.
 6. **Tanári értékelésindítás.** A trigger helyett `ertekelesInditas` callable (egy vagy több beadás, párhuzamossági korláttal,
    kvótaegységgel). Az értékelő prompt csak a szöveget kapja.

@@ -22,7 +22,9 @@ tesztek (`rules`, `functions`) átírva, helyben nem futottak. **2c-2 (a diák s
 futottak helyben. Ezzel a 2. lépés (kivezetés) teljes.
 **3. lépés (feladatlink és megosztási oldal): kész.** A megosztási panel és a kivetítés helyi próbaoldalon
 ellenőrizve (élő bejelentkezéssel nem: a pilot a régi függvényeken fut). A QR-kód telefonos beolvasása még nincs kipróbálva.
-Következő: 4. lépés (diákoldal: `iras.html`).
+**4. lépés (diákoldal: `iras.html`): kész.** Az automatikus AI-trigger kikerült (a tanár indítja az
+értékelést). Helyi, Firebase-helyettesítős előnézetben ellenőrizve; élő függvényekkel nem (a pilot a régi kódon fut).
+Következő: 5. lépés (csalásellenőrzés: beillesztés tiltása, új jelzések).
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 

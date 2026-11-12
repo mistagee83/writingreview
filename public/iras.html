@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="iras.oldalcim">WritingReview – Feladat</title>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="referrer" content="no-referrer"/>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body class="diak-oldal">
+
+<!-- A DIÁK OLDALA A FELADATLINKEN. Belépés nincs: a link tokenje a jogosultság
+     (iras.html?k=<token>). Minden adat Cloud Functionön át jön és megy
+     (linkAdatok, linkBeadas); a Firestore-hoz a diák nem fér hozzá, és az oldal
+     nem indít AI-hívást – az értékelést a tanár indítja. -->
+
+<div class="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right" data-nyelvvalaszto></div>
+</div>
+
+<main class="main narrow diak-main">
+  <div class="msg" id="msg"></div>
+
+  <div id="tartalom">
+    <div class="empty-state bare"><div class="spinner"></div></div>
+  </div>
+</main>
+
+<script type="module">
+  import { t, nyelvNev, datumSzoveg } from './js/i18n.js';
+  // Csak az escape-függvény kell innen; a védett oldal kapuja (vedettOldal) itt NEM fut.
+  import { esc } from './js/guard.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra } from './js/ui.js';
+  import { jelzesFigyelo, szoszam, SZOVEG_MAX } from './js/iras-jelzes.js';
+  import { qrSvg } from './js/megosztas.js';
+  import { functions, httpsCallable } from './js/firebase-config.js';
+
+  const linkAdatok = httpsCallable(functions, 'linkAdatok');
+  const linkBeadas = httpsCallable(functions, 'linkBeadas');
+
+  const token = new URLSearchParams(location.search).get('k') || '';
+  const tartalom = document.getElementById('tartalom');
+
+  // A böngésző tárolója hibatűrően (privát ablakban nincs): a piszkozat és a nyugta itt marad,
+  // hogy egy véletlen újratöltés ne vigye el a szöveget, és a beadás után a nyugta újra látsszon.
+  const tarol = (fn) => { try { return fn(localStorage); } catch (_) { return null; } };
+  const PISZKOZAT = `wr-iras-piszkozat-${token}`;
+  const BECENEV = `wr-iras-becenev-${token}`;
+  const NYUGTA = `wr-iras-nyugta-${token}`;
+  const JELZES = `wr-iras-jelzes-${token}`;
+
+  function uzenetLap(ikon, szoveg) {
+    tartalom.innerHTML = `<div class="panel"><div class="panel-body"><div class="empty-state bare">
+      <div class="empty-icon">${ikon}</div><p>${esc(szoveg)}</p></div></div></div>`;
+  }
+
+  // ══════════════════════════════════════════
+  // NYUGTA: a diák saját visszajelzés-linkje
+  // ══════════════════════════════════════════
+  function nyugtaMutat(nyugta) {
+    const url = `${location.origin}/visszajelzes.html?d=${encodeURIComponent(nyugta.diakToken)}`;
+    const lejar = datumSzoveg(new Date(nyugta.diaklinkLejar));
+    tartalom.innerHTML = `
+      <div class="panel">
+        <div class="panel-header"><h2>${t('iras.nyugta_cim')}</h2></div>
+        <div class="panel-body">
+          <p>${t('iras.nyugta_leiras', { becenev: esc(nyugta.becenev || '') })}</p>
+          <div class="link-megosztas" style="margin-top:1rem;">
+            <div class="link-qr">${qrSvg(url, { cim: t('iras.nyugta_qr_alt') })}</div>
+            <div class="link-adatok">
+              <label for="diaklink">${t('iras.nyugta_link')}</label>
+              <div class="code-input-row">
+                <input type="text" id="diaklink" readonly value="${esc(url)}" />
+                <button class="btn-sm" id="btn-masol">${t('iras.masolas')}</button>
+              </div>
+              <p class="iras-figyelmeztetes" style="margin-top:1rem;">${t('iras.nyugta_mentsd', { datum: esc(lejar) })}</p>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('btn-masol').addEventListener('click', (e) =>
+      vagolapra(document.getElementById('diaklink').value, e.currentTarget));
+  }
+
+  const mentettNyugta = tarol((ls) => JSON.parse(ls.getItem(NYUGTA) || 'null'));
+  if (mentettNyugta?.diakToken) {
+    nyugtaMutat(mentettNyugta);
+  } else {
+    await betolt();
+  }
+
+  // ══════════════════════════════════════════
+  // A FELADAT ÉS AZ ÍRÓFELÜLET
+  // ══════════════════════════════════════════
+  async function betolt() {
+    let adat;
+    try {
+      ({ data: adat } = await linkAdatok({ token }));
+    } catch (e) {
+      uzenetLap('⚠️', e?.details?.kod === 'link_ervenytelen' ? t('iras.ervenytelen') : hibaSzoveg(e));
+      return;
+    }
+    if (adat.allapot !== 'aktiv') {
+      const szoveg = { lejart: t('iras.lejart'), lezarva: t('iras.lezarva'), betelt: t('iras.betelt') }[adat.allapot] || t('iras.ervenytelen');
+      uzenetLap('⏰', szoveg);
+      return;
+    }
+    feluletRajzol(adat);
+  }
+
+  function szoszamSzoveg(n, min, max) {
+    return min && max ? (n < min || n > max ? t('iras.szoszam_elvart', { n, min, max }) : t('iras.szoszam', { n }))
+      : min && n < min ? t('iras.szoszam_legalabb', { n, min })
+      : max && n > max ? t('iras.szoszam_legfeljebb', { n, max })
+      : t('iras.szoszam', { n });
+  }
+
+  function feluletRajzol(adat) {
+    const f = adat.feladat;
+    const szoKorlat = f.min_szo && f.max_szo ? t('iras.szo_tartomany', { min: f.min_szo, max: f.max_szo })
+      : f.min_szo ? t('iras.szo_legalabb', { min: f.min_szo })
+      : f.max_szo ? t('iras.szo_legfeljebb', { max: f.max_szo }) : '';
+    document.title = `${adat.cim} – WritingReview`;
+
+    tartalom.innerHTML = `
+      <div class="page-header">
+        <h1>${esc(adat.cim)}</h1>
+        <p>${[nyelvNev(f.nyelv), szoKorlat].filter(Boolean).map(esc).join(' · ')}</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h2>${t('iras.feladat_cim')}</h2></div>
+        <div class="panel-body">
+          ${f.leiras ? `<p class="feladat-leiras">${esc(f.leiras)}</p>` : `<p class="halvany">${t('iras.nincs_leiras')}</p>`}
+          ${f.szempontok.length ? `
+            <table class="tabla" style="margin-top:1rem;">
+              <thead><tr><th>${t('iras.szempont')}</th><th>${t('iras.pont')}</th></tr></thead>
+              <tbody>${f.szempontok.map((sz) => `<tr><td>${esc(sz.cim)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
+            </table>` : ''}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h2>${t('iras.iras_cim')}</h2></div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label for="becenev">${t('iras.becenev')}</label>
+            <input type="text" id="becenev" maxlength="30" autocomplete="off" spellcheck="false"
+                   placeholder="${esc(t('iras.becenev_pelda'))}" />
+            <small>${t('iras.becenev_tipp')}</small>
+          </div>
+          <p class="halvany">${t('iras.mentes_tipp')}</p>
+          <!-- A diák ELŐRE látja, mit jelzünk a tanárnak (átláthatóság). -->
+          <p class="halvany iras-figyelmeztetes">${t('iras.figyelmeztetes')}</p>
+          <!-- A helyesírás-javítás és az automatikus nyelvhelyesség KI van kapcsolva: a szöveget a diák
+               saját tudása szerint kell értékelni, a javítóprogram elfedné a hibáit. -->
+          <textarea id="szoveg" class="iras-szoveg" rows="14"
+                    spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+                    data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
+                    aria-label="${esc(t('iras.szoveg_aria'))}" placeholder="${esc(t('iras.szoveg_pelda'))}"></textarea>
+          <div class="szamlalo" id="szamlalo" aria-live="polite"></div>
+          <div class="msg" id="iras-msg"></div>
+          <div class="gomb-sor">
+            <button class="btn-primary" id="btn-bead">${t('iras.bead_gomb')}</button>
+          </div>
+          <p class="halvany" style="margin-top:0.75rem;">${t('iras.vegleges')}</p>
+        </div>
+      </div>`;
+
+    const mezo = document.getElementById('szoveg');
+    const becenevMezo = document.getElementById('becenev');
+    const szamlalo = document.getElementById('szamlalo');
+    const NYELV_KOD = { angol: 'en', 'német': 'de', francia: 'fr', spanyol: 'es', olasz: 'it', orosz: 'ru', latin: 'la', magyar: 'hu' };
+    mezo.lang = NYELV_KOD[f.nyelv] || '';
+    mezo.value = tarol((ls) => ls.getItem(PISZKOZAT)) || '';
+    becenevMezo.value = tarol((ls) => ls.getItem(BECENEV)) || '';
+
+    const figyelo = jelzesFigyelo(mezo, { kulcs: JELZES });
+    const szamlaloFrissit = () => { szamlalo.textContent = szoszamSzoveg(szoszam(mezo.value), f.min_szo, f.max_szo); };
+    szamlaloFrissit();
+
+    let mentesIdo = null;
+    mezo.addEventListener('input', () => {
+      szamlaloFrissit();
+      clearTimeout(mentesIdo);
+      mentesIdo = setTimeout(() => tarol((ls) => ls.setItem(PISZKOZAT, mezo.value)), 400);
+    });
+    becenevMezo.addEventListener('input', () => tarol((ls) => ls.setItem(BECENEV, becenevMezo.value)));
+
+    document.getElementById('btn-bead').addEventListener('click', async (e) => {
+      uzenetTorles('iras-msg');
+      const becenev = becenevMezo.value.trim();
+      const szoveg = mezo.value.replace(/\r\n/g, '\n');
+      if (becenev.length < 2) { uzenet('iras-msg', t('iras.becenev_kell')); becenevMezo.focus(); return; }
+      if (!szoveg.trim()) { uzenet('iras-msg', t('iras.ures')); return; }
+      if (szoveg.length > SZOVEG_MAX) { uzenet('iras-msg', t('iras.hosszu', { max: SZOVEG_MAX })); return; }
+      if (!confirm(t('iras.megerosites'))) return;
+
+      mezo.disabled = true;
+      becenevMezo.disabled = true;
+      const vissza = gombVar(e.currentTarget, t('iras.bead_folyamat'));
+      try {
+        const { data } = await linkBeadas({ token, becenev, szoveg, jelzesek: figyelo.dokumentum(szoveg) });
+        const nyugta = { ...data, becenev };
+        tarol((ls) => {
+          ls.setItem(NYUGTA, JSON.stringify(nyugta));
+          ls.removeItem(PISZKOZAT);
+        });
+        clearTimeout(mentesIdo);
+        figyelo.torles();
+        figyelo.leallit();
+        nyugtaMutat(nyugta);
+        window.scrollTo({ top: 0 });
+      } catch (err) {
+        uzenet('iras-msg', hibaSzoveg(err));
+        mezo.disabled = false;
+        becenevMezo.disabled = false;
+        if (err?.details?.kod === 'becenev_foglalt') becenevMezo.focus();
+        vissza();
+      }
+    });
+  }
+</script>
+</body>
+</html>
