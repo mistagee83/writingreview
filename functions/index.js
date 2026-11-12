@@ -24,6 +24,7 @@ const { getStorage } = require("firebase-admin/storage");
 const { randomUUID } = require("node:crypto");
 const logger = require("firebase-functions/logger");
 const skala = require("./skala");
+const feladatlink = require("./feladatlink");
 const kornyezet = require("./kornyezet");
 const kvota = require("./kvota");
 const aiHasznalat = require("./ai-hasznalat");
@@ -177,6 +178,10 @@ const HIBA_SZOVEG = {
   feladat_nincs: () => "A feladat nem található.",
   nem_a_te_feladatod: () => "Ez nem a te feladatod.",
   nincs_kiertekelt: () => "Ehhez a feladathoz még nincs kiértékelt beadás.",
+  feladat_zart: () => "Ez a feladat le van zárva. Nyisd meg újra a feladatlistában, ha linket indítanál hozzá.",
+  link_id_kell: () => "Nem derül ki, melyik linkről van szó.",
+  link_nincs: () => "A link nem található.",
+  nem_a_te_linked: () => "Ez nem a te feladatod linkje.",
   onregisztracio_ki: () => "Az önálló tanári regisztráció ebben a környezetben nincs bekapcsolva.",
   email_nincs_megerositve: () => "Előbb erősítsd meg az e-mail-címedet a kapott levélben.",
   tanari_kerelem_hianyzik: () => "Ez a fiók nem tanári regisztrációval jött létre. Regisztrálj új fiókot tanárként.",
@@ -2581,3 +2586,60 @@ exports.feladatElemzes = onCall(
     return dokumentum;
   }
 );
+
+// ══════════════════════════════════════════════════════
+// 12. FELADATLINK (tanár)
+//
+// A tanár feladatonként 24 óráig élő linket indít (akár többet is, pl. két
+// csoportnak); a diák ezen, fiók nélkül adja be a szöveget (4. lépés). A link
+// dokumentuma linkek/{a token SHA-256 lenyomata}; a tokent csak a tanár olvassa
+// vissza (megosztási oldal). Kliensről a gyűjtemény nem írható: a lejáratot, a
+// plafont és a tulajdonost a szerver állítja. A tiszta rész: functions/feladatlink.js.
+// ══════════════════════════════════════════════════════
+
+/** Új feladatlink. A feladat a hívó tanáré és nyitott (aktív) kell legyen. */
+async function linkInditasLogika(firestore, uid, adat, { most = Date.now(), tokenFn = feladatlink.tokenGeneralas } = {}) {
+  const feladatId = adat?.feladatId;
+  if (!feladatId || typeof feladatId !== "string") throw hiba("invalid-argument", "feladat_id_kell");
+  const feladatSnap = await firestore.collection("feladatok").doc(feladatId).get();
+  if (!feladatSnap.exists) throw hiba("not-found", "feladat_nincs");
+  if (feladatSnap.data().tanar_id !== uid) throw hiba("permission-denied", "nem_a_te_feladatod");
+  if (feladatSnap.data().aktiv === false) throw hiba("failed-precondition", "feladat_zart");
+
+  const token = tokenFn();
+  const linkId = feladatlink.tokenHash(token);
+  const linkRef = firestore.collection("linkek").doc(linkId);
+  // create(): egy (gyakorlatilag lehetetlen) ütközés ne írjon felül másik linket
+  await linkRef.create({
+    ...feladatlink.ujLinkAdat({ feladatId, tanarId: uid, token, most }),
+    letrehozva: FieldValue.serverTimestamp()
+  });
+  logger.info("Feladatlink indítva", { feladatId, tanar: uid, linkId });
+  return { linkId, token, lejar: new Date(most + feladatlink.LINK_ERVENYESSEG_MS).toISOString() };
+}
+
+/** A link lezárása lejárat előtt (ismételt hívás ártalmatlan). */
+async function linkLezarasLogika(firestore, uid, adat) {
+  const linkId = adat?.linkId;
+  if (!linkId || typeof linkId !== "string" || !/^[0-9a-f]{64}$/.test(linkId)) throw hiba("invalid-argument", "link_id_kell");
+  const ref = firestore.collection("linkek").doc(linkId);
+  const snap = await ref.get();
+  if (!snap.exists) throw hiba("not-found", "link_nincs");
+  if (snap.data().tanar_id !== uid) throw hiba("permission-denied", "nem_a_te_linked");
+  if (snap.data().lezarva !== true) {
+    await ref.update({ lezarva: true, lezarva_at: FieldValue.serverTimestamp() });
+    logger.info("Feladatlink lezárva", { linkId, tanar: uid });
+  }
+  return { lezarva: true };
+}
+
+exports.linkInditas = onCall(HIVAS_OPCIOK, async (request) => {
+  return linkInditasLogika(db(), tanar(request), request.data);
+});
+
+exports.linkLezaras = onCall(HIVAS_OPCIOK, async (request) => {
+  return linkLezarasLogika(db(), tanar(request), request.data);
+});
+
+exports._teszt.linkInditasLogika = linkInditasLogika;
+exports._teszt.linkLezarasLogika = linkLezarasLogika;

@@ -2,9 +2,9 @@
 // Cloud Functions – tranzakciós logika tesztek
 //
 // A Gemini-hívást NEM teszteli (az külső szolgáltatás); azt a részt
-// a séma és a prompt-sablon fedi. Itt az osztálykód egyedisége és a
-// csatlakozás tranzakciója van ellenőrizve, valódi Firestore
-// emulátor ellen.
+// a séma és a prompt-sablon fedi. Itt a jóváhagyás, a tanári regisztráció,
+// a feladatlink és a feldolgozás-foglalás van ellenőrizve, valódi
+// Firestore emulátor ellen.
 //
 // Futtatás a tests/ könyvtárból: npm test
 // ══════════════════════════════════════════════════════
@@ -39,7 +39,7 @@ after(async () => {
 });
 
 async function torolMindent() {
-  for (const koll of ["felhasznalok", "ai_hasznalat", "feladatok"]) {
+  for (const koll of ["felhasznalok", "ai_hasznalat", "feladatok", "linkek"]) {
     const snap = await firestore.collection(koll).get();
     await Promise.all(snap.docs.map((d) => d.ref.delete()));
   }
@@ -508,4 +508,72 @@ test("AI-használat: hibás JSON válasznál is rögzül a tokenadat (egyszer)",
   const snap = await firestore.collection("ai_hasznalat").get();
   assert.equal(snap.size, 1);
   assert.equal(snap.docs[0].data().ossz, 120);
+});
+
+// ══════════════════════════════════════════
+// FELADATLINK (linkInditas / linkLezaras)
+// ══════════════════════════════════════════
+
+const linkFeladat = (felul = {}) =>
+  firestore.collection("feladatok").doc("lf1").set({ tanar_id: "tanar-uid", cim: "Levél", aktiv: true, rubrika: {}, ...felul });
+
+test("link indítása: a token lenyomata a dokumentum azonosítója, 24 óra, 60-as plafon, nyitva", async () => {
+  await linkFeladat();
+  const most = Date.UTC(2026, 10, 12, 9, 0, 0);
+  const r = await logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "lf1" }, { most });
+  const { createHash } = await import("node:crypto");
+  assert.match(r.token, /^[A-Za-z0-9_-]{32}$/);
+  assert.equal(r.linkId, createHash("sha256").update(r.token).digest("hex"));
+  const d = (await firestore.collection("linkek").doc(r.linkId).get()).data();
+  assert.equal(d.feladat_id, "lf1");
+  assert.equal(d.tanar_id, "tanar-uid");
+  assert.equal(d.token, r.token);
+  assert.equal(d.lezarva, false);
+  assert.equal(d.beadas_db, 0);
+  assert.equal(d.beadas_max, 60);
+  assert.equal(d.lejar.toMillis() - most, 24 * 3600 * 1000);
+  assert.ok(d.letrehozva, "szerver-időbélyeg");
+});
+
+test("link indítása: idegen, nem létező és lezárt feladatra elutasítva, semmi nem jön létre", async () => {
+  await linkFeladat();
+  assert.equal(await kodja(() => logika.linkInditasLogika(firestore, "masik-tanar", { feladatId: "lf1" })), "nem_a_te_feladatod");
+  assert.equal(await kodja(() => logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "nincs" })), "feladat_nincs");
+  assert.equal(await kodja(() => logika.linkInditasLogika(firestore, "tanar-uid", {})), "feladat_id_kell");
+  assert.equal(await kodja(() => logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: 42 })), "feladat_id_kell");
+  await linkFeladat({ aktiv: false });
+  assert.equal(await kodja(() => logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "lf1" })), "feladat_zart");
+  assert.equal((await firestore.collection("linkek").get()).size, 0);
+});
+
+test("link indítása: egy feladathoz több link is indítható (pl. két csoport)", async () => {
+  await linkFeladat();
+  const a = await logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "lf1" });
+  const b = await logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "lf1" });
+  assert.notEqual(a.linkId, b.linkId);
+  assert.equal((await firestore.collection("linkek").where("feladat_id", "==", "lf1").get()).size, 2);
+});
+
+test("link indítása: tokenütközésnél nem ír felül meglévő linket", async () => {
+  await linkFeladat();
+  const fix = () => "a".repeat(32);
+  await logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "lf1" }, { tokenFn: fix });
+  await assert.rejects(() => logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "lf1" }, { tokenFn: fix }));
+  assert.equal((await firestore.collection("linkek").get()).size, 1);
+});
+
+test("link lezárása: a tulajdonos lezárhatja (ismételten is), idegen és rossz azonosító nem", async () => {
+  await linkFeladat();
+  const { linkId } = await logika.linkInditasLogika(firestore, "tanar-uid", { feladatId: "lf1" });
+  assert.equal(await kodja(() => logika.linkLezarasLogika(firestore, "masik-tanar", { linkId })), "nem_a_te_linked");
+  assert.equal((await firestore.collection("linkek").doc(linkId).get()).data().lezarva, false);
+  assert.deepEqual(await logika.linkLezarasLogika(firestore, "tanar-uid", { linkId }), { lezarva: true });
+  const d = (await firestore.collection("linkek").doc(linkId).get()).data();
+  assert.equal(d.lezarva, true);
+  assert.ok(d.lezarva_at);
+  assert.deepEqual(await logika.linkLezarasLogika(firestore, "tanar-uid", { linkId }), { lezarva: true });
+  assert.equal(await kodja(() => logika.linkLezarasLogika(firestore, "tanar-uid", { linkId: "f".repeat(64) })), "link_nincs");
+  for (const rossz of [undefined, "", "x", "../" + "a".repeat(61), 42]) {
+    assert.equal(await kodja(() => logika.linkLezarasLogika(firestore, "tanar-uid", { linkId: rossz })), "link_id_kell", String(rossz));
+  }
 });

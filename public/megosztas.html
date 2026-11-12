@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="meg.oldalcim">WritingReview – Feladatlink</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
+  <script src="js/tema-korai.js"></script>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
+  </div>
+</div>
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main narrow">
+    <a class="vissza-link" href="feladatok.html" data-i18n="meg.vissza">← Feladatok</a>
+
+    <div class="page-header">
+      <h1 id="cim">–</h1>
+      <p data-i18n="meg.alcim">Oszd meg a linket vagy a QR-kódot a diákokkal. A link 24 óráig él, a diákok becenévvel, fiók nélkül írják meg rajta a szöveget.</p>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <div id="tartalom">
+      <div class="empty-state bare"><div class="spinner"></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- KIVETÍTÉS: a QR-kód és a feladat órai kivetítésre -->
+<div class="vetites" id="vetites" role="dialog" aria-modal="true" aria-labelledby="v-cim">
+  <div class="vetites-sav">
+    <button class="btn-sm" id="v-teljes" data-i18n="fel.v_teljes">⛶ Teljes képernyő</button>
+    <button class="btn-sm" id="v-bezar" data-i18n="fel.bezar">✕ Bezár</button>
+  </div>
+  <div class="vetites-tartalom">
+    <h1 id="v-cim"></h1>
+    <div class="vetites-meta" id="v-meta"></div>
+    <div class="vetites-link">
+      <div class="vetites-qr" id="v-qr"></div>
+      <div>
+        <p class="vetites-cim-szoveg" id="v-url"></p>
+        <p class="vetites-meta" id="v-hatra"></p>
+      </div>
+    </div>
+    <div class="vetites-leiras" id="v-leiras"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { t } from './js/i18n.js';
+  import { vedettOldal, esc, datum } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra } from './js/ui.js';
+  import { linkUrl, linkAllapot, hatralevo, elsoElo, qrSvg } from './js/megosztas.js';
+  import {
+    db, functions, httpsCallable,
+    collection, doc, getDoc, query, where, orderBy, onSnapshot
+  } from './js/firebase-config.js';
+
+  const { user, admin } = await vedettOldal('tanar');
+  oldalsav('feladatok.html', { admin });
+
+  const linkInditas = httpsCallable(functions, 'linkInditas');
+  const linkLezaras = httpsCallable(functions, 'linkLezaras');
+
+  const feladatId = new URLSearchParams(location.search).get('feladat');
+  const tartalom = document.getElementById('tartalom');
+
+  function elakadt(szoveg, hiba) {
+    if (hiba) console.error(hiba);
+    tartalom.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <p>${esc(szoveg)}</p>
+      <p style="margin-top:1.5rem;"><a class="btn-sm" href="feladatok.html">${t('meg.vissza_gomb')}</a></p>
+    </div>`;
+  }
+
+  if (!feladatId) {
+    elakadt(t('meg.hianyzo'));
+    throw new Error('nincs feladat id');
+  }
+
+  // ══════════════════════════════════════════
+  // A FELADAT
+  // ══════════════════════════════════════════
+  let feladat;
+  try {
+    const snap = await getDoc(doc(db, 'feladatok', feladatId));
+    if (!snap.exists()) { elakadt(t('meg.nincs_feladat')); throw new Error('nincs feladat'); }
+    feladat = snap.data();
+  } catch (e) {
+    elakadt(t('meg.feladat_hiba'), e);
+    throw e;
+  }
+  document.getElementById('cim').textContent = feladat.cim || '';
+
+  // ══════════════════════════════════════════
+  // A LINKEK (élő frissítéssel: a beadásszám és a lezárás azonnal látszik)
+  // A tanar_id szűrő nem hagyható el: a list-szabálynál a query-nek kell
+  // bizonyítania a jogosultságot.
+  // ══════════════════════════════════════════
+  let linkek = [];
+  let kivetitve = false;
+
+  const allapotCimke = (a) => ({
+    aktiv: `<span class="badge aktiv">${t('meg.allapot_aktiv')}</span>`,
+    betelt: `<span class="badge feltoltve">${t('meg.allapot_betelt')}</span>`,
+    lejart: `<span class="badge inaktiv">${t('meg.allapot_lejart')}</span>`,
+    lezarva: `<span class="badge inaktiv">${t('meg.allapot_lezarva')}</span>`
+  }[a]);
+
+  const ido = (ts) => {
+    const d = ts?.toDate ? ts.toDate() : null;
+    return d ? `${datum(ts)} ${d.toLocaleTimeString(t('meta.locale'), { hour: '2-digit', minute: '2-digit' })}` : '–';
+  };
+
+  function rajzol() {
+    const most = Date.now();
+    const elo = elsoElo(linkek, most);
+    const korabbiak = linkek.filter((l) => l !== elo);
+
+    const eloPanel = elo ? (() => {
+      const url = linkUrl(location.origin, elo.token);
+      const allapot = linkAllapot(elo, most);
+      return `
+        <div class="panel">
+          <div class="panel-header">
+            <h2>${t('meg.elo_cim')} ${allapotCimke(allapot)}</h2>
+          </div>
+          <div class="panel-body">
+            <div class="link-megosztas">
+              <div class="link-qr">${qrSvg(url, { cim: t('meg.qr_alt') })}</div>
+              <div class="link-adatok">
+                <label for="link-url">${t('meg.link_cimke')}</label>
+                <div class="code-input-row">
+                  <input type="text" id="link-url" readonly value="${esc(url)}" />
+                  <button class="btn-sm" id="btn-masol">${t('meg.masolas')}</button>
+                </div>
+                <p class="link-meta">
+                  <span>${t('meg.lejar', { ido: esc(ido(elo.lejar)) })}</span>
+                  <span>${t('meg.hatra')} <strong id="hatra">${hatralevo(elo.lejar, most)}</strong></span>
+                  <span>${t('meg.beadasok', { db: Number(elo.beadas_db) || 0, max: Number(elo.beadas_max) || 60 })}</span>
+                </p>
+                ${allapot === 'betelt' ? `<p class="hiba-szoveg">${t('meg.betelt_tipp')}</p>` : ''}
+                <div class="gomb-sor">
+                  <button class="btn-primary" id="btn-vetit">${t('meg.kivetites')}</button>
+                  <button class="btn-sm danger" id="btn-lezar">${t('meg.lezaras')}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    })() : `
+      <div class="panel">
+        <div class="panel-body">
+          <div class="empty-state bare">
+            <div class="empty-icon">🔗</div>
+            <p>${feladat.aktiv === false ? t('meg.feladat_zart') : t('meg.nincs_elo')}</p>
+          </div>
+        </div>
+      </div>`;
+
+    const lista = korabbiak.length ? `
+      <div class="panel">
+        <div class="panel-header"><h2>${t('meg.korabbi_cim')}</h2></div>
+        <div class="panel-body flush">
+          ${korabbiak.map((l) => `
+            <div class="list-card">
+              <div>
+                <h3>${esc(ido(l.letrehozva))}</h3>
+                <div class="list-card-meta">
+                  ${allapotCimke(linkAllapot(l, most))}
+                  <span>${t('meg.beadasok', { db: Number(l.beadas_db) || 0, max: Number(l.beadas_max) || 60 })}</span>
+                </div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>` : '';
+
+    tartalom.innerHTML = `
+      ${eloPanel}
+      ${feladat.aktiv === false ? '' : `
+      <div class="gomb-sor" style="margin-bottom:1.5rem;">
+        <button class="btn-sm" id="btn-uj">${elo ? t('meg.uj_masik') : t('meg.uj')}</button>
+      </div>`}
+      <p class="halvany" style="margin-bottom:1.5rem;">${t('meg.tipp')}</p>
+      ${lista}`;
+
+    document.getElementById('btn-uj')?.addEventListener('click', ujLink);
+    if (elo) {
+      document.getElementById('btn-masol').addEventListener('click', (e) =>
+        vagolapra(document.getElementById('link-url').value, e.currentTarget));
+      document.getElementById('btn-vetit').addEventListener('click', () => vetitesNyit(elo));
+      document.getElementById('btn-lezar').addEventListener('click', (e) => lezar(elo, e.currentTarget));
+    }
+    if (kivetitve) vetitesFrissit(elo);
+  }
+
+  async function ujLink(e) {
+    uzenetTorles('msg');
+    const vissza = gombVar(e.currentTarget, t('meg.inditas_folyamat'));
+    try {
+      await linkInditas({ feladatId });
+      // a lista az onSnapshot-tól frissül
+    } catch (err) {
+      uzenet('msg', hibaSzoveg(err));
+      vissza();
+    }
+  }
+
+  async function lezar(link, gomb) {
+    if (!confirm(t('meg.lezaras_kerdes'))) return;
+    uzenetTorles('msg');
+    const vissza = gombVar(gomb, '');
+    try {
+      await linkLezaras({ linkId: link.id });
+      uzenet('msg', t('meg.lezarva'), 'success');
+    } catch (err) {
+      uzenet('msg', hibaSzoveg(err));
+      vissza();
+    }
+  }
+
+  onSnapshot(
+    query(collection(db, 'linkek'), where('tanar_id', '==', user.uid), where('feladat_id', '==', feladatId), orderBy('letrehozva', 'desc')),
+    (snap) => {
+      linkek = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      rajzol();
+    },
+    (err) => elakadt(t('meg.linkek_hiba'), err)
+  );
+
+  // A visszaszámláló másodpercenként; ha lejárt, újrarajzolunk (az állapot változik).
+  setInterval(() => {
+    const elo = elsoElo(linkek);
+    const el = document.getElementById('hatra');
+    if (el && elo) el.textContent = hatralevo(elo.lejar);
+    const vetitHatra = document.getElementById('v-hatra');
+    if (kivetitve && elo) vetitHatra.textContent = t('meg.v_hatra', { ido: hatralevo(elo.lejar) });
+    if (el && !elo) rajzol();
+  }, 1000);
+
+  // ══════════════════════════════════════════
+  // KIVETÍTÉS
+  // ══════════════════════════════════════════
+  const vetites = document.getElementById('vetites');
+
+  function vetitesFrissit(elo) {
+    if (!elo) { vetitesZar(); return; }
+    const url = linkUrl(location.origin, elo.token);
+    document.getElementById('v-cim').textContent = feladat.cim || '';
+    document.getElementById('v-qr').innerHTML = qrSvg(url, { cella: 10, cim: t('meg.qr_alt') });
+    document.getElementById('v-url').textContent = url;
+    document.getElementById('v-hatra').textContent = t('meg.v_hatra', { ido: hatralevo(elo.lejar) });
+    const r = feladat.rubrika || {};
+    const meta = [];
+    if (r.min_szo && r.max_szo) meta.push(t('fel.v_szo', { min: r.min_szo, max: r.max_szo }));
+    else if (r.min_szo) meta.push(t('fel.v_legalabb', { min: r.min_szo }));
+    else if (r.max_szo) meta.push(t('fel.v_legfeljebb', { max: r.max_szo }));
+    document.getElementById('v-meta').innerHTML = meta.map((m) => `<span>${esc(m)}</span>`).join('');
+    const leiras = document.getElementById('v-leiras');
+    leiras.textContent = r.feladat_leiras || '';
+    leiras.style.display = r.feladat_leiras ? '' : 'none';
+  }
+
+  function vetitesNyit(elo) {
+    kivetitve = true;
+    vetitesFrissit(elo);
+    vetites.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('v-bezar').focus();
+  }
+
+  function vetitesZar() {
+    kivetitve = false;
+    vetites.classList.remove('show');
+    document.body.style.overflow = '';
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }
+
+  document.getElementById('v-bezar').addEventListener('click', vetitesZar);
+  document.getElementById('v-teljes').addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else vetites.requestFullscreen?.().catch(() => {});
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!kivetitve) return;
+    if (e.key === 'Escape') vetitesZar();
+    if (e.key === 'f' || e.key === 'F') document.getElementById('v-teljes').click();
+  });
+</script>
+</body>
+</html>

@@ -979,6 +979,7 @@
               </div>
             </div>
             <div class="list-card-actions">
+              <button class="btn-sm kiemelt" data-akcio="link" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_link'))}">${t('fel.link_gomb')}</button>
               <button class="btn-sm" data-akcio="vetit" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_vetit'))}">👁</button>
               <button class="btn-sm" data-akcio="elemzes" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_elemzes'))}">📊</button>
               <button class="btn-sm" data-akcio="szerkeszt" data-id="${esc(d.id)}" title="${esc(t('fel.tipp_szerkeszt'))}">✏️</button>
@@ -1004,6 +1005,11 @@
 
     if (akcio === 'elemzes') {
       window.location.href = `elemzes.html?feladat=${id}`;
+      return;
+    }
+
+    if (akcio === 'link') {
+      window.location.href = `megosztas.html?feladat=${encodeURIComponent(id)}`;
       return;
     }
 

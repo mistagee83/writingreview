@@ -38,7 +38,9 @@ const SZULO = {
   "ai-hasznalat.html": "tanar.html",
   "szamlazando.html": "tanar.html",
   // Az elemzést egy feladat sorából indítja a tanár, tehát oda tér vissza
-  "elemzes.html": "feladatok.html"
+  "elemzes.html": "feladatok.html",
+  // A megosztási oldalt is egy feladat sorából nyitja a tanár
+  "megosztas.html": "feladatok.html"
 };
 
 /** A vissza gomb feliratának szótári kulcsai (a t() fordítja le megjelenítéskor). */

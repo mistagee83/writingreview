@@ -145,6 +145,14 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
        az új folyamatot írják le (link, becenév, diáklink).
 3. **Link és megosztási oldal (tanár).** `linkek` gyűjtemény, `linkInditas` / `linkLezaras` callable, megosztási oldal QR-kóddal
    (helyben tárolt QR-könyvtár, nem CDN), visszaszámlálóval, kivetítéssel.
+   **Kész (2026-11-12).** `functions/feladatlink.js` (tiszta: token 192 bit base64url, SHA-256 lenyomat = `linkek/{id}`,
+   24 óra, 60-as plafon, `linkAllapot`: aktiv / betelt / lejart / lezarva), `linkInditas` / `linkLezaras` (csak a feladat
+   tanára; lezárt feladatra nem; egy feladathoz több link is indítható). Szabály: a linket csak a tanára olvassa, kliensről
+   senki nem írja; index: `tanar_id + feladat_id + letrehozva` (a régi osztály- és diákindexek kikerültek). Oldal:
+   `megosztas.html?feladat=…` (élő frissítés, QR, másolás, visszaszámláló, beadásszám, lezárás, kivetítés, korábbi linkek),
+   a feladatlistán „🔗 Link” gomb. QR: `public/js/qrcode-generator.js` (qrcode-generator 1.4.4, MIT, helyben). A link a
+   diákoldalra mutat (`iras.html?k=<token>`), ami a 4. lépésben készül – addig a link 404-et ad.
+   Döntések: a QR-könyvtár helyben (nem CDN), a plafon 60, egy feladathoz több link is lehet.
 4. **Diákoldal.** Új `iras.html?k=…`: feladatleírás, becenév, írómező, piszkozat, beadás callable-en át, nyugta a diáklinkkel.
 5. **Csalásellenőrzés.** A 4. pont: beillesztés-tiltás, új jelzések, helyesírás-kapcsoló, a tanári megjelenítés bővítése.
 6. **Tanári értékelésindítás.** A trigger helyett `ertekelesInditas` callable (egy vagy több beadás, párhuzamossági korláttal,
@@ -175,7 +183,5 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
 ## 10. Nyitott kérdések (a megfelelő lépésnél kell dönteni)
 
 - A diáklink élettartama (javaslat: 14 nap) és a tanári megőrzés ideje (javaslat: 12 hónap).
-- Linkenkénti beadásplafon (javaslat: 60).
-- Indíthat-e a tanár ugyanarra a feladatra több linket (pl. két csoportnak)? Javaslat: igen, a beadásokat linkenként csoportosítjuk.
 - Csomagok és árak a fejlődés-követés nélkül.
 - Az edtech hub bekötése: később (tanári belépés módja).

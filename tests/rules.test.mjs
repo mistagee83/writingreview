@@ -522,6 +522,32 @@ test("a régi kulcs-alkollekció mindenki elől zárva (a tanár elől is)", asy
 });
 
 // ══════════════════════════════════════════
+// FELADATLINKEK
+// ══════════════════════════════════════════
+
+test("a linket csak a feladat tanára olvassa; kliensről senki nem írja", async () => {
+  const LINK = "a".repeat(64);
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), "linkek", LINK), {
+      feladat_id: FELADAT, tanar_id: TANAR, token: "t".repeat(32), lezarva: false, beadas_db: 0, beadas_max: 60,
+      lejar: new Date(Date.now() + 3600 * 1000), letrehozva: new Date()
+    });
+  });
+  await assertSucceeds(getDoc(doc(tanar(), "linkek", LINK)));
+  await assertSucceeds(getDocs(query(collection(tanar(), "linkek"), where("tanar_id", "==", TANAR), where("feladat_id", "==", FELADAT))));
+  await assertFails(getDoc(doc(tanar2(), "linkek", LINK)));
+  await assertFails(getDoc(doc(diak(), "linkek", LINK)));
+  await assertFails(getDoc(doc(nemBelepett(), "linkek", LINK)));
+  await assertFails(getDocs(collection(tanar(), "linkek")), "szűrő nélküli lista");
+  // írás: a tanár sem (a lejáratot, a plafont és a lezárást a szerver állítja)
+  await assertFails(updateDoc(doc(tanar(), "linkek", LINK), { lezarva: true }));
+  await assertFails(updateDoc(doc(tanar(), "linkek", LINK), { beadas_max: 999 }));
+  await assertFails(setDoc(doc(tanar(), "linkek", "b".repeat(64)), { feladat_id: FELADAT, tanar_id: TANAR }));
+  await assertFails(deleteDoc(doc(tanar(), "linkek", LINK)));
+  await assertFails(setDoc(doc(diak(), "linkek", "c".repeat(64)), { tanar_id: TANAR }));
+});
+
+// ══════════════════════════════════════════
 // RUBRIKA-SABLONOK
 // ══════════════════════════════════════════
 

@@ -255,6 +255,9 @@ body {
 }
 .btn-sm:hover { border-color: #999; }
 .btn-sm.danger:hover { border-color: var(--err); color: var(--err); }
+/* A sor fő művelete (pl. a feladatlista „Link” gombja): kitűnik a többi kis gomb közül. */
+.btn-sm.kiemelt { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-sm.kiemelt:hover { filter: brightness(1.08); }
 
 .btn-copy {
   padding: 0.5rem 1rem;
@@ -889,6 +892,52 @@ input[type="number"]:focus { border-color: var(--accent); }
 }
 .vetites-lap > .btn-sm { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25); }
 .vetites-lap > .btn-sm + div { margin-top: 1rem; }
+
+/* ── FELADATLINK: megosztás és kivetítés (megosztas.html) ──
+   A QR-kód fehér alapon kell legyen (sötét témában és kivetítve is),
+   különben a telefon kamerája nem olvassa. */
+.link-megosztas {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+.link-qr { background: #fff; border-radius: 10px; padding: 0.5rem; }
+.link-qr svg, .vetites-qr svg { display: block; width: 100%; height: auto; }
+.link-adatok label { display: block; margin-bottom: 0.35rem; }
+.link-adatok input[readonly] { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
+.link-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  margin: 0.9rem 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.link-meta strong { font-variant-numeric: tabular-nums; color: var(--ink); }
+@media (max-width: 600px) {
+  .link-megosztas { grid-template-columns: 1fr; }
+  .link-qr { max-width: 240px; }
+}
+.vetites-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem 2.5rem;
+  margin-top: 1.8rem;
+}
+.vetites-qr {
+  width: min(42vh, 420px);
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+.vetites-cim-szoveg {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: clamp(1rem, 2.2vw, 1.6rem);
+  overflow-wrap: anywhere;
+}
+.vetites-link .vetites-meta { font-variant-numeric: tabular-nums; }
 
 /* ── MODAL ── */
 .modal {

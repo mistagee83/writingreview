@@ -27,7 +27,7 @@ const MINDEN_KAPUS = {
   tanar: [
     "feladatlapElemzes", "beadasUjrafuttatas",
     "visszajelzesJovahagyas", "feladatElemzes", "kvotaAllapot",
-    "fizetesIndit", "fizetesKezeles", "temaBeallitas"
+    "fizetesIndit", "fizetesKezeles", "temaBeallitas", "linkInditas", "linkLezaras"
   ],
   admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas", "szamlazandoLista", "szamlaJeloles"]
 };

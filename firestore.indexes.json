@@ -1,77 +1,109 @@
 {
   "indexes": [
     {
-      "collectionGroup": "osztalyok",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "tanar_id", "order": "ASCENDING" },
-        { "fieldPath": "letrehozva", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "feladatok",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "tanar_id", "order": "ASCENDING" },
-        { "fieldPath": "letrehozva", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "feladatok",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "osztaly_id", "order": "ASCENDING" },
-        { "fieldPath": "aktiv", "order": "ASCENDING" },
-        { "fieldPath": "hatarido", "order": "ASCENDING" }
+        {
+          "fieldPath": "tanar_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "letrehozva",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "rubrikak",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "tanar_id", "order": "ASCENDING" },
-        { "fieldPath": "nev", "order": "ASCENDING" }
+        {
+          "fieldPath": "tanar_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "nev",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "beadasok",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "diak_id", "order": "ASCENDING" },
-        { "fieldPath": "letrehozva", "order": "DESCENDING" }
+        {
+          "fieldPath": "tanar_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "letrehozva",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "beadasok",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "tanar_id", "order": "ASCENDING" },
-        { "fieldPath": "letrehozva", "order": "DESCENDING" }
+        {
+          "fieldPath": "tanar_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "statusz",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "letrehozva",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "beadasok",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "tanar_id", "order": "ASCENDING" },
-        { "fieldPath": "statusz", "order": "ASCENDING" },
-        { "fieldPath": "letrehozva", "order": "DESCENDING" }
+        {
+          "fieldPath": "feladat_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "letrehozva",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "beadasok",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "feladat_id", "order": "ASCENDING" },
-        { "fieldPath": "letrehozva", "order": "DESCENDING" }
+        {
+          "fieldPath": "feladat_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "tanar_id",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
-      "collectionGroup": "beadasok",
+      "collectionGroup": "linkek",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "feladat_id", "order": "ASCENDING" },
-        { "fieldPath": "tanar_id", "order": "ASCENDING" }
+        {
+          "fieldPath": "tanar_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "feladat_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "letrehozva",
+          "order": "DESCENDING"
+        }
       ]
     }
   ],

@@ -142,6 +142,18 @@ service cloud.firestore {
     }
 
     // ══════════════════════════════════════════
+    // FELADATLINKEK (linkek/{a token SHA-256 lenyomata})
+    // A tanár a sajátját olvassa (a megosztási oldalon a tokent is: a linket
+    // ő osztja meg). Kliensről senki nem írja: a lejáratot, a plafont és a
+    // tulajdonost a szerver állítja (linkInditas / linkLezaras). A diák a
+    // gyűjtemény közelébe sem jut: a beadás Cloud Functionön át megy.
+    // ══════════════════════════════════════════
+    match /linkek/{linkId} {
+      allow get, list: if tanar() && resource.data.tanar_id == request.auth.uid;
+      allow write: if false;
+    }
+
+    // ══════════════════════════════════════════
     // RUBRIKA-SABLONOK
     //
     // A tanár elmentett értékelési rubrikái, hogy ne kelljen minden
