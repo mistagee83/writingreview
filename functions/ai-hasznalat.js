@@ -114,9 +114,10 @@ function lezar(cs, nev) {
 /**
  * A rekordokból az admin jelentés.
  *
- * "Javítási futás" = egy `beadas_atiras` hívás (minden futás pontosan eggyel
- * kezdődik): a futás költsége az átírás és az értékelés együtt, a futások
- * átlaga a dolgozatonkénti költség (az újrafuttatásokkal együtt).
+ * "Javítási futás" = egy `beadas_ertekeles` hívás (minden futásban pontosan egy
+ * van; átírás csak a fotós beadásnál van, a beírt dolgozatnál nincs): a futás
+ * költsége az átírás (ha volt) és az értékelés együtt, a futások átlaga a
+ * dolgozatonkénti költség (az újrafuttatásokkal együtt).
  *
  * @param {object[]} rekordok ai_hasznalat rekordok
  * @param {{tanarok?: Record<string,{nev,email}>, feladatok?: Record<string,{cim}>}} [nevek]
@@ -142,14 +143,14 @@ function jelentesOsszeallitas(rekordok, nevek = {}, arak = ARAK) {
       const f = (feladatok[r.feladat_id] ??= { ...ures(), futas_db: 0, beadas_usd: 0, mod: r.mod || null, tanar_id: r.tanar_id || null });
       hozzaad(f, r, koltseg);
       if (String(r.muvelet).startsWith("beadas_")) f.beadas_usd += koltseg ?? 0;
-      if (r.muvelet === "beadas_atiras") f.futas_db++;
+      if (r.muvelet === "beadas_ertekeles") f.futas_db++;
     }
 
     if (String(r.muvelet).startsWith("beadas_")) {
       const ertek = koltseg ?? 0;
       futas.mind.usd += ertek;
       if (r.mod === "leveles" || r.mod === "kifejtos") futas[r.mod].usd += ertek;
-      if (r.muvelet === "beadas_atiras") {
+      if (r.muvelet === "beadas_ertekeles") {
         tanar.futas_db++;
         futas.mind.db++;
         if (r.mod === "leveles" || r.mod === "kifejtos") futas[r.mod].db++;
