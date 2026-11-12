@@ -1,7 +1,10 @@
 # WritingReview – útmutató a munkához
 
-Kézzel írt dolgozatok AI-val támogatott javítása (diák fényképez → AI átír és értékel →
-tanár jóváhagy). Firebase (hosting + Cloud Functions + Firestore), Gemini; kétnyelvű
+Nyelvtanári levél- és esszéfeladatok AI-val támogatott javítása. A `main` (prod) célja: a tanár
+24 órás feladatlinket indít → a diák becenévvel, fiók nélkül beírja a szöveget → a tanár indítja az
+AI-értékelést → jóváhagy, és a diák a saját linkjén kapja meg (átalakítás folyamatban:
+[`docs/prod-atalakitas-terv.md`](docs/prod-atalakitas-terv.md)). A `pilot` ág a régi, kézírásos,
+diákfiókos változat. Firebase (hosting + Cloud Functions + Firestore), Gemini; kétnyelvű
 (magyar/angol) felület.
 
 **Először olvasd el:** [`docs/folytatas.md`](docs/folytatas.md) (állapot, indulás másik

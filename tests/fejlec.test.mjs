@@ -115,7 +115,8 @@ test("minden szülőnek van emberi neve a gombhoz", () => {
 
 test("kezdolapja() ismeretlen szerepnél a belépőre esik vissza", () => {
   assert.equal(kezdolapja("tanar"), "tanar.html");
-  assert.equal(kezdolapja("diak"), "diak.html");
+  assert.equal(kezdolapja("diak"), "index.html", "diák szerep 2026-11-12 óta nincs");
+  assert.equal(kezdolapja("nincs"), "index.html");
   assert.equal(kezdolapja("valami"), "index.html");
   assert.equal(kezdolapja(undefined), "index.html");
 });

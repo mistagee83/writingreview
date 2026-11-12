@@ -39,13 +39,6 @@ after(async () => {
 });
 
 async function torolMindent() {
-  // A felhasznalok alatti osztalyaim tükröt (a tanári regisztráció diákmúlt-tesztje
-  // írja) is takarítani kell, különben átszivárog a következő tesztbe.
-  const felh = await firestore.collection("felhasznalok").get();
-  for (const d of felh.docs) {
-    const sajat = await d.ref.collection("osztalyaim").get();
-    await Promise.all(sajat.docs.map((x) => x.ref.delete()));
-  }
   for (const koll of ["felhasznalok", "ai_hasznalat", "feladatok"]) {
     const snap = await firestore.collection(koll).get();
     await Promise.all(snap.docs.map((d) => d.ref.delete()));
@@ -55,7 +48,7 @@ async function torolMindent() {
 beforeEach(async () => {
   await torolMindent();
   await firestore.collection("felhasznalok").doc("diak-uid").set({
-    nev: "Diák Dóra", email: "diak@iskola.hu", szerep: "diak"
+    nev: "Diák Dóra", email: "diak@iskola.hu", szerep: "nincs"
   });
 });
 
@@ -202,7 +195,7 @@ function hamisAuth(user) {
 
 async function tanariKerelmesProfil(extra = {}) {
   await firestore.collection("felhasznalok").doc("uj-uid").set({
-    nev: "Új Tanár", email: "uj@iskola.hu", szerep: "diak", tanari_kerelem: true, ...extra
+    nev: "Új Tanár", email: "uj@iskola.hu", szerep: "nincs", tanari_kerelem: true, ...extra
   });
 }
 
@@ -228,7 +221,7 @@ test("tanári regisztráció: a pilotban (kikapcsolva) elutasítva, semmi nem v�
   const auth = hamisAuth({ email: "uj@iskola.hu", emailVerified: true });
   assert.equal(await kodja(() => tanariReg(auth, PILOT)), "onregisztracio_ki");
   assert.deepEqual(auth.hivasok, []);
-  assert.equal((await firestore.collection("felhasznalok").doc("uj-uid").get()).data().szerep, "diak");
+  assert.equal((await firestore.collection("felhasznalok").doc("uj-uid").get()).data().szerep, "nincs");
 });
 
 test("tanári regisztráció: megerősítetlen e-mail → nincs tanári jog", async () => {
@@ -236,7 +229,7 @@ test("tanári regisztráció: megerősítetlen e-mail → nincs tanári jog", as
   const auth = hamisAuth({ email: "uj@iskola.hu", emailVerified: false });
   assert.equal(await kodja(() => tanariReg(auth)), "email_nincs_megerositve");
   assert.deepEqual(auth.hivasok, []);
-  assert.equal((await firestore.collection("felhasznalok").doc("uj-uid").get()).data().szerep, "diak");
+  assert.equal((await firestore.collection("felhasznalok").doc("uj-uid").get()).data().szerep, "nincs");
 });
 
 test("tanári regisztráció: e-mail-cím nélküli fiók nem lehet tanár", async () => {
@@ -245,26 +238,17 @@ test("tanári regisztráció: e-mail-cím nélküli fiók nem lehet tanár", asy
   assert.equal(await kodja(() => tanariReg(auth)), "email_nincs_megerositve");
 });
 
-test("tanári regisztráció: tanári kérelem nélküli (meglévő diák-) fiók nem léptethető elő", async () => {
+test("tanári regisztráció: tanári kérelem nélküli fiók nem léptethető elő", async () => {
   // a beforeEach-ben létrehozott diak-uid: kérelem nélküli profil
   const auth = hamisAuth({ email: "diak@iskola.hu", emailVerified: true });
   assert.equal(await kodja(() => tanariReg(auth, PROD, "diak-uid")), "tanari_kerelem_hianyzik");
   assert.deepEqual(auth.hivasok, []);
-  assert.equal((await firestore.collection("felhasznalok").doc("diak-uid").get()).data().szerep, "diak");
+  assert.equal((await firestore.collection("felhasznalok").doc("diak-uid").get()).data().szerep, "nincs");
 });
 
 test("tanári regisztráció: profil nélküli fiók elutasítva", async () => {
   const auth = hamisAuth({ email: "x@iskola.hu", emailVerified: true });
   assert.equal(await kodja(() => tanariReg(auth, PROD, "nincs-profil")), "tanari_kerelem_hianyzik");
-});
-
-test("tanári regisztráció: aki már tagja osztálynak (diákként használta), nem lehet tanár", async () => {
-  await tanariKerelmesProfil();
-  await firestore.collection("felhasznalok").doc("uj-uid")
-    .collection("osztalyaim").doc("o1").set({ nev: "9.B", kod: "AAA-BBBB", tanar_id: "t" });
-  const auth = hamisAuth({ email: "uj@iskola.hu", emailVerified: true });
-  assert.equal(await kodja(() => tanariReg(auth)), "mar_diak_hasznalo");
-  assert.deepEqual(auth.hivasok, []);
 });
 
 test("tanári regisztráció: az admin jelző és az idegen claim megmarad", async () => {
@@ -275,7 +259,7 @@ test("tanári regisztráció: az admin jelző és az idegen claim megmarad", asy
 });
 
 test("tanári regisztráció: ismételt hívás ártalmatlan, és a lemaradt tükröt javítja", async () => {
-  await tanariKerelmesProfil(); // a tükör még 'diak', a claim már 'tanar'
+  await tanariKerelmesProfil(); // a tükör még 'nincs', a claim már 'tanar'
   const auth = hamisAuth({ email: "uj@iskola.hu", emailVerified: true, customClaims: { szerep: "tanar" } });
   const r = await tanariReg(auth);
   assert.deepEqual(r, { szerep: "tanar", mar_tanar: true });

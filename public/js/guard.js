@@ -1,9 +1,8 @@
 // ══════════════════════════════════════════════════════
 // WritingReview – közös auth + szerepkör kapu
 //
-// Eddig ez a logika be volt másolva a tanar.html, diak.html és
-// feladatok.html fájlokba, három kicsit eltérő változatban (és
-// kettő a nem létező login.html-re irányított). Innentől egy helyen van.
+// Minden védett (tanári) oldal ezt használja. Szerep: "tanar", vagy "nincs"
+// (nincs tanári jog). Diák szerep és diákoldal 2026-11-12 óta nincs.
 //
 // Használat a védett oldalakon:
 //   import { vedettOldal } from './js/guard.js';
@@ -17,8 +16,7 @@ import { temaAlkalmaz } from "./tema.js";
 export const BELEPO_OLDAL = "belepes.html";
 
 const KEZDOLAP = {
-  tanar: "tanar.html",
-  diak:  "diak.html"
+  tanar: "tanar.html"
 };
 
 /**
@@ -43,11 +41,11 @@ window.logout = kilepes;
  *
  * - nincs belépve             → irány a belépő oldal
  * - nincs Firestore profil    → kiléptetés + belépő oldal
- * - rossz szerepkör           → irány a szerepnek megfelelő kezdőlap
+ * - nincs tanári jog          → irány a belépő oldal (ott a megerősítés / magyarázat)
  * - tükör tanár / claim nem   → magyarázó üzenet, nem néma átirányítás
  * - minden rendben            → UI megjelenítése, majd { user, profil, szerep }
  *
- * @param {'tanar'|'diak'} elvartSzerep
+ * @param {'tanar'} elvartSzerep
  * @param {{admin?: boolean}} [opciok] admin: true → admin claim is kell
  * @returns {Promise<{user: object, profil: object, szerep: string, admin: boolean}>}
  */
@@ -125,7 +123,7 @@ export function vedettOldal(elvartSzerep, opciok = {}) {
         return;
       }
 
-      // A tanári felület színtémája a profilból (a szerver az igazság; a diák felület kék marad)
+      // A tanári felület színtémája a profilból (a szerver az igazság)
       if (szerep === "tanar") temaAlkalmaz(profil.tema);
 
       megjelenit(user, profil);
@@ -168,18 +166,18 @@ export function vedettOldal(elvartSzerep, opciok = {}) {
  *
  * @param {boolean} frissites true → kényszerített token-újrakérés
  *   (a claim csak új tokenben jelenik meg; szerepváltás után kell)
- * @returns {Promise<'tanar'|'diak'>} claim nélkül diák, a legkisebb jog
+ * @returns {Promise<{szerep: 'tanar'|'nincs', admin: boolean}>} claim nélkül "nincs", a legkisebb jog
  */
 async function claimok(user, frissites) {
   try {
     const token = await user.getIdTokenResult(frissites);
     return {
-      szerep: token.claims.szerep || "diak",
+      szerep: token.claims.szerep || "nincs",
       admin: token.claims.admin === true
     };
   } catch (e) {
     console.error("Token olvasási hiba:", e);
-    return { szerep: "diak", admin: false };
+    return { szerep: "nincs", admin: false };
   }
 }
 

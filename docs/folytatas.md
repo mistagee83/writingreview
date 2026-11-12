@@ -18,7 +18,8 @@ tesztek (`rules`, `storage`, `functions`, `*-adatbazis`) helyben nem futottak (J
 **2b (a fotós beadás és az átírás kivezetése a `main`-ről): kész** (részletek: a terv 7. pont).
 Az emulátoros tesztek itt sem futottak helyben.
 **2c-1 (osztályok, fejlődés-követés, diákoldalak): kész** (részletek: a terv 7. pont). Az emulátoros
-tesztek (`rules`, `functions`) átírva, helyben nem futottak. Következő: 2c-2 (a diák szerep a belépésből és a jogosultságból).
+tesztek (`rules`, `functions`) átírva, helyben nem futottak. **2c-2 (a diák szerep a belépésből és a jogosultságból): kész.** Az emulátoros tesztek itt sem
+futottak helyben. Ezzel a 2. lépés (kivezetés) teljes. Következő: 3. lépés (feladatlink és megosztási oldal).
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 

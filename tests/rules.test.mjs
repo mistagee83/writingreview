@@ -52,7 +52,7 @@ beforeEach(async () => {
     const db = ctx.firestore();
 
     await setDoc(doc(db, "felhasznalok", DIAK), {
-      nev: "Diák Dóra", email: "diak@iskola.hu", szerep: "diak", letrehozva: new Date()
+      nev: "Diák Dóra", email: "diak@iskola.hu", szerep: "nincs", letrehozva: new Date()
     });
     await setDoc(doc(db, "felhasznalok", TANAR), {
       nev: "Tanár Tamás", email: "tanar@iskola.hu", szerep: "tanar", letrehozva: new Date()
@@ -123,10 +123,10 @@ test("a diák NEM írhatja át a saját email címét", async () => {
 const UJ = "uj-felhasznalo-uid";
 const ujFelh = () => env.authenticatedContext(UJ).firestore();
 const ujProfil = (extra = {}) => ({
-  nev: "Új Tanár", email: "uj@iskola.hu", szerep: "diak", letrehozva: new Date(), ...extra
+  nev: "Új Tanár", email: "uj@iskola.hu", szerep: "nincs", letrehozva: new Date(), ...extra
 });
 
-test("regisztrációkor kérhető a tanári regisztráció jelzése, de a profil diák marad", async () => {
+test("regisztrációkor kérhető a tanári regisztráció jelzése, de a profil 'nincs' szerepű marad", async () => {
   await assertSucceeds(
     setDoc(doc(ujFelh(), "felhasznalok", UJ), ujProfil({ tanari_kerelem: true }))
   );
@@ -147,13 +147,19 @@ test("regisztrációkor a profilba nem írható közvetlenül a tanári szerep",
   );
 });
 
+test("regisztrációkor a régi 'diak' szerep sem írható (2026-11-12 óta nincs diák szerep)", async () => {
+  await assertFails(setDoc(doc(ujFelh(), "felhasznalok", UJ), ujProfil({ szerep: "diak" })));
+  const szerepNelkul = ujProfil(); delete szerepNelkul.szerep;
+  await assertFails(setDoc(doc(ujFelh(), "felhasznalok", UJ), szerepNelkul));
+});
+
 test("regisztrációkor nem írhatók be a szerver mezői (tanar_regisztralt)", async () => {
   await assertFails(
     setDoc(doc(ujFelh(), "felhasznalok", UJ), ujProfil({ tanar_regisztralt: new Date() }))
   );
 });
 
-test("a meglévő diák utólag NEM kérhet tanári regisztrációt (a jelzés csak létrehozáskor írható)", async () => {
+test("meglévő, kérelem nélküli fiók utólag NEM kérhet tanári regisztrációt (a jelzés csak létrehozáskor írható)", async () => {
   await assertFails(
     updateDoc(doc(diak(), "felhasznalok", DIAK), { tanari_kerelem: true })
   );

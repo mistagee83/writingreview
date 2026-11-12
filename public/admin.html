@@ -41,8 +41,8 @@
         <div class="stat-value accent" id="stat-tanar">–</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label" data-i18n="admin.stat_diak">Diák</div>
-        <div class="stat-value" id="stat-diak">–</div>
+        <div class="stat-label" data-i18n="admin.stat_jog_nelkul">Tanári jog nélkül</div>
+        <div class="stat-value" id="stat-jog-nelkul">–</div>
       </div>
       <div class="stat-card">
         <div class="stat-label" data-i18n="admin.stat_admin">Admin</div>
@@ -57,11 +57,11 @@
       </div>
       <div class="panel-body">
         <div class="code-input-row">
-          <input type="text" id="kereso" placeholder="Keresés név, felhasználónév vagy e-mail-cím szerint…" data-i18n-placeholder="admin.kereso" />
+          <input type="text" id="kereso" placeholder="Keresés név vagy e-mail-cím szerint…" data-i18n-placeholder="admin.kereso" />
           <select id="szuro" style="max-width:190px;">
             <option value="mind" data-i18n="admin.szuro_mind">Mindenki</option>
             <option value="tanar" data-i18n="admin.szuro_tanar">Csak tanárok</option>
-            <option value="diak" data-i18n="admin.szuro_diak">Csak diákok</option>
+            <option value="nincs" data-i18n="admin.szuro_jog_nelkul">Tanári jog nélkül</option>
             <option value="admin" data-i18n="admin.szuro_admin">Csak adminok</option>
           </select>
         </div>
@@ -78,7 +78,6 @@
 
 <script type="module">
   import { t } from './js/i18n.js';
-  import { azonositoMegjelenites } from './js/azonosito.js';
   import { vedettOldal, esc } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
@@ -113,8 +112,8 @@
 
       document.getElementById('stat-tanar').textContent =
         felhasznalok.filter((f) => f.szerep === 'tanar').length;
-      document.getElementById('stat-diak').textContent =
-        felhasznalok.filter((f) => f.szerep === 'diak').length;
+      document.getElementById('stat-jog-nelkul').textContent =
+        felhasznalok.filter((f) => f.szerep !== 'tanar').length;
       document.getElementById('stat-admin').textContent =
         felhasznalok.filter((f) => f.admin).length;
 
@@ -136,10 +135,10 @@
     const sz = szuro.value;
     return felhasznalok.filter((f) => {
       if (sz === 'tanar' && f.szerep !== 'tanar') return false;
-      if (sz === 'diak' && f.szerep !== 'diak') return false;
+      if (sz === 'nincs' && f.szerep === 'tanar') return false;
       if (sz === 'admin' && !f.admin) return false;
       if (!q) return true;
-      return f.nev.toLowerCase().includes(q) || azonositoMegjelenites(f.email).toLowerCase().includes(q);
+      return f.nev.toLowerCase().includes(q) || f.email.toLowerCase().includes(q);
     });
   }
 
@@ -160,9 +159,9 @@
           <div>
             <h3>${esc(f.nev)}${enSajat ? ` <span class="badge inaktiv">${t('admin.te')}</span>` : ''}</h3>
             <div class="list-card-meta">
-              <span>${esc(azonositoMegjelenites(f.email))}</span>
+              <span>${esc(f.email)}</span>
               <span class="badge ${f.szerep === 'tanar' ? 'aktiv' : 'inaktiv'}">
-                ${f.szerep === 'tanar' ? t('admin.tanar_jelzo') : t('admin.diak_jelzo')}
+                ${f.szerep === 'tanar' ? t('admin.tanar_jelzo') : t('admin.jog_nelkul_jelzo')}
               </span>
               ${f.admin ? `<span class="badge javitva">${t('admin.admin_jelzo')}</span>` : ''}
               ${csomagos
@@ -182,9 +181,9 @@
             </select>` : ''}
             <button class="btn-sm" data-akcio="szerep"
                     data-uid="${esc(f.uid)}"
-                    data-szerep="${f.szerep === 'tanar' ? 'diak' : 'tanar'}"
+                    data-szerep="${f.szerep === 'tanar' ? 'nincs' : 'tanar'}"
                     data-nev="${esc(f.nev)}">
-              ${f.szerep === 'tanar' ? t('admin.diakka') : t('admin.tanarra')}
+              ${f.szerep === 'tanar' ? t('admin.tanari_jog_le') : t('admin.tanarra')}
             </button>
             <button class="btn-sm ${f.admin ? 'danger' : ''}" data-akcio="admin"
                     data-uid="${esc(f.uid)}"

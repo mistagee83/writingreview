@@ -24,7 +24,7 @@ export const AUTO_OLDAL = "tanar.html";
  *
  * @param {object} p
  * @param {string} p.oldal          a jelenlegi lap (pl. "tanar.html")
- * @param {string} p.szerep         'tanar' | 'diak'
+ * @param {string} p.szerep         'tanar' | 'nincs'
  * @param {boolean} p.elutasitotta  kifejezetten azt mondta, nem kéri
  * @param {number} p.latottSzakasz  hány szakaszt látott már végig
  * @param {number} p.nyitasok       hányszor nyílt fel eddig magától

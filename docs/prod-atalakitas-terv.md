@@ -135,9 +135,14 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
        diáknak (a beadás azonosítója).
        **Maradt (8. lépés):** a csomagok összehasonlító táblázata és a nyitóoldal még a fejlődés-követést hirdeti
        (`kvota.FUNKCIOK.fejlodes`, Profi csomag) – a csomagok tartalmáról a tulajdonos dönt.
-     - **2c-2 – a diák szerep:** a belépés és regisztráció diák ága (`belepes.html`, `azonosito.js`), a `guard.js`/`fejlec.js`
-       diák-kezdőlapja, a `tanariRegisztracio` diákmúlt-ellenőrzése, a szerepkezelés `diak` szerepe, az admin oldal
-       diák-szűrője, a `felhasznalok` szabály `szerep: 'diak'` alapértéke.
+     - **2c-2 – a diák szerep: kész (2026-11-12).** A szerep: `tanar`, vagy **`nincs`** (nincs tanári jog; a claimben a szerep
+       hiánya, a profil-tükörben kifejezett érték, hogy a `guard.js` észrevegye a jog elvételét). A belépés csak tanárnak szól
+       (e-mail + jelszó, elfelejtett jelszó, Google); a regisztráció mindig tanári kérelem (ahol az önregisztráció be van
+       kapcsolva). Tanári jog és kérelem nélküli fiók magyarázatot kap a belépő oldalon, nem átirányítást. Törölve: a diák/tanár
+       választó, a felhasználónév (`azonosito.js`), a diák-kezdőlap a `guard.js`/`fejlec.js`-ben, a `tanariRegisztracio`
+       diákmúlt-ellenőrzése (`mar_diak_hasznalo`). A szerepkezelés (admin oldal, `szerepBeallitas`, `functions/scripts/szerep.mjs`)
+       `tanar`/`nincs`-sel dolgozik; az admin oldalon „Tanári jog nélkül” címke és szűrő. A belépő oldal bal paneljének lépései
+       az új folyamatot írják le (link, becenév, diáklink).
 3. **Link és megosztási oldal (tanár).** `linkek` gyűjtemény, `linkInditas` / `linkLezaras` callable, megosztási oldal QR-kóddal
    (helyben tárolt QR-könyvtár, nem CDN), visszaszámlálóval, kivetítéssel.
 4. **Diákoldal.** Új `iras.html?k=…`: feladatleírás, becenév, írómező, piszkozat, beadás callable-en át, nyugta a diáklinkkel.

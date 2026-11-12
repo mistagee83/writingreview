@@ -15,7 +15,7 @@
 //   node scripts/szerep.mjs tanar@iskola.hu tanar
 //   node scripts/szerep.mjs tanar@iskola.hu tanar admin      ← első admin
 //   node scripts/szerep.mjs tanar@iskola.hu tanar nem-admin
-//   node scripts/szerep.mjs diak@iskola.hu diak
+//   node scripts/szerep.mjs volt.tanar@iskola.hu nincs   ← a tanári jog elvétele
 //
 // A felhasználónak utána újra be kell lépnie (vagy getIdToken(true)),
 // hogy az új claim bekerüljön a tokenjébe.
@@ -30,14 +30,15 @@ import { getFirestore } from "firebase-admin/firestore";
 const argv = process.argv.slice(2);
 const pIdx = argv.indexOf("--projekt");
 const PROJECT_ID = (pIdx >= 0 ? argv.splice(pIdx, 2)[1] : null) || process.env.GCLOUD_PROJECT || "writingreview-41e59";
-const ERVENYES_SZEREPEK = ["tanar", "diak"];
+// "nincs" = nincs tanári jog (a claimből a szerep törlődik). Diák szerep 2026-11-12 óta nincs.
+const ERVENYES_SZEREPEK = ["tanar", "nincs"];
 
 const [email, szerep, adminArg] = argv;
 
 function hasznalat(hiba) {
   if (hiba) console.error(`\n${hiba}\n`);
   console.error("Használat:");
-  console.error("  node scripts/szerep.mjs <email> <tanar|diak> [admin|nem-admin] [--projekt <projekt-id>]\n");
+  console.error("  node scripts/szerep.mjs <email> <tanar|nincs> [admin|nem-admin] [--projekt <projekt-id>]\n");
   console.error("Példák:");
   console.error("  node scripts/szerep.mjs tanar@iskola.hu tanar");
   console.error("  node scripts/szerep.mjs tanar@iskola.hu tanar admin");
@@ -62,6 +63,7 @@ try {
   // claim-eket be kell olvasni és összefűzni – különben egy
   // szerep-állítás letörölné az admin jelzőt.
   const claimek = { ...(user.customClaims || {}), szerep };
+  if (szerep === "nincs") delete claimek.szerep;
 
   if (adminArg === "admin") claimek.admin = true;
   if (adminArg === "nem-admin") delete claimek.admin;
@@ -76,7 +78,7 @@ try {
     .set({ szerep, admin: claimek.admin === true }, { merge: true });
 
   console.log(`✅ ${email} (${user.uid})`);
-  console.log(`   szerep: ${claimek.szerep}`);
+  console.log(`   szerep: ${claimek.szerep || "nincs"}`);
   console.log(`   admin:  ${claimek.admin === true ? "igen" : "nem"}`);
   console.log("   A felhasználónak újra be kell lépnie, hogy érvényesüljön.");
 } catch (e) {

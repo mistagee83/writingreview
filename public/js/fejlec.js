@@ -24,8 +24,7 @@
 import { t } from "./i18n.js";
 
 const KEZDOLAP = {
-  tanar: "tanar.html",
-  diak: "diak.html"
+  tanar: "tanar.html"
 };
 
 /**
@@ -45,7 +44,6 @@ const SZULO = {
 /** A vissza gomb feliratának szótári kulcsai (a t() fordítja le megjelenítéskor). */
 const NEVEK = {
   "tanar.html": "nav.fooldal",
-  "diak.html": "nav.feladataim",
   "feladatok.html": "nav.feladatok",
   "javitas.html": "nav.javitas",
   "admin.html": "nav.szerepkezeles",

@@ -180,7 +180,6 @@ const HIBA_SZOVEG = {
   onregisztracio_ki: () => "Az önálló tanári regisztráció ebben a környezetben nincs bekapcsolva.",
   email_nincs_megerositve: () => "Előbb erősítsd meg az e-mail-címedet a kapott levélben.",
   tanari_kerelem_hianyzik: () => "Ez a fiók nem tanári regisztrációval jött létre. Regisztrálj új fiókot tanárként.",
-  mar_diak_hasznalo: () => "Ez a fiók már diákként használatban van, ezért tanári jogot nem kaphat.",
   kvota_elfogyott: (p) => `Elfogyott a havi AI-keret (${p.hasznalt} / ${p.limit} egység). A keret a hónap elején megújul.`,
   kvota_elfogyott_egyszeri: (p) => `Elfogyott az ingyenes AI-keret (${p.hasznalt} / ${p.limit} egység). Folytatáshoz fizetős csomag kell.`,
   csomag_ervenytelen: (p) => `Ismeretlen csomag: ${p.csomag}`,
@@ -1520,7 +1519,11 @@ exports.nevModositas = onCall(HIVAS_OPCIOK, async (request) => {
 // különben egy szerep-állítás letörölné az admin jelzőt.
 // ══════════════════════════════════════════════════════
 
-const ERVENYES_SZEREPEK = ["tanar", "diak"];
+// A szerep: "tanar", vagy "nincs" (nincs tanári jog). Diák szerep 2026-11-12 óta nincs.
+// A "nincs" a claimben a szerep HIÁNYA (claimOsszefuzes: null → törlés), a tükörben kifejezett
+// érték – a guard.js ebből veszi észre, hogy a tanári jog megszűnt, és frissíti a tokent.
+const NINCS_SZEREP = "nincs";
+const ERVENYES_SZEREPEK = ["tanar", NINCS_SZEREP];
 
 /** Admin jogosultság megkövetelése. */
 function admin(request) {
@@ -1585,13 +1588,13 @@ exports.felhasznalokListaja = onCall(HIVAS_OPCIOK, async (request) => {
     email: u.email || "",
     nev: nevek[u.uid]?.nev || u.displayName || "Névtelen",
     // A CLAIM az igazság, a Firestore-mező csak tükör
-    szerep: u.customClaims?.szerep || "diak",
+    szerep: u.customClaims?.szerep || NINCS_SZEREP,
     admin: u.customClaims?.admin === true,
     // Ha a tükör és a claim eltér, a felhasználó tokenje elavult.
     // A guard.js a következő oldalbetöltésnél magától frissíti – ez a
     // jelzés csak tájékoztatás az adminnak.
     tukor_eltero:
-      (nevek[u.uid]?.tukorSzerep || "diak") !== (u.customClaims?.szerep || "diak") ||
+      (nevek[u.uid]?.tukorSzerep || NINCS_SZEREP) !== (u.customClaims?.szerep || NINCS_SZEREP) ||
       (nevek[u.uid]?.tukorAdmin === true) !== (u.customClaims?.admin === true),
     letrehozva: u.metadata?.creationTime || null,
     utolso_belepes: u.metadata?.lastSignInTime || null,
@@ -1635,7 +1638,7 @@ exports.szerepBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
     const user = await getAuth().getUser(uid);
 
     const valtozasok = {};
-    if (szerep !== undefined) valtozasok.szerep = szerep;
+    if (szerep !== undefined) valtozasok.szerep = szerep === NINCS_SZEREP ? null : szerep;
     if (adminJog !== undefined) valtozasok.admin = adminJog ? true : null;
 
     if (Object.keys(valtozasok).length === 0) {
@@ -1662,7 +1665,7 @@ exports.szerepBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
     return {
       uid,
       email: user.email || "",
-      szerep: ujClaimek.szerep || "diak",
+      szerep: ujClaimek.szerep || NINCS_SZEREP,
       admin: ujClaimek.admin === true
     };
   } catch (e) {
@@ -2234,8 +2237,7 @@ exports.csomagBeallitas = onCall(HIVAS_OPCIOK, async (request) => {
 //      mert a token a megerősítés után még elavult lehet,
 //   3. a fiók tanári regisztrációval jött létre (felhasznalok.tanari_kerelem:
 //      a szabályok csak létrehozáskor engedik írni, utólag nem), tehát egy
-//      korábbi diákfiók nem léptetheti elő magát,
-//   4. még nem használta diákként (nem tagja osztálynak).
+//      kérelem nélküli fiók nem léptetheti elő magát.
 // Ismételt hívás ártalmatlan: aki már tanár, változatlanul az marad.
 // Az `authKliens` paraméter (getUser, setCustomUserClaims) a tesztek miatt
 // cserélhető; élesben a firebase-admin Auth-ja.
@@ -2268,12 +2270,6 @@ async function tanariRegisztracioLogika(firestore, authKliens, uid, beallitasok)
   if (profil?.tanari_kerelem !== true) {
     logger.warn("Tanári regisztráció tanári kérelem nélkül", { uid });
     throw hiba("permission-denied", "tanari_kerelem_hianyzik");
-  }
-
-  const osztalyaim = await profilRef.collection("osztalyaim").limit(1).get();
-  if (!osztalyaim.empty) {
-    logger.warn("Tanári regisztráció diákként használt fiókkal", { uid });
-    throw hiba("permission-denied", "mar_diak_hasznalo");
   }
 
   // Claim-összefűzés: az admin jelző (ha lenne) megmarad.
