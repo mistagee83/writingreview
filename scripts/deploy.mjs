@@ -6,16 +6,27 @@
 //
 // A hosting a hozzá való környezeti konfiggal épül (WR_ENV), a functions a
 // functions/.env.<alias> fájlt kapja (firebase --project <alias>). A prodra
-// csak a --yes kapcsolóval megy (éles, fizető felhasználók).
+// csak a --yes kapcsolóval megy (éles, fizető felhasználók). A pilot csak a `pilot`
+// ágról, a prod csak a `main`-ről telepíthető (két külön termék, 2026-11-12 óta).
 // Példa: node scripts/deploy.mjs pilot --only hosting,functions
 // ══════════════════════════════════════════════════════
 
 import { spawnSync } from "node:child_process";
-import { KORNYEZETEK, konfigBetoltes, konfigHibak, celProjekt, deployParameterHiba } from "./kornyezet-config.mjs";
+import { KORNYEZETEK, konfigBetoltes, konfigHibak, celProjekt, deployParameterHiba, deployAgHiba } from "./kornyezet-config.mjs";
 
 const [kornyezet, ...tovabbi] = process.argv.slice(2);
 if (!KORNYEZETEK.includes(kornyezet)) {
   console.error(`Használat: node scripts/deploy.mjs <${KORNYEZETEK.join("|")}> [--yes] [firebase deploy paraméterek]`);
+  process.exit(1);
+}
+
+// A két környezet két külön ágon él (pilot: `pilot`, prod: `main`), lásd deployAgHiba.
+const git = (...a) => spawnSync("git", a, { encoding: "utf8" });
+const ag = git("rev-parse", "--abbrev-ref", "HEAD").stdout?.trim();
+const mainOse = ["main", "origin/main"].some((m) => git("merge-base", "--is-ancestor", "HEAD", m).status === 0);
+const agHiba = deployAgHiba(kornyezet, { ag, mainOse });
+if (agHiba) {
+  console.error(agHiba);
   process.exit(1);
 }
 

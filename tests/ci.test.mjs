@@ -30,6 +30,18 @@ test("a pilotra nincs automatikus deploy", () => {
   }
 });
 
+test("a CI a main és a pilot ágon is fut (két környezet, két ág)", () => {
+  const c = olvas("ci.yml");
+  assert.match(c, /branches:\s*\[main, pilot\]/);
+});
+
+test("a deploy-szkript ellenőrzi az ágat (pilot: pilot ág, prod: main)", () => {
+  const d = readFileSync(new URL("../scripts/deploy.mjs", import.meta.url), "utf8");
+  assert.match(d, /deployAgHiba\(kornyezet/);
+  // az ágellenőrzés a firebase deploy hívása ELŐTT fut
+  assert.ok(d.indexOf("deployAgHiba(kornyezet") < d.indexOf('spawnSync("firebase"'));
+});
+
 test("a CI emulátort használ Java 21-gyel, és Node 24-en fut", () => {
   const c = olvas("ci.yml");
   assert.match(c, /java-version:\s*21/);

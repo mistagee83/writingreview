@@ -18,12 +18,15 @@ Rövid szabályok:
   szöveg. A `public/js/kifejtos.js` generált fájl – ne szerkeszd kézzel.
 - Módosítás után futtasd a teszteket (`node --test tests/<fájl>`; a `rules`/`claim`/`functions`
   teszt Firebase-emulátort igényel) és a `node scripts/build.mjs`-t.
-- **Két telepítés (pilot + prod), egy kódbázis:** a hibajavítás a forrásban mindkettőre
-  érvényes, de **élesben csak a deploy után**. Ha hibát javítasz (akár csak az egyik
-  környezetben találták), a végén mondd ki, melyik környezet fut még a régi kóddal, és a
-  `docs/folytatas.md` „Ismert hiányosságok” részébe írd fel, hogy ott még deployolni kell
-  (a deployt a felhasználó engedélyével/kérésére végezd, lásd fent). A javításhoz kerüljön
-  regressziós teszt.
+- **Két telepítés, két ág (2026-11-12 óta):** a **pilot** a `pilot` ágon él (a teljes, régi
+  alkalmazás: kézírás, kifejtős mód, diákfiók; kézi deploy), a **prod** a `main`-en (nyelvtanári,
+  diákfiók nélküli változat, lásd [`docs/prod-atalakitas-terv.md`](docs/prod-atalakitas-terv.md);
+  címkés kiadás). A `scripts/deploy.mjs` rossz ágról nem enged deployt. Új funkció csak a saját
+  ágára kerül. Ha **közös részben** javítasz hibát, nézd meg, hogy a másik ágon is megvan-e; ha
+  igen, ott is javítani kell (cherry-pick vagy külön javítás). A végén mondd ki, melyik ágon és
+  melyik környezetben fut még a régi kód, és a `docs/folytatas.md` „Ismert hiányosságok”
+  részébe írd fel, hol kell még javítani vagy deployolni (a deployt a felhasználó
+  engedélyével/kérésére végezd, lásd fent). A javításhoz kerüljön regressziós teszt.
 - **Párhuzamos kódutak:** ha a hiba a másik úton is meglehet (pl. leveles és kifejtős
   feladat, diák/tanári oldal), nézd meg ott is, javítsd a közös részen, és az összegzésben
   mondd ki, mit ellenőriztél.

@@ -4,6 +4,17 @@
 folytatni, és mi a következő lépés. A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
 
+## 00. Prod-átalakítás (2026-11-12) – terv kész, kód még nem változott
+
+A prod nyelvtanári, diákfiók nélküli változatra alakul át: 24 órás feladatlink + becenév, kézírás és kifejtős mód nélkül.
+Az MI-t a tanár indítja, és van beillesztés-tiltás. A pilot saját `pilot` ágra kerül, és változatlan marad. A terv és a
+lépések: [`prod-atalakitas-terv.md`](prod-atalakitas-terv.md).
+
+**1. lépés (ágak szétválasztása): kód kész.** A `deploy.mjs` ágat ellenőriz (pilot: `pilot`, prod: `main`), a CI mindkét
+ágon fut, és a `CLAUDE.md` szabálya átíródott. **Hátra:** commit, utána a `pilot` ág létrehozása ebből a commitból
+(`git branch pilot`) és a pushok (`git push origin main pilot`). Amíg a `pilot` ág nem létezik, pilotra nem lehet deployolni.
+Következő: 2. lépés (kivezetés a `main`-ről).
+
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 
 **Kész és élesben van** (pilot és prod is; a `main` a GitHubon a `976ecd9`-nél és az azt követő

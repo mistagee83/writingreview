@@ -77,6 +77,29 @@ export function deployParameterHiba(p) {
 }
 
 /**
+ * Melyik git-ágról mehet deploy az adott környezetre? 2026-11-12 óta a két telepítés két
+ * külön termék: a pilot a `pilot` ágon él (a teljes, régi alkalmazás), a prod a `main`-en
+ * (nyelvtanári változat, docs/prod-atalakitas-terv.md). Egy rossz ágról indított deploy az
+ * egyik környezetre a másik termékét tenné ki.
+ *  - pilot: csak a `pilot` ágról;
+ *  - prod: a `main` ágról, vagy leválasztott HEAD-ről (a CI a címkét így veszi ki), ha a
+ *    commit a main-en van (`mainOse`).
+ * @param {string} kornyezet
+ * @param {{ag: string, mainOse: boolean}} git  `ag`: `git rev-parse --abbrev-ref HEAD` ("HEAD", ha leválasztott)
+ * @returns {string|null} a hiba oka, vagy null
+ */
+export const KORNYEZET_AGA = { pilot: "pilot", prod: "main" };
+
+export function deployAgHiba(kornyezet, { ag, mainOse } = {}) {
+  const elvart = KORNYEZET_AGA[kornyezet];
+  if (!elvart) return `Ismeretlen környezet: ${kornyezet}`;
+  if (!ag) return "Nem sikerült megállapítani az aktuális git-ágat.";
+  if (ag === elvart) return null;
+  if (kornyezet === "prod" && ag === "HEAD" && mainOse) return null;
+  return `A(z) ${kornyezet} csak a(z) "${elvart}" ágról telepíthető (most: "${ag}").`;
+}
+
+/**
  * Hibák listája (üres, ha rendben). A `kitoltott` kapcsoló: a build csak
  * teljesen kitöltött konfiggal mehet; a prod-é a projekt létrehozásáig
  * (B. lépés) üres, ezért a szerkezetet és a kitöltöttséget külön kérdezzük.

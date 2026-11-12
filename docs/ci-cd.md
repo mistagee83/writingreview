@@ -10,6 +10,11 @@ Két GitHub Actions folyamat van (`.github/workflows/`):
 **A pilot szándékosan nincs bekötve:** a kollégák éles munkára használják, és nem bővül.
 Ott marad a kézi deploy: `node scripts/deploy.mjs pilot --only ...`.
 
+**Két ág (2026-11-12 óta):** a pilot a `pilot` ágon él, a prod a `main`-en (két külön termék, lásd
+`prod-atalakitas-terv.md`). A `deploy.mjs` a pilotot csak a `pilot` ágról, a prodot csak a `main`-ről
+(vagy a main-en lévő címkéről) engedi. A CI mindkét ágon fut. Pilot-deploy:
+`git switch pilot`, majd `node scripts/deploy.mjs pilot --only ...`.
+
 ## Kiadás a prodra
 
 ```bash

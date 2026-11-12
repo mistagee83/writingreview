@@ -1,11 +1,12 @@
-# Tesztek és build. PR-on és a main-re érkezéskor önállóan fut; a prod-folyamat
-# is ezt hívja (workflow_call), hogy deploy csak zöld tesztek után menjen.
+# Tesztek és build. PR-on és a main-re vagy a pilot ágra érkezéskor önállóan fut
+# (a két környezet két ágon él); a prod-folyamat is ezt hívja (workflow_call), hogy
+# deploy csak zöld tesztek után menjen.
 name: CI
 
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, pilot]
   workflow_call:
 
 permissions:

@@ -14,7 +14,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import {
   KORNYEZETEK, WEB_KONFIG_KULCSOK, konfigBetoltes, konfigHibak, kornyezetJs, firebaseConfigCsere,
-  kornyezetValasztas, celProjekt, deployParameterHiba
+  kornyezetValasztas, celProjekt, deployParameterHiba, deployAgHiba
 } from "../scripts/kornyezet-config.mjs";
 
 const require = createRequire(new URL("../functions/package.json", import.meta.url));
@@ -254,6 +254,21 @@ test("konfig-kötés: az átmásolt/felcserélt konfig elutasítva a kért körn
   // a .firebaserc aliasai a konfigok projektjeire mutatnak
   assert.equal(celProjekt("prod"), prod.projekt);
   assert.equal(celProjekt("pilot"), pilot.projekt);
+});
+
+test("deploy-ág: a pilot csak a pilot ágról, a prod csak a main-ről (vagy a main-en lévő címkéről)", () => {
+  assert.equal(deployAgHiba("pilot", { ag: "pilot", mainOse: true }), null);
+  assert.equal(deployAgHiba("prod", { ag: "main", mainOse: true }), null);
+  assert.equal(deployAgHiba("prod", { ag: "HEAD", mainOse: true }), null, "CI: leválasztott címke a main-en");
+  // a régi, közös ágról a pilotra nem mehet az új (nyelvtanári) termék
+  assert.notEqual(deployAgHiba("pilot", { ag: "main", mainOse: true }), null);
+  assert.notEqual(deployAgHiba("pilot", { ag: "HEAD", mainOse: false }), null);
+  assert.notEqual(deployAgHiba("prod", { ag: "pilot", mainOse: false }), null);
+  assert.notEqual(deployAgHiba("prod", { ag: "pilot", mainOse: true }), null, "a pilot ágról akkor sem, ha a commit a main-en is megvan");
+  assert.notEqual(deployAgHiba("prod", { ag: "HEAD", mainOse: false }), null);
+  assert.notEqual(deployAgHiba("prod", { ag: "funkcio-x", mainOse: true }), null);
+  assert.notEqual(deployAgHiba("prod", { ag: "", mainOse: true }), null);
+  assert.notEqual(deployAgHiba("ismeretlen", { ag: "main", mainOse: true }), null);
 });
 
 test("deploy-paraméterek: a célprojektet/konfigot felülíró kapcsolók és a shell-metakarakterek tiltva", () => {
