@@ -282,7 +282,8 @@
       [t('tanar.cmp_sor_keret'), (nev) => mas('td', kerettel(nev))],
       [t('tanar.cmp_sor_javitas'), () => jelCella(true)],
       [t('tanar.cmp_sor_osztaly'), (nev) => jelCella(benne('osztaly_elemzes', nev))],
-      [t('tanar.cmp_sor_szin'), (nev) => jelCella(benne('szinvalasztas', nev))]
+      [t('tanar.cmp_sor_szin'), (nev) => jelCella(benne('szinvalasztas', nev))],
+      [t('tanar.cmp_sor_fejlodes'), (nev) => jelCella(benne('fejlodes', nev))]
     ];
 
     const tabla = mas('table');

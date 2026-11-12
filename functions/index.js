@@ -32,6 +32,7 @@ const aiHasznalat = require("./ai-hasznalat");
 const fizetes = require("./fizetes");
 const szamlazz = require("./szamlazz");
 const tema = require("./tema");
+const fejlodes = require("./fejlodes");
 const Anthropic = require("@anthropic-ai/sdk");
 
 initializeApp();
@@ -211,6 +212,7 @@ const HIBA_SZOVEG = {
   nincs_ugyfel: () => "Még nincs előfizetésed, ezért nincs mit kezelni.",
   fizetes_hiba: () => "A fizetési szolgáltatás nem válaszolt. Próbáld újra egy perc múlva.",
   csomag_alap_kell: () => "Az osztályszintű elemzés az Alap csomagtól érhető el.",
+  csomag_profi_kell: () => "A fejlődéskövetés a Profi csomag része.",
   szinvalasztas_alap_kell: () => "A színválasztás az Alap csomagtól érhető el.",
   tema_ervenytelen: () => "Ismeretlen színtéma.",
   szamla_nincs: () => "Ez a befizetés nem található a számlázandók között.",
@@ -2863,6 +2865,92 @@ exports.csoportBeadasLevalasztas = onCall(HIVAS_OPCIOK, async (request) => {
 });
 
 Object.assign(exports._teszt, { csoportDiakOsszevonasLogika, csoportBeadasLevalasztasLogika });
+
+// ══════════════════════════════════════════════════════
+// 13/c. FEJLŐDÉS A CSOPORTBAN (tanár, Profi csomag, 8b/3; a számtan: functions/fejlodes.js)
+//
+// A csoport becenév szerint párosított diákjainak jóváhagyott (elkuldve) beadásai: a tanári
+// pontszázalék feladatról feladatra és az AI által jelölt, ismétlődő hibák. A zár a SZERVEREN van
+// (a tanár a szabályok szerint olvashatná a beadásokat, ezért a felület-zár kiskapu lenne):
+// előbb a csomag, utána a csoport tulajdonosa, csak ezután olvas adatot.
+// ══════════════════════════════════════════════════════
+
+/** A fejlődés-követés zárja: Profi és korlátlan csomag (kvóta nélküli környezetben mindenki). */
+async function fejlodesKapu(firestore, uid, beallitasok) {
+  if (!(await funkcioEngedett(firestore, uid, "fejlodes", beallitasok))) {
+    throw hiba("permission-denied", "csomag_profi_kell");
+  }
+}
+
+/**
+ * A jóváhagyott beadások idővonal-pontjai. Párhuzamosan olvas (egy 30 fős csoport több tucat
+ * beadása se legyen lassú); a feladat címét feladatonként egyszer. `hibakkal: false` – a listához
+ * nem kell az AI-értékelés (csak a pontszázalék).
+ */
+async function fejlodesPontok(firestore, uid, beadasDokumentumok, { hibakkal = true } = {}) {
+  const sajat = beadasDokumentumok.filter((d) => d.data().tanar_id === uid);
+  const feladatIdk = [...new Set(sajat.map((d) => d.data().feladat_id).filter(Boolean))];
+  const cimek = new Map(await Promise.all(feladatIdk.map(async (id) =>
+    [id, (await firestore.collection("feladatok").doc(id).get()).data()?.cim || null])));
+  const pontok = await Promise.all(sajat.map(async (d) => {
+    const beadas = d.data();
+    const [tanari, ai] = await Promise.all([
+      d.ref.collection("ertekeles").doc("tanari").get(),
+      hibakkal ? d.ref.collection("ertekeles").doc("ai").get() : null
+    ]);
+    const pont = fejlodes.idovonalPont({
+      beadas, tanari: tanari.data(), ai: ai?.data(), feladatCim: cimek.get(beadas.feladat_id)
+    });
+    return pont && { ...pont, diak_id: beadas.csoport_diak_id || null };
+  }));
+  return fejlodes.idovonalRendezes(pontok);
+}
+
+const csoportJovahagyottBeadasai = (firestore, uid, csoportId) => firestore.collection("beadasok")
+  .where("tanar_id", "==", uid).where("csoport_id", "==", csoportId).where("statusz", "==", "elkuldve");
+
+/** A csoport diákjai: név, jóváhagyott beadások száma, utolsó pontszázalék, trend. */
+async function csoportFejlodesListaLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
+  await fejlodesKapu(firestore, uid, beallitasok);
+  const csRef = await sajatCsoportRef(firestore, uid, adat?.csoportId);
+  const [diakok, beadasok] = await Promise.all([
+    csRef.collection("diakok").get(),
+    csoportJovahagyottBeadasai(firestore, uid, csRef.id).get()
+  ]);
+  const pontok = await fejlodesPontok(firestore, uid, beadasok.docs, { hibakkal: false });
+  const diakonkent = new Map();
+  for (const p of pontok) {
+    if (!diakonkent.has(p.diak_id)) diakonkent.set(p.diak_id, []);
+    diakonkent.get(p.diak_id).push(p);
+  }
+  return { diakok: fejlodes.diakLista(diakok.docs.map((d) => ({ id: d.id, nev: d.data().nev })), diakonkent) };
+}
+
+/** Egy diák idővonala a csoportban: pontszázalék és hibák feladatról feladatra, ismétlődő hibák. */
+async function csoportFejlodesDiakLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
+  await fejlodesKapu(firestore, uid, beallitasok);
+  const csRef = await sajatCsoportRef(firestore, uid, adat?.csoportId);
+  const diakId = adat?.diakId;
+  if (typeof diakId !== "string" || !AZONOSITO_MINTA.test(diakId)) throw hiba("invalid-argument", "csoport_diak_nincs");
+  const diakSnap = await csRef.collection("diakok").doc(diakId).get();
+  if (!diakSnap.exists) throw hiba("not-found", "csoport_diak_nincs");
+  const beadasok = await csoportJovahagyottBeadasai(firestore, uid, csRef.id).where("csoport_diak_id", "==", diakId).get();
+  const pontok = await fejlodesPontok(firestore, uid, beadasok.docs);
+  return {
+    nev: String(diakSnap.data().nev || ""),
+    ...fejlodes.diakNezet(pontok.map(({ diak_id, ...pont }) => pont))
+  };
+}
+
+exports.csoportFejlodesLista = onCall(HIVAS_OPCIOK, async (request) => {
+  return csoportFejlodesListaLogika(db(), tanar(request), request.data);
+});
+
+exports.csoportFejlodesDiak = onCall(HIVAS_OPCIOK, async (request) => {
+  return csoportFejlodesDiakLogika(db(), tanar(request), request.data);
+});
+
+Object.assign(exports._teszt, { fejlodesKapu, csoportFejlodesListaLogika, csoportFejlodesDiakLogika });
 
 // ══════════════════════════════════════════════════════
 // 14. ÉRTÉKELÉS INDÍTÁSA (tanár) – sorba állítás és háttérfeldolgozás

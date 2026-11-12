@@ -258,7 +258,19 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
      gombjáról): diákonként a beadások (feladat, becenév, dátum, állapot), „🔗 Összevonás másik diákkal”, beadásonként
      „✂️ Leválasztás”. Helyi, Firebase-helyettesítős előnézetben ellenőrizve (összevonás, leválasztás, telefonszélesség,
      angol felület). **Deploy-hatás:** új függvények (`csoportDiakOsszevonas`, `csoportBeadasLevalasztas`),
-     `firestore:rules`, `firestore:indexes`. Következő: **8b/3** fejlődés-nézet (Profi).
+     `firestore:rules`, `firestore:indexes`.
+   - **8b/3 – fejlődés-nézet (Profi): kész (2026-11-12).** A pilot `functions/fejlodes.js`-e és
+     `public/js/fejlodes-grafikon.js`-e visszakerült (a `diakLista` a csoport diákjaiból dolgozik). Két tanári callable:
+     **`csoportFejlodesLista`** (diákonként a jóváhagyott beadások száma, az utolsó pontszázalék és az irány) és
+     **`csoportFejlodesDiak`** (a tanári pontszázalék feladatról feladatra, az AI által jelölt hibák kategóriánként, az
+     ismétlődő hibatípusok). Csak a jóváhagyott (`elkuldve`) beadás számít. A zár a szerveren: előbb a csomag
+     (`csomag_profi_kell`), utána a csoport tulajdonosa, csak ezután olvas adatot. A `kvota.js`-ben a `fejlodes` funkció
+     újra a Profi és a korlátlan csomagé; a nyitóoldal Profi kártyája, a csomag-összehasonlítás és a csomagszövegek újra
+     ígérik, „csoportonként” megfogalmazással (a 8a kivétele visszafordítva). Felület: a `csoport.html` diák-fejlécében az
+     utolsó eredmény és az irány, a „📈 Fejlődés” gomb alatt a két grafikon, az ismétlődő hibák és a táblázat; nem Profi
+     csomagnál egy tájékoztató a csomagok linkjével. Helyi, Firebase-helyettesítős előnézetben ellenőrizve (Profi és zárolt
+     csomag, telefonszélesség). Teszt: `tests/fejlodes.test.mjs`. **Deploy-hatás:** új függvények
+     (`csoportFejlodesLista`, `csoportFejlodesDiak`). Ezzel a 8b kész; következő: **8c** nyitóoldal.
 
 ## 8. Tesztek
 

@@ -26,7 +26,7 @@
   </div>
 </div>
 
-<!-- EGY CSOPORT DIÁKJAI (8b/2). A szerver a beadáskor a becenév szerint párosít (a csoporton
+<!-- EGY CSOPORT DIÁKJAI (8b/2) ÉS FEJLŐDÉSÜK (8b/3, Profi). A szerver a beadáskor a becenév szerint párosít (a csoporton
      belül az azonos becenév ugyanaz a diák). Itt a tanár összevonja azt a két diákot, aki
      valójában egy (más becenevet használt), vagy leválaszt egy tévesen párosított beadást.
      Mindkettő Cloud Function: a beadások és a becenév-hozzárendelés együtt változik. -->
@@ -47,11 +47,12 @@
 </div>
 
 <script type="module">
-  import { t, nyelv } from './js/i18n.js';
+  import { t, nyelv, datumSzoveg } from './js/i18n.js';
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar, statuszBadge } from './js/ui.js';
   import { csoportDiakjai } from './js/csoport.js';
+  import { pontGrafikon, hibaGrafikon, ismetlodoLista } from './js/fejlodes-grafikon.js';
   import {
     db, functions, httpsCallable,
     collection, doc, getDoc, getDocs, query, where, onSnapshot
@@ -62,6 +63,8 @@
 
   const osszevonas = httpsCallable(functions, 'csoportDiakOsszevonas');
   const levalasztas = httpsCallable(functions, 'csoportBeadasLevalasztas');
+  const fejlodesLista = httpsCallable(functions, 'csoportFejlodesLista');
+  const fejlodesDiak = httpsCallable(functions, 'csoportFejlodesDiak');
 
   const csoportId = new URLSearchParams(location.search).get('id');
   const lista = document.getElementById('lista');
@@ -87,6 +90,74 @@
     const feladatCim = new Map();
     let nyitott = new Set();     // a kinyitott diákok (újrarajzoláskor is maradjon nyitva)
     let osszevonoNyitva = null;  // melyik diáknál látszik az összevonás űrlapja
+
+    // ── FEJLŐDÉS (Profi, 8b/3) ──
+    // A lista (utolsó eredmény, irány) és a diákonkénti idővonal a szerverről jön; a csomag-zárat is a
+    // szerver dönti el (csomag_profi_kell). Az adat a jóváhagyott beadásokból számol: ha ezek köre
+    // vagy a diákok köre változik (jóváhagyás, összevonás, leválasztás), újratöltjük.
+    let profiZar = false;
+    const osszegzes = new Map();       // diák → { utolso_szazalek, trend }
+    const fejlodesAdat = new Map();    // diák → { allapot: 'tolt' | 'kesz' | 'hiba', adat?, hiba? }
+    const fejlodesNyitva = new Set();
+    let alairas = null;
+    const zarVolt = (e) => e?.details?.kod === 'csomag_profi_kell';
+
+    async function osszegzesFrissit() {
+      const uj = JSON.stringify([
+        diakok.map((d) => d.id).sort(),
+        beadasok.filter((b) => b.statusz === 'elkuldve').map((b) => b.id + ':' + b.csoport_diak_id).sort()
+      ]);
+      if (uj === alairas || profiZar) return;
+      alairas = uj;
+      fejlodesAdat.clear();
+      for (const id of fejlodesNyitva) fejlodesBetolt(id);
+      try {
+        const { data } = await fejlodesLista({ csoportId });
+        osszegzes.clear();
+        for (const d of data.diakok) osszegzes.set(d.diak_id, d);
+      } catch (e) {
+        if (zarVolt(e)) { profiZar = true; fejlodesNyitva.clear(); } else console.error(e);
+      }
+      rajzol();
+    }
+
+    async function fejlodesBetolt(diakId) {
+      fejlodesAdat.set(diakId, { allapot: 'tolt' });
+      try {
+        const { data } = await fejlodesDiak({ csoportId, diakId });
+        fejlodesAdat.set(diakId, { allapot: 'kesz', adat: data });
+      } catch (e) {
+        if (zarVolt(e)) { profiZar = true; fejlodesNyitva.clear(); }
+        fejlodesAdat.set(diakId, { allapot: 'hiba', hiba: hibaSzoveg(e) });
+      }
+      rajzol();
+    }
+
+    const trendSzoveg = (tr) => (tr ? t(`diakok.trend_${tr}`) : '');
+
+    /** Egy diák fejlődés-nézete a megnyitott blokkba (a grafikonok DOM-elemek: rajzolás után kerülnek be). */
+    function fejlodesKitolt(hely, diakId) {
+      const a = fejlodesAdat.get(diakId);
+      if (!a || a.allapot === 'tolt') { hely.innerHTML = '<div class="empty-state bare"><div class="spinner"></div></div>'; return; }
+      if (a.allapot === 'hiba') { hely.innerHTML = `<p class="halvany">${esc(t('csd.fejlodes_hiba', { ok: a.hiba }))}</p>`; return; }
+      const { pontok, ismetlodo } = a.adat;
+      if (!pontok.length) { hely.innerHTML = `<p class="halvany">${t('diakok.nincs_adat')}</p>`; return; }
+      // A táblázat az adatok pontos, olvasóprogrammal is elérhető nézete (a grafikon mellé is kell).
+      hely.innerHTML = `${pontok.length < 2 ? `<p class="halvany">${t('diakok.keves_adat')}</p>` : ''}
+        <div data-grafikonok></div>
+        <details class="viz-tabla"><summary>${t('diakok.tabla_cim')}</summary>
+        <div class="tabla-gorgeto"><table class="tabla">
+          <thead><tr>
+            <th>${t('diakok.oszlop_feladat')}</th><th>${t('diakok.oszlop_datum')}</th><th>${t('diakok.oszlop_pont')}</th>
+          </tr></thead>
+          <tbody>${pontok.map((p) => `<tr>
+            <td>${esc(p.feladat_cim || '–')}</td>
+            <td>${p.ido ? esc(datumSzoveg(new Date(p.ido))) : '–'}</td>
+            <td>${p.szazalek}%</td>
+          </tr>`).join('')}</tbody>
+        </table></div></details>`;
+      hely.querySelector('[data-grafikonok]').append(pontGrafikon(pontok), hibaGrafikon(pontok), ismetlodoLista(ismetlodo));
+    }
 
     // A feladatok címe a beadások listájához (egyszer; a tanar_id szűrő a szabály miatt kell).
     getDocs(query(collection(db, 'feladatok'), where('tanar_id', '==', user.uid)))
@@ -121,6 +192,9 @@
           <button class="btn-sm" type="button" data-megse>${t('cs.megse')}</button>
         </form>
         <p class="halvany" style="margin-top:0.5rem;">${t('csd.osszevonas_magyarazat', { nev: esc(d.nev) })}</p>` : '';
+      const o = osszegzes.get(d.id);
+      const eredmeny = o && o.utolso_szazalek !== null
+        ? `<span>${t('csd.utolso_eredmeny', { sz: o.utolso_szazalek })}${o.trend ? ` · ${trendSzoveg(o.trend)}` : ''}</span>` : '';
       const tobbBecenev = d.becenevAlakok.length > 1
         ? `<span>${t('csd.becenevek', { lista: esc(d.becenevAlakok.join(', ')) })}</span>` : '';
       return `<details class="panel" data-diak="${esc(d.id)}" ${nyitott.has(d.id) ? 'open' : ''}>
@@ -131,14 +205,17 @@
               <span>${t('csd.beadas_db', { db: d.beadasok.length })}</span>
               ${d.utolso ? `<span>${t('csd.utolso', { datum: esc(datum(d.utolso)) })}</span>` : ''}
               ${tobbBecenev}
+              ${eredmeny}
             </div>
           </div>
         </summary>
-        ${!tobbi.length ? '' : urlap ? `<div class="panel-body">${urlap}</div>` : `<div class="panel-body">
+        ${urlap ? `<div class="panel-body">${urlap}</div>` : !tobbi.length && profiZar ? '' : `<div class="panel-body">
           <div class="gomb-sor" style="margin-top:0;">
-            <button class="btn-sm" data-osszevon-nyit="${esc(d.id)}">${t('csd.osszevonas')}</button>
+            ${profiZar ? '' : `<button class="btn-sm" data-fejlodes-gomb="${esc(d.id)}" aria-expanded="${fejlodesNyitva.has(d.id)}">${t(fejlodesNyitva.has(d.id) ? 'csd.fejlodes_bezar' : 'csd.fejlodes')}</button>`}
+            ${tobbi.length ? `<button class="btn-sm" data-osszevon-nyit="${esc(d.id)}">${t('csd.osszevonas')}</button>` : ''}
           </div>
         </div>`}
+        ${fejlodesNyitva.has(d.id) && !profiZar ? `<div class="panel-body" data-fejlodes-hely="${esc(d.id)}"></div>` : ''}
         <div class="panel-body flush">${d.beadasok.map((b) => beadasSor(b, d.beadasok.length > 1)).join('')}</div>
       </details>`;
     }
@@ -150,8 +227,20 @@
         lista.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><p>${t('csd.ures')}</p></div>`;
         return;
       }
-      lista.innerHTML = `<p class="halvany" style="margin-bottom:0.75rem;">${t('csd.osszesen', { db: mind.length })}</p>`
+      const zar = profiZar ? `<div class="panel"><div class="panel-body">
+          <p style="margin:0;"><strong>${t('diakok.zar_cim')}</strong> – ${t('diakok.zar_szoveg')}</p>
+          <p style="margin:0.5rem 0 0;"><a class="btn-sm" href="tanar.html#csomag-panel">${t('diakok.zar_gomb')}</a></p>
+        </div></div>` : '';
+      lista.innerHTML = zar + `<p class="halvany" style="margin-bottom:0.75rem;">${t('csd.osszesen', { db: mind.length })}</p>`
         + mind.map((d) => diakBlokk(d, mind)).join('');
+
+      lista.querySelectorAll('[data-fejlodes-hely]').forEach((hely) => fejlodesKitolt(hely, hely.dataset.fejlodesHely));
+      lista.querySelectorAll('[data-fejlodes-gomb]').forEach((b) => b.addEventListener('click', () => {
+        const id = b.dataset.fejlodesGomb;
+        if (fejlodesNyitva.has(id)) fejlodesNyitva.delete(id);
+        else { fejlodesNyitva.add(id); if (!fejlodesAdat.has(id)) fejlodesBetolt(id); }
+        rajzol();
+      }));
 
       lista.querySelectorAll('details[data-diak]').forEach((el) => el.addEventListener('toggle', () => {
         if (el.open) nyitott.add(el.dataset.diak); else nyitott.delete(el.dataset.diak);
@@ -197,11 +286,13 @@
     onSnapshot(collection(db, 'csoportok', csoportId, 'diakok'), (snap) => {
       diakok = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       rajzol();
+      if (beadasok) osszegzesFrissit();
     }, hiba);
     // A tanar_id szűrő nem hagyható el: a list-szabálynál a query bizonyítja a jogot.
     onSnapshot(query(collection(db, 'beadasok'), where('tanar_id', '==', user.uid), where('csoport_id', '==', csoportId)), (snap) => {
       beadasok = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       rajzol();
+      if (diakok) osszegzesFrissit();
     }, hiba);
   }
 </script>

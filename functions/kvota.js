@@ -86,8 +86,9 @@ function kvotaDontes({ csomag, hasznalt, koltseg }) {
 const FUNKCIOK = {
   // osztályszintű elemzés (feladatElemzes): az Alap csomagtól
   osztaly_elemzes: ["alap", "profi", "korlatlan"],
-  // (A fejlődés-követés 2026-11-12 óta nincs a prodban: diákfiók nélkül nincs diákazonosság. A Profi
-  // csomag többlete a nagyobb havi keret. A pilot ágon a "fejlodes" funkció megmaradt.)
+  // fejlődés-követés a csoportokban, becenév alapján (csoportFejlodesLista, csoportFejlodesDiak): a Profi
+  // csomag része (8b/3; a diákfiókos változat a pilot ágon él)
+  fejlodes: ["profi", "korlatlan"],
   // színválasztás a tanári felületen (temaBeallitas; az alapszín mindenkinek szabad): az Alap csomagtól
   szinvalasztas: ["alap", "profi", "korlatlan"]
 };
