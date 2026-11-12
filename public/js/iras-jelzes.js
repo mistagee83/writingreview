@@ -1,15 +1,18 @@
 // ══════════════════════════════════════════════════════
 // Beírt dolgozat – írás közbeni jelzések
 //
-// Két TÉNYJELZÉST gyűjtünk a tanárnak (nem ítéletet, nem MI-detektort):
+// TÉNYJELZÉSEKET gyűjtünk a tanárnak (nem ítéletet, nem MI-detektort):
 //   1. hányszor és mennyi időre hagyta el a diák az ablakot (más lap/alkalmazás),
-//   2. mennyit és mit illesztett be a szövegbe.
-// A diák ELŐRE látja, hogy ezeket jelezzük (beadas.iras_figyelmeztetes). A jelzés a
-// diák böngészőjéből jön, ezért nem bizonyíték (kijátszható, és ártalmatlan okai is
-// lehetnek) – a tanári felület ezt ki is mondja.
+//   2. mennyit és mit illesztett be a szövegbe – a feladatlinken (iras.html) a beillesztés
+//      TILTOTT (tiltas: true): ott a kísérletek számát jelezzük,
+//   3. hirtelen nagy szövegbetoldás beillesztés nélkül (bővítmény, automatikus gépelő, diktálás),
+//   4. az írási idő (aktív és teljes) és az események időrendje.
+// A diák ELŐRE látja, hogy ezeket jelezzük (iras.figyelmeztetes). A jelzés a diák böngészőjéből
+// jön, ezért nem bizonyíték (kijátszható, és ártalmatlan okai is lehetnek) – a tanári felület ezt
+// ki is mondja. A szerver az alakját ellenőrzi (functions/feladatlink.js, jelzesekErvenyesek).
 //
-// A tiszta részek (tartományok, összegzés, jelölés, AwayFigyelo) DOM nélkül tesztelhetők:
-// tests/iras-jelzes.test.mjs. A DOM-os rész (jelzesFigyelo) az eseményeket köti be.
+// A tiszta részek (tartományok, összegzés, jelölés, AwayFigyelo, IrasNaplo) DOM nélkül
+// tesztelhetők: tests/iras-jelzes.test.mjs. A DOM-os rész (jelzesFigyelo) az eseményeket köti be.
 // ══════════════════════════════════════════════════════
 
 /** Ennél rövidebb távollét nem számít elhagyásnak (értesítés, rövid fókuszvesztés). */
@@ -22,6 +25,14 @@ export const TARTOMANY_MAX = 50;
 export const SZOVEG_MAX = 20000;
 /** Egy beillesztett részlet megjegyzett hossza (a megtalálásához elég). */
 const BEILLESZTETT_RESZLET_MAX = 5000;
+/** Egyetlen bevitellel legalább ennyi karakter beillesztés nélkül: „nagy betoldás” (a gépelés karakterenként jön). */
+export const NAGY_BETOLDAS_KARAKTER = 40;
+/** Két bevitel között ennél hosszabb szünet nem számít aktív írásnak. */
+export const AKTIV_SZUNET_MS = 60 * 1000;
+/** Az időrend legfeljebb ennyi eseményt tárol (a szerver is ezt engedi). */
+export const ESEMENY_MAX = 50;
+/** Az időrend eseménytípusai. */
+export const ESEMENY_TIPUSOK = ["elhagyas", "beillesztes_kiserlet", "nagy_betoldas"];
 
 // ── tiszta részek ──
 
@@ -136,25 +147,97 @@ export class AwayFigyelo {
   }
 }
 
-/** A Firestore-ba kerülő jelzések (egész számok; a szabály ellenőrzi az alakjukat). */
-export function jelzesekDokumentum({ elhagyas, beillesztes_db, beillesztett_karakter, szoveg, beillesztettek }) {
-  return {
+/**
+ * Az írás menete: az első bevitel ideje, az aktív írási idő (a két bevitel közti szünet csak
+ * AKTIV_SZUNET_MS-ig számít), és az események időrendje (másodperc az első beviteltől).
+ * Időbélyegeket kap, ezért tesztelhető. Mentett állapotból folytatható.
+ */
+export class IrasNaplo {
+  constructor(allapot = {}) {
+    this.elso = Number.isFinite(allapot.elso) ? allapot.elso : null;
+    this.utolso = Number.isFinite(allapot.utolso) ? allapot.utolso : null;
+    this.aktivMs = Number.isFinite(allapot.aktiv_ms) ? allapot.aktiv_ms : 0;
+    this.kiserletDb = Number.isInteger(allapot.kiserlet_db) ? allapot.kiserlet_db : 0;
+    this.nagyDb = Number.isInteger(allapot.nagy_db) ? allapot.nagy_db : 0;
+    this.esemenyek = Array.isArray(allapot.esemenyek) ? allapot.esemenyek.slice(0, ESEMENY_MAX) : [];
+  }
+
+  /** Az esemény ideje másodpercben az első beviteltől (bevitel előtt 0). */
+  #t(most) {
+    return this.elso === null ? 0 : Math.max(0, Math.round((most - this.elso) / 1000));
+  }
+
+  #esemeny(most, tipus, ertek) {
+    if (this.esemenyek.length < ESEMENY_MAX) this.esemenyek.push({ t: this.#t(most), tipus, ertek: Math.max(0, Math.round(ertek)) });
+  }
+
+  /** Egy bevitel (gépelés, törlés). `hozzaadott`: ennyi karakterrel nőtt a szöveg (beillesztés nélkül). */
+  bevitel(most, hozzaadott = 0) {
+    if (this.elso === null) this.elso = most;
+    if (this.utolso !== null) {
+      const szunet = most - this.utolso;
+      if (szunet > 0 && szunet <= AKTIV_SZUNET_MS) this.aktivMs += szunet;
+    }
+    this.utolso = most;
+    if (hozzaadott >= NAGY_BETOLDAS_KARAKTER) {
+      this.nagyDb += 1;
+      this.#esemeny(most, "nagy_betoldas", hozzaadott);
+    }
+  }
+
+  /** Megakadályozott beillesztés (vágólap, húzás, billentyűzet-vágólap). */
+  kiserlet(most) {
+    this.kiserletDb += 1;
+    this.#esemeny(most, "beillesztes_kiserlet", 0);
+  }
+
+  /** Elhagyás vége: `tartott` ms-ig volt távol. */
+  elhagyas(most, tartott) {
+    this.#esemeny(most - tartott, "elhagyas", tartott / 1000);
+  }
+
+  /** A mentéshez. */
+  mentes() {
+    return { elso: this.elso, utolso: this.utolso, aktiv_ms: this.aktivMs, kiserlet_db: this.kiserletDb, nagy_db: this.nagyDb, esemenyek: this.esemenyek };
+  }
+
+  /** A beadáshoz: egész másodpercek és darabszámok. */
+  osszegzes(most) {
+    return {
+      beillesztes_kiserlet_db: this.kiserletDb,
+      nagy_betoldas_db: this.nagyDb,
+      irasi_mp: Math.round(this.aktivMs / 1000),
+      osszes_mp: this.#t(most),
+      esemenyek: this.esemenyek.map((e) => ({ t: e.t, tipus: e.tipus, ertek: e.ertek }))
+    };
+  }
+}
+
+/** A beadással együtt menő jelzések (egész számok; a szerver ellenőrzi az alakjukat). */
+export function jelzesekDokumentum({ elhagyas, beillesztes_db, beillesztett_karakter, szoveg, beillesztettek, naplo = null, most = 0 }) {
+  const alap = {
     elhagyas_db: Math.max(0, Math.floor(elhagyas.elhagyas_db || 0)),
     elhagyas_mp: Math.max(0, Math.round((elhagyas.elhagyas_ms || 0) / 1000)),
     beillesztes_db: Math.max(0, Math.floor(beillesztes_db || 0)),
     beillesztett_karakter: Math.max(0, Math.floor(beillesztett_karakter || 0)),
     beillesztett_tartomanyok: tartomanyok(szoveg, beillesztettek)
   };
+  return naplo ? { ...alap, ...naplo.osszegzes(most) } : alap;
 }
+
+/** A beillesztés-jellegű bevitelek (a böngésző beforeinput inputType-jai): ezeket tiltja a `tiltas`. */
+export const BEILLESZTO_BEVITELEK = ["insertFromPaste", "insertFromPasteAsQuotation", "insertFromDrop", "insertFromYank"];
 
 // ── DOM-os rész ──
 
 /**
  * Bekapcsolja a figyelést egy szövegmezőn. A számlálók a böngészőben is mentődnek (a lap újratöltése
  * nem nullázza őket). `tarolo`: localStorage-szerű (getItem/setItem/removeItem), hibatűrő módon használva.
+ * `tiltas: true`: a beillesztés (vágólap, húzás, a telefonos billentyűzet vágólapja) meg van akadályozva,
+ * a kísérlet jelzés; ilyenkor az írás menetét is naplózzuk (nagy betoldás, írási idő, időrend).
  * @returns {{dokumentum: (szoveg: string) => object, torles: () => void, leallit: () => void}}
  */
-export function jelzesFigyelo(mezo, { kulcs, tarolo = globalThis.localStorage, ablak = globalThis.window, dok = globalThis.document, ora = () => Date.now() }) {
+export function jelzesFigyelo(mezo, { kulcs, tiltas = false, tarolo = globalThis.localStorage, ablak = globalThis.window, dok = globalThis.document, ora = () => Date.now() }) {
   const olvas = () => {
     try { return JSON.parse(tarolo.getItem(kulcs) || "null") || {}; } catch (_) { return {}; }
   };
@@ -164,21 +247,28 @@ export function jelzesFigyelo(mezo, { kulcs, tarolo = globalThis.localStorage, a
         ...figyelo.allapot(ora()),
         beillesztes_db: beillesztesDb,
         beillesztett_karakter: beillesztettKarakter,
-        beillesztettek
+        beillesztettek,
+        ...(naplo ? { naplo: naplo.mentes() } : {})
       }));
     } catch (_) { /* privát ablak: nincs mentés, a figyelés ettől még működik */ }
   };
 
   const mentett = olvas();
   const figyelo = new AwayFigyelo(ELHAGYAS_KUSZOB_MS, mentett);
+  const naplo = tiltas ? new IrasNaplo(mentett.naplo || {}) : null;
   let beillesztesDb = Number.isInteger(mentett.beillesztes_db) ? mentett.beillesztes_db : 0;
   let beillesztettKarakter = Number.isInteger(mentett.beillesztett_karakter) ? mentett.beillesztett_karakter : 0;
   const beillesztettek = Array.isArray(mentett.beillesztettek) ? mentett.beillesztettek.slice(0, 200) : [];
+  let elozoHossz = String(mezo.value ?? "").length;
 
   const nincsFokusz = () => dok.visibilityState === "hidden" || !dok.hasFocus();
   const frissit = () => {
-    if (nincsFokusz()) figyelo.tavol(ora());
-    else if (figyelo.vissza(ora())) ment();
+    if (nincsFokusz()) { figyelo.tavol(ora()); return; }
+    const kezdet = figyelo.kezdet;
+    if (figyelo.vissza(ora())) {
+      if (naplo && kezdet !== null) naplo.elhagyas(ora(), ora() - kezdet);
+      ment();
+    }
   };
 
   const beilleszt = (szoveg) => {
@@ -189,14 +279,40 @@ export function jelzesFigyelo(mezo, { kulcs, tarolo = globalThis.localStorage, a
     if (beillesztettek.length < 200) beillesztettek.push(s.slice(0, BEILLESZTETT_RESZLET_MAX));
     ment();
   };
-  const paste = (e) => beilleszt(e.clipboardData?.getData("text"));
-  const drop = (e) => beilleszt(e.dataTransfer?.getData("text"));
+  const tilt = (e) => {
+    e.preventDefault?.();
+    naplo.kiserlet(ora());
+    ment();
+  };
+  const paste = (e) => (tiltas ? tilt(e) : beilleszt(e.clipboardData?.getData("text")));
+  const drop = (e) => (tiltas ? tilt(e) : beilleszt(e.dataTransfer?.getData("text")));
+  // A telefonos billentyűzet vágólap-sávja és egyes böngészők nem paste-eseményt küldenek, hanem
+  // beforeinput-ot ilyen inputType-pal. A paste-esemény után is jöhet beforeinput: azt nem számoljuk újra.
+  let utolsoTiltas = -Infinity;
+  const beforeinput = (e) => {
+    if (!tiltas || !BEILLESZTO_BEVITELEK.includes(e.inputType)) return;
+    e.preventDefault?.();
+    if (ora() - utolsoTiltas > 50) { naplo.kiserlet(ora()); ment(); }
+    utolsoTiltas = ora();
+  };
+  const pasteTiltas = (e) => { utolsoTiltas = ora(); paste(e); };
+  const input = (e) => {
+    const hossz = String(mezo.value ?? "").length;
+    if (naplo) {
+      const visszavonas = typeof e?.inputType === "string" && e.inputType.startsWith("history");
+      naplo.bevitel(ora(), visszavonas ? 0 : Math.max(0, hossz - elozoHossz));
+      ment();
+    }
+    elozoHossz = hossz;
+  };
 
   dok.addEventListener("visibilitychange", frissit);
   ablak.addEventListener("blur", frissit);
   ablak.addEventListener("focus", frissit);
-  mezo.addEventListener("paste", paste);
+  mezo.addEventListener("paste", pasteTiltas);
   mezo.addEventListener("drop", drop);
+  mezo.addEventListener("beforeinput", beforeinput);
+  mezo.addEventListener("input", input);
 
   return {
     dokumentum: (szoveg) => jelzesekDokumentum({
@@ -204,15 +320,19 @@ export function jelzesFigyelo(mezo, { kulcs, tarolo = globalThis.localStorage, a
       beillesztes_db: beillesztesDb,
       beillesztett_karakter: beillesztettKarakter,
       szoveg,
-      beillesztettek
+      beillesztettek,
+      naplo,
+      most: ora()
     }),
     torles: () => { try { tarolo.removeItem(kulcs); } catch (_) { /* nincs mit */ } },
     leallit: () => {
       dok.removeEventListener("visibilitychange", frissit);
       ablak.removeEventListener("blur", frissit);
       ablak.removeEventListener("focus", frissit);
-      mezo.removeEventListener("paste", paste);
+      mezo.removeEventListener("paste", pasteTiltas);
       mezo.removeEventListener("drop", drop);
+      mezo.removeEventListener("beforeinput", beforeinput);
+      mezo.removeEventListener("input", input);
     }
   };
 }

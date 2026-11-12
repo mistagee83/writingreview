@@ -158,8 +158,10 @@
           <p class="halvany">${t('iras.mentes_tipp')}</p>
           <!-- A diák ELŐRE látja, mit jelzünk a tanárnak (átláthatóság). -->
           <p class="halvany iras-figyelmeztetes">${t('iras.figyelmeztetes')}</p>
-          <!-- A helyesírás-javítás és az automatikus nyelvhelyesség KI van kapcsolva: a szöveget a diák
-               saját tudása szerint kell értékelni, a javítóprogram elfedné a hibáit. -->
+          <!-- A helyesírás-javítás és az automatikus nyelvhelyesség alapból KI van kapcsolva: a szöveget a
+               diák saját tudása szerint kell értékelni. A böngésző helyesírás-ellenőrzését a tanár
+               feladatonként engedheti meg (rubrika.helyesiras_engedett); a nyelvhelyesség-bővítmények
+               (Grammarly) mindig tiltva. -->
           <textarea id="szoveg" class="iras-szoveg" rows="14"
                     spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
                     data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
@@ -181,7 +183,13 @@
     mezo.value = tarol((ls) => ls.getItem(PISZKOZAT)) || '';
     becenevMezo.value = tarol((ls) => ls.getItem(BECENEV)) || '';
 
-    const figyelo = jelzesFigyelo(mezo, { kulcs: JELZES });
+    // A beillesztés TILTOTT (vágólap, húzás, telefonos billentyűzet-vágólap); a kísérlet jelzés a tanárnak.
+    const figyelo = jelzesFigyelo(mezo, { kulcs: JELZES, tiltas: true });
+    if (f.helyesiras) {
+      mezo.spellcheck = true;
+      mezo.setAttribute('autocorrect', 'on');
+      mezo.setAttribute('autocapitalize', 'sentences');
+    }
     const szamlaloFrissit = () => { szamlalo.textContent = szoszamSzoveg(szoszam(mezo.value), f.min_szo, f.max_szo); };
     szamlaloFrissit();
 

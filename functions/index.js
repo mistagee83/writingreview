@@ -2663,6 +2663,8 @@ async function linkAdatokLogika(firestore, adat, { most = Date.now() } = {}) {
       nyelv: NYELVEK.includes(r.nyelv) ? r.nyelv : ALAP_NYELV,
       min_szo: szam(r.min_szo),
       max_szo: szam(r.max_szo),
+      // a böngésző helyesírás-ellenőrzése: a tanár kapcsolja be feladatonként (alapból ki)
+      helyesiras: r.helyesiras_engedett === true,
       szempontok: (Array.isArray(r.szempontok) ? r.szempontok : [])
         .filter((sz) => sz && typeof sz === "object")
         .map((sz) => ({ cim: String(sz.cim || sz.kulcs || ""), suly: Number(sz.suly) || 0 }))

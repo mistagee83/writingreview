@@ -189,6 +189,12 @@
             <label for="r-egyeb" data-i18n="fel.egyeb_label">Külön kérés az AI-nak (nem kötelező)</label>
             <textarea id="r-egyeb" rows="2" placeholder="Pl. A múlt idő használatára figyelj külön." data-i18n-placeholder="fel.egyeb_pelda"></textarea>
           </div>
+
+          <label class="jelolo">
+            <input type="checkbox" id="r-helyesiras" />
+            <span><span data-i18n="fel.helyesiras">A diák böngészője ellenőrizheti a helyesírást írás közben</span>
+              <small data-i18n="fel.helyesiras_tipp">Alapból ki van kapcsolva: nyelvi feladatnál a helyesírás is a mérés része. A beillesztés mindig tiltott, és a nyelvhelyesség-javító bővítmények is.</small></span>
+          </label>
         </div>
 
         <div class="msg" id="form-msg"></div>
@@ -540,7 +546,9 @@
       min_szo: Number(document.getElementById('r-min').value) || null,
       max_szo: Number(document.getElementById('r-max').value) || null,
       szempontok: szempontokBeolvas(),
-      egyeb_utasitas: document.getElementById('r-egyeb').value.trim()
+      egyeb_utasitas: document.getElementById('r-egyeb').value.trim(),
+      // a diák böngészőjének helyesírás-ellenőrzése a feladatlinken (alapból ki)
+      helyesiras_engedett: document.getElementById('r-helyesiras').checked
     };
   }
 
@@ -557,6 +565,7 @@
     document.getElementById('r-min').value = r.min_szo || '';
     document.getElementById('r-max').value = r.max_szo || '';
     document.getElementById('r-egyeb').value = r.egyeb_utasitas || '';
+    document.getElementById('r-helyesiras').checked = r.helyesiras_engedett === true;
 
     if (Array.isArray(r.szempontok) && r.szempontok.length) {
       szempontokEl.innerHTML = '';
@@ -843,6 +852,7 @@
     document.getElementById('f-fajl').value = '';
     document.getElementById('r-leiras').value = '';
     document.getElementById('r-egyeb').value = '';
+    document.getElementById('r-helyesiras').checked = false;
     document.getElementById('r-min').value = '';
     document.getElementById('r-max').value = '';
     document.getElementById('upload-preview').classList.remove('show');

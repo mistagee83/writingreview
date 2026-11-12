@@ -198,3 +198,118 @@ test("tároló nélkül (privát ablak) a figyelés hibátlanul működik", () =
   assert.equal(f.dokumentum(SZOVEG).beillesztes_db, 1);
   assert.doesNotThrow(() => f.torles());
 });
+
+// ── 5. lépés: beillesztés tiltása, nagy betoldás, írási idő, időrend ──
+
+test("írásnapló: az aktív idő csak a percnél rövidebb szüneteket számolja", () => {
+  const n = new m.IrasNaplo();
+  n.bevitel(0, 1);
+  n.bevitel(10_000, 1);          // +10 mp
+  n.bevitel(100_000, 1);         // 90 mp szünet: nem aktív
+  n.bevitel(130_000, 1);         // +30 mp
+  const o = n.osszegzes(200_000);
+  assert.equal(o.irasi_mp, 40);
+  assert.equal(o.osszes_mp, 200);
+});
+
+test("írásnapló: a nagy betoldás (≥ 40 karakter egyszerre) esemény, a gépelés nem", () => {
+  const n = new m.IrasNaplo();
+  n.bevitel(1000, 1);
+  n.bevitel(2000, 39);
+  n.bevitel(5000, 120);
+  const o = n.osszegzes(6000);
+  assert.equal(o.nagy_betoldas_db, 1);
+  assert.deepEqual(o.esemenyek, [{ t: 4, tipus: "nagy_betoldas", ertek: 120 }]);
+});
+
+test("írásnapló: kísérlet és elhagyás időrendben, másodpercben az első beviteltől", () => {
+  const n = new m.IrasNaplo();
+  n.bevitel(10_000, 1);
+  n.kiserlet(15_000);
+  n.elhagyas(40_000, 12_000);    // 28. mp-ben ment el, 12 mp-re
+  const o = n.osszegzes(50_000);
+  assert.equal(o.beillesztes_kiserlet_db, 1);
+  assert.deepEqual(o.esemenyek, [
+    { t: 5, tipus: "beillesztes_kiserlet", ertek: 0 },
+    { t: 18, tipus: "elhagyas", ertek: 12 }
+  ]);
+  for (const e of o.esemenyek) assert.ok(m.ESEMENY_TIPUSOK.includes(e.tipus));
+});
+
+test("írásnapló: legfeljebb 50 esemény, a darabszám ettől még nő; mentésből folytatódik", () => {
+  const n = new m.IrasNaplo();
+  n.bevitel(0, 1);
+  for (let i = 0; i < 70; i++) n.kiserlet(i * 1000);
+  const o = n.osszegzes(80_000);
+  assert.equal(o.esemenyek.length, m.ESEMENY_MAX);
+  assert.equal(o.beillesztes_kiserlet_db, 70);
+  const folytatas = new m.IrasNaplo(JSON.parse(JSON.stringify(n.mentes())));
+  assert.deepEqual(folytatas.osszegzes(80_000), o);
+});
+
+const mezoAl = (ertek = "") => Object.assign(new EventTarget(), { value: ertek });
+const megelozheto = (tipus, extra = {}) => {
+  const e = Object.assign(new Event(tipus, { cancelable: true }), extra);
+  return e;
+};
+
+test("tiltás: a vágólap, a húzás és a billentyűzet-vágólap beillesztése meg van akadályozva és jelzés", () => {
+  const mezo = mezoAl(); let most = 1000;
+  const f = m.jelzesFigyelo(mezo, { kulcs: "k", tiltas: true, tarolo: tarolo(), ablak: new EventTarget(), dok: dok(), ora: () => most });
+  const p = megelozheto("paste", { clipboardData: { getData: () => BEILL } });
+  mezo.dispatchEvent(p);
+  assert.equal(p.defaultPrevented, true);
+  // ugyanannak a beillesztésnek a beforeinput-ja (ugyanabban a pillanatban) nem számít kétszer
+  const bi1 = megelozheto("beforeinput", { inputType: "insertFromPaste" });
+  mezo.dispatchEvent(bi1);
+  assert.equal(bi1.defaultPrevented, true);
+  most = 3000;
+  const d = megelozheto("drop", { dataTransfer: { getData: () => "xy" } });
+  mezo.dispatchEvent(d);
+  assert.equal(d.defaultPrevented, true);
+  most = 5000;
+  const bi2 = megelozheto("beforeinput", { inputType: "insertFromPaste" });   // pl. a telefonos billentyűzet vágólapja
+  mezo.dispatchEvent(bi2);
+  assert.equal(bi2.defaultPrevented, true);
+  // a gépelés nincs megakadályozva
+  const gep = megelozheto("beforeinput", { inputType: "insertText", data: "a" });
+  mezo.dispatchEvent(gep);
+  assert.equal(gep.defaultPrevented, false);
+
+  const j = f.dokumentum("abc");
+  assert.equal(j.beillesztes_kiserlet_db, 3);
+  assert.equal(j.beillesztes_db, 0, "tiltásnál nincs beillesztett szöveg");
+  assert.deepEqual(j.beillesztett_tartomanyok, []);
+  f.leallit();
+});
+
+test("tiltás: a nagy betoldást az input-esemény hosszváltozásából méri; a visszavonás nem számít", () => {
+  const mezo = mezoAl(); let most = 0;
+  const f = m.jelzesFigyelo(mezo, { kulcs: "k", tiltas: true, tarolo: tarolo(), ablak: new EventTarget(), dok: dok(), ora: () => most });
+  const ir = (ujErtek, inputType = "insertText") => { mezo.value = ujErtek; mezo.dispatchEvent(Object.assign(new Event("input"), { inputType })); };
+  ir("D"); most = 1000;
+  ir("Dear Ben, " + "x".repeat(60)); most = 2000;          // egyszerre 69 karakter: jelzés
+  ir("Dear Ben");  most = 3000;                             // törlés
+  ir("Dear Ben, " + "x".repeat(60), "historyUndo");         // visszavonás: nem jelzés
+  const j = f.dokumentum(mezo.value);
+  assert.equal(j.nagy_betoldas_db, 1);
+  assert.equal(j.irasi_mp, 3);
+  f.leallit();
+});
+
+test("tiltás: az elhagyás is az időrendbe kerül; a jelzés-dokumentum csupa nemnegatív egész", () => {
+  const d = dok(); const ablak = new EventTarget(); const mezo = mezoAl(); let most = 0;
+  const f = m.jelzesFigyelo(mezo, { kulcs: "k", tiltas: true, tarolo: tarolo(), ablak, dok: d, ora: () => most });
+  mezo.value = "a"; mezo.dispatchEvent(Object.assign(new Event("input"), { inputType: "insertText" }));
+  most = 10_000;
+  d.visibilityState = "hidden"; d.fokusz = false; d.dispatchEvent(new Event("visibilitychange"));
+  most = 16_000;
+  d.visibilityState = "visible"; d.fokusz = true; d.dispatchEvent(new Event("visibilitychange"));
+  const j = f.dokumentum("a");
+  assert.equal(j.elhagyas_db, 1);
+  assert.deepEqual(j.esemenyek, [{ t: 10, tipus: "elhagyas", ertek: 6 }]);
+  for (const k of ["elhagyas_db", "elhagyas_mp", "beillesztes_db", "beillesztett_karakter", "beillesztes_kiserlet_db", "nagy_betoldas_db", "irasi_mp", "osszes_mp"]) {
+    assert.ok(Number.isInteger(j[k]) && j[k] >= 0, k);
+  }
+  f.leallit();
+});

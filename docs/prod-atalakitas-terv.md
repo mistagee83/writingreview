@@ -170,6 +170,16 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
    **Nyitott:** App Check a diákoldali függvényeken (még nincs beállítva a projektben); a diáklink élettartama (14 nap a
    javaslat).
 5. **Csalásellenőrzés.** A 4. pont: beillesztés-tiltás, új jelzések, helyesírás-kapcsoló, a tanári megjelenítés bővítése.
+   **Kész (2026-11-12).** `public/js/iras-jelzes.js`: `jelzesFigyelo(…, { tiltas: true })` – a `paste`, a `drop` és a
+   `beforeinput` beillesztő típusai (`insertFromPaste`, `…AsQuotation`, `insertFromDrop`, `insertFromYank`) meg vannak
+   akadályozva, a kísérlet jelzés (az ugyanahhoz a beillesztéshez tartozó paste + beforeinput egyszer számít). Új tiszta rész:
+   `IrasNaplo` – aktív írási idő (a percnél hosszabb szünet nem számít), teljes idő, nagy betoldás (≥ 40 karakter egyszerre,
+   beillesztés nélkül; a visszavonás nem számít), időrend (legfeljebb 50 esemény: elhagyás, beillesztési kísérlet, nagy
+   betoldás). A szerver (`jelzesekErvenyesek`) az új mezőket kötelezően ellenőrzi; egy teszt a böngésző és a szerver alakját
+   összeveti. Tanári kapcsoló: `rubrika.helyesiras_engedett` (alapból ki; a Grammarly-féle bővítmények mindig tiltva). A javító
+   nézet mutatja a kísérleteket, a nagy betoldást, az írási időt és az időrendet, a régi figyelmeztetéssel (jelzés, nem
+   bizonyíték). Valódi böngészőben ellenőrizve (helyettesítős előnézet): a beillesztés nem kerül a szövegbe.
+   A jobb klikkes menüt szándékosan nem tiltjuk (a beillesztés úgyis tiltott, a helyesírás-javaslatokhoz kell).
 6. **Tanári értékelésindítás.** A trigger helyett `ertekelesInditas` callable (egy vagy több beadás, párhuzamossági korláttal,
    kvótaegységgel). Az értékelő prompt csak a szöveget kapja.
 7. **Visszajelzés a diáknak.** `diakVisszajelzes` callable, diáklink-oldal, lejárat. Időzített takarítás (5. pont, megőrzés).

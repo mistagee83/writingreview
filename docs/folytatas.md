@@ -24,7 +24,8 @@ futottak helyben. Ezzel a 2. lépés (kivezetés) teljes.
 ellenőrizve (élő bejelentkezéssel nem: a pilot a régi függvényeken fut). A QR-kód telefonos beolvasása még nincs kipróbálva.
 **4. lépés (diákoldal: `iras.html`): kész.** Az automatikus AI-trigger kikerült (a tanár indítja az
 értékelést). Helyi, Firebase-helyettesítős előnézetben ellenőrizve; élő függvényekkel nem (a pilot a régi kódon fut).
-Következő: 5. lépés (csalásellenőrzés: beillesztés tiltása, új jelzések).
+**5. lépés (csalásellenőrzés): kész.** A beillesztés tiltott, új jelzések (kísérlet, nagy betoldás,
+írási idő, időrend), tanári helyesírás-kapcsoló. Következő: 6. lépés (tanári értékelésindítás több beadásra).
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 

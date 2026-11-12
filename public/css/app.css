@@ -1931,3 +1931,9 @@ body.theme-diak { background-image: none; }
    Nincs oldalsáv és belépés: egy keskeny, telefonon is kényelmes oszlop. */
 .diak-main { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
 .feladat-leiras { white-space: pre-line; line-height: 1.6; overflow-wrap: anywhere; }
+
+/* ── Az írás közbeni jelzések időrendje (javitas.html) ── */
+.jelzes-idorend { margin-top: 0.6rem; font-size: 0.88rem; }
+.jelzes-idorend summary { cursor: pointer; color: var(--muted); }
+.jelzes-idorend ol { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+.idorend-ido { font-variant-numeric: tabular-nums; color: var(--muted); margin-right: 0.35rem; }

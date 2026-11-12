@@ -123,11 +123,23 @@ function szovegErvenyes(szoveg) {
 const egeszHatarral = (v, max) => Number.isInteger(v) && v >= 0 && v <= max;
 
 /**
- * Az írás közbeni jelzések alakja (public/js/iras-jelzes.js, jelzesekDokumentum): pontosan
- * ezek a mezők, korlátos egész számok, a kiemelt tartományok legfeljebb 100 egész szám.
- * (Korábban a Firestore-szabály ellenőrizte ugyanezt; 2026-11-12 óta a beadás szerveroldali.)
+ * Az írás közbeni jelzések alakja (public/js/iras-jelzes.js, jelzesekDokumentum, tiltas: true):
+ * pontosan ezek a mezők, korlátos egész számok; a kiemelt tartományok legfeljebb 100 egész szám,
+ * az időrend legfeljebb 50 esemény ({ t, tipus, ertek }). A szöveget a diák böngészője küldi:
+ * semmiben nem bízunk, ami nem ilyen alakú.
  */
-const JELZES_MEZOK = ["elhagyas_db", "elhagyas_mp", "beillesztes_db", "beillesztett_karakter", "beillesztett_tartomanyok"];
+const JELZES_MEZOK = ["elhagyas_db", "elhagyas_mp", "beillesztes_db", "beillesztett_karakter", "beillesztett_tartomanyok",
+  "beillesztes_kiserlet_db", "nagy_betoldas_db", "irasi_mp", "osszes_mp", "esemenyek"];
+const ESEMENY_TIPUSOK = ["elhagyas", "beillesztes_kiserlet", "nagy_betoldas"];
+const ESEMENY_MAX = 50;
+
+function esemenyErvenyes(e) {
+  if (!e || typeof e !== "object" || Array.isArray(e)) return false;
+  const k = Object.keys(e);
+  return k.length === 3 && k.includes("t") && k.includes("tipus") && k.includes("ertek")
+    && egeszHatarral(e.t, 10000000) && ESEMENY_TIPUSOK.includes(e.tipus) && egeszHatarral(e.ertek, 100000000);
+}
+
 function jelzesekErvenyesek(j) {
   if (!j || typeof j !== "object" || Array.isArray(j)) return false;
   const kulcsok = Object.keys(j);
@@ -138,7 +150,14 @@ function jelzesekErvenyesek(j) {
     && egeszHatarral(j.beillesztett_karakter, 100000000)
     && Array.isArray(j.beillesztett_tartomanyok)
     && j.beillesztett_tartomanyok.length <= 100
-    && j.beillesztett_tartomanyok.every((x) => egeszHatarral(x, SZOVEG_MAX));
+    && j.beillesztett_tartomanyok.every((x) => egeszHatarral(x, SZOVEG_MAX))
+    && egeszHatarral(j.beillesztes_kiserlet_db, 100000)
+    && egeszHatarral(j.nagy_betoldas_db, 100000)
+    && egeszHatarral(j.irasi_mp, 10000000)
+    && egeszHatarral(j.osszes_mp, 10000000)
+    && Array.isArray(j.esemenyek)
+    && j.esemenyek.length <= ESEMENY_MAX
+    && j.esemenyek.every(esemenyErvenyes);
 }
 
 /**

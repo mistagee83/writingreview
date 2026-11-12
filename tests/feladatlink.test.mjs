@@ -119,8 +119,10 @@ test("szöveg: nem üres, nem csak szóköz, legfeljebb 20 000 karakter", () => 
   }
 });
 
-test("jelzések: pontosan a várt mezők, korlátos egészek, legfeljebb 100 tartomány-szám", () => {
-  const J = { elhagyas_db: 2, elhagyas_mp: 14, beillesztes_db: 1, beillesztett_karakter: 120, beillesztett_tartomanyok: [10, 130] };
+test("jelzések: pontosan a várt mezők, korlátos egészek, legfeljebb 100 tartomány-szám és 50 esemény", () => {
+  const J = { elhagyas_db: 2, elhagyas_mp: 14, beillesztes_db: 1, beillesztett_karakter: 120, beillesztett_tartomanyok: [10, 130],
+    beillesztes_kiserlet_db: 1, nagy_betoldas_db: 0, irasi_mp: 300, osszes_mp: 900,
+    esemenyek: [{ t: 5, tipus: "beillesztes_kiserlet", ertek: 0 }, { t: 40, tipus: "elhagyas", ertek: 12 }] };
   assert.ok(l.jelzesekErvenyesek(J));
   assert.ok(l.jelzesekErvenyesek({ ...J, beillesztett_tartomanyok: [] }));
   const { elhagyas_db, ...hianyos } = J;
@@ -129,7 +131,13 @@ test("jelzések: pontosan a várt mezők, korlátos egészek, legfeljebb 100 tar
     { ...J, elhagyas_db: -1 }, { ...J, elhagyas_mp: 1.5 }, { ...J, beillesztes_db: "sok" },
     { ...J, beillesztett_karakter: 1e9 }, { ...J, beillesztett_tartomanyok: "10-130" },
     { ...J, beillesztett_tartomanyok: Array(101).fill(1) }, { ...J, beillesztett_tartomanyok: [1, "2"] },
-    { ...J, beillesztett_tartomanyok: [1, 30000] }
+    { ...J, beillesztett_tartomanyok: [1, 30000] },
+    { ...J, beillesztes_kiserlet_db: -1 }, { ...J, irasi_mp: 1.5 }, { ...J, osszes_mp: "sok" },
+    { ...J, esemenyek: "x" }, { ...J, esemenyek: Array(51).fill({ t: 1, tipus: "elhagyas", ertek: 1 }) },
+    { ...J, esemenyek: [{ t: 1, tipus: "masolas", ertek: 1 }] },
+    { ...J, esemenyek: [{ t: 1, tipus: "elhagyas", ertek: 1, extra: "x" }] },
+    { ...J, esemenyek: [{ t: -1, tipus: "elhagyas", ertek: 1 }] },
+    { ...J, esemenyek: [{ t: 1, tipus: "elhagyas" }] }
   ]) {
     assert.equal(l.jelzesekErvenyesek(rossz), false, JSON.stringify(rossz)?.slice(0, 60));
   }
@@ -148,4 +156,19 @@ test("az új beadás: a link feladatához és tanárához kötve, tisztított be
   assert.equal(b.forras, "szoveg");
   assert.equal(b.diaklink_lejar.getTime() - most, 14 * 24 * 3600 * 1000);
   assert.ok(!("diak_id" in b) && !("osztaly_id" in b), "diákfiók és osztály nincs");
+});
+
+test("a diák böngészőjének jelzés-dokumentumát (tiltással) a szerver elfogadja – a kettő alakja egyezik", async () => {
+  const kliens = await import("../public/js/iras-jelzes.js");
+  const n = new kliens.IrasNaplo();
+  n.bevitel(0, 1); n.bevitel(5000, 80); n.kiserlet(6000); n.elhagyas(30000, 4000);
+  const doku = kliens.jelzesekDokumentum({
+    elhagyas: { elhagyas_db: 1, elhagyas_ms: 4000 }, beillesztes_db: 0, beillesztett_karakter: 0,
+    szoveg: "Dear Ben", beillesztettek: [], naplo: n, most: 60000
+  });
+  assert.ok(l.jelzesekErvenyesek(JSON.parse(JSON.stringify(doku))), JSON.stringify(doku));
+  assert.equal(kliens.ESEMENY_MAX, 50);
+  // tiltás nélküli (régi alakú) dokumentumot a feladatlink nem fogad el
+  const regi = kliens.jelzesekDokumentum({ elhagyas: { elhagyas_db: 0 }, szoveg: "x", beillesztettek: [] });
+  assert.equal(l.jelzesekErvenyesek(regi), false);
 });

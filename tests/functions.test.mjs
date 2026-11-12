@@ -582,7 +582,9 @@ test("link lezárása: a tulajdonos lezárhatja (ismételten is), idegen és ros
 // A DIÁK A FELADATLINKEN (linkAdatok / linkBeadas) – belépés nélkül
 // ══════════════════════════════════════════
 
-const JELZES_OK = { elhagyas_db: 1, elhagyas_mp: 5, beillesztes_db: 0, beillesztett_karakter: 0, beillesztett_tartomanyok: [] };
+const JELZES_OK = { elhagyas_db: 1, elhagyas_mp: 5, beillesztes_db: 0, beillesztett_karakter: 0, beillesztett_tartomanyok: [],
+  beillesztes_kiserlet_db: 1, nagy_betoldas_db: 0, irasi_mp: 120, osszes_mp: 300,
+  esemenyek: [{ t: 5, tipus: "beillesztes_kiserlet", ertek: 0 }] };
 
 async function diakLink(feladatFelul = {}, { most = Date.now() } = {}) {
   await firestore.collection("feladatok").doc("df1").set({

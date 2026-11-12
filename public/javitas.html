@@ -296,6 +296,13 @@
       const kiemelt = jelzes && tartomanyokRendben(jelzes.beillesztett_tartomanyok, beirtSzoveg.length)
         ? jelzes.beillesztett_tartomanyok : [];
       const szam = (v) => (Number.isFinite(Number(v)) ? Math.max(0, Math.floor(Number(v))) : 0);
+      // mp → "p:mm" (a jelzések időpontjai és az írási idő)
+      const percMp = (mp) => `${Math.floor(mp / 60)}:${String(mp % 60).padStart(2, '0')}`;
+      const esemenySzoveg = (e) => ({
+        elhagyas: t('jav.esemeny_elhagyas', { mp: szam(e.ertek) }),
+        beillesztes_kiserlet: t('jav.esemeny_kiserlet'),
+        nagy_betoldas: t('jav.esemeny_nagy_betoldas', { kar: szam(e.ertek) })
+      }[e.tipus] || '');
 
       const beirtSzekcio = `
         <div class="m-szekcio">
@@ -305,13 +312,26 @@
               <li>${szam(jelzes.elhagyas_db) > 0
                 ? t('jav.jelzes_elhagyas', { db: szam(jelzes.elhagyas_db), mp: szam(jelzes.elhagyas_mp) })
                 : t('jav.jelzes_nincs_elhagyas')}</li>
+              ${'beillesztes_kiserlet_db' in jelzes ? `
+              <li>${szam(jelzes.beillesztes_kiserlet_db) > 0
+                ? t('jav.jelzes_kiserlet', { db: szam(jelzes.beillesztes_kiserlet_db) })
+                : t('jav.jelzes_nincs_kiserlet')}</li>
+              <li>${szam(jelzes.nagy_betoldas_db) > 0
+                ? t('jav.jelzes_nagy_betoldas', { db: szam(jelzes.nagy_betoldas_db) })
+                : t('jav.jelzes_nincs_nagy_betoldas')}</li>
+              <li>${t('jav.jelzes_ido', { aktiv: percMp(szam(jelzes.irasi_mp)), osszes: percMp(szam(jelzes.osszes_mp)) })}</li>` : `
               <li>${szam(jelzes.beillesztes_db) > 0
                 ? t('jav.jelzes_beillesztes', {
                     db: szam(jelzes.beillesztes_db), kar: szam(jelzes.beillesztett_karakter),
                     szazalek: Math.round(beillesztettArany(kiemelt, beirtSzoveg.length) * 100)
                   })
-                : t('jav.jelzes_nincs_beillesztes')}</li>
+                : t('jav.jelzes_nincs_beillesztes')}</li>`}
             </ul>
+            ${Array.isArray(jelzes.esemenyek) && jelzes.esemenyek.length ? `
+            <details class="jelzes-idorend">
+              <summary>${t('jav.idorend_cim', { db: jelzes.esemenyek.length })}</summary>
+              <ol>${jelzes.esemenyek.map((e) => `<li><span class="idorend-ido">${esc(percMp(szam(e.t)))}</span> ${esc(esemenySzoveg(e))}</li>`).join('')}</ol>
+            </details>` : ''}
             <p class="halvany">${t('jav.jelzes_tipp')}</p>`
             : `<p class="halvany">${t('jav.jelzes_nincs')}</p>`}
         </div>
