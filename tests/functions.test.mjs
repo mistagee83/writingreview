@@ -555,13 +555,13 @@ test("mérés: a jelentés a hónap rekordjaiból összesít, a más hónapét k
 
 
 // ── A beadás hivatkozásainak ellenőrzése (audit 1. kör, 2026-10-06) ──
-// A beadást a kliens írja, ezért a szerver nem bízik a tanar_id-ban, a
-// feladat osztályában és a képutakban (az Admin SDK nem ismeri a Storage-szabályokat).
+// A beadást a kliens írja, ezért a szerver nem bízik a tanar_id-ban és a feladat osztályában.
+// 2026-11-12 óta a beadás mindig beírt szöveg (képút nincs).
 
 const rendes = () => ({
   beadas: {
     diak_id: "diak-uid", osztaly_id: "o1", tanar_id: "tanar-uid", feladat_id: "f1",
-    kep_paths: ["beadasok/diak-uid/b1/1_dolgozat.jpg", "beadasok/diak-uid/b1/2_dolgozat.jpg"]
+    forras: "szoveg", szoveg: "Dear Ben, thank you for your letter."
   },
   feladat: { osztaly_id: "o1", tanar_id: "tanar-uid" }
 });
@@ -571,27 +571,11 @@ test("beadás-összerendelés: a szabályos beadás átmegy", () => {
   assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), null);
 });
 
-test("beadás-összerendelés: idegen Storage-útvonal elutasítva (másik diák, tananyag, más beadás)", () => {
-  for (const ut of [
-    "beadasok/masik-diak/x1/1.jpg",
-    "tananyagok/tanar-uid/123_anyag.pdf",
-    "feladatlapok/tanar-uid/123_lap.jpg",
-    "beadasok/diak-uid/masik-beadas/1.jpg",
-    "beadasok/diak-uid/b1/",
-    "beadasok/diak-uid/b1/../../masik-diak/x/1.jpg"
-  ]) {
-    const { beadas, feladat } = rendes();
-    beadas.kep_paths = ["beadasok/diak-uid/b1/1.jpg", ut];
-    assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "kep_ut_idegen", ut);
-  }
-});
-
-test("beadás-összerendelés: nem szöveg képút, üres és hiányzó lista elutasítva", () => {
-  for (const kep_paths of [[42], [null], [{ a: 1 }], "beadasok/diak-uid/b1/1.jpg", [], undefined]) {
-    const { beadas, feladat } = rendes();
-    beadas.kep_paths = kep_paths;
-    assert.notEqual(logika.beadasOsszerendeles("b1", beadas, feladat), null, JSON.stringify(kep_paths));
-  }
+test("beadás-összerendelés: a fotós (képutas) beadás elutasítva", () => {
+  const { beadas, feladat } = rendes();
+  delete beadas.forras; delete beadas.szoveg;
+  beadas.kep_paths = ["beadasok/diak-uid/b1/1.jpg"];
+  assert.equal(logika.beadasOsszerendeles("b1", beadas, feladat), "mod_nem_egyezik");
 });
 
 test("beadás-összerendelés: hamis tanár, másik osztály, hiányzó feladat elutasítva", () => {
@@ -747,7 +731,7 @@ test("AI-használat: hibás JSON válasznál is rögzül a tokenadat (egyszer)",
   });
   try {
     await assert.rejects(
-      () => logika.aiHivas("atiras", [], {}, { tanar_id: "t1", muvelet: "beadas_atiras", mod: "leveles" }),
+      () => logika.aiHivas("ertekeles", [], {}, { tanar_id: "t1", muvelet: "beadas_ertekeles", mod: "leveles" }),
       /nem érvényes JSON/
     );
   } finally {

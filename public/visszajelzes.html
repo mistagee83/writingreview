@@ -155,15 +155,6 @@
               `<tr><td>${esc(sz.cim || sz.kulcs)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
           </table>
         </div>
-      </div>` : ''}
-
-    ${beadas.atirat && beadas.forras !== 'szoveg' ? `
-      <div class="panel">
-        <div class="panel-header"><h2>${t('vj.atirat_cim')}</h2></div>
-        <div class="panel-body">
-          <pre class="atirat">${esc(beadas.atirat)}</pre>
-          <p class="halvany">${t('vj.atirat_tipp')}</p>
-        </div>
       </div>` : ''}`;
 </script>
 </body>

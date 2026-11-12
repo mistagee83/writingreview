@@ -26,7 +26,7 @@ const ARAK = {
 };
 
 /** A műveletek, amiket a rekord `muvelet` mezője felvehet. */
-const MUVELETEK = ["feladatlap", "beadas_atiras", "beadas_ertekeles", "elemzes"];
+const MUVELETEK = ["feladatlap", "beadas_ertekeles", "elemzes"];
 
 const szam = (x) => (Number.isFinite(x) && x > 0 ? Math.round(x) : 0);
 

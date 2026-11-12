@@ -79,8 +79,8 @@ beforeEach(async () => {
     await setDoc(doc(db, "beadasok", BEADAS), {
       feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK,
       diak_nev: "Diák Dóra", tanar_id: TANAR,
-      kep_paths: [`beadasok/${DIAK}/${BEADAS}/1.jpg`],
-      statusz: "javitva", atirat: "I go to the cinema yesterday.",
+      forras: "szoveg", szoveg: "I go to the cinema yesterday.",
+      statusz: "javitva",
       hiba: null, letrehozva: new Date(), frissitve: new Date()
     });
     await setDoc(doc(db, "beadasok", BEADAS, "ertekeles", "ai"), {
@@ -646,72 +646,46 @@ test("a tanár törölheti a saját sablonját, idegen nem", async () => {
 // BEADÁSOK
 // ══════════════════════════════════════════
 
-test("a diák beadhatja a sajátját 'feltoltve' státusszal", async () => {
-  await assertSucceeds(
-    setDoc(doc(diak(), "beadasok", ujId()), {
-      feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK,
-      diak_nev: "Diák Dóra", tanar_id: TANAR,
-      kep_paths: [`beadasok/diak-uid/${ujId()}/1.jpg`],
-      statusz: "feltoltve", atirat: null, hiba: null,
-      letrehozva: new Date(), frissitve: new Date()
-    })
-  );
-});
-
-test("a diák NEM adhat be 'elkuldve' státusszal (jegyet nem hamisíthat)", async () => {
-  await assertFails(
-    setDoc(doc(diak(), "beadasok", ujId()), {
-      feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK,
-      diak_nev: "Diák Dóra", tanar_id: TANAR,
-      kep_paths: [`beadasok/diak-uid/${ujId()}/1.jpg`],
-      statusz: "elkuldve", atirat: null, hiba: null,
-      letrehozva: new Date(), frissitve: new Date()
-    })
-  );
-});
-
-test("a diák NEM adhat be más diák nevében", async () => {
-  await assertFails(
-    setDoc(doc(diak(), "beadasok", ujId()), {
-      feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK2,
-      diak_nev: "Más", tanar_id: TANAR,
-      kep_paths: ["beadasok/x/1.jpg"], statusz: "feltoltve",
-      atirat: null, hiba: null, letrehozva: new Date(), frissitve: new Date()
-    })
-  );
-});
-
-test("kívülálló diák NEM adhat be az osztály feladatára", async () => {
-  await assertFails(
-    setDoc(doc(diak2(), "beadasok", ujId(FELADAT, DIAK2)), {
-      feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK2,
-      diak_nev: "Kívülálló", tanar_id: TANAR,
-      kep_paths: ["beadasok/x/1.jpg"], statusz: "feltoltve",
-      atirat: null, hiba: null, letrehozva: new Date(), frissitve: new Date()
-    })
-  );
-});
-
-test("kép nélküli beadás elutasítva", async () => {
-  await assertFails(
-    setDoc(doc(diak(), "beadasok", ujId()), {
-      feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK,
-      diak_nev: "Diák Dóra", tanar_id: TANAR,
-      kep_paths: [], statusz: "feltoltve",
-      atirat: null, hiba: null, letrehozva: new Date(), frissitve: new Date()
-    })
-  );
-});
-
 // A beadás hivatkozásait a kliens írja – a szabály kényszeríti az összetartozást
-// (audit 1. kör, 2026-10-06).
+// (audit 1. kör, 2026-10-06). 2026-11-12 óta a beadás mindig beírt szöveg.
+const JELZES = {
+  elhagyas_db: 2, elhagyas_mp: 14, beillesztes_db: 1, beillesztett_karakter: 120,
+  beillesztett_tartomanyok: [10, 130]
+};
 const ujBeadas = (felul = {}) => ({
   feladat_id: FELADAT, osztaly_id: OSZTALY, diak_id: DIAK,
   diak_nev: "Diák Dóra", tanar_id: TANAR,
-  kep_paths: [`beadasok/diak-uid/${ujId()}/1.jpg`],
-  statusz: "feltoltve", atirat: null, hiba: null,
+  forras: "szoveg", szoveg: "Dear Ben, I think your plan is great.", jelzesek: JELZES,
+  statusz: "feltoltve", hiba: null,
   letrehozva: new Date(), frissitve: new Date(),
   ...felul
+});
+const szovegesBeadas = ujBeadas;
+
+test("a diák beadhatja a sajátját 'feltoltve' státusszal (beírt szöveg, jelzésekkel)", async () => {
+  await assertSucceeds(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas()));
+});
+
+test("a diák NEM adhat be 'elkuldve' státusszal (jegyet nem hamisíthat)", async () => {
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas({ statusz: "elkuldve" })));
+});
+
+test("a diák NEM adhat be más diák nevében", async () => {
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas({ diak_id: DIAK2, diak_nev: "Más" })));
+});
+
+test("kívülálló diák NEM adhat be az osztály feladatára", async () => {
+  await assertFails(setDoc(doc(diak2(), "beadasok", ujId(FELADAT, DIAK2)), ujBeadas({ diak_id: DIAK2, diak_nev: "Kívülálló" })));
+});
+
+test("fotós beadás elutasítva (2026-11-12 óta nincs): képutakkal vagy forrás nélkül", async () => {
+  const fotos = ujBeadas({ kep_paths: [`beadasok/diak-uid/${ujId()}/1.jpg`] });
+  delete fotos.forras; delete fotos.szoveg; delete fotos.jelzesek;
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), fotos));
+  // a szöveg mellé sem csempészhető kép vagy átirat
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas({ kep_paths: ["beadasok/diak-uid/x/1.jpg"] })));
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas({ kep_paths: [] })));
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas({ atirat: null })));
 });
 
 test("beadás: hamis tanar_id elutasítva (idegen tanár nevére nem adható be)", async () => {
@@ -760,59 +734,27 @@ test("beadás: ugyanarra a feladatra másodszor nem adhat be (a második létreh
   await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas()));
 });
 
-// ── Beírt (szöveges) beadás: a feladat beadási módja dönt (rubrika.beadasi_mod) ──
+// ── Beírt beadás: a szöveg és a jelzések alakja ──
 
-const JELZES = {
-  elhagyas_db: 2, elhagyas_mp: 14, beillesztes_db: 1, beillesztett_karakter: 120,
-  beillesztett_tartomanyok: [10, 130]
-};
-const szovegesBeadas = (felul = {}) => ujBeadas({
-  kep_paths: [], forras: "szoveg", szoveg: "Dear Ben, I think your plan is great.", jelzesek: JELZES, ...felul
-});
-async function feladatMod(rubrika) {
-  await env.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), "feladatok", FELADAT), { rubrika }, { merge: true });
-  });
-}
-
-test("beírt beadás: csak ha a feladat engedi (alapból fotós feladat → elutasítva)", async () => {
-  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas()));
-  await feladatMod({ tipus: "esszé", beadasi_mod: "foto" });
-  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas()));
-  // ismeretlen érték is fotónak számít
-  await feladatMod({ tipus: "esszé", beadasi_mod: "valami" });
-  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas()));
+test("beírt beadás: a régi beadási mód mező hatástalan (fotós feladatra is beírt szöveg megy)", async () => {
+  for (const beadasi_mod of ["foto", "szoveg", "mindketto", "valami"]) {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "feladatok", FELADAT), { rubrika: { tipus: "esszé", beadasi_mod } }, { merge: true });
+      await deleteDoc(doc(ctx.firestore(), "beadasok", ujId()));
+    });
+    await assertSucceeds(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas()), beadasi_mod);
+  }
 });
 
-test("beírt beadás: 'szoveg' és 'mindketto' feladatnál létrehozható, a jelzésekkel együtt", async () => {
-  await feladatMod({ tipus: "esszé", beadasi_mod: "szoveg" });
-  await assertSucceeds(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas()));
-});
-
-test("beadási mód 'szoveg': a fotós beadás elutasítva; 'mindketto'-nél mindkettő megy", async () => {
-  await feladatMod({ tipus: "esszé", beadasi_mod: "szoveg" });
-  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas()));
-  await feladatMod({ tipus: "esszé", beadasi_mod: "mindketto" });
-  await assertSucceeds(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas()));
-});
-
-test("beadási mód 'mindketto': a beírt beadás is elfogadott", async () => {
-  await feladatMod({ tipus: "esszé", beadasi_mod: "mindketto" });
-  await assertSucceeds(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas()));
-});
-
-test("beírt beadás: üres, túl hosszú, nem szöveg, vagy képpel vegyített szöveg elutasítva", async () => {
-  await feladatMod({ tipus: "esszé", beadasi_mod: "szoveg" });
+test("beírt beadás: üres, túl hosszú vagy nem szöveg elutasítva; a határ még jó", async () => {
   await assertFails(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas({ szoveg: "" })));
   await assertFails(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas({ szoveg: "a".repeat(20001) })));
   await assertFails(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas({ szoveg: 42 })));
-  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas({ kep_paths: ["beadasok/diak-uid/x/1.jpg"] })));
   // pontosan a határ még rendben van
   await assertSucceeds(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas({ szoveg: "a".repeat(20000) })));
 });
 
 test("beírt beadás: a jelzések alakja kötött (hiányzó, extra, negatív, nem egész, túl sok tartomány → elutasítva)", async () => {
-  await feladatMod({ tipus: "esszé", beadasi_mod: "szoveg" });
   const probal = (jelzesek) => setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas({ jelzesek }));
   const { elhagyas_db, ...hianyos } = JELZES;
   await assertFails(probal(hianyos));
@@ -827,11 +769,10 @@ test("beírt beadás: a jelzések alakja kötött (hiányzó, extra, negatív, n
   await assertSucceeds(probal({ ...JELZES, beillesztett_tartomanyok: [] }));
 });
 
-test("beírt beadás: a 'forras' csak 'szoveg' lehet; fotós beadáshoz nem tartozhat szoveg/jelzesek mező", async () => {
-  await feladatMod({ tipus: "esszé", beadasi_mod: "mindketto" });
+test("beírt beadás: a 'forras' csak 'szoveg' lehet", async () => {
   await assertFails(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas({ forras: "foto" })));
-  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas({ szoveg: "csempészett szöveg" })));
-  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), ujBeadas({ jelzesek: JELZES })));
+  const forrasNelkul = szovegesBeadas(); delete forrasNelkul.forras;
+  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), forrasNelkul));
 });
 
 test("a diák NEM állíthatja át a saját beadása státuszát", async () => {

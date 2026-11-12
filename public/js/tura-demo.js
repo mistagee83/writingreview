@@ -130,7 +130,8 @@ export function osztalyKartya(opciok = {}) {
 const DIAK = () => t("tura.demo_diak1");
 const FELADAT = () => t("tura.demo_feladat");
 
-const ATIRAT =
+// A példadiák beírt szövege (a hibák szándékosak: ezekre mutat a példa-értékelés).
+const SZOVEG =
   "Dear Tom,\n\n" +
   "Thank you for your letter. I want to tell you about my last holiday. " +
   "Last summer I go to Croatia with my family. We stayed in a small hotel " +
@@ -217,17 +218,15 @@ export function javitasModal() {
           ${esc(DIAK())} – ${esc(FELADAT())}
         </p>
 
-        <div class="m-szekcio" id="tura-demo-fotok">
-          <h4>${esc(t("jav.fotok_cim"))}</h4>
-          <div class="kep-sor">${kezirasKep()}${kezirasKep()}</div>
-        </div>
-
-        <div class="m-szekcio" id="tura-demo-atirat">
-          <h4>${esc(t("jav.atirat_cim"))}
-            <span class="badge inaktiv">${esc(t("jav.olvashatosag_jo"))}</span>
-          </h4>
-          <p class="halvany">${esc(t("jav.atirat_figyelmeztetes"))}</p>
-          <pre class="atirat">${esc(ATIRAT)}</pre>
+        <div class="m-szekcio" id="tura-demo-szoveg">
+          <h4>${esc(t("jav.jelzesek_cim"))}</h4>
+          <ul class="jelzes-lista">
+            <li>${esc(t("jav.jelzes_elhagyas", { db: 1, mp: 12 }))}</li>
+            <li>${esc(t("jav.jelzes_nincs_beillesztes"))}</li>
+          </ul>
+          <p class="halvany">${esc(t("jav.jelzes_tipp"))}</p>
+          <h4 style="margin-top:1rem;">${esc(t("jav.beirt_cim"))}</h4>
+          <pre class="atirat">${esc(SZOVEG)}</pre>
         </div>
 
         <div class="m-szekcio" id="tura-demo-pontok">
@@ -292,23 +291,6 @@ export function javitasModal() {
 
 export function javitasModalZar() {
   meglevoTorles("tura-demo-javito");
-}
-
-/**
- * Kézírásos oldal jelzése – valódi diákmunkát nem tehetünk ide, egy
- * üres négyzet viszont nem mondana semmit.
- */
-function kezirasKep() {
-  const vonalak = Array.from({ length: 7 }, (_, i) =>
-    `<rect x="14" y="${26 + i * 16}" width="${[104, 92, 110, 78, 100, 86, 58][i]}" height="4" rx="2"/>`
-  ).join("");
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 160" width="140" height="160">` +
-    `<rect width="140" height="160" fill="#fffdf8"/>` +
-    `<g fill="#c9c2b4">${vonalak}</g>` +
-    `<text x="14" y="152" font-family="sans-serif" font-size="9" fill="#a09888">${esc(t("tura.demo_pelda_oldal"))}</text>` +
-    `</svg>`;
-  return `<img alt="${esc(t("tura.demo_kep_alt"))}" src="data:image/svg+xml;utf8,${encodeURIComponent(svg)}" />`;
 }
 
 // ══════════════════════════════════════════
@@ -401,10 +383,6 @@ export function elemzesDemo() {
       <div class="stat-card">
         <div class="stat-label">${esc(t("elz.stat_ertekelt"))}</div>
         <div class="stat-value">22</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">${esc(t("elz.stat_nehez"))}</div>
-        <div class="stat-value">3</div>
       </div>
     </div>
 

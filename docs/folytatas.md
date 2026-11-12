@@ -15,7 +15,8 @@ a CI mindkét ágon fut, és a `CLAUDE.md` szabálya átíródott. A `pilot` ág
 Pilot-deploy innentől: `git switch pilot`, majd `node scripts/deploy.mjs pilot --only ...`. Nem kellett deployolni.
 **2a (a kifejtős mód kivezetése a `main`-ről): kész (`f05a6bc`)** (részletek: a terv 7. pont). Az emulátoros
 tesztek (`rules`, `storage`, `functions`, `*-adatbazis`) helyben nem futottak (Java 26 van a gépen, 21 kell): a CI futtatja.
-Következő: 2b (fotós beadás és átírás).
+**2b (a fotós beadás és az átírás kivezetése a `main`-ről): kész** (részletek: a terv 7. pont).
+Az emulátoros tesztek itt sem futottak helyben. Következő: 2c (diákfiók, osztályok, fejlődés-követés).
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 
@@ -245,6 +246,15 @@ cd writingreview
 - Új nyelv felvétele: `mukodesi-leiras.md` 13.4.
 
 ## 5. Ismert hiányosságok és figyelmeztetések
+
+- **JAVÍTVA A `main`-EN (2026-11-12, `eb595d9`), A PILOT ÁGON ÉS ÉLESBEN MÉG NEM: az AI-használat mérése a beírt dolgozatot nem
+  számolta futásnak.** A jelentés (`functions/ai-hasznalat.js`, `jelentesOsszeallitas`) a javítási futást az átírási
+  hívásnál számolta, a beírt dolgozatnak viszont nincs átírása: a költsége beszámított, a darabszáma nem, ezért a
+  dolgozatonkénti átlag (és a számoló ajánlott ára) túl magasra jött ki. Javítás: a futás az értékelési hívás
+  (`beadas_ertekeles`), minden futásban pontosan egy van. Regressziós teszt: `tests/ai-hasznalat.test.mjs` („a beírt
+  dolgozat … is egy futás”). **Pilot:** a `pilot` ágra is át kell vinni (cherry-pick), utána
+  `node scripts/deploy.mjs pilot --only functions`. **Prod:** a régi kódon fut; a prod az átalakítás kiadásával kapja meg.
+  Csak a jelentés számolása változik, a tárolt adat nem: a javítás visszamenőleg is helyes átlagot ad.
 
 - **JAVÍTVA MINDKÉT KÖRNYEZETBEN (pilot 2026-11-05, prod 2026-11-09, `v1.19.1`): a diák nem tudott beadni.** A `beadas.html`
   a beadási felületet a módváltozók (`BEADASI_MOD` stb.) létrehozása előtt jelenítette meg →

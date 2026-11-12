@@ -66,10 +66,9 @@
   import { skalaFeloldas, jegyJavaslat } from './js/skala.js';
   import { szovegJelolve, tartomanyokRendben, beillesztettArany } from './js/iras-jelzes.js';
   import {
-    db, storage, functions, httpsCallable,
+    db, functions, httpsCallable,
     collection, doc, getDoc, getDocs,
-    query, where, orderBy, onSnapshot,
-    storageRef, getDownloadURL
+    query, where, orderBy, onSnapshot
   } from './js/firebase-config.js';
 
   // Az oldalsáv a hitelesítés UTÁN rendereljük: onnan tudjuk, admin-e a
@@ -84,15 +83,6 @@
   const lista = document.getElementById('lista');
   let leiratkozas = null;
 
-  /** Az átírás olvashatósága: az AI kódja (jo / kozepes / gyenge) → szöveg. */
-  function olvashatosagSzoveg(kod) {
-    const szoveg = {
-      jo:       t('jav.olvashatosag_jo'),
-      kozepes:  t('jav.olvashatosag_kozepes'),
-      gyenge:   t('jav.olvashatosag_gyenge')
-    }[kod];
-    return esc(szoveg || kod);
-  }
   let feladatCache = {};
 
   async function feladatCim(feladatId) {
@@ -183,8 +173,6 @@
                 <span>${datum(b.letrehozva)}</span>
                 ${statuszBadge(b.statusz)}
                 ${eredmenyBadge(e)}
-                ${b.atirat_olvashatosag === 'gyenge'
-                  ? `<span class="badge inaktiv">${t('jav.nehezen_olvashato')}</span>` : ''}
               </div>
               ${b.hiba ? `<p class="hiba-szoveg">${esc(beadasHibaSzoveg(b))}</p>` : ''}
             </div>
@@ -298,40 +286,13 @@
       const pontSorok = (tanari?.szempontok?.length ? tanari.szempontok : (ai?.szempontok || []))
         .map((sz) => ({ ...sz, cim: sz.cim || cimek[sz.kulcs] || sz.kulcs }));
 
-      // Dolgozatfotók (a beírt dolgozatnak nincs fotója)
-      const beirt = b.forras === 'szoveg';
-      const kepUrlek = beirt ? [] : await Promise.all(
-        (b.kep_paths || []).map((p) =>
-          getDownloadURL(storageRef(storage, p)).catch(() => null))
-      );
-      if (elavult()) return;
-
       // Beírt dolgozat: a diák szövege, a beillesztett részek megjelölve. A tartományokat a kliens
       // küldte, ezért csak érvényes listát használunk (tartomanyokRendben), és a szöveg escape-elve megy ki.
-      const beirtSzoveg = typeof b.szoveg === 'string' ? b.szoveg : (b.atirat || '');
+      const beirtSzoveg = typeof b.szoveg === 'string' ? b.szoveg : '';
       const jelzes = b.jelzesek || null;
       const kiemelt = jelzes && tartomanyokRendben(jelzes.beillesztett_tartomanyok, beirtSzoveg.length)
         ? jelzes.beillesztett_tartomanyok : [];
       const szam = (v) => (Number.isFinite(Number(v)) ? Math.max(0, Math.floor(Number(v))) : 0);
-
-      const fotokSzekcio = `
-        <div class="m-szekcio">
-          <h4>${t('jav.fotok_cim')}</h4>
-          <div class="kep-sor">
-            ${kepUrlek.filter(Boolean).map((u, i) =>
-              `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="${t('beadas.oldal_alt', { n: i + 1 })}" /></a>`
-            ).join('') || `<p class="halvany">${t('jav.kep_hiba')}</p>`}
-          </div>
-        </div>
-
-        <div class="m-szekcio">
-          <h4>${t('jav.atirat_cim')}
-            ${b.atirat_olvashatosag ? `<span class="badge inaktiv">${olvashatosagSzoveg(b.atirat_olvashatosag)}</span>` : ''}
-          </h4>
-          <p class="halvany">${t('jav.atirat_figyelmeztetes')}</p>
-          <pre class="atirat">${esc(b.atirat || t('jav.nincs_atirat'))}</pre>
-          ${b.atirat_megjegyzes ? `<p class="halvany">${esc(b.atirat_megjegyzes)}</p>` : ''}
-        </div>`;
 
       const beirtSzekcio = `
         <div class="m-szekcio">
@@ -359,7 +320,7 @@
         </div>`;
 
       torzs.innerHTML = `
-        ${beirt ? beirtSzekcio : fotokSzekcio}
+        ${beirtSzekcio}
 
 ${ai ? `
         <div class="m-szekcio">

@@ -202,7 +202,7 @@ test("minden Gemini-hívóhely kontextust ad át (különben kimarad a mérésb�
   // Két alak: közvetlen és kvotaval()-on belüli nyíl-függvény (a return-ös is számít).
   const hivasok = [...forras.matchAll(/await aiHivas\(|=> aiHivas\(|return aiHivas\(/g)].length;
   const muveletek = [...forras.matchAll(/muvelet: "(\w+)"/g)].map((m) => m[1]);
-  assert.equal(hivasok, 4, "a aiHivas() hívóhelyeinek száma változott – nézd át a mérést");
+  assert.equal(hivasok, 3, "a aiHivas() hívóhelyeinek száma változott – nézd át a mérést");
   assert.equal(muveletek.length, hivasok, "minden hívóhelynek van műveletneve");
   for (const m of muveletek) assert.ok(a.MUVELETEK.includes(m), `ismeretlen művelet: ${m}`);
   assert.deepEqual([...new Set(muveletek)].sort(), [...a.MUVELETEK].sort(), "minden művelet előfordul");

@@ -112,7 +112,16 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
      szótári szövegek és tesztek. A nyitóoldal négy kifejtős állítása kiigazítva.
      **Maradt (későbbi takarítás):** a kifejtős CSS-blokk az `app.css`-ben (halott kód); az AI-használat oldalon a „Kifejtős”
      típus (a mérés általános, régi adatnál üres); a `mukodesi-leiras.md` kifejtős fejezetei (a 8. lépés írja át).
-   - **2b – fotós beadás és átírás.**
+   - **2b – fotós beadás és átírás: kész (2026-11-12).** A beadás mindig beírt szöveg: a szerver (`beadasOsszerendeles`) és
+     a Firestore-szabály csak `forras: "szoveg"`-et fogad el, kép- és átirat-mező nélkül. Törölve: az átírás (modell, tartalék,
+     gondolkodási szint, prompt, séma), a képek betöltése, a beadási mód (`beadasi_mod`) és választója a feladat-űrlapon, a fotós
+     panel a `beadas.html`-ből, a fotó- és átirat-rész a javító nézetből és a diák visszajelzéséből, a kézírás olvashatósága
+     (javítási sor, elemzés), a Storage `beadasok/` útvonala, a pilothoz kötött összehasonlító szkriptek
+     (`atiras-osszehasonlitas`, `gemini-osszevetes`; a pilot ágon megvannak), a kapcsolódó szótári szövegek. A bemutató túra a
+     javító nézetben most a beírt szöveget és a jelzéseket mutatja. A tanár feladatlap-feltöltése (kép/PDF → rubrika) marad.
+     **Közben javítva (a pilotot is érinti):** az AI-használat mérése a futást az értékelési hívásnál számolja (lásd
+     `folytatas.md`, Ismert hiányosságok). **Maradt:** a nyitóoldal kézírásról szóló részei (a 8. lépés írja át); a
+     `beadas.html` és a diákfiók a 2c-ben megy.
    - **2c – diákfiók, osztályok, fejlődés-követés.**
 3. **Link és megosztási oldal (tanár).** `linkek` gyűjtemény, `linkInditas` / `linkLezaras` callable, megosztási oldal QR-kóddal
    (helyben tárolt QR-könyvtár, nem CDN), visszaszámlálóval, kivetítéssel.

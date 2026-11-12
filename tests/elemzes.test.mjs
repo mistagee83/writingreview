@@ -104,15 +104,6 @@ test("a címkék gyakoriság szerint csökkenően rendezve", () => {
   assert.equal(r.cimkek[0].db, 2);
 });
 
-test("olvashatóság összesítve", () => {
-  const r = agg([
-    ert("d1", 50, [], [], "jo"),
-    ert("d2", 50, [], [], "gyenge"),
-    ert("d3", 50, [], [], "gyenge")
-  ]);
-  assert.deepEqual(r.olvashatosag, { jo: 1, kozepes: 0, gyenge: 2 });
-});
-
 test("üres és hiányos értékelések nem buktatják el", () => {
   const r = agg([{ diak_id: "d1" }, ert("d2", 50, [], [])]);
   assert.equal(r.ertekelt_db, 2);

@@ -223,7 +223,7 @@ export const LEPESEK = [
   {
     szakasz: "javitas",
     oldal: "javitas.html",
-    cel: "#tura-demo-atirat",
+    cel: "#tura-demo-szoveg",
     cim: "tura.javitas_3_cim",
     szoveg: "tura.javitas_3_szoveg",
     elokeszit: modalNyitas

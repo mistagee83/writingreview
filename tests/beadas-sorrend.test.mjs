@@ -29,8 +29,13 @@ test("beadas.html: a beadasiFelulet() hívása minden legfelső szintű const/le
     `a beadasiFelulet() hívása után még deklaráció jön (TDZ-hiba): ${kesobbi.join(", ")}`);
 });
 
-test("beadas.html: a beadasiFelulet() használja a BEADASI_MOD-ot (a teszt a valódi helyzetet nézi)", () => {
+test("beadas.html: a beadasiFelulet() a modul szintű irasPanel-t használja (a teszt a valódi helyzetet nézi)", () => {
   const def = script.indexOf("function beadasiFelulet()");
   assert.ok(def > 0);
-  assert.ok(script.indexOf("BEADASI_MOD", def) > def);
+  assert.ok(script.indexOf("irasPanel", def) > def);
+  assert.match(script, /^ {2}const irasPanel = /m);
+});
+
+test("beadas.html: nincs fotós beadás (2026-11-12 óta csak beírt szöveg)", () => {
+  assert.doesNotMatch(html, /feltoltes-panel|uploadBytes|kep_paths|BEADASI_MOD/);
 });

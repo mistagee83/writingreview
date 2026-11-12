@@ -45,13 +45,7 @@
     <div class="panel-body" id="allapot-torzs"></div>
   </div>
 
-  <!-- A beadás módja: csak akkor látszik, ha a tanár mindkettőt engedi -->
-  <div class="mod-fulek" id="mod-fulek" style="display:none;" role="group" aria-label="Beadás módja" data-i18n-aria="beadas.mod_aria">
-    <button type="button" class="btn-sm" id="ful-foto" data-i18n="beadas.mod_foto">📷 Lefotózom</button>
-    <button type="button" class="btn-sm" id="ful-szoveg" data-i18n="beadas.mod_szoveg">✍️ Beírom az oldalon</button>
-  </div>
-
-  <!-- BEÍRÁS (ha a tanár engedi) -->
+  <!-- BEÍRÁS -->
   <div class="panel" id="iras-panel" style="display:none;">
     <div class="panel-header"><h2 data-i18n="beadas.iras_cim">✍️ Dolgozat megírása</h2></div>
     <div class="panel-body">
@@ -76,36 +70,6 @@
     </div>
   </div>
 
-  <!-- FELTÖLTÉS -->
-  <div class="panel" id="feltoltes-panel" style="display:none;">
-    <div class="panel-header"><h2 data-i18n="beadas.feltoltes_cim">📷 Dolgozat feltöltése</h2></div>
-    <div class="panel-body">
-      <p class="halvany" data-i18n="beadas.feltoltes_leiras">Fotózd le a dolgozatod minden oldalát jó fényben. Legfeljebb 10 oldalt tölthetsz fel. Feltöltés előtt automatikusan csökkentjük a képek méretét.</p>
-      <!-- A próbán a lap szélén levágott szöveg jelölés nélkül elveszett:
-           amit a fotó nem mutat, azt a javítás sem látja. -->
-      <ul class="foto-tipp">
-        <li data-i18n-html="beadas.tipp1">📐 A <strong>teljes lap</strong> legyen a képen, a széleivel együtt. Ami lemarad a képről, azt az AI nem tudja elolvasni.</li>
-        <li data-i18n-html="beadas.tipp2">↩️ Ha egy válasz a <strong>hátoldalon</strong> folytatódik, azt az oldalt is fotózd le.</li>
-        <li data-i18n="beadas.tipp3">💡 Felülről fotózz. Figyelj rá, hogy ne vetüljön árnyék a lapra, és ne csillanjon meg rajta a vaku fénye.</li>
-      </ul>
-
-      <div class="upload-zone" id="zona">
-        <input type="file" id="fajlok" accept="image/*" multiple capture="environment" />
-        <div class="upload-icon">📷</div>
-        <p data-i18n-html="beadas.zona_fo"><strong>Kattints ide</strong> vagy húzd ide a fotókat</p>
-        <p data-i18n="beadas.zona_al">JPG, PNG – oldalanként egy kép</p>
-      </div>
-
-      <div id="elonezet" class="kep-sor"></div>
-
-      <div class="msg" id="msg"></div>
-
-      <div class="gomb-sor">
-        <button class="btn-primary" id="btn-bead" data-i18n="beadas.bead_gomb" disabled>📤 Beadás</button>
-      </div>
-      <p class="halvany" style="margin-top:0.75rem;" data-i18n="beadas.vegleges">Beadás után már nem módosíthatod vagy cserélheted ki a dolgozatodat.</p>
-    </div>
-  </div>
 </main>
 
 <script type="module">
@@ -113,13 +77,11 @@
   import { vedettOldal, esc, datum } from './js/guard.js';
   import { statuszBadge, STATUSZ_DIAK, uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import { biztonsagosUrl } from './js/biztonsag.js';
-  import { atmeretez, tulNagy, meret } from './js/kep.js';
   import { jelzesFigyelo, szoszam, SZOVEG_MAX } from './js/iras-jelzes.js';
   import {
-    db, storage,
+    db,
     collection, doc, getDoc, getDocs, setDoc,
-    query, where, onSnapshot, serverTimestamp,
-    storageRef, uploadBytes
+    query, where, onSnapshot, serverTimestamp
   } from './js/firebase-config.js';
 
   const { user, profil } = await vedettOldal('diak');
@@ -196,47 +158,20 @@
         ${b.statusz === 'folyamatban' ? '<div class="spinner" style="margin-top:1rem;"></div>' : ''}
         ${b.statusz === 'elkuldve'
           ? `<p style="margin-top:1rem;"><a class="btn-primary" href="visszajelzes.html?id=${esc(beadasId)}" style="text-decoration:none;">${t('beadas.visszajelzes_nyit')}</a></p>`
-          : ''}
-        ${b.atirat && b.forras !== 'szoveg' && ['javitva', 'elkuldve'].includes(b.statusz) ? `
-          <details style="margin-top:1.2rem;">
-            <summary>${t('beadas.atirat_cim')}</summary>
-            <pre class="atirat">${esc(b.atirat)}</pre>
-            <p class="halvany">${t('beadas.atirat_tipp')}</p>
-          </details>` : ''}`;
+          : ''}`;
     });
   }
 
-  // ══════════════════════════════════════════
-  // BEADÁSI MÓD (a tanár állítja feladatonként: foto | szoveg | mindketto)
-  // Az érvényes mód a szabályban és a szerveren is ellenőrzött.
-  // ══════════════════════════════════════════
-  const BEADASI_MOD = ['szoveg', 'mindketto'].includes(r.beadasi_mod)
-    ? r.beadasi_mod : 'foto';
   const NYELV_KOD = { angol: 'en', 'német': 'de', francia: 'fr', spanyol: 'es', olasz: 'it', orosz: 'ru', latin: 'la', magyar: 'hu' };
   const piszkozatKulcs = `wr-piszkozat-${user.uid}-${feladatId}`;
   const tarol = (muvelet) => { try { return muvelet(localStorage); } catch (_) { return null; } };
 
-  const fotoPanel = document.getElementById('feltoltes-panel');
   const irasPanel = document.getElementById('iras-panel');
-  const fulek = document.getElementById('mod-fulek');
-  let irasKesz = null;   // az írás-felület egyszeri előkészítése
 
-  function modMutat(mod) {
-    fotoPanel.style.display = mod === 'foto' ? 'block' : 'none';
-    irasPanel.style.display = mod === 'szoveg' ? 'block' : 'none';
-    document.getElementById('ful-foto').setAttribute('aria-pressed', String(mod === 'foto'));
-    document.getElementById('ful-szoveg').setAttribute('aria-pressed', String(mod === 'szoveg'));
-    if (mod === 'szoveg') irasKesz ??= irasElokeszit();
-  }
-
+  // A beadás mindig beírt szöveg (fotós beadás 2026-11-12 óta nincs a prodban).
   function beadasiFelulet() {
-    if (BEADASI_MOD === 'foto') return modMutat('foto');
-    if (BEADASI_MOD === 'szoveg') return modMutat('szoveg');
-    // mindkettő: a diák választ; ha már van megkezdett szövege, azzal indul
-    fulek.style.display = '';
-    document.getElementById('ful-foto').addEventListener('click', () => modMutat('foto'));
-    document.getElementById('ful-szoveg').addEventListener('click', () => modMutat('szoveg'));
-    modMutat(tarol((ls) => ls.getItem(piszkozatKulcs)) ? 'szoveg' : 'foto');
+    irasPanel.style.display = 'block';
+    irasElokeszit();
   }
 
   function irasElokeszit() {
@@ -285,12 +220,10 @@
           diak_id: user.uid,
           diak_nev: profil.nev || user.email,
           tanar_id: feladat.tanar_id,
-          kep_paths: [],
           forras: 'szoveg',
           szoveg,
           jelzesek: figyelo.dokumentum(szoveg),
           statusz: 'feltoltve',
-          atirat: null,
           hiba: null,
           letrehozva: serverTimestamp(),
           frissitve: serverTimestamp()
@@ -300,8 +233,6 @@
         figyelo.torles();
         figyelo.leallit();
         irasPanel.style.display = 'none';
-        fotoPanel.style.display = 'none';
-        fulek.style.display = 'none';
         allapotFigyel(beadasRef.id);
       } catch (e) {
         console.error(e);
@@ -314,116 +245,9 @@
   }
 
   // ══════════════════════════════════════════
-  // FELTÖLTÉS
-  // ══════════════════════════════════════════
-  let fajlok = [];
-  const elonezet = document.getElementById('elonezet');
-  const btnBead = document.getElementById('btn-bead');
-
-  // Feltöltés alatt a képlista nem módosítható (különben oldal maradna ki a beadásból).
-  let feltoltesFut = false;
-
-  document.getElementById('fajlok').addEventListener('change', async (e) => {
-    if (feltoltesFut) return;
-    uzenetTorles('msg');
-    const ujak = [...e.target.files];
-    if (!ujak.length) return;
-
-    if (fajlok.length + ujak.length > 10) {
-      uzenet('msg', t('beadas.max_oldal'));
-      return;
-    }
-
-    for (const f of ujak) {
-      const kicsi = await atmeretez(f);
-      if (tulNagy(kicsi)) {
-        uzenet('msg', t('beadas.tul_nagy', { nev: f.name, meret: meret(kicsi.size) }));
-        continue;
-      }
-      if (feltoltesFut) return;
-      fajlok.push(kicsi);
-    }
-
-    e.target.value = '';
-    elonezetRajzol();
-  });
-
-  function elonezetRajzol() {
-    elonezet.innerHTML = fajlok.map((f, i) => `
-      <div class="kep-elem">
-        <img src="${URL.createObjectURL(f)}" alt="${t('beadas.oldal_alt', { n: i + 1 })}" />
-        <div class="kep-label">${t('beadas.oldal_cimke', { n: i + 1, meret: meret(f.size) })}</div>
-        <button class="kep-torol" data-i="${i}" type="button">✕</button>
-      </div>`).join('');
-    btnBead.disabled = feltoltesFut || fajlok.length === 0;
-  }
-
-  elonezet.addEventListener('click', (e) => {
-    const b = e.target.closest('.kep-torol');
-    if (!b || feltoltesFut) return;
-    fajlok.splice(Number(b.dataset.i), 1);
-    elonezetRajzol();
-  });
-
-  // ══════════════════════════════════════════
-  // BEADÁS
-  // A doc ID-t előre generáljuk, hogy a Storage-útvonal tartalmazhassa –
-  // a Storage-szabály ebből azonosítja a beadást.
-  // ══════════════════════════════════════════
-  btnBead.addEventListener('click', async () => {
-    uzenetTorles('msg');
-    if (feltoltesFut || fajlok.length === 0) return;
-
-    feltoltesFut = true;
-    document.getElementById('fajlok').disabled = true;
-    const lista = [...fajlok];   // a feltöltés a másolatból dolgozik
-    const vissza = gombVar(btnBead, t('beadas.feltoltes_folyamat'));
-    try {
-      // Kötött azonosító: feladatonként egy beadás diákonként (a szabály kényszeríti).
-      const beadasRef = doc(db, 'beadasok', `${feladatId}_${user.uid}`);
-      const kepPaths = [];
-
-      for (let i = 0; i < lista.length; i++) {
-        btnBead.innerHTML =
-          `<span class="spinner inline"></span>${t('beadas.oldal_haladas', { i: i + 1, ossz: lista.length })}`;
-        // Az időbélyeg miatt egy félbemaradt feltöltés után az újrapróba nem ütközik a
-        // Storage „nem felülírható” szabályával.
-        const path = `beadasok/${user.uid}/${beadasRef.id}/${i + 1}_${Date.now()}_${lista[i].name}`;
-        await uploadBytes(storageRef(storage, path), lista[i]);
-        kepPaths.push(path);
-      }
-
-      await setDoc(beadasRef, {
-        feladat_id: feladatId,
-        osztaly_id: feladat.osztaly_id,
-        diak_id: user.uid,
-        diak_nev: profil.nev || user.email,
-        tanar_id: feladat.tanar_id,
-        kep_paths: kepPaths,
-        statusz: 'feltoltve',
-        atirat: null,
-        hiba: null,
-        letrehozva: serverTimestamp(),
-        frissitve: serverTimestamp()
-      });
-
-      // A Function triggere innentől magától fut; onSnapshot mutatja.
-      document.getElementById('feltoltes-panel').style.display = 'none';
-      allapotFigyel(beadasRef.id);
-    } catch (e) {
-      console.error(e);
-      uzenet('msg', t('beadas.bead_hiba', { ok: hibaSzoveg(e) }));
-      feltoltesFut = false;   // hibánál a lista újra szerkeszthető
-      document.getElementById('fajlok').disabled = false;
-      vissza();
-      elonezetRajzol();
-    }
-  });
-
-  // ══════════════════════════════════════════
   // VAN-E MÁR BEADÁSOM? – és mit mutatunk
   // A SCRIPT VÉGÉN kell lennie: a beadasiFelulet() a fenti const-okat
-  // (BEADASI_MOD, fotoPanel, piszkozatKulcs…) használja, korábbi hívásnál
+  // (irasPanel, piszkozatKulcs…) használja, korábbi hívásnál
   // ReferenceError-ral elszáll, és a diák nem lát beadási felületet.
   // ══════════════════════════════════════════
   const sajatSnap = await getDocs(query(

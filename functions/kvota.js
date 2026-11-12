@@ -13,7 +13,7 @@
 // A számok ÜZLETI döntések: itt egy helyen állíthatók.
 // ══════════════════════════════════════════════════════
 
-/** Egy művelet ára egységben. A beadás (átírás + értékelés, két hívás képpel) a mérték. */
+/** Egy művelet ára egységben. A beadás (egy értékelés) a mérték. */
 const EGYSEG_KOLTSEG = {
   beadas: 1,       // egy dolgozat javítása (új beadás vagy újrafuttatás)
   feladatlap: 1,   // feladatlap → rubrika-javaslat

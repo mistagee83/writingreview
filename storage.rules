@@ -29,17 +29,6 @@ service firebase.storage {
       return request.resource.size < 10 * 1024 * 1024;
     }
 
-    function sajatDiak(diakUid) {
-      return belepve() && request.auth.uid == diakUid;
-    }
-
-    // A tanár hozzáférését a Firestore-beli beadás tanar_id-je dönti el
-    // (cross-service rules: a Storage szabály olvashat Firestore-t).
-    function beadasTanara(beadasId) {
-      return tanar()
-        && firestore.get(/databases/(default)/documents/beadasok/$(beadasId)).data.tanar_id == request.auth.uid;
-    }
-
     // ══════════════════════════════════════════
     // FELADATLAPOK
     // A diák nem innen olvassa: a feladat dokumentumban tárolt
@@ -59,25 +48,8 @@ service firebase.storage {
       allow update, delete: if false;
     }
 
-    // ══════════════════════════════════════════
-    // DOLGOZATFOTÓK
-    // ══════════════════════════════════════════
-    match /beadasok/{diakUid}/{beadasId}/{fajl} {
-      // Ha a beadás dokumentum még nem létezik, a beadasTanara() tiltásra
-      // értékelődik – ez rendben van, a tanár csak létező beadást nézhet.
-      allow read: if sajatDiak(diakUid) || beadasTanara(beadasId);
-
-      allow create: if resource == null
-        && belepve()
-        && request.auth.uid == diakUid
-        && kepVagyPdf()
-        && maxTizMega();
-
-      // A beadott dolgozat nem cserélhető ki és nem törölhető utólag.
-      allow update, delete: if false;
-    }
-
     // ── MINDEN MÁS TILTOTT ──
+    // A dolgozatfotók útvonala (beadasok/) 2026-11-12 óta nincs: a beadás beírt szöveg.
     match /{allPaths=**} {
       allow read, write: if false;
     }

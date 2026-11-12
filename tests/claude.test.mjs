@@ -91,7 +91,7 @@ test("a séma-átalakítás: additionalProperties:false, a nem támogatott megsz
 });
 
 test("az éles sémák mind átalakíthatók (nem marad bennük tiltott kulcs, minden objektum zárt)", () => {
-  const semak = [t.ATIRAT_SCHEMA, t.ERTEKELES_SCHEMA, t.rubrikaSchema("magyar"), t.rubrikaSchema("angol")];
+  const semak = [t.ERTEKELES_SCHEMA, t.rubrikaSchema("magyar"), t.rubrikaSchema("angol")];
   const ellenoriz = (x, utvonal) => {
     if (!x || typeof x !== "object") return;
     if (Array.isArray(x)) return x.forEach((e, i) => ellenoriz(e, `${utvonal}[${i}]`));
@@ -118,16 +118,16 @@ test("a kérésrészek: szöveg → text, kép → image, PDF → document; üre
   ]);
 });
 
-test("az átírás Sonnet 5.5-tel, alacsony efforttal, sémával megy; a válasz és a tokenszám visszajön", async () => {
+test("a hívás Sonnet 5.5-tel, sémával megy; a válasz és a tokenszám visszajön (a rubrika medium efforttal)", async () => {
   mock(OK({ atirat: "Dear John" }));
-  const { eredmeny, modell, hasznalat } = await t.aiHivas("atiras", [{ text: "Írd át." }], SEMA);
+  const { eredmeny, modell, hasznalat } = await t.aiHivas("rubrika", [{ text: "Írd át." }], SEMA);
   assert.deepEqual(eredmeny, { atirat: "Dear John" });
   assert.equal(modell, "claude-sonnet-5-5");
   assert.deepEqual(hasznalat, { prompt: 1000, kimenet: 200, gondolkodas: 0, ossz: 1200 });
   const b = keresek[0].body;
   assert.match(keresek[0].url, /\/v1\/messages$/);
   assert.equal(b.model, "claude-sonnet-5-5");
-  assert.equal(b.output_config.effort, "low");
+  assert.equal(b.output_config.effort, "medium");
   assert.equal(b.output_config.format.type, "json_schema");
   assert.equal(b.output_config.format.schema.additionalProperties, false);
   assert.equal(b.temperature, undefined, "a temperature-t az új API elutasítja");
@@ -160,13 +160,13 @@ test("túlterhelés (529) után újrapróbál és sikerrel jár", async () => {
 
 test("400-as hibát NEM ismételget, és a hibában ott a modell neve", async () => {
   mock(HIBA(400, "invalid schema"), OK({ atirat: "nem kéne" }));
-  await assert.rejects(t.aiHivas("atiras", [{ text: "x" }], SEMA), /Claude \(claude-sonnet-5-5\).*400/);
+  await assert.rejects(t.aiHivas("rubrika", [{ text: "x" }], SEMA), /Claude \(claude-sonnet-5-5\).*400/);
   assert.equal(keresek.length, 1);
 });
 
 test("elutasítás (refusal) beszédes hibát ad, a tokenadattal", async () => {
   mock(OK({}, { stop_reason: "refusal", content: [] }));
-  await assert.rejects(t.aiHivas("atiras", [{ text: "x" }], SEMA), (e) => {
+  await assert.rejects(t.aiHivas("rubrika", [{ text: "x" }], SEMA), (e) => {
     assert.match(e.message, /refusal/);
     assert.equal(e.hasznalat.prompt, 1000);
     return true;
@@ -179,7 +179,7 @@ test("a kapcsoló visszaállítható: gemini-re váltva a Gemini végpontját h�
     keresek.push(String(url));
     return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ text: "{\"atirat\":\"g\"}" }] } }] }) };
   };
-  const { modell } = await t.aiHivas("atiras", [{ text: "x" }], SEMA);
+  const { modell } = await t.aiHivas("rubrika", [{ text: "x" }], SEMA);
   assert.match(keresek[0], /generativelanguage\.googleapis\.com/);
   assert.match(modell, /^gemini-/);
 });

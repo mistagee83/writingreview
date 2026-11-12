@@ -72,50 +72,13 @@ const nemBelepett = () => env.unauthenticatedContext().storage();
 const BEADAS_KEP = `beadasok/${DIAK}/${BEADAS}/1.jpg`;
 const FELADATLAP = `feladatlapok/${TANAR}/lap.jpg`;
 
-// ── Dolgozatfotók ──
+// ── Dolgozatfotók: 2026-11-12 óta nincs ilyen útvonal (a beadás beírt szöveg) ──
 
-test("a diák olvashatja a saját dolgozatfotóját", async () => {
-  await assertSucceeds(getBytes(ref(diak(), BEADAS_KEP)));
-});
-
-test("a beadás tanára olvashatja a dolgozatfotót", async () => {
-  await assertSucceeds(getBytes(ref(tanar(), BEADAS_KEP)));
-});
-
-test("idegen diák NEM olvashatja a dolgozatfotót", async () => {
-  await assertFails(getBytes(ref(diak2(), BEADAS_KEP)));
-});
-
-test("idegen tanár NEM olvashatja a dolgozatfotót", async () => {
-  await assertFails(getBytes(ref(tanar2(), BEADAS_KEP)));
-});
-
-test("be nem lépett kliens NEM olvashatja a dolgozatfotót", async () => {
-  await assertFails(getBytes(ref(nemBelepett(), BEADAS_KEP)));
-});
-
-test("beadás-dokumentum nélkül a tanár NEM olvashatja a fotót", async () => {
-  await env.withSecurityRulesDisabled(async (ctx) => {
-    await uploadBytes(ref(ctx.storage(), `beadasok/${DIAK}/nincs-doksi/1.jpg`), BAJTOK, KEP);
-  });
-  await assertFails(getBytes(ref(tanar(), `beadasok/${DIAK}/nincs-doksi/1.jpg`)));
-});
-
-test("a diák feltöltheti a saját fotóját (kép és PDF), idegen mappába nem", async () => {
-  await assertSucceeds(uploadBytes(ref(diak(), `beadasok/${DIAK}/uj-beadas/2.jpg`), BAJTOK, KEP));
-  await assertSucceeds(uploadBytes(ref(diak(), `beadasok/${DIAK}/uj-beadas/3.pdf`), BAJTOK, PDF));
-  await assertFails(uploadBytes(ref(diak(), `beadasok/${DIAK2}/uj-beadas/2.jpg`), BAJTOK, KEP));
-  await assertFails(uploadBytes(ref(nemBelepett(), `beadasok/${DIAK}/uj-beadas/4.jpg`), BAJTOK, KEP));
-});
-
-test("dolgozatfotó: nem kép/PDF típus és a 10 MB-os méret tiltott", async () => {
-  await assertFails(uploadBytes(ref(diak(), `beadasok/${DIAK}/uj/x.html`), BAJTOK, { contentType: "text/html" }));
-  await assertFails(uploadBytes(ref(diak(), `beadasok/${DIAK}/uj/x.jpg`), new Uint8Array(10 * 1024 * 1024), KEP));
-});
-
-test("a beadott fotó nem írható felül és nem törölhető (diák, tanár sem)", async () => {
-  await assertFails(uploadBytes(ref(diak(), BEADAS_KEP), BAJTOK, KEP));
-  await assertFails(deleteObject(ref(diak(), BEADAS_KEP)));
+test("a régi dolgozatfotó-útvonal mindenki elől zárva (a saját diáknak és a tanárnak is)", async () => {
+  for (const st of [diak(), diak2(), tanar(), tanar2(), nemBelepett()]) {
+    await assertFails(getBytes(ref(st, BEADAS_KEP)));
+  }
+  await assertFails(uploadBytes(ref(diak(), `beadasok/${DIAK}/uj-beadas/2.jpg`), BAJTOK, KEP));
   await assertFails(deleteObject(ref(tanar(), BEADAS_KEP)));
 });
 

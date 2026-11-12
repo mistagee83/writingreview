@@ -72,12 +72,7 @@ const REGION = "europe-west1";
 // beküldött tartalmat a termékei fejlesztéséhez. Kiskorúak dolgozataival
 // ez nem járható – fizetős szintű API kulcs kell.
 const MODELLEK = {
-  // Kézírás felolvasása fotóról. Itt a legnagyobb a hibalehetőség, és egy
-  // félreolvasás rosszul értékelt dolgozatot eredményez – ne vigyük lejjebb,
-  // amíg nincs összehasonlító mérés.
-  atiras: "gemini-3.8-flash",
-
-  // Az átirat értékelése a rubrika szerint. Szöveg-only, de érdemi
+  // A beírt dolgozat értékelése a rubrika szerint. Szöveg-only, de érdemi
   // gondolkodást kér (pontozás, hibakategorizálás).
   ertekeles: "gemini-3.8-flash",
 
@@ -100,47 +95,36 @@ const MODELLEK = {
 // az volt a cél, hogy mindenki ugyanazzal a mércével mérődjön. Inkább maradjon
 // "hiba" státuszban és futtasd újra később.
 //
-// Az átírás (OCR) és a rubrika-javaslat nem ilyen: az elsőt a tanár
-// ellenőrzi az átiraton, a másodikat az űrlapon. Melyik modell dolgozott,
-// azt az atirat_model / model mező rögzíti.
+// A rubrika-javaslat nem ilyen: a tanár az űrlapon ellenőrzi. Melyik modell
+// dolgozott, azt a model mező rögzíti.
 const TARTALEK = {
-  atiras: ["gemini-3.7-flash", "gemini-3.5-flash-lite"],
   ertekeles: [],
   rubrika: ["gemini-3.7-flash", "gemini-3.5-flash-lite"],
   elemzes: ["gemini-3.7-flash"]
 };
 
 // ── GONDOLKODÁSI SZINT LÉPÉSENKÉNT ──
-// A gondolkodási (thinking) tokenek kimenetként számlázódnak, és az első éles
-// mérésben (13 dolgozat) a költség nagy része a kimenet+gondolkodás volt: az
-// átírás hívásonként ~2900 ilyen tokent használt egy ~150 szavas levélnél.
-// A kézírás felolvasása lényegében OCR, nem kell hozzá hosszú gondolkodás.
-// A "low" a legalacsonyabb szint, amit a 3.8 és a 3.7 Flash is elfogad (kikapcsolni
-// nem lehet, a "minimal" csak a Flash-Lite-on érvényes), és mindhárom
-// átírás-modellen érvényes – a tartalék-láncban sem dob 400-as hibát.
-// Ami itt nincs felsorolva, az a modell alapértelmezését kapja (medium).
-// Az értékelést (pontozás) szándékosan nem vesszük vissza, amíg nincs
-// összehasonlító mérés: ott a gondolkodás számíthat a pontosságra.
-const GONDOLKODAS = {
-  atiras: "low"
-};
+// A gondolkodási (thinking) tokenek kimenetként számlázódnak. Ami itt nincs
+// felsorolva, az a modell alapértelmezését kapja (medium). Az értékelést
+// (pontozás) szándékosan nem vesszük vissza, amíg nincs összehasonlító mérés:
+// ott a gondolkodás számíthat a pontosságra. (A kézírás-átírás "low" szintje a
+// 2b lépéssel az átírással együtt kikerült; a pilot ágon megvan.)
+const GONDOLKODAS = {};
 
 // ── CLAUDE (AI_SZOLGALTATO=claude) ──
 // Minden lépés Claude Sonnet 5.5 ($2 be / $10 ki, 1M token; a gondolkodás kimenetként számlázódik).
 // Tartalék modell nincs: átmeneti hibánál ugyanazt a modellt próbálja újra (UJRAPROBA).
 // A gondolkodás mélysége itt az effort ("low" | "medium" | "high"); ami nincs felsorolva, a modell
-// alapértelmezését kapja. Az átírás (OCR) a Geminihez hasonlóan alacsony szinten megy.
+// alapértelmezését kapja.
 const CLAUDE_MODELLEK = {
-  atiras: "claude-sonnet-5-5",
   ertekeles: "claude-sonnet-5-5",
   rubrika: "claude-sonnet-5-5",
   elemzes: "claude-sonnet-5-5"
 };
-const CLAUDE_TARTALEK = { atiras: [], ertekeles: [], rubrika: [], elemzes: [] };
+const CLAUDE_TARTALEK = { ertekeles: [], rubrika: [], elemzes: [] };
 // A gondolkodás a max_tokens-be számít: az első éles rubrika-hívás (2026-11-04) alapszinten (high)
 // kifutott a 16 000 tokenből. A rubrikát a tanár úgyis átnézi, az elemzést ő olvassa: ott elég a medium.
 const CLAUDE_EFFORT = {
-  atiras: "low",
   rubrika: "medium",
   elemzes: "medium"
 };
@@ -541,7 +525,7 @@ async function claudeKeres(modell, parts, schema, effort) {
  * szolgáltatásfiók, gs:// URI base64 helyett), csak a geminiKeres()-t
  * kell átírni.
  *
- * @param {string} lepes 'atiras' | 'ertekeles' | 'rubrika'
+ * @param {string} lepes 'ertekeles' | 'rubrika' | 'elemzes'
  * @param {{tanar_id, muvelet, feladat_id?, beadas_id?, mod?}} [kontextus] kell az
  *   AI-használat mérésének (ai_hasznalat); nélküle nem készül rekord
  * @returns {Promise<{eredmeny: object, modell: string, hasznalat: object}>} a válasz,
@@ -609,26 +593,16 @@ async function aiHasznalatNaplo(kontextus, adat, firestore = null) {
   }
 }
 
-/**
- * A beadás dokumentumot a kliens hozza létre, ezért a benne lévő hivatkozásokban
- * nem bízunk: a feladatnak ugyanahhoz az osztályhoz és tanárhoz kell tartoznia,
- * a képek pedig a diák saját feltöltési mappájából valók. Különben egy hamis
- * beadással idegen Storage-fájl olvastatható ki (az Admin SDK nem ismeri a
- * Storage-szabályokat), vagy más tanár nevében lehetne beadni/jóváhagyni.
- * Hibakódot ad vissza (vagy null, ha rendben van); a letöltés és az AI-hívás előtt hívandó.
- */
-const KEP_UT_MAX_HOSSZ = 500;
 /** A beírt beadás szövegének felső határa (a Firestore-szabály és a kliens is ezt tartja). */
 const BEIRT_SZOVEG_MAX = 20000;
 
 /**
- * A feladat beadási módja (a tanár állítja a rubrikában): "foto" | "szoveg" | "mindketto".
- * Hiányzó vagy ismeretlen érték = "foto" (a régi feladatok fotósak maradnak).
+ * A beadás dokumentumot a kliens hozza létre, ezért a benne lévő hivatkozásokban
+ * nem bízunk: a feladatnak ugyanahhoz az osztályhoz és tanárhoz kell tartoznia,
+ * különben más tanár nevében lehetne beadni/jóváhagyni. A beadás mindig beírt
+ * szöveg (fotós beadás 2026-11-12 óta nincs a prodban). Hibakódot ad vissza
+ * (vagy null, ha rendben van); az AI-hívás előtt hívandó.
  */
-function beadasiMod(feladat) {
-  const m = feladat?.rubrika?.beadasi_mod;
-  return m === "szoveg" || m === "mindketto" ? m : "foto";
-}
 
 function beadasOsszerendeles(beadasId, beadas, feladat) {
   const szoveg = (v) => typeof v === "string" && v.length > 0;
@@ -637,42 +611,11 @@ function beadasOsszerendeles(beadasId, beadas, feladat) {
   if (!szoveg(beadas.tanar_id) || beadas.tanar_id !== feladat.tanar_id) return "tanar_nem_egyezik";
   if (!szoveg(beadas.diak_id)) return "diak_hianyzik";
 
-  // Beírt dolgozat: nincs kép, és a feladat engedi (csak fogalmazás-feladat). A szöveget a kliens
-  // írta, ezért a hosszát itt is ellenőrizzük (a szabály ugyanezt teszi).
-  if (beadas.forras === "szoveg") {
-    if (beadasiMod(feladat) === "foto") return "mod_nem_egyezik";
-    if (typeof beadas.szoveg !== "string" || beadas.szoveg.trim().length === 0
-        || beadas.szoveg.length > BEIRT_SZOVEG_MAX) return "szoveg_nincs";
-    if (Array.isArray(beadas.kep_paths) && beadas.kep_paths.length > 0) return "kep_es_szoveg";
-    return null;
-  }
-  if (beadasiMod(feladat) === "szoveg") return "mod_nem_egyezik";
-
-  const elotag = `beadasok/${beadas.diak_id}/${beadasId}/`;
-  const utak = beadas.kep_paths;
-  if (!Array.isArray(utak) || utak.length === 0) return "kep_nincs";
-  const rossz = utak.some((u) =>
-    !szoveg(u) || u.length > KEP_UT_MAX_HOSSZ || !u.startsWith(elotag)
-    || u.length === elotag.length || u.includes(".."));
-  return rossz ? "kep_ut_idegen" : null;
-}
-
-/**
- * A beadás képei együtt: a szabály 10 × 10 MiB-ot enged, a Gemini inline kérésének
- * mérete viszont korlátos (~20 MB, base64-ben 4/3-szoros). A kliens 1500 px-re
- * kicsinyít, tehát ez csak a hamis/szokatlan kérést fogja meg – a letöltés ELŐTT.
- */
-const KEP_OSSZ_MAX = 14 * 1024 * 1024;
-async function kepekBetoltese(utak) {
-  const bucket = getStorage().bucket();
-  const meretek = await Promise.all(utak.map(async (u) => {
-    const [meta] = await bucket.file(u).getMetadata();
-    return Number(meta.size) || 0;
-  }));
-  if (meretek.reduce((a, b) => a + b, 0) > KEP_OSSZ_MAX) {
-    throw new Error("A feltöltött fájlok együtt túl nagyok (legfeljebb 14 MB).");
-  }
-  return Promise.all(utak.map(fajlBase64));
+  // A szöveget a kliens írta, ezért a hosszát itt is ellenőrizzük (a szabály ugyanezt teszi).
+  if (beadas.forras !== "szoveg") return "mod_nem_egyezik";
+  if (typeof beadas.szoveg !== "string" || beadas.szoveg.trim().length === 0
+      || beadas.szoveg.length > BEIRT_SZOVEG_MAX) return "szoveg_nincs";
+  return null;
 }
 
 /** Storage-fájl → base64 + mimeType. */
@@ -822,18 +765,7 @@ function rubrikaSchema(nyelv) {
   };
 }
 
-/** Kézírás → átirat. */
-const ATIRAT_SCHEMA = {
-  type: "object",
-  properties: {
-    atirat: { type: "string" },
-    olvashatosag: { type: "string", enum: ["jo", "kozepes", "gyenge"] },
-    megjegyzes: { type: "string" }
-  },
-  required: ["atirat", "olvashatosag"]
-};
-
-/** Átirat + rubrika → értékelés. */
+/** A beírt szöveg + rubrika → értékelés. */
 const ERTEKELES_SCHEMA = {
   type: "object",
   properties: {
@@ -915,25 +847,7 @@ const ELEMZES_SCHEMA = {
 // változnak. Így minden diák ugyanazzal a mércével mérődik.
 // ══════════════════════════════════════════════════════
 
-function atiratPrompt(nyelv) {
-  return `Te egy pontos átíró vagy. A képeken egy diák kézzel írt dolgozata
-látható. A dolgozat nyelve: ${nyelv}.
-
-Írd át SZÓ SZERINT, amit látsz. Fontos szabályok:
-- A ${nyelv} nyelv ékezeteit és különleges karaktereit pontosan add vissza.
-- NE javítsd a hibákat – a nyelvtani, helyesírási és írásjel-hibákat is
-  pontosan úgy add vissza, ahogy a diák írta. Az értékelést más végzi.
-- Ha egy szó olvashatatlan, jelöld így: [?]
-- Ha egy szó bizonytalan, írd le a legjobb tippet, utána [?]
-- A bekezdéseket és sortöréseket tartsd meg.
-- Az áthúzott (kihúzott, kisatírozott) szöveget hagyd ki, mintha ott sem
-  lenne. Ne írd be, és ne tegyél a helyére semmilyen jelölőt vagy megjegyzést.
-- Ha több kép van, azok egy dolgozat egymást követő oldalai.
-
-Az olvashatosag mezőben értékeld, mennyire volt olvasható a kézírás.`;
-}
-
-function ertekelesPrompt(feladat, atirat, { beirt = false } = {}) {
+function ertekelesPrompt(feladat, szoveg) {
   const r = feladat.rubrika || {};
   const szempontok = (r.szempontok || [])
     .map((sz) => `  - ${sz.kulcs} ("${sz.cim}"): max ${sz.suly} pont`)
@@ -976,9 +890,9 @@ ${r.egyeb_utasitas ? `\nA tanár külön kérése:\n${r.egyeb_utasitas}` : ""}
 # ÉRTÉKELÉSI SZEMPONTOK
 ${szempontok || "  - nincs megadva"}
 
-# A DIÁK DOLGOZATA (${beirt ? "a diák beírta" : "kézírásból átírva"})
+# A DIÁK DOLGOZATA (a diák beírta)
 """
-${atirat}
+${szoveg}
 """
 
 # UTASÍTÁSOK
@@ -993,8 +907,6 @@ ${atirat}
    "article_missing"; németnél pl. "dativ_falsch", "wortstellung") –
    ezekből készül az osztályszintű típushiba-statisztika, ezért
    ugyanarra a hibafajtára MINDIG ugyanazt a címkét használd.
-   Az átiratban [?] jelöli az olvashatatlan részeket – ezeket NE
-   számold hibának.
 3. A "diak_szoveg" a diáknak szóló visszajelzés ${kim.hatarozoNagy}: barátságos,
    konstruktív hangnem, 3-5 bekezdés. Kezdd azzal, ami sikerült.
    Ne sorold fel az összes hibát – emeld ki a 2-3 legfontosabbat.
@@ -1308,14 +1220,12 @@ async function feldolgozBeadasBelso(beadasId, opciok = {}) {
 
   if (!feladat.rubrika) throw new Error("A feladathoz nincs rubrika.");
 
-  // Letöltés és AI-hívás előtt: a kliens írta hivatkozások ellenőrzése.
+  // AI-hívás előtt: a kliens írta hivatkozások ellenőrzése.
   const osszerendeles = beadasOsszerendeles(beadasId, beadas, feladat);
   if (osszerendeles) {
     logger.warn("Érvénytelen beadás-összerendelés", { beadasId, ok: osszerendeles });
     throw new Error("A beadás adatai nem egyeznek a feladattal.");
   }
-
-  const kepPaths = beadas.kep_paths;
 
   const futasId = await beadasFoglalas(firestore, beadasRef, opciok);
   if (!futasId) {
@@ -1325,58 +1235,22 @@ async function feldolgozBeadasBelso(beadasId, opciok = {}) {
 
   // A hiba mentéséhez a hívó a futásazonosítót is megkapja (hibaraAllit).
   try {
-    return await feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat, feladatRef: feladatSnap.ref, kepPaths, futasId });
+    return await feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat, futasId });
   } catch (e) {
     e.futasId = futasId;
     throw e;
   }
 }
 
-async function feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat, feladatRef, kepPaths, futasId }) {
-  // ── 1. lépés: átírás ──
-  // Külön lépés, hogy a tanár lássa, mit olvasott ki az AI – e nélkül
-  // nem lehet megállapítani, hogy a diák hibázott vagy az AI félreolvasott.
-  // BEÍRT dolgozatnál nincs mit átírni: a diák szövege maga az átirat (nincs AI-hívás, nincs kép).
-  let atirat;
-  let atirasModell = null;
-  if (beadas.forras === "szoveg") {
-    atirat = beadas.szoveg.trim();
-    await futasFrissites(beadasRef, futasId, {
-      atirat,
-      atirat_olvashatosag: null,
-      atirat_megjegyzes: null,
-      atirat_model: null,
-      frissitve: FieldValue.serverTimestamp()
-    });
-  } else {
-    const kepek = await kepekBetoltese(kepPaths);
-    const { eredmeny: atiratValasz, modell } = await aiHivas(
-      'atiras',
-      [{ text: atiratPrompt(nyelve(feladat.rubrika)) }, ...kepek],
-      ATIRAT_SCHEMA,
-      { tanar_id: beadas.tanar_id, muvelet: "beadas_atiras", mod: "leveles", feladat_id: beadas.feladat_id, beadas_id: beadasId }
-    );
-    atirasModell = modell;
+async function feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat, futasId }) {
+  // A diák szövege maga az értékelendő szöveg: nincs átírás, nincs kép.
+  const szoveg = beadas.szoveg.trim();
 
-    atirat = (atiratValasz.atirat || "").trim();
-    if (!atirat) throw new Error("Az átírás üres szöveget adott.");
-
-    await futasFrissites(beadasRef, futasId, {
-      atirat,
-      atirat_olvashatosag: atiratValasz.olvashatosag || null,
-      atirat_megjegyzes: atiratValasz.megjegyzes || null,
-      // Melyik modell olvasta fel – e nélkül utólag nem lehet
-      // összehasonlítani két modell kézírás-pontosságát.
-      atirat_model: atirasModell,
-      frissitve: FieldValue.serverTimestamp()
-    });
-  }
-
-  // ── 2. lépés: értékelés a SZÖVEG alapján ──
-  // Így a rubrika módosítása után fillérekért újrafuttatható, kép nélkül.
+  // ── Értékelés a szöveg alapján ──
+  // A rubrika módosítása után fillérekért újrafuttatható.
   const { eredmeny: ertekeles, modell: ertekelesModell } = await aiHivas(
     'ertekeles',
-    [{ text: ertekelesPrompt({ ...feladat }, atirat, { beirt: beadas.forras === "szoveg" }) }],
+    [{ text: ertekelesPrompt({ ...feladat }, szoveg) }],
     ERTEKELES_SCHEMA,
     { tanar_id: beadas.tanar_id, muvelet: "beadas_ertekeles", mod: "leveles", feladat_id: beadas.feladat_id, beadas_id: beadasId }
   );
@@ -1402,7 +1276,6 @@ async function feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat,
       diak_szoveg: skala.bekezdesekre(ertekeles.diak_szoveg),
       szoszam: ertekeles.szoszam || null,
       model: ertekelesModell,
-      atirat_model: atirasModell,
       generalva: FieldValue.serverTimestamp()
     });
 
@@ -1699,10 +1572,7 @@ exports._teszt = {
   belsoHiba,
   elemzesAggregalas,
   elemzesPrompt,
-  atiratPrompt,
-  ATIRAT_SCHEMA,
   ERTEKELES_SCHEMA,
-  kepekBetoltese,
   geminiKeres,
   claudeKeres,
   claudeSema,
@@ -1726,7 +1596,6 @@ exports._teszt = {
   csatlakozasLogika,
   jovahagyasLogika,
   beadasOsszerendeles,
-  beadasiMod,
   BEIRT_SZOVEG_MAX,
   beadasFoglalas,
   feldolgozBeadas,
@@ -2926,7 +2795,6 @@ function elemzesAggregalas(ertekelesek) {
   const szempontOsszeg = {};   // kulcs → { pont, max, db }
   const kategoriaDb = {};      // kategoria → { db, diakok:Set }
   const cimkeDb = {};          // "kategoria/tipus" → { db, diakok:Set }
-  const olvashatosag = { jo: 0, kozepes: 0, gyenge: 0 };
   const hibaMinta = [];
 
   for (const e of ertekelesek) {
@@ -2956,10 +2824,6 @@ function elemzesAggregalas(ertekelesek) {
         });
       }
     }
-
-    if (e.olvashatosag && olvashatosag[e.olvashatosag] !== undefined) {
-      olvashatosag[e.olvashatosag]++;
-    }
   }
 
   const szazalekok = ertekelesek
@@ -2986,7 +2850,6 @@ function elemzesAggregalas(ertekelesek) {
     cimkek: Object.values(cimkeDb)
       .map((c) => ({ tipus: c.tipus, kategoria: c.kategoria, db: c.db, erintett_diak: c.diakok.size }))
       .sort((a, b) => b.db - a.db),
-    olvashatosag,
     hibaMinta
   };
 }
@@ -3094,8 +2957,7 @@ exports.feladatElemzes = onCall(
       if (!ai.exists) continue;
       const ert = {
         ...ai.data(),
-        diak_id: d.data().diak_id,
-        olvashatosag: d.data().atirat_olvashatosag || null
+        diak_id: d.data().diak_id
       };
       ertekelesek.push(ert);
     }

@@ -52,30 +52,6 @@ test("a támogatott nyelvek átmennek", () => {
 });
 
 // ══════════════════════════════════════════
-// Az átírás promptja
-// ══════════════════════════════════════════
-
-test("az átírás promptja tartalmazza a nyelvet", () => {
-  for (const ny of t.NYELVEK) {
-    const p = t.atiratPrompt(ny);
-    assert.match(p, new RegExp(`A dolgozat nyelve: ${ny}`), `${ny} nem szerepel`);
-  }
-});
-
-test("az átírás kihagyatja az áthúzott szöveget, jelölő nélkül", () => {
-  // Regresszió: a leveles prompt hallgatott az áthúzásról, és alacsony gondolkodásnál az áthúzott
-  // szavak élő szövegként (vagy "[áthúzva: …]" jelölővel) kerültek az átiratba.
-  const leveles = t.atiratPrompt("angol");
-  assert.match(leveles, /áthúzott[^.]*hagyd ki/);
-  assert.match(leveles, /ne tegyél a helyére semmilyen jelölőt/);
-});
-
-test("német átíráskor NEM állítja, hogy angol dolgozat", () => {
-  const p = t.atiratPrompt("német");
-  assert.equal(/angol/i.test(p), false, "az angol szó nem szerepelhet német promptban");
-});
-
-// ══════════════════════════════════════════
 // Az értékelés promptja
 // ══════════════════════════════════════════
 

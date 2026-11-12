@@ -70,12 +70,12 @@ async function beadasLetrehoz(beadas, rubrikaFelul = {}) {
   });
   await firestore.collection("beadasok").doc("b1").set({
     feladat_id: "f1", osztaly_id: "o1", diak_id: "d1", tanar_id: "t1",
-    statusz: "feltoltve", atirat: null, hiba: null, frissitve: new Date(), ...beadas
+    statusz: "feltoltve", hiba: null, frissitve: new Date(), ...beadas
   });
 }
 
-test("beírt beadás: nincs átíró AI-hívás és nincs képletöltés, csak az értékelés fut, és a beadás kijavított lesz", async () => {
-  await beadasLetrehoz({ forras: "szoveg", szoveg: `  ${SZOVEG}  `, kep_paths: [] }, { beadasi_mod: "szoveg" });
+test("beírt beadás: egyetlen AI-hívás (az értékelés), kép nélkül, és a beadás kijavított lesz", async () => {
+  await beadasLetrehoz({ forras: "szoveg", szoveg: `  ${SZOVEG}  ` });
   const kerek = [];
   geminiStub(kerek);
 
@@ -89,24 +89,22 @@ test("beírt beadás: nincs átíró AI-hívás és nincs képletöltés, csak a
 
   const b = (await firestore.collection("beadasok").doc("b1").get()).data();
   assert.equal(b.statusz, "javitva");
-  assert.equal(b.atirat, SZOVEG, "az átirat a (levágott) beírt szöveg");
-  assert.equal(b.atirat_model, null);
-  assert.equal(b.atirat_olvashatosag, null);
+  assert.equal(b.atirat, undefined, "átirat nincs: a beírt szöveg maga az értékelendő szöveg");
   const ai = (await firestore.collection("beadasok").doc("b1").collection("ertekeles").doc("ai").get()).data();
   assert.equal(ai.osszpontszam, 7);
-  assert.equal(ai.atirat_model, null);
+  assert.equal(ai.atirat_model, undefined);
 });
 
-test("a mérésben csak az értékelés szerepel (az átírás nem fogyaszt tokent)", async () => {
-  await beadasLetrehoz({ forras: "szoveg", szoveg: SZOVEG, kep_paths: [] }, { beadasi_mod: "szoveg" });
+test("a mérésben csak az értékelés szerepel", async () => {
+  await beadasLetrehoz({ forras: "szoveg", szoveg: SZOVEG });
   geminiStub([]);
   await logika.feldolgozBeadas("b1");
   const muveletek = (await firestore.collection("ai_hasznalat").get()).docs.map((d) => d.data().muvelet);
   assert.deepEqual(muveletek, ["beadas_ertekeles"]);
 });
 
-test("beírt beadás fotós feladatnál: nem fut AI-hívás, a beadás hibaállapotba kerülhet (összerendelési hiba)", async () => {
-  await beadasLetrehoz({ forras: "szoveg", szoveg: SZOVEG, kep_paths: [] });   // nincs beadasi_mod → fotó
+test("fotós (képutas) beadás: nem fut AI-hívás, a feldolgozás elutasítja (összerendelési hiba)", async () => {
+  await beadasLetrehoz({ kep_paths: ["beadasok/d1/b1/1.jpg"] });
   const kerek = [];
   geminiStub(kerek);
   await assert.rejects(() => logika.feldolgozBeadas("b1"), /nem egyeznek/);

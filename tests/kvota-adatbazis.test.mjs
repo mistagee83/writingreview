@@ -191,7 +191,7 @@ test("a beadás-feldolgozás kihagyott futása (másik fut / nem induló állapo
   await firestore.collection("feladatok").doc("f1").set({ tanar_id: "t1", osztaly_id: "o1", rubrika: { szempontok: [] } });
   await firestore.collection("beadasok").doc("b2").set({
     tanar_id: "t1", osztaly_id: "o1", diak_id: "d1", feladat_id: "f1",
-    kep_paths: ["beadasok/d1/b2/1.jpg"], statusz: "javitva"
+    forras: "szoveg", szoveg: "Dear Ben.", statusz: "javitva"
   });
   const r = await kvotaBekapcsolva(() => logika.feldolgozBeadas("b2", { csakFeltoltve: true }));
   assert.deepEqual(r, { kihagyva: true });
