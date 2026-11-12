@@ -62,14 +62,12 @@ test("az átírás promptja tartalmazza a nyelvet", () => {
   }
 });
 
-test("az átírás kihagyatja az áthúzott szöveget, jelölő nélkül (leveles és kifejtős is)", () => {
+test("az átírás kihagyatja az áthúzott szöveget, jelölő nélkül", () => {
   // Regresszió: a leveles prompt hallgatott az áthúzásról, és alacsony gondolkodásnál az áthúzott
   // szavak élő szövegként (vagy "[áthúzva: …]" jelölővel) kerültek az átiratba.
   const leveles = t.atiratPrompt("angol");
   assert.match(leveles, /áthúzott[^.]*hagyd ki/);
   assert.match(leveles, /ne tegyél a helyére semmilyen jelölőt/);
-  const kifejtos = require("./kifejtos.js").kifejtosAtiratPrompt({ kerdesek: [{ sorszam: "1", szoveg: "Q" }] }, []);
-  assert.match(kifejtos, /áthúzott szöveget hagyd ki/);
 });
 
 test("német átíráskor NEM állítja, hogy angol dolgozat", () => {

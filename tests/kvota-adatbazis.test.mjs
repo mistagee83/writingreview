@@ -116,11 +116,11 @@ test("a korlátlan csomag nem korlátoz; az ismeretlen csomagnév ingyenesként 
   await assert.rejects(() => logika.kvotaFoglalas(firestore, "t2", "beadas", BE), (e) => e.details.limit === 20);
 });
 
-test("a kétegységes művelet (kulcs) nem fér el, ha csak egy maradt", async () => {
+test("az utolsó egység még elfér, utána a keret elfogyott", async () => {
   await firestore.collection("tanarok").doc("t1").collection("hasznalat").doc("osszes").set({ egyseg: 19 });
-  await assert.rejects(() => logika.kvotaFoglalas(firestore, "t1", "kulcs", BE), (e) => e.details.kod === "kvota_elfogyott_egyszeri");
   await logika.kvotaFoglalas(firestore, "t1", "beadas", BE);
   assert.equal(await hasznalat("t1", "osszes"), 20);
+  await assert.rejects(() => logika.kvotaFoglalas(firestore, "t1", "beadas", BE), (e) => e.details.kod === "kvota_elfogyott_egyszeri");
 });
 
 test("párhuzamos kérések sem léphetnek túl a kereten (25 egyidejű → pontosan 20 jut át, a többi keret-hiba)", async () => {

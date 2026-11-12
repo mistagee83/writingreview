@@ -149,9 +149,7 @@
   const r = feladat.rubrika || {};
   document.getElementById('cim').textContent = feladat.cim;
   document.getElementById('alcim').textContent =
-    [...(r.mod === 'kifejtos'
-          ? [r.tantargy || t('diak.kifejtos_alap')]
-          : [nyelvNev(r.nyelv), tipusNev(r.tipus), szintNev(r.szint), r.min_szo && r.max_szo ? t('diak.szo_tartomany', { min: r.min_szo, max: r.max_szo }) : null]),
+    [nyelvNev(r.nyelv), tipusNev(r.tipus), szintNev(r.szint), r.min_szo && r.max_szo ? t('diak.szo_tartomany', { min: r.min_szo, max: r.max_szo }) : null,
      feladat.hatarido ? t('beadas.hatarido', { datum: datum(feladat.hatarido) }) : null]
       .filter(Boolean).join(' · ');
 
@@ -163,12 +161,6 @@
         <thead><tr><th>${t('beadas.szempont')}</th><th>${t('beadas.pont')}</th></tr></thead>
         <tbody>${r.szempontok.map((sz) =>
           `<tr><td>${esc(sz.cim || sz.kulcs)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
-      </table>` : ''}
-    ${(r.kerdesek || []).length ? `
-      <table class="tabla" style="margin-top:1rem;">
-        <thead><tr><th>${t('beadas.kerdes')}</th><th>${t('beadas.pont')}</th></tr></thead>
-        <tbody>${r.kerdesek.map((k) =>
-          `<tr><td>${esc(k.sorszam)}.</td><td>${esc(k.max_pont)}</td></tr>`).join('')}</tbody>
       </table>` : ''}
     ${biztonsagosUrl(feladat.feladatlap?.url)
       ? `<p style="margin-top:1rem;"><a class="btn-sm" href="${esc(biztonsagosUrl(feladat.feladatlap.url))}" target="_blank" rel="noopener">${t('beadas.feladatlap_nyit')}</a></p>`
@@ -216,9 +208,9 @@
 
   // ══════════════════════════════════════════
   // BEADÁSI MÓD (a tanár állítja feladatonként: foto | szoveg | mindketto)
-  // A kifejtős feladat mindig fotós. Az érvényes mód a szabályban és a szerveren is ellenőrzött.
+  // Az érvényes mód a szabályban és a szerveren is ellenőrzött.
   // ══════════════════════════════════════════
-  const BEADASI_MOD = r.mod !== 'kifejtos' && ['szoveg', 'mindketto'].includes(r.beadasi_mod)
+  const BEADASI_MOD = ['szoveg', 'mindketto'].includes(r.beadasi_mod)
     ? r.beadasi_mod : 'foto';
   const NYELV_KOD = { angol: 'en', 'német': 'de', francia: 'fr', spanyol: 'es', olasz: 'it', orosz: 'ru', latin: 'la', magyar: 'hu' };
   const piszkozatKulcs = `wr-piszkozat-${user.uid}-${feladatId}`;

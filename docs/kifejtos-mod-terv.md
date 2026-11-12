@@ -1,5 +1,8 @@
 # WritingReview – kifejtős kérdéseket tartalmazó dolgozat (terv)
 
+> **2026-11-12: a kifejtős mód csak a `pilot` ágon él.** A `main`-ről (prod) kikerült, lásd
+> [`prod-atalakitas-terv.md`](prod-atalakitas-terv.md) 7. pont, 2a. Az alábbi leírás a pilot kódjára érvényes.
+
 Állapot: **mind a 4 fázis kész, 2026-09-29.** A tanár létrehozhat kifejtős
 dolgozatot (feladatlap + tananyag → kulcs → mentés), a beadások javítása
 lefut, a javító nézetben kérdésenként, elemenként ellenőrizhet és

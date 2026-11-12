@@ -15,7 +15,7 @@ Rövid szabályok:
   hangnemét és szójegyzékét új szöveg írásakor és meglévő szöveg átnézésekor is.
 - **Commitot, pusht és deployt csak kérésre végezz** (a deploy éles projektre megy).
 - Új felhasználói szöveg: szótári kulcs (`public/js/i18n-hu.js` + `i18n-en.js`), nem beégetett
-  szöveg. A `public/js/kifejtos.js` generált fájl – ne szerkeszd kézzel.
+  szöveg. A `public/js/skala.js` generált fájl (forrása `functions/skala.js`) – ne szerkeszd kézzel.
 - Módosítás után futtasd a teszteket (`node --test tests/<fájl>`; a `rules`/`claim`/`functions`
   teszt Firebase-emulátort igényel) és a `node scripts/build.mjs`-t.
 - **Két telepítés, két ág (2026-11-12 óta):** a **pilot** a `pilot` ágon él (a teljes, régi

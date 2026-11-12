@@ -48,7 +48,7 @@ const kiMappa = arg("ki") || join("tests", "dolgozatok", "osszevetes", new Date(
 const require = createRequire(new URL("../functions/package.json", import.meta.url));
 const index = require("./index.js");
 const t = index._teszt;
-const kifejtos = require("./kifejtos.js");
+const skala = require("./skala.js");
 const { getFirestore } = require("firebase-admin/firestore");
 t.AI.szolgaltato = "gemini";
 const db = getFirestore();
@@ -94,25 +94,7 @@ async function leveles(beadas, feladat) {
   };
 }
 
-/** Kifejtős dolgozat Geminivel – a feldolgozKifejtos() lépései írás nélkül. */
-async function kifejtosFutas(beadas, feladat, feladatRef) {
-  const kulcsAdat = (await feladatRef.collection("kulcs").doc("aktualis").get()).data();
-  const kulcs = kifejtos.kulcsEllenorzes(kulcsAdat);
-  const szoszedet = Array.isArray(kulcsAdat.szoszedet) && kulcsAdat.szoszedet.length
-    ? kulcsAdat.szoszedet.map(String) : kifejtos.szoszedetGyujtes(kulcs);
-  const kepek = await t.kepekBetoltese(beadas.kep_paths);
-  const { eredmeny: atiras } = await t.aiHivas(
-    "atiras", [{ text: kifejtos.kifejtosAtiratPrompt(kulcs, szoszedet) }, ...kepek], kifejtos.KIFEJTOS_ATIRAT_SCHEMA
-  );
-  const valaszok = kifejtos.valaszSzovegek(atiras);
-  const { eredmeny: ai } = await t.aiHivas(
-    "ertekeles", [{ text: kifejtos.kifejtosErtekelesPrompt(feladat, kulcs, valaszok) }], kifejtos.KIFEJTOS_ERTEKELES_SCHEMA
-  );
-  const ert = kifejtos.kifejtosErtekelesOsszeallitas(kulcs, ai, valaszok, kifejtos.skalaFeloldas(feladat.rubrika));
-  return { atirat: kifejtos.atiratOsszefuzes(atiras), osszpontszam: ert.osszpontszam, max_pontszam: ert.max_pontszam };
-}
-
-const jegy = (feladat, pont, max) => kifejtos.jegyJavaslat(pont, max, kifejtos.skalaFeloldas(feladat.rubrika));
+const jegy = (feladat, pont, max) => skala.jegyJavaslat(pont, max, skala.skalaFeloldas(feladat.rubrika));
 const szazalek = (p, m) => (m > 0 ? Math.round((p / m) * 100) : null);
 
 const snap = await db.collection("beadasok").where("frissitve", ">=", ota).get();
@@ -132,13 +114,13 @@ for (const doc of snap.docs) {
     const fs = await db.collection("feladatok").doc(beadas.feladat_id).get();
     feladatok.set(beadas.feladat_id, { ref: fs.ref, adat: fs.data() });
   }
-  const { ref: feladatRef, adat: feladat } = feladatok.get(beadas.feladat_id);
-  const mod = kifejtos.feladatMod(feladat.rubrika) === "kifejtos" ? "kifejtos" : "leveles";
+  const { adat: feladat } = feladatok.get(beadas.feladat_id);
+  const mod = "leveles";
   const nev = beadas.diak_nev || beadas.diak_id;
   process.stdout.write(`${nev} (${mod})… `);
 
   try {
-    const gemini = mod === "kifejtos" ? await kifejtosFutas(beadas, feladat, feladatRef) : await leveles(beadas, feladat);
+    const gemini = await leveles(beadas, feladat);
     const sor = {
       diak: nev,
       feladat: feladat.cim || beadas.feladat_id,

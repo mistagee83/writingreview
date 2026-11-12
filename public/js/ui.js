@@ -2,7 +2,7 @@
 // WritingReview – közös UI segédek
 // ══════════════════════════════════════════════════════
 
-import { t, nyelv, vanKulcs, kulcsHibaSzoveg } from "./i18n.js";
+import { t, nyelv, vanKulcs } from "./i18n.js";
 import { azonositoMegjelenites } from "./azonosito.js";
 
 /**
@@ -69,9 +69,6 @@ export function hibaSzoveg(e) {
   // szöveg hozzá, esünk vissza az általános hibaszövegre.
   const d = e?.details;
   if (nyelv() !== "hu" && d?.kod) {
-    if (d.kod === "kulcshiba") {
-      return kulcsHibaSzoveg({ kod: d.kulcsKod, parameterek: d.parameterek, message: e.message });
-    }
     const kulcs = `szerver.${d.kod}`;
     if (vanKulcs(kulcs)) return t(kulcs, d);
   }

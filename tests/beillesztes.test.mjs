@@ -61,32 +61,15 @@ test("a beillesztett kép neve egyedi, nyelvfüggetlen és a típushoz illő kit
   assert.match(beillesztettNev(fajl("x", "image/png"), ido), /^[\x20-\x7e]+$/, "nincs ékezetes vagy speciális karakter a Storage-útvonalban");
 });
 
-test("hová kerül: a már használt zónába; jelöletlenül a feladatlapra, kifejtősnél a meglévő mellé a tananyagra", () => {
-  const c = (aktiv, kifejtos, vanFeladatlap) => celValasztas({ aktiv, kifejtos, vanFeladatlap });
-  // fogalmazás: csak feladatlap van
-  assert.deepEqual(c(null, false, false), { cel: "feladatlap", csere: false });
-  assert.deepEqual(c("tananyag", false, false), { cel: "feladatlap", csere: false }, "tananyag-zóna fogalmazásnál nincs");
-  // kifejtős, még nincs feladatlap
-  assert.deepEqual(c(null, true, false), { cel: "feladatlap", csere: false });
-  // kifejtős, van feladatlap: jelöletlenül a tananyaghoz (nem ír felül semmit)
-  assert.deepEqual(c(null, true, true), { cel: "tananyag", csere: false });
-  // a tanár kifejezetten a feladatlap-zónával dolgozott
-  assert.deepEqual(c("feladatlap", true, false), { cel: "feladatlap", csere: false });
-  assert.deepEqual(c("tananyag", true, true), { cel: "tananyag", csere: false });
+test("a meglévő feladatlap cseréje megerősítést kér, az első feltöltés nem", () => {
+  assert.deepEqual(celValasztas({ vanFeladatlap: false }), { csere: false });
+  assert.deepEqual(celValasztas({ vanFeladatlap: true }), { csere: true });
 });
 
-test("a meglévő feladatlap cseréje megerősítést kér, a tananyag hozzáadása nem", () => {
-  assert.equal(celValasztas({ aktiv: "feladatlap", kifejtos: false, vanFeladatlap: true }).csere, true);
-  assert.equal(celValasztas({ aktiv: null, kifejtos: false, vanFeladatlap: true }).csere, true, "fogalmazásnál a jelöletlen beillesztés is a feladatlapra megy");
-  assert.equal(celValasztas({ aktiv: "feladatlap", kifejtos: true, vanFeladatlap: true }).csere, true);
-  assert.equal(celValasztas({ aktiv: "tananyag", kifejtos: true, vanFeladatlap: true }).csere, false);
-  assert.equal(celValasztas({ aktiv: null, kifejtos: true, vanFeladatlap: true }).csere, false);
-});
-
-test("a feladatok.html bekötötte a beillesztést, és mindkét zónán jelzi a tippet", () => {
+test("a feladatok.html bekötötte a beillesztést, és a feladatlap-zónán jelzi a tippet", () => {
   const html = readFileSync(new URL("../public/feladatok.html", import.meta.url), "utf8");
   assert.match(html, /import \{ beillesztesBekotes \} from '\.\/js\/beillesztes\.js'/);
   assert.match(html, /beillesztesBekotes\(\{/);
-  assert.equal([...html.matchAll(/data-i18n="fel\.beillesztes_tipp"/g)].length, 2, "a feladatlap és a tananyag zónán is");
-  assert.match(html, /id="tananyag-zona"/);
+  assert.equal([...html.matchAll(/data-i18n="fel.beillesztes_tipp"/g)].length, 1);
+  assert.doesNotMatch(html, /tananyag/, "a tananyag-zóna (kifejtős mód) kikerült");
 });

@@ -558,60 +558,16 @@ test("az elemzést kliensről senki nem írhatja", async () => {
 });
 
 // ══════════════════════════════════════════
-// MEGOLDÓKULCS (kifejtős dolgozat)
-// A feladatot a diák olvashatja – a kulcsot SOHA.
+// A RÉGI MEGOLDÓKULCS (kifejtős dolgozat, 2026-11-12 óta nincs)
+// Az alkollekció szabálya kikerült: senki nem olvashatja és írhatja.
 // ══════════════════════════════════════════
 
-const KULCS = { kerdesek: [{ sorszam: "1", tipus: "zart_felsorolas", max_pont: 1,
-  elemek: [{ id: "e1", allitas: "Beszerzés", pont: 1 }] }] };
-
-async function kulcsotLetrehoz() {
-  await env.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), "feladatok", FELADAT, "kulcs", "aktualis"), KULCS);
-  });
-}
-
-test("a tanár olvashatja és írhatja a saját feladata kulcsát", async () => {
-  await assertSucceeds(setDoc(doc(tanar(), "feladatok", FELADAT, "kulcs", "aktualis"), KULCS));
-  await assertSucceeds(getDoc(doc(tanar(), "feladatok", FELADAT, "kulcs", "aktualis")));
-});
-
-test("a DIÁK NEM olvashatja a kulcsot, pedig a feladatot igen", async () => {
-  await kulcsotLetrehoz();
-  await assertSucceeds(getDoc(doc(diak(), "feladatok", FELADAT)));
-  await assertFails(getDoc(doc(diak(), "feladatok", FELADAT, "kulcs", "aktualis")));
-  await assertFails(getDocs(collection(diak(), "feladatok", FELADAT, "kulcs")));
-});
-
-test("a diák NEM írhatja a kulcsot", async () => {
-  await assertFails(setDoc(doc(diak(), "feladatok", FELADAT, "kulcs", "aktualis"), KULCS));
-});
-
-test("idegen tanár NEM olvashatja és NEM írhatja a kulcsot", async () => {
-  await kulcsotLetrehoz();
-  await assertFails(getDoc(doc(tanar2(), "feladatok", FELADAT, "kulcs", "aktualis")));
-  await assertFails(setDoc(doc(tanar2(), "feladatok", FELADAT, "kulcs", "aktualis"), KULCS));
-});
-
-test("új feladat és a kulcsa EGY batch-ben menthető (a diák nem kaphat kulcs nélküli feladatot)", async () => {
-  const db = tanar();
-  const b = writeBatch(db);
-  const ref = doc(collection(db, "feladatok"));
-  b.set(ref, {
-    osztaly_id: OSZTALY, tanar_id: TANAR, cim: "Beszerzés", aktiv: true,
-    rubrika: { mod: "kifejtos", kerdesek: [{ sorszam: "1", max_pont: 1 }] }, letrehozva: new Date()
-  });
-  b.set(doc(db, "feladatok", ref.id, "kulcs", "aktualis"), KULCS);
-  await assertSucceeds(b.commit());
-});
-
-test("nem létező feladathoz nem írható kulcs", async () => {
-  await assertFails(setDoc(doc(tanar(), "feladatok", "nincs-ilyen", "kulcs", "aktualis"), KULCS));
-});
-
-test("üres kulcs nem menthető", async () => {
-  await assertFails(setDoc(doc(tanar(), "feladatok", FELADAT, "kulcs", "aktualis"), { kerdesek: [] }));
-  await assertFails(setDoc(doc(tanar(), "feladatok", FELADAT, "kulcs", "aktualis"), { valami: 1 }));
+test("a régi kulcs-alkollekció mindenki elől zárva (a tanár elől is)", async () => {
+  const KULCS = { kerdesek: [{ sorszam: "1", max_pont: 1 }] };
+  for (const db of [tanar(), tanar2(), diak()]) {
+    await assertFails(setDoc(doc(db, "feladatok", FELADAT, "kulcs", "aktualis"), KULCS));
+    await assertFails(getDoc(doc(db, "feladatok", FELADAT, "kulcs", "aktualis")));
+  }
 });
 
 // ══════════════════════════════════════════
@@ -843,11 +799,6 @@ test("beadási mód 'szoveg': a fotós beadás elutasítva; 'mindketto'-nél min
 test("beadási mód 'mindketto': a beírt beadás is elfogadott", async () => {
   await feladatMod({ tipus: "esszé", beadasi_mod: "mindketto" });
   await assertSucceeds(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas()));
-});
-
-test("beírt beadás: kifejtős feladatra nem adható be szöveggel", async () => {
-  await feladatMod({ mod: "kifejtos", beadasi_mod: "szoveg" });
-  await assertFails(setDoc(doc(diak(), "beadasok", ujId()), szovegesBeadas()));
 });
 
 test("beírt beadás: üres, túl hosszú, nem szöveg, vagy képpel vegyített szöveg elutasítva", async () => {

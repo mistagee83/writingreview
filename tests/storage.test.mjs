@@ -59,7 +59,6 @@ beforeEach(async () => {
     const st = ctx.storage();
     await uploadBytes(ref(st, `beadasok/${DIAK}/${BEADAS}/1.jpg`), BAJTOK, KEP);
     await uploadBytes(ref(st, `feladatlapok/${TANAR}/lap.jpg`), BAJTOK, KEP);
-    await uploadBytes(ref(st, `tananyagok/${TANAR}/anyag.pdf`), BAJTOK, PDF);
   });
 });
 
@@ -72,7 +71,6 @@ const nemBelepett = () => env.unauthenticatedContext().storage();
 
 const BEADAS_KEP = `beadasok/${DIAK}/${BEADAS}/1.jpg`;
 const FELADATLAP = `feladatlapok/${TANAR}/lap.jpg`;
-const TANANYAG = `tananyagok/${TANAR}/anyag.pdf`;
 
 // ── Dolgozatfotók ──
 
@@ -146,28 +144,11 @@ test("feladatlap: típus- és méretkorlát, felülírás/törlés tiltott", asy
   await assertFails(deleteObject(ref(tanar(), FELADATLAP)));
 });
 
-// ── Tananyagok (kifejtős) ──
-
-test("tananyag: csak a tulajdonos tanár tölthet fel és olvashat", async () => {
-  await assertSucceeds(uploadBytes(ref(tanar(), `tananyagok/${TANAR}/uj.pdf`), BAJTOK, PDF));
-  await assertSucceeds(getBytes(ref(tanar(), TANANYAG)));
-  await assertFails(getBytes(ref(tanar2(), TANANYAG)));
-  await assertFails(getBytes(ref(diak(), TANANYAG)));
-  await assertFails(getBytes(ref(nemBelepett(), TANANYAG)));
-  await assertFails(uploadBytes(ref(tanar2(), `tananyagok/${TANAR}/uj.pdf`), BAJTOK, PDF));
-  await assertFails(uploadBytes(ref(diak(), `tananyagok/${DIAK}/uj.pdf`), BAJTOK, PDF));
-});
-
-test("tananyag: típus- és méretkorlát, felülírás/törlés tiltott", async () => {
-  await assertFails(uploadBytes(ref(tanar(), `tananyagok/${TANAR}/x.html`), BAJTOK, { contentType: "text/html" }));
-  await assertFails(uploadBytes(ref(tanar(), `tananyagok/${TANAR}/nagy.pdf`), new Uint8Array(10 * 1024 * 1024), PDF));
-  await assertFails(uploadBytes(ref(tanar(), TANANYAG), BAJTOK, PDF));
-  await assertFails(deleteObject(ref(tanar(), TANANYAG)));
-});
-
 // ── Minden más tiltott ──
 
 test("ismeretlen útvonalra senki nem írhat/olvashat", async () => {
+  // a régi tananyag-útvonal (kifejtős mód) is zárva
+  await assertFails(uploadBytes(ref(tanar(), `tananyagok/${TANAR}/uj.pdf`), BAJTOK, PDF));
   await assertFails(uploadBytes(ref(tanar(), "egyeb/x.jpg"), BAJTOK, KEP));
   await assertFails(getBytes(ref(tanar(), "egyeb/x.jpg")));
 });

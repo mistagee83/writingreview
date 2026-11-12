@@ -2,7 +2,7 @@
 // Jegyskála-szerkesztő a feladat űrlaphoz
 //
 // A skála a feladat rubrikájában él (rubrika.skala), a szerkezetét és az
-// ellenőrzését a functions/kifejtos.js adja (a kifejtos.js generált példánya):
+// ellenőrzését a functions/skala.js adja (a skala.js generált példánya):
 // a szerver és az űrlap ugyanazt fogadja el. Itt csak a szerkesztő van:
 // sablonválasztó (magyar 1–5, A–F, százalék, egyéni) és fokozat-sorok.
 //
@@ -12,7 +12,7 @@
 // ══════════════════════════════════════════════════════
 
 import { t } from './i18n.js';
-import { SKALA_SABLONOK, ALAP_SKALA, skalaEllenorzes, skalaFeloldas } from './kifejtos.js';
+import { SKALA_SABLONOK, ALAP_SKALA, skalaEllenorzes, skalaFeloldas } from './skala.js';
 
 const TAR_KULCS = 'wr_skala_alap';
 const EGYENI = 'egyeni';

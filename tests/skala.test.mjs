@@ -10,7 +10,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { skalaSorokra, skalaSorokbol, sablonNeve } from "../public/js/skala-urlap.js";
-import { SKALA_SABLONOK, skalaFeloldas, jegyJavaslat } from "../public/js/kifejtos.js";
+import { SKALA_SABLONOK, skalaFeloldas, jegyJavaslat } from "../public/js/skala.js";
 
 const sor = (cimke, min) => ({ cimke, min });
 

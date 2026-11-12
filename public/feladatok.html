@@ -91,25 +91,12 @@
           <div id="sk-sorok" class="skala-sorok"></div>
           <button type="button" class="btn-sm" id="sk-uj" data-i18n="fel.skala_uj">＋ Fokozat</button>
           <p class="halvany" id="sk-szazalek-tipp" data-i18n="fel.skala_szazalek_tipp" style="margin-top:0.4rem;">A jegy a kerekített százalék lesz (0–100).</p>
-          <p class="halvany" data-i18n="fel.skala_tipp" style="margin-top:0.4rem;">Fokozatonként add meg, hány %-tól jár (a legalsó 0%). A javító nézet erre a skálára kínálja a jegyeket, kifejtős dolgozatnál erre javasol is.</p>
+          <p class="halvany" data-i18n="fel.skala_tipp" style="margin-top:0.4rem;">Fokozatonként add meg, hány %-tól jár (a legalsó 0%). A javítási sor erre a skálára kínálja és javasolja a jegyeket.</p>
         </div>
 
         <div class="form-group">
           <label for="f-cim" data-i18n="fel.feladat_cime">Feladat címe</label>
           <input type="text" id="f-cim" placeholder="Pl. Essay writing – My hometown" data-i18n-placeholder="fel.cim_pelda" maxlength="200" />
-        </div>
-
-        <div class="form-group">
-          <label data-i18n="fel.fajta">A feladat fajtája</label>
-          <div class="mod-valaszto" role="radiogroup" aria-label="A feladat fajtája" data-i18n-aria="fel.fajta">
-            <label><input type="radio" name="f-mod" value="iras" checked />
-              <span><span data-i18n="fel.fajta_iras">✍️ Fogalmazás</span><small data-i18n="fel.fajta_iras_leiras">egy írásfeladat, szempontok szerint értékelve</small></span></label>
-            <label><input type="radio" name="f-mod" value="kifejtos" />
-              <span><span data-i18n="fel.fajta_kifejtos">📝 Kifejtős kérdések</span><small data-i18n="fel.fajta_kifejtos_leiras">több rövid kérdés, megoldókulcs szerint javítva</small></span></label>
-          </div>
-          <p class="halvany" id="mod-hint" data-i18n="fel.fajta_hint" style="display:none;margin-top:0.4rem;">
-            A fajta mentés után nem változtatható – a beadások javítása ehhez igazodik.
-          </p>
         </div>
 
         <div class="form-group">
@@ -230,54 +217,6 @@
           </div>
         </div>
 
-        <!-- MEGOLDÓKULCS (kifejtős dolgozat) – a logika: js/kifejtos-urlap.js -->
-        <div class="rubrika-blokk" id="kifejtos-blokk" style="display:none;">
-          <div class="rubrika-tolt" id="kulcs-tolt">
-            <div class="spinner"></div>
-            <span id="kulcs-tolt-szoveg"></span>
-          </div>
-
-          <div class="form-group">
-            <label data-i18n="fel.tananyag_label">Tananyag (nem kötelező)</label>
-            <p class="halvany" data-i18n="fel.tananyag_leiras">Amiből a diákok tanultak – ebből készül a megoldókulcs. Ha nincs, az AI a
-              saját tudásából dolgozik. PDF vagy kép, legfeljebb 5 fájl.</p>
-            <div class="upload-zone kicsi" id="tananyag-zona">
-              <input type="file" id="tananyag-fajl" accept="image/*,.pdf" multiple aria-label="Tananyag feltöltése" data-i18n-aria="fel.tananyag_aria" />
-              <p data-i18n-html="fel.tananyag_kattints">📚 <strong>Kattints ide</strong> vagy húzd ide a tananyagot</p>
-              <p data-i18n="fel.beillesztes_tipp">Képet a vágólapról is beilleszthetsz (Ctrl+V).</p>
-            </div>
-            <ul class="fajl-lista" id="tananyag-lista"></ul>
-            <div class="msg" id="tananyag-msg"></div>
-          </div>
-
-          <div class="kulcs-sav">
-            <button type="button" class="btn-primary" id="btn-kulcs-keszit" data-i18n="fel.kulcs_keszit">✨ Megoldókulcs készítése</button>
-            <button type="button" class="btn-sm" id="btn-kulcs-kezi" data-i18n="fel.kulcs_kezi">vagy összeállítom kézzel</button>
-          </div>
-          <div class="msg" id="kulcs-msg"></div>
-          <div class="kulcs-osszegzes" id="kulcs-osszegzes" hidden></div>
-
-          <details class="kulcs-reszletek" id="kulcs-reszletek" hidden>
-            <summary data-i18n="fel.kulcs_reszletek">Megnézem, szerkesztem</summary>
-            <p class="halvany" data-i18n="fel.kulcs_reszletek_leiras">A diák a határidő előtt nem látja. Az AI csak azt dönti el, hogy egy elem
-              megvan-e a válaszban – a pontot a rendszer számolja az alábbiak szerint.</p>
-
-            <div id="kulcs-kerdesek"></div>
-            <button type="button" class="btn-sm" id="btn-kerdes-uj" data-i18n="fel.kerdes_uj">＋ Kérdés</button>
-
-            <h4 class="kulcs-alcim" data-i18n="fel.beallitasok">Beállítások</h4>
-            <div class="form-group">
-              <label for="kf-tantargy" data-i18n="fel.tantargy">Tantárgy</label>
-              <input type="text" id="kf-tantargy" maxlength="60" placeholder="Pl. történelem, kereskedelem" data-i18n-placeholder="fel.tantargy_pelda" />
-            </div>
-            <label class="jelolo">
-              <input type="checkbox" id="kf-helyes-lathato" checked />
-              <span><span data-i18n="fel.helyes_lathato">A diák a visszajelzésében lássa a helyes válaszokat</span>
-                <small data-i18n="fel.helyes_lathato_tipp">Kapcsold ki, ha a dolgozatot jövőre is íratni fogod – különben a megoldás kiszivároghat.</small></span>
-            </label>
-          </details>
-        </div>
-
         <div class="msg" id="form-msg"></div>
 
         <div class="gomb-sor">
@@ -318,12 +257,11 @@
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import { biztonsagosUrl } from './js/biztonsag.js';
   import { atmeretez, tulNagy, meret } from './js/kep.js';
-  import { kifejtosUrlap } from './js/kifejtos-urlap.js';
   import { beillesztesBekotes } from './js/beillesztes.js';
   import { skalaUrlap, skalaMegjegyzes } from './js/skala-urlap.js';
   import {
-    db, storage, functions, httpsCallable, writeBatch,
-    collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
+    db, storage, functions, httpsCallable,
+    collection, doc, getDocs, addDoc, updateDoc, deleteDoc,
     query, where, orderBy, onSnapshot, serverTimestamp, Timestamp,
     storageRef, uploadBytes, getDownloadURL
   } from './js/firebase-config.js';
@@ -342,19 +280,13 @@
   let fajlUrl = null;
   let osztalyNevek = {};
 
-  // ══════════════════════════════════════════
-  // A FELADAT FAJTÁJA: fogalmazás vagy kifejtős kérdések
-  // A kifejtős rész logikája: js/kifejtos-urlap.js
-  // ══════════════════════════════════════════
-  const kifejtosUi = kifejtosUrlap({ user, feladatlapPath: () => fajlPath });
-
   // A visszajelzés nyelvének alapértéke a tanár felületi nyelve; régi
   // feladatnál (nincs mező) magyar – ahogy a szerver is értelmezi.
   const kimenetEl = document.getElementById('f-kimenet');
   const alapKimenet = () => (['hu', 'en'].includes(nyelv()) ? nyelv() : 'hu');
   kimenetEl.value = alapKimenet();
 
-  // A jegyskála: mindkét feladattípusnál ugyanaz a szerkesztő
+  // A jegyskála-szerkesztő
   const skalaUi = skalaUrlap({
     sablon: document.getElementById('sk-sablon'),
     sorok: document.getElementById('sk-sorok'),
@@ -362,23 +294,6 @@
     szazalekTipp: document.getElementById('sk-szazalek-tipp')
   });
   skalaUi.torles();
-
-  const modRadiok = [...document.querySelectorAll('input[name="f-mod"]')];
-  const aktualisMod = () => modRadiok.find((r) => r.checked)?.value || 'iras';
-
-  function modBeallit(m) {
-    modRadiok.forEach((r) => { r.checked = r.value === m; });
-    const kf = m === 'kifejtos';
-    document.getElementById('iras-blokk').style.display = kf ? 'none' : '';
-    document.getElementById('kifejtos-blokk').style.display = kf ? '' : 'none';
-    document.getElementById('feladatlap-cimke').textContent = kf
-      ? t('fel.feladatlap_kifejtos')
-      : t('fel.feladatlap_iras');
-    document.getElementById('r-leiras').placeholder = kf
-      ? t('fel.leiras_pelda_kifejtos')
-      : t('fel.leiras_pelda_iras');
-  }
-  modRadiok.forEach((r) => r.addEventListener('change', () => modBeallit(aktualisMod())));
 
   // ══════════════════════════════════════════
   // OSZTÁLYOK BETÖLTÉSE
@@ -446,11 +361,6 @@
     osztalySelect.disabled = szerk;
     document.getElementById('osztaly-hint').style.display = szerk ? 'block' : 'none';
 
-    // Meglévő feladat fajtája nem változhat: a beadások értékelése ahhoz
-    // igazodik (és kiadáskor a kulcs/rubrika is ahhoz tartozik).
-    modRadiok.forEach((r) => { r.disabled = mod !== 'uj'; });
-    document.getElementById('mod-hint').style.display = mod !== 'uj' ? 'block' : 'none';
-
     // Meglévő feladatlap átvéve
     const vanFajl = mod !== 'uj';
     document.getElementById('fajl-hint').style.display = vanFajl ? 'block' : 'none';
@@ -486,15 +396,7 @@
       osztalySelect.value = f.osztaly_id;
     }
 
-    if (f.rubrika?.mod === 'kifejtos') {
-      modBeallit('kifejtos');
-      // A kulcs külön, csak tanári alkollekcióban van
-      const kulcsSnap = await getDoc(doc(db, 'feladatok', id, 'kulcs', 'aktualis'));
-      kifejtosUi.kitolt(f.rubrika, kulcsSnap.exists() ? kulcsSnap.data() : null);
-    } else {
-      modBeallit('iras');
-      rubrikaKitolt(f.rubrika || {});
-    }
+    rubrikaKitolt(f.rubrika || {});
     document.getElementById('r-leiras').value = f.rubrika?.feladat_leiras || '';
     kimenetEl.value = f.rubrika?.kimeneti_nyelv || 'hu';
     skalaUi.kitolt(f.rubrika);
@@ -835,11 +737,7 @@
       `${file.name} (${meret(file.size)})`;
     document.getElementById('upload-preview').classList.add('show');
 
-    // Kifejtős dolgozatnál nem rubrikát kérünk: a kulcsot a tanár a
-    // tananyag feltöltése UTÁN kéri (egy gomb), mert a tananyagtól függ.
-    const kifejtosMod = aktualisMod() === 'kifejtos';
-    const tolt = document.getElementById(kifejtosMod ? 'kulcs-tolt' : 'rubrika-tolt');
-    if (kifejtosMod) document.getElementById('kulcs-tolt-szoveg').textContent = t('fel.feltoltes_folyamat');
+    const tolt = document.getElementById('rubrika-tolt');
     tolt.classList.add('show');
     document.getElementById('rubrika-badge').style.display = 'none';
 
@@ -848,11 +746,6 @@
       await uploadBytes(storageRef(storage, path), file);
       fajlPath = path;
       fajlUrl = null;   // új fájl – az URL-t újra le kell kérni
-
-      if (kifejtosMod) {
-        kifejtosUi.frissit();
-        return;
-      }
 
       const { data } = await feladatlapElemzes({
         feladatlapPath: path,
@@ -902,10 +795,7 @@
   // ══════════════════════════════════════════
   beillesztesBekotes({
     feladatlapZona: document.getElementById('upload-zone'),
-    tananyagZona: document.getElementById('tananyag-zona'),
     feladatlapMezo: document.getElementById('f-fajl'),
-    tananyagMezo: document.getElementById('tananyag-fajl'),
-    kifejtos: () => aktualisMod() === 'kifejtos',
     vanFeladatlap: () => Boolean(fajlPath),
     csereMehet: () => confirm(t('fel.beillesztes_csere'))
   });
@@ -918,23 +808,16 @@
 
     const osztalyId = osztalySelect.value;
     const cim = document.getElementById('f-cim').value.trim();
-    const kifejtosMod = aktualisMod() === 'kifejtos';
 
     if (!osztalyId) { uzenet('form-msg', t('fel.valassz_osztaly')); return; }
     if (!cim) { uzenet('form-msg', t('fel.add_cim')); return; }
 
-    let kifejtos = null;
-    if (kifejtosMod) {
-      kifejtos = kifejtosUi.beolvas();
-      if (kifejtos.hiba) { uzenet('form-msg', kifejtos.hiba); return; }
-    } else {
-      const szempontok = szempontokBeolvas();
-      const sulyOsszeg = szempontok.reduce((s, sz) => s + sz.suly, 0);
-      if (szempontok.length === 0) { uzenet('form-msg', t('fel.kell_szempont')); return; }
-      if (sulyOsszeg <= 0) {
-        uzenet('form-msg', t('fel.kell_pont'));
-        return;
-      }
+    const szempontok = szempontokBeolvas();
+    const sulyOsszeg = szempontok.reduce((s, sz) => s + sz.suly, 0);
+    if (szempontok.length === 0) { uzenet('form-msg', t('fel.kell_szempont')); return; }
+    if (sulyOsszeg <= 0) {
+      uzenet('form-msg', t('fel.kell_pont'));
+      return;
     }
 
     const skalaEredmeny = skalaUi.beolvas();
@@ -952,7 +835,7 @@
     const vissza = gombVar(e.target, t('fel.mentes_folyamat'));
     try {
       const rubrika = {
-        ...(kifejtos ? kifejtos.rubrika : rubrikaBeolvas()),
+        ...rubrikaBeolvas(),
         // A feladat leírása nem része a sablonnak – itt adjuk hozzá
         feladat_leiras: document.getElementById('r-leiras').value.trim(),
         // Nem része a sablonnak: feladatonként állítható
@@ -975,16 +858,8 @@
             url: fajlUrl || await getDownloadURL(storageRef(storage, fajlPath))
           };
         }
-        if (kifejtos) {
-          // A feladat és a kulcs együtt változik, vagy egyik sem.
-          const batch = writeBatch(db);
-          batch.update(feladatRef, mezok);
-          batch.set(doc(db, 'feladatok', szerkesztesId, 'kulcs', 'aktualis'), kifejtos.kulcs);
-          await batch.commit();
-        } else {
-          await updateDoc(feladatRef, mezok);
-        }
-        uzenet('form-msg', kifejtos ? t('fel.mentve_kulcs') : t('fel.mentve_rubrika'), 'success');
+        await updateDoc(feladatRef, mezok);
+        uzenet('form-msg', t('fel.mentve_rubrika'), 'success');
       } else {
         const feladat = {
           osztaly_id: osztalyId,
@@ -1006,17 +881,7 @@
           feladat.feladatlap = { path: fajlPath, url };
         }
 
-        if (kifejtos) {
-          // A feladat és a kulcsa EGY batch-ben: különben a diák már
-          // beadhatna, mielőtt a javításhoz kulcs lenne.
-          const feladatRef = doc(collection(db, 'feladatok'));
-          const batch = writeBatch(db);
-          batch.set(feladatRef, feladat);
-          batch.set(doc(db, 'feladatok', feladatRef.id, 'kulcs', 'aktualis'), kifejtos.kulcs);
-          await batch.commit();
-        } else {
-          await addDoc(collection(db, 'feladatok'), feladat);
-        }
+        await addDoc(collection(db, 'feladatok'), feladat);
         uzenet('form-msg',
           mod === 'kiadas'
             ? t('fel.kiadva', { nev: osztalyNevek[osztalyId] })
@@ -1060,10 +925,6 @@
     sablonValaszto.value = '';
     document.getElementById('btn-sablon-torol').disabled = true;
     uzenetTorles('sablon-msg');
-    modRadiok.forEach((r) => { r.disabled = false; });
-    document.getElementById('mod-hint').style.display = 'none';
-    modBeallit('iras');
-    kifejtosUi.torles();
   }
 
   document.getElementById('btn-reset').addEventListener('click', () => {
@@ -1178,11 +1039,9 @@
               <h3>${esc(f.cim)}</h3>
               <div class="list-card-meta">
                 <span>🎓 ${esc(osztalyNevek[f.osztaly_id] || '–')}</span>
-                <span>${r.mod === 'kifejtos'
-                  ? esc(t('fel.kifejtos_sor', { targy: r.tantargy || t('diak.kifejtos_alap'), db: (r.kerdesek || []).length }))
-                  : `${esc(nyelvNev(r.nyelv || 'angol'))} · ${esc(tipusNev(r.tipus || '–'))} · ${esc(szintNev(r.szint || '–'))}`}</span>
-                ${r.mod !== 'kifejtos' && r.beadasi_mod === 'szoveg' ? `<span>${esc(t('fel.v_mod_szoveg'))}</span>` : ''}
-                ${r.mod !== 'kifejtos' && r.beadasi_mod === 'mindketto' ? `<span>${esc(t('fel.v_mod_mindketto'))}</span>` : ''}
+                <span>${esc(nyelvNev(r.nyelv || 'angol'))} · ${esc(tipusNev(r.tipus || '–'))} · ${esc(szintNev(r.szint || '–'))}</span>
+                ${r.beadasi_mod === 'szoveg' ? `<span>${esc(t('fel.v_mod_szoveg'))}</span>` : ''}
+                ${r.beadasi_mod === 'mindketto' ? `<span>${esc(t('fel.v_mod_mindketto'))}</span>` : ''}
                 ${f.hatarido ? `<span>⏰ ${datum(f.hatarido)}</span>` : ''}
                 <span class="badge ${f.aktiv ? 'aktiv' : 'inaktiv'}">
                   ${f.aktiv ? t('osztalyok.aktiv') : t('osztalyok.zart')}

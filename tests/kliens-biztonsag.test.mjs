@@ -119,5 +119,4 @@ test("feladatok.html: a szerkesztés a feladatlapot is menti, ha van", () => {
   const src = forras("feladatok.html");
   assert.match(src, /mezok\.feladatlap = \{/);
   assert.match(src, /updateDoc\(feladatRef, mezok\)/);
-  assert.match(src, /batch\.update\(feladatRef, mezok\)/);
 });

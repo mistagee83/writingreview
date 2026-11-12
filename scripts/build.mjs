@@ -24,7 +24,7 @@ import {
 } from "node:fs";
 import { join, dirname, basename, extname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { generalas } from "./kifejtos-kliens.mjs";
+import { generalas } from "./skala-kliens.mjs";
 import {
   konfigBetoltes, konfigHibak, kornyezetJs, firebaseConfigCsere, kornyezetValasztas, celProjekt, csomagAdatok
 } from "./kornyezet-config.mjs";
@@ -112,7 +112,7 @@ function hivatkozasAtir(tartalom, regi, uj, aktualisFajl) {
 
 // ══════════════════════════════════════════
 // 0. GENERÁLT FORRÁSOK
-// A kifejtős pontozó böngészős példánya a functions/kifejtos.js-ből
+// A jegyskála-modul böngészős példánya a functions/skala.js-ből
 // készül – deploy előtt mindig frissen, hogy ne mehessen ki elavult.
 // ══════════════════════════════════════════
 generalas();

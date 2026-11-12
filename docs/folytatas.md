@@ -13,7 +13,9 @@ lépések: [`prod-atalakitas-terv.md`](prod-atalakitas-terv.md).
 **1. lépés (ágak szétválasztása): kész (2026-11-12, `c4f95e3`).** A `deploy.mjs` ágat ellenőriz (pilot: `pilot`, prod: `main`),
 a CI mindkét ágon fut, és a `CLAUDE.md` szabálya átíródott. A `pilot` ág ebből a commitból indult, és a GitHubon is megvan.
 Pilot-deploy innentől: `git switch pilot`, majd `node scripts/deploy.mjs pilot --only ...`. Nem kellett deployolni.
-Következő: 2. lépés (kivezetés a `main`-ről).
+**2a (a kifejtős mód kivezetése a `main`-ről): kód kész, nincs commitolva** (részletek: a terv 7. pont). Az emulátoros
+tesztek (`rules`, `storage`, `functions`, `*-adatbazis`) helyben nem futottak (Java 26 van a gépen, 21 kell): a CI futtatja.
+Következő: 2b (fotós beadás és átírás).
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
 

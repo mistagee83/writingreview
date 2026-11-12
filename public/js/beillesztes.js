@@ -1,11 +1,11 @@
 // ══════════════════════════════════════════════════════
 // WritingReview – kép beillesztése a vágólapról (Ctrl+V)
 //
-// A feladat űrlapján a feladatlapot és a tananyagot nemcsak kiválasztani vagy
-// ide húzni lehet, hanem beilleszteni is (pl. képernyőkép). A beillesztett
-// fájl UGYANAZT az utat járja, mint a kiválasztott: a fájlmező `change`
+// A feladat űrlapján a feladatlapot nemcsak kiválasztani vagy ide húzni
+// lehet, hanem beilleszteni is (pl. képernyőkép). A beillesztett fájl
+// UGYANAZT az utat járja, mint a kiválasztott: a fájlmező `change`
 // eseményét váltjuk ki, így a méretezés, a feltöltés és az AI-elemzés
-// egyetlen helyen van (feladatok.html, kifejtos-urlap.js).
+// egyetlen helyen van (feladatok.html).
 //
 // A döntési logika tiszta függvény, hogy Node-ban tesztelhető legyen
 // (tests/beillesztes.test.mjs).
@@ -45,23 +45,13 @@ export function beillesztettNev(fajl, most = new Date(), sorszam = 0) {
 }
 
 /**
- * Hová kerüljön a beillesztett fájl?
- *  - ha a tanár egy zónát már használt (föléje ért, rákattintott, fókuszba
- *    került), akkor oda; a tananyag-zóna csak kifejtős módban létezik;
- *  - különben: kifejtősnél, ha a feladatlap már megvan, a tananyaghoz
- *    (az hozzáad, nem ír felül); egyébként a feladatlaphoz.
- * `csere`: a feladatlap már megvan, és a beillesztés lecserélné – ezt meg kell
- * erősíttetni (a csere új AI-elemzést indít, ami átírja az űrlap mezőit).
- *
- * @param {{aktiv: ('feladatlap'|'tananyag'|null), kifejtos: boolean, vanFeladatlap: boolean}} p
- * @returns {{cel: 'feladatlap'|'tananyag', csere: boolean}}
+ * Kell-e megerősítés? Ha a feladatlap már megvan, a beillesztés lecserélné –
+ * ez új AI-elemzést indít, ami átírja az űrlap mezőit.
+ * @param {{vanFeladatlap: boolean}} p
+ * @returns {{csere: boolean}}
  */
-export function celValasztas({ aktiv, kifejtos, vanFeladatlap }) {
-  let cel;
-  if (aktiv === "tananyag" && kifejtos) cel = "tananyag";
-  else if (aktiv === "feladatlap") cel = "feladatlap";
-  else cel = kifejtos && vanFeladatlap ? "tananyag" : "feladatlap";
-  return { cel, csere: cel === "feladatlap" && vanFeladatlap };
+export function celValasztas({ vanFeladatlap }) {
+  return { csere: Boolean(vanFeladatlap) };
 }
 
 /** A fájlok betétele a fájlmezőbe és a `change` kiváltása (mint egy tallózásnál). */
@@ -76,39 +66,24 @@ export function fajlokBeadasa(mezo, fajlok) {
  * A Ctrl+V bekötése az űrlapra.
  * @param {object} o
  * @param {HTMLElement} o.feladatlapZona  a feladatlap feltöltő zónája
- * @param {HTMLElement} o.tananyagZona    a tananyag zónája (kifejtős módban látszik)
  * @param {HTMLInputElement} o.feladatlapMezo
- * @param {HTMLInputElement} o.tananyagMezo
- * @param {() => boolean} o.kifejtos      kifejtős módban vagyunk-e
  * @param {() => boolean} o.vanFeladatlap már van-e feltöltött feladatlap
  * @param {() => boolean} o.csereMehet    megerősítés a csere előtt (confirm)
  */
 export function beillesztesBekotes(o) {
-  let aktiv = null;
   const lathato = (el) => el.getClientRects().length > 0;
-  for (const [zona, nev] of [[o.feladatlapZona, "feladatlap"], [o.tananyagZona, "tananyag"]]) {
-    for (const esemeny of ["pointerenter", "pointerdown", "focusin"]) {
-      zona.addEventListener(esemeny, () => { aktiv = nev; });
-    }
-  }
 
   document.addEventListener("paste", (e) => {
     const fajlok = fajlokVagolapbol(e.clipboardData);
     if (!fajlok.length) return;                       // sima szöveg: a böngésző dolga
-    if (!lathato(o.feladatlapZona) && !lathato(o.tananyagZona)) return;   // az űrlap zárva
+    if (!lathato(o.feladatlapZona)) return;           // az űrlap zárva
 
-    const { cel, csere } = celValasztas({
-      aktiv: aktiv && lathato(aktiv === "feladatlap" ? o.feladatlapZona : o.tananyagZona) ? aktiv : null,
-      kifejtos: o.kifejtos(),
-      vanFeladatlap: o.vanFeladatlap()
-    });
+    const { csere } = celValasztas({ vanFeladatlap: o.vanFeladatlap() });
     e.preventDefault();
     if (csere && !o.csereMehet()) return;
 
-    const most = new Date();
-    const nevezett = fajlok.map((f, i) => new File([f], beillesztettNev(f, most, i), { type: f.type }));
-    // a feladatlapból egy van; a tananyag többet is elvisel
-    const kuld = cel === "feladatlap" ? nevezett.slice(0, 1) : nevezett;
-    fajlokBeadasa(cel === "feladatlap" ? o.feladatlapMezo : o.tananyagMezo, kuld);   // a lista/előnézet mutatja
+    // a feladatlapból egy van
+    const elso = fajlok[0];
+    fajlokBeadasa(o.feladatlapMezo, [new File([elso], beillesztettNev(elso, new Date()), { type: elso.type })]);
   });
 }

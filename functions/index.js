@@ -23,7 +23,7 @@ const { getAuth } = require("firebase-admin/auth");
 const { getStorage } = require("firebase-admin/storage");
 const { randomUUID, randomInt } = require("node:crypto");
 const logger = require("firebase-functions/logger");
-const kifejtos = require("./kifejtos");
+const skala = require("./skala");
 const kornyezet = require("./kornyezet");
 const kvota = require("./kvota");
 const aiHasznalat = require("./ai-hasznalat");
@@ -189,7 +189,6 @@ const HIBA_SZOVEG = {
   visszajelzes_ures: () => "A visszajelzés szövege nem lehet üres.",
   jegy_ertek: () => "A jegy nem szerepel a feladat jegyskáláján.",
   statusz_nem_kuldheto: (p) => `Ebben az állapotban nem küldhető el: ${p.statusz}`,
-  kulcs_nincs: () => "A feladat megoldókulcsa nem található.",
   nev_rovid: () => "A név legalább 2 karakter legyen.",
   nev_hosszu: () => "A név legfeljebb 80 karakter lehet.",
   osztaly_diak_id_kell: () => "Nem derül ki, melyik osztályról vagy diákról van szó.",
@@ -206,9 +205,6 @@ const HIBA_SZOVEG = {
   feladat_nincs: () => "A feladat nem található.",
   nem_a_te_feladatod: () => "Ez nem a te feladatod.",
   nincs_kiertekelt: () => "Ehhez a feladathoz még nincs kiértékelt beadás.",
-  kulcs_feladatlap_kell: () => "A megoldókulcs elkészítéséhez feladatlap kell – töltsd fel előbb.",
-  max_tananyag: (p) => `Legfeljebb ${p.max} tananyag-fájl tölthető fel.`,
-  kulcs_meret: () => "A feladatlap és a tananyag együtt túl nagy (legfeljebb 14 MB). Hagyd el a tananyag felesleges részeit.",
   onregisztracio_ki: () => "Az önálló tanári regisztráció ebben a környezetben nincs bekapcsolva.",
   email_nincs_megerositve: () => "Előbb erősítsd meg az e-mail-címedet a kapott levélben.",
   tanari_kerelem_hianyzik: () => "Ez a fiók nem tanári regisztrációval jött létre. Regisztrálj új fiókot tanárként.",
@@ -239,13 +235,11 @@ function hiba(code, kod, params = {}) {
 
 /**
  * Egy belső hiba (más modul, AI-lépés) továbbadása HttpsError-ként úgy,
- * hogy a kódja ne vesszen el. A kulcs-hibák (functions/kifejtos.js) külön
- * jelölést kapnak, mert azok kódkészlete más.
+ * hogy a kódja ne vesszen el.
  */
 function hibaAtvezet(code, e) {
   let details;
-  if (e.kulcsHiba) details = { kod: "kulcshiba", kulcsKod: e.kod, parameterek: e.parameterek };
-  else if (e.kod) details = { kod: e.kod, ...(e.parameterek || {}) };
+  if (e.kod) details = { kod: e.kod, ...(e.parameterek || {}) };
   return new HttpsError(code, e.message, details);
 }
 
@@ -646,7 +640,6 @@ function beadasOsszerendeles(beadasId, beadas, feladat) {
   // Beírt dolgozat: nincs kép, és a feladat engedi (csak fogalmazás-feladat). A szöveget a kliens
   // írta, ezért a hosszát itt is ellenőrizzük (a szabály ugyanezt teszi).
   if (beadas.forras === "szoveg") {
-    if (kifejtos.feladatMod(feladat.rubrika) === "kifejtos") return "mod_nem_egyezik";
     if (beadasiMod(feladat) === "foto") return "mod_nem_egyezik";
     if (typeof beadas.szoveg !== "string" || beadas.szoveg.trim().length === 0
         || beadas.szoveg.length > BEIRT_SZOVEG_MAX) return "szoveg_nincs";
@@ -776,8 +769,8 @@ function szintInfo(rubrika) {
 function szintSzures(nyelv, szint) {
   const s = String(szint || "").trim();
   if (!s) return null;
-  const skala = ANYANYELVEK.includes(nyelv) ? EVFOLYAMOK : CEFR_SZINTEK;
-  return skala.includes(s) ? s : null;
+  const ervenyes = ANYANYELVEK.includes(nyelv) ? EVFOLYAMOK : CEFR_SZINTEK;
+  return ervenyes.includes(s) ? s : null;
 }
 
 const HIBA_KATEGORIAK = [
@@ -950,8 +943,8 @@ function ertekelesPrompt(feladat, atirat, { beirt = false } = {}) {
     r.min_szo && r.max_szo ? `${r.min_szo}–${r.max_szo} szó` : "nincs megadva";
 
   const nyelv = nyelve(r);
-  // A visszajelzés nyelve (feladatonként): lásd kifejtos.kimenet()
-  const kim = kifejtos.kimenet(r);
+  // A visszajelzés nyelve (feladatonként): lásd skala.kimenet()
+  const kim = skala.kimenet(r);
 
   // A mérce a szinttől ÉS a nyelvtől függ. Ha nincs szint, a sort ki is
   // hagyjuk – a "nincs megadva" felirat is arra bátorítaná az AI-t, hogy
@@ -1021,7 +1014,7 @@ ${atirat}
  * @param {string} [kimenetiNyelv] a szempontcímek és a leírás nyelve (hu | en)
  */
 function rubrikaPrompt(nyelv, kimenetiNyelv) {
-  const kim = kifejtos.kimenet(kimenetiNyelv);
+  const kim = skala.kimenet(kimenetiNyelv);
   // Anyanyelvi feladatlapnál a CEFR értelmetlen: nem azt kérdezzük.
   const szintKeres = ANYANYELVEK.includes(nyelv)
     ? `- Melyik ÉVFOLYAMNAK szól a feladatlap? Ezt írd a "szint" mezőbe.
@@ -1340,12 +1333,6 @@ async function feldolgozBeadasBelso(beadasId, opciok = {}) {
 }
 
 async function feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat, feladatRef, kepPaths, futasId }) {
-  // Kifejtős dolgozat: más átírás, más értékelés, a pontot a kód adja.
-  // A hiányzó mód a régi (íráskészség) útvonal – az változatlan.
-  if (kifejtos.feladatMod(feladat.rubrika) === "kifejtos") {
-    return await feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths, futasId);
-  }
-
   // ── 1. lépés: átírás ──
   // Külön lépés, hogy a tanár lássa, mit olvasott ki az AI – e nélkül
   // nem lehet megállapítani, hogy a diák hibázott vagy az AI félreolvasott.
@@ -1412,7 +1399,7 @@ async function feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat,
       hibak: ertekeles.hibak || [],
       erossegek: ertekeles.erossegek || [],
       fejlesztendo: ertekeles.fejlesztendo || [],
-      diak_szoveg: kifejtos.bekezdesekre(ertekeles.diak_szoveg),
+      diak_szoveg: skala.bekezdesekre(ertekeles.diak_szoveg),
       szoszam: ertekeles.szoszam || null,
       model: ertekelesModell,
       atirat_model: atirasModell,
@@ -1426,90 +1413,6 @@ async function feldolgozFutas({ firestore, beadasRef, beadasId, beadas, feladat,
 
   logger.info("Beadás kijavítva", { beadasId, osszpontszam, maxPontszam });
   return { osszpontszam, maxPontszam };
-}
-
-// ── KIFEJTŐS DOLGOZAT ──
-// Terv: docs/kifejtos-mod-terv.md. A tiszta függvények a kifejtos.js-ben.
-
-async function feldolgozKifejtos(beadasRef, feladatRef, feladat, kepPaths, futasId) {
-  // A kulcs külön, csak tanári alkollekcióban van: a feladat dokumentumát
-  // a diák olvashatja, a kulcs viszont maga a megoldás.
-  const kulcsSnap = await feladatRef.collection("kulcs").doc("aktualis").get();
-  if (!kulcsSnap.exists) {
-    throw new Error("A feladathoz még nincs megoldókulcs – a tanár a feladat szerkesztésénél készítheti el.");
-  }
-  const kulcsAdat = kulcsSnap.data();
-  const kulcs = kifejtos.kulcsEllenorzes(kulcsAdat);
-  const szoszedet = Array.isArray(kulcsAdat.szoszedet) && kulcsAdat.szoszedet.length
-    ? kulcsAdat.szoszedet.map(String)
-    : kifejtos.szoszedetGyujtes(kulcs);
-
-  // ── 1. lépés: kérdésenkénti átírás ──
-  const kepek = await kepekBetoltese(kepPaths);
-  const { eredmeny: atiras, modell: atirasModell } = await aiHivas(
-    "atiras",
-    [{ text: kifejtos.kifejtosAtiratPrompt(kulcs, szoszedet) }, ...kepek],
-    kifejtos.KIFEJTOS_ATIRAT_SCHEMA,
-    { tanar_id: feladat.tanar_id, muvelet: "beadas_atiras", mod: "kifejtos", feladat_id: feladatRef.id, beadas_id: beadasRef.id }
-  );
-
-  const atirat = kifejtos.atiratOsszefuzes(atiras);
-  if (!atirat) throw new Error("Az átírás üres szöveget adott.");
-
-  await futasFrissites(beadasRef, futasId, {
-    atirat,
-    atirat_valaszok: (atiras.valaszok || []).map((v) => ({
-      kerdes: String(v.kerdes ?? ""),
-      valasz: String(v.valasz ?? ""),
-      bizonytalan: Array.isArray(v.bizonytalan) ? v.bizonytalan.map(String) : []
-    })),
-    atirat_tablazatok: (atiras.tablazatok || []).map((t) => ({
-      kerdes: String(t.kerdes ?? ""),
-      cellak: (t.cellak || []).map((c) => ({
-        sor: String(c.sor ?? ""), oszlop: String(c.oszlop ?? ""), ertek: String(c.ertek ?? "")
-      }))
-    })),
-    atirat_olvashatosag: atiras.olvashatosag || null,
-    atirat_megjegyzes: atiras.megjegyzes || null,
-    atirat_model: atirasModell,
-    frissitve: FieldValue.serverTimestamp()
-  });
-
-  // ── 2. lépés: értékelés – az AI státuszt ad, a pontot a kód ──
-  // A tananyag SZÁNDÉKOSAN nem kerül ide: a kulcs abból készült, és a
-  // tanár jóváhagyta (lásd kifejtosErtekelesPrompt).
-  const valaszok = kifejtos.valaszSzovegek(atiras);
-  const { eredmeny: ai, modell: ertekelesModell } = await aiHivas(
-    "ertekeles",
-    [{ text: kifejtos.kifejtosErtekelesPrompt(feladat, kulcs, valaszok) }],
-    kifejtos.KIFEJTOS_ERTEKELES_SCHEMA,
-    { tanar_id: feladat.tanar_id, muvelet: "beadas_ertekeles", mod: "kifejtos", feladat_id: feladatRef.id, beadas_id: beadasRef.id }
-  );
-
-  const ertekeles = kifejtos.kifejtosErtekelesOsszeallitas(
-    kulcs, ai, valaszok, kifejtos.skalaFeloldas(feladat.rubrika)
-  );
-
-  await futasEllenorzes(beadasRef, futasId);
-  await beadasRef.collection("ertekeles").doc("ai").set({
-    ...ertekeles,
-    model: ertekelesModell,
-    atirat_model: atirasModell,
-    generalva: FieldValue.serverTimestamp()
-  });
-
-  await futasFrissites(beadasRef, futasId, {
-    statusz: "javitva",
-    frissitve: FieldValue.serverTimestamp()
-  });
-
-  logger.info("Kifejtős beadás kijavítva", {
-    beadasId: beadasRef.id,
-    osszpontszam: ertekeles.osszpontszam,
-    maxPontszam: ertekeles.max_pontszam,
-    figyelmeztetes: ertekeles.figyelmeztetesek.length
-  });
-  return { osszpontszam: ertekeles.osszpontszam, maxPontszam: ertekeles.max_pontszam };
 }
 
 /** Hibakezelés: a státusz 'hiba' lesz, olvasható üzenettel. */
@@ -1665,7 +1568,6 @@ function pontTablazat(ai, rubrika, modositasok) {
 
   const szempontok = (ai?.szempontok || []).map((sz) => {
     const max = Number(sz.max) || 0;
-    // Kifejtős módban nincs rubrika-szempont: a címet az értékelés hozza.
     const cim = cimek[sz.kulcs] || sz.cim || sz.kulcs;
     const m = modMap.get(sz.kulcs);
 
@@ -1702,9 +1604,8 @@ function pontTablazat(ai, rubrika, modositasok) {
 // írja a tanári visszajelzést és állítja 'elkuldve'-re a státuszt.
 // ══════════════════════════════════════════════════════
 async function jovahagyasLogika(uid, adat) {
-  // szempontok: fogalmazásnál a tanár pontjai szempontonként.
-  // kerdesek: kifejtősnél a tanár elemstátusz-felülírásai (pontot nem küldhet).
-  const { beadasId, jegy, szoveg, szempontok, kerdesek } = adat || {};
+  // szempontok: a tanár pontjai szempontonként.
+  const { beadasId, jegy, szoveg, szempontok } = adat || {};
   if (!beadasId) throw hiba("invalid-argument", "beadas_id_kell");
   if (!szoveg || !szoveg.trim()) {
     throw hiba("invalid-argument", "visszajelzes_ures");
@@ -1731,37 +1632,19 @@ async function jovahagyasLogika(uid, adat) {
     firestore.collection("feladatok").doc(beadas.feladat_id).get()
   ]);
   // A beadás tanar_id-ját a kliens írta: a jóváhagyó csak a feladat valódi
-  // tanára lehet (különben idegen feladat kulcsa kerülne a visszajelzésbe).
+  // tanára lehet (különben idegen feladat rubrikája kerülne a visszajelzésbe).
   if (feladatSnap.data()?.tanar_id !== uid
       || feladatSnap.data()?.osztaly_id !== beadas.osztaly_id) {
     throw hiba("permission-denied", "nem_a_te_beadasod");
   }
   // A jegy a FELADAT skáláján értelmezett (magyar 1–5, A–F, százalék…);
   // a tárolt érték a skála saját alakja, nem a kliens által küldött.
-  const skala = kifejtos.skalaFeloldas(feladatSnap.data()?.rubrika);
-  const tanariJegy = jegy == null ? null : kifejtos.jegyNormalizalas(jegy, skala);
+  const jegyskala = skala.skalaFeloldas(feladatSnap.data()?.rubrika);
+  const tanariJegy = jegy == null ? null : skala.jegyNormalizalas(jegy, jegyskala);
   if (tanariJegy === undefined) throw hiba("invalid-argument", "jegy_ertek");
 
   let tabla = { szempontok: [], osszpontszam: null, max_pontszam: null, szazalek: null };
-  if (aiSnap.exists && aiSnap.data().mod === "kifejtos") {
-    // Kifejtős dolgozat: a pontot a KULCSBÓL számoljuk, a tanár felülírt
-    // elemstátuszaival – ugyanazzal a függvénnyel, amit a javító nézet mutat.
-    const kulcsSnap = await feladatSnap.ref.collection("kulcs").doc("aktualis").get();
-    if (!kulcsSnap.exists) {
-      throw hiba("failed-precondition", "kulcs_nincs");
-    }
-    let kulcs;
-    try {
-      kulcs = kifejtos.kulcsEllenorzes(kulcsSnap.data());
-    } catch (e) {
-      throw hibaAtvezet("failed-precondition", e);
-    }
-    const rubrika = feladatSnap.data()?.rubrika || {};
-    tabla = kifejtos.kifejtosTanariEredmeny(kulcs, aiSnap.data(), kerdesek, {
-      skala,
-      helyesLathato: rubrika.helyes_valaszok_lathatok !== false
-    });
-  } else if (aiSnap.exists) {
+  if (aiSnap.exists) {
     try {
       // A korábban mentett AI-adatot is a rubrikához kötjük (az AI maximumai nem megbízhatók).
       const rubrika = feladatSnap.data()?.rubrika;
@@ -1777,7 +1660,7 @@ async function jovahagyasLogika(uid, adat) {
   batch.set(beadasRef.collection("ertekeles").doc("tanari"), {
     jegy: tanariJegy,
     // A megjelenítéshez: százalékos skálán a jegy %-jelet kap
-    jegy_tipus: skala.tipus,
+    jegy_tipus: jegyskala.tipus,
     szoveg: szoveg.trim(),
     ...tabla,
     tanar_id: uid,
@@ -3111,7 +2994,7 @@ function elemzesAggregalas(ertekelesek) {
 function elemzesPrompt(feladat, agg) {
   const r = feladat.rubrika || {};
   const nyelv = nyelve(r);
-  const kim = kifejtos.kimenet(r);
+  const kim = skala.kimenet(r);
 
   const szint = szintInfo(r);
   const szintSor = szint ? `${szint.cimke}: ${szint.ertek}\n` : "";
@@ -3205,8 +3088,6 @@ exports.feladatElemzes = onCall(
       .where("feladat_id", "==", feladatId)
       .get();
 
-    const kifejtosMod = kifejtos.feladatMod(feladat.rubrika) === "kifejtos";
-
     const ertekelesek = [];
     for (const d of beadasok.docs) {
       const ai = await d.ref.collection("ertekeles").doc("ai").get();
@@ -3216,18 +3097,6 @@ exports.feladatElemzes = onCall(
         diak_id: d.data().diak_id,
         olvashatosag: d.data().atirat_olvashatosag || null
       };
-      // Kifejtősnél az számít, amit a diák ténylegesen kapott: ha a tanár
-      // már jóváhagyta (és közben felülírt elemeket), az ő döntése. A
-      // tartalmi hibák listája csak az AI-értékelésben van, az marad.
-      if (kifejtosMod && d.data().statusz === "elkuldve") {
-        const tanari = await d.ref.collection("ertekeles").doc("tanari").get();
-        if (tanari.exists && Array.isArray(tanari.data().kerdesek)) {
-          const t = tanari.data();
-          Object.assign(ert, {
-            kerdesek: t.kerdesek, szempontok: t.szempontok, szazalek: t.szazalek
-          });
-        }
-      }
       ertekelesek.push(ert);
     }
 
@@ -3237,31 +3106,10 @@ exports.feladatElemzes = onCall(
 
     const agg = elemzesAggregalas(ertekelesek);
 
-    // Kifejtős dolgozat: kérdés- és elemstatisztika (kód), és más prompt –
-    // nem nyelvtani típushibák, hanem hiányzó tartalmak.
-    let kf = null;
-    let prompt = null;
-    let schema = ELEMZES_SCHEMA;
-    if (kifejtosMod) {
-      const kulcsSnap = await feladatSnap.ref.collection("kulcs").doc("aktualis").get();
-      if (!kulcsSnap.exists) {
-        throw hiba("failed-precondition", "kulcs_nincs");
-      }
-      let kulcs;
-      try {
-        kulcs = kifejtos.kulcsEllenorzes(kulcsSnap.data());
-      } catch (e) {
-        throw hibaAtvezet("failed-precondition", e);
-      }
-      kf = kifejtos.kifejtosAggregalas(kulcs, ertekelesek);
-      prompt = kifejtos.kifejtosElemzesPrompt(feladat, agg, kf, ertekelesek.flatMap((e) => e.hibak || []));
-      schema = kifejtos.KIFEJTOS_ELEMZES_SCHEMA;
-    }
-
     const { eredmeny, modell } = await kvotaval(uid, "elemzes", () => aiHivas(
       "elemzes",
-      [{ text: prompt || elemzesPrompt(feladat, agg) }],
-      schema,
+      [{ text: elemzesPrompt(feladat, agg) }],
+      ELEMZES_SCHEMA,
       { tanar_id: uid, muvelet: "elemzes", feladat_id: feladatId }
     ));
 
@@ -3272,7 +3120,6 @@ exports.feladatElemzes = onCall(
     const dokumentum = {
       beadas_db: beadasok.size,
       ...mentendoAgg,
-      ...(kf ? { mod: "kifejtos", kerdesek: kf.kerdesek, kihagyott: kf.kihagyott } : {}),
       osszegzes: eredmeny.osszegzes || "",
       tipushibak: eredmeny.tipushibak || [],
       gyakorlatok: eredmeny.gyakorlatok || [],
@@ -3291,98 +3138,5 @@ exports.feladatElemzes = onCall(
     });
 
     return dokumentum;
-  }
-);
-
-// ══════════════════════════════════════════════════════
-// 11. KIFEJTŐS DOLGOZAT: KULCSKÉSZÍTÉS
-// Terv: docs/kifejtos-mod-terv.md
-//
-// Egy hívás: a feladatlap és a (nem kötelező) tananyag fájljai együtt
-// mennek a modellhez. Nincs tananyagtár, nincs külön kivonat-lépés és
-// nincs próbajavítás: a tanár a javító nézetben látja és javítja, ha
-// valami rosszul pontozódott.
-// ══════════════════════════════════════════════════════
-
-const TANANYAG_FAJL_MAX = 5;
-
-// A Gemini inline kérése kb. 20 MB-ig megy át; a base64 ~33%-kal nagyobb.
-const KULCS_OSSZMERET_MAX = 14 * 1024 * 1024;
-
-/**
- * Feladatlap (+ tananyag) → kulcsvázlat. NEM ment semmit: a tanár az
- * űrlapon (összecsukva) átnézheti, és a feladattal együtt menti.
- */
-exports.kulcsKeszites = onCall(
-  { ...AI_OPCIOK, timeoutSeconds: 540, memory: "1GiB" },
-  async (request) => {
-    const uid = tanar(request);
-    const { feladatlapPath, tananyagPaths, tantargy } = request.data || {};
-
-    if (!feladatlapPath) {
-      throw hiba("invalid-argument", "kulcs_feladatlap_kell");
-    }
-    if (typeof feladatlapPath !== "string" || !feladatlapPath.startsWith(`feladatlapok/${uid}/`)) {
-      throw hiba("permission-denied", "nem_a_tied_feltoltes");
-    }
-    const tananyag = Array.isArray(tananyagPaths) ? tananyagPaths : [];
-    if (tananyag.length > TANANYAG_FAJL_MAX) {
-      throw hiba("invalid-argument", "max_tananyag", { max: TANANYAG_FAJL_MAX });
-    }
-    for (const path of tananyag) {
-      if (typeof path !== "string" || !path.startsWith(`tananyagok/${uid}/`)) {
-        throw hiba("permission-denied", "nem_a_tied_feltoltes");
-      }
-    }
-
-    const bucket = getStorage().bucket();
-    const meretek = await Promise.all(
-      [feladatlapPath, ...tananyag].map((path) => bucket.file(path).getMetadata().then(([m]) => Number(m.size || 0)))
-    );
-    if (meretek.reduce((a, b) => a + b, 0) > KULCS_OSSZMERET_MAX) {
-      throw hiba("invalid-argument", "kulcs_meret");
-    }
-
-    const tantargyTisztitva = String(tantargy || "").trim().slice(0, 60) || null;
-    const vanTananyag = tananyag.length > 0;
-
-    let eredmeny, modell;
-    try {
-      ({ eredmeny, modell } = await kvotaval(uid, "kulcs", async () => {
-        const reszek = [
-          { text: kifejtos.kulcsKeszitesPrompt(tantargyTisztitva, vanTananyag) },
-          { text: "=== FELADATLAP ===" },
-          await fajlBase64(feladatlapPath)
-        ];
-        if (vanTananyag) {
-          reszek.push({ text: "=== TANANYAG ===" }, ...(await Promise.all(tananyag.map(fajlBase64))));
-        }
-        return aiHivas(
-          "rubrika", reszek, kifejtos.KULCS_JAVASLAT_SCHEMA, { tanar_id: uid, muvelet: "kulcs" }
-        );
-      }));
-    } catch (e) {
-      if (e instanceof HttpsError) throw e;   // pl. elfogyott a keret
-      logger.error("kulcsKeszites hiba", { uid, hiba: e.message });
-      throw belsoHiba(e, "ai_hiba");
-    }
-
-    let tiszta;
-    try {
-      tiszta = kifejtos.kulcsJavaslatTisztitas(eredmeny, vanTananyag);
-    } catch (e) {
-      throw hibaAtvezet("failed-precondition", e);
-    }
-
-    logger.info("Kulcsvázlat kész", { uid, kerdes: tiszta.kulcs.kerdesek.length, tananyag: tananyag.length });
-    return {
-      kulcs: { ...tiszta.kulcs, szoszedet: kifejtos.szoszedetGyujtes(tiszta.kulcs) },
-      kihagyott: tiszta.kihagyott,
-      cim_javaslat: String(eredmeny.cim_javaslat || "").trim(),
-      feladat_leiras: String(eredmeny.feladat_leiras || "").trim(),
-      tantargy: String(eredmeny.tantargy || "").trim(),
-      van_tananyag: vanTananyag,
-      model: modell
-    };
   }
 );

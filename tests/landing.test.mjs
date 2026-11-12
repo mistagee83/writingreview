@@ -64,8 +64,8 @@ test("a nyitóoldal nem állít semmit a jogilag nyitott témákról (kiskorúak
 test("a szövegek állításai egyeznek a kóddal: nyolc nyelv, a dolgozat egy egység, a Profi és az Alap tartalma", () => {
   assert.equal(szerver.NYELVEK.length, 8);
   assert.equal(kvota.EGYSEG_KOLTSEG.beadas, 1, "a GYIK szerint egy dolgozat javítása egy egység");
-  assert.ok(kvota.EGYSEG_KOLTSEG.feladatlap > 0 && kvota.EGYSEG_KOLTSEG.elemzes > 0 && kvota.EGYSEG_KOLTSEG.kulcs > 0,
-    "a GYIK szerint a feladatlap, az elemzés és a kulcs is fogyaszt");
+  assert.ok(kvota.EGYSEG_KOLTSEG.feladatlap > 0 && kvota.EGYSEG_KOLTSEG.elemzes > 0,
+    "a GYIK szerint a feladatlap és az elemzés is fogyaszt");
   // a csomag-pontok a funkciótáblát követik: az elemzés az Alaptól, a fejlődés-követés a Profitól, a színválasztás az Alaptól
   assert.ok(kvota.FUNKCIOK.osztaly_elemzes.includes("alap") && !kvota.FUNKCIOK.osztaly_elemzes.includes("ingyenes"));
   assert.ok(kvota.FUNKCIOK.fejlodes.includes("profi") && !kvota.FUNKCIOK.fejlodes.includes("alap"));

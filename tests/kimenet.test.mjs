@@ -20,7 +20,7 @@ let t;
 let kf;
 before(() => {
   t = require("./index.js")._teszt;
-  kf = require("./kifejtos.js");
+  kf = require("./skala.js");
 });
 
 const feladat = (kimeneti) => ({
@@ -76,26 +76,6 @@ test("osztályelemzés: az összegzés, a címek és az instrukció a kért nyel
   assert.doesNotMatch(en, /magyarul|magyar\s+osztály/);
 });
 
-test("kifejtős dolgozat: értékelés és elemzés a kért nyelven", () => {
-  const kulcs = kf.kulcsEllenorzes({ kerdesek: [{ sorszam: "1", tipus: "magyarazat", max_pont: 1,
-    elemek: [{ id: "e1", allitas: "x", pont: 1 }] }] });
-  const f = (k) => ({ cim: "T", rubrika: { mod: "kifejtos", ...(k ? { kimeneti_nyelv: k } : {}) } });
-  const valaszok = new Map([["1", "válasz"]]);
-
-  assert.match(kf.kifejtosErtekelesPrompt(f(), kulcs, valaszok), /visszajelzés MAGYARUL/);
-  const en = kf.kifejtosErtekelesPrompt(f("en"), kulcs, valaszok);
-  assert.match(en, /visszajelzés ANGOLUL/);
-  assert.match(en, /a tanárnak, angolul/);
-  assert.doesNotMatch(en, /MAGYARUL|magyarul/);
-
-  const kfAgg = kf.kifejtosAggregalas(kulcs, []);
-  const alap = { ertekelt_db: 0, atlag_szazalek: null };
-  assert.match(kf.kifejtosElemzesPrompt(f(), alap, kfAgg, []), /a tanárnak, magyarul/);
-  const elemzesEn = kf.kifejtosElemzesPrompt(f("en"), alap, kfAgg, []);
-  assert.match(elemzesEn, /a tanárnak, angolul/);
-  assert.doesNotMatch(elemzesEn, /magyarul/);
-});
-
 // ── kódolt szerverhibák ──
 
 test("hiba(): a magyar üzenet a régi, és a details.kod ott van", () => {
@@ -109,18 +89,12 @@ test("hiba(): a magyar üzenet a régi, és a details.kod ott van", () => {
   assert.equal(p.details.statusz, "feltoltve");
 });
 
-test("hibaAtvezet(): a kulcs-hiba és a kódolt hiba kódja nem vész el", () => {
-  let kulcsHiba;
-  try { kf.kulcsEllenorzes({ kerdesek: [] }); } catch (e) { kulcsHiba = e; }
-  const a = t.hibaAtvezet("failed-precondition", kulcsHiba);
-  assert.equal(a.details.kod, "kulcshiba");
-  assert.equal(a.details.kulcsKod, "nincs_kerdes");
-  assert.equal(a.message, kulcsHiba.message);
-
-  let nemFeladatlap;
-  try { kf.kulcsJavaslatTisztitas({ nem_feladatlap: true }, false); } catch (e) { nemFeladatlap = e; }
-  assert.equal(t.hibaAtvezet("failed-precondition", nemFeladatlap).details.kod, "nem_feladatlap");
-  assert.equal(t.hibaAtvezet("failed-precondition", nemFeladatlap).message, kf.NEM_FELADATLAP_UZENET);
+test("hibaAtvezet(): a kódolt hiba kódja és paraméterei nem vesznek el", () => {
+  const kodolt = Object.assign(new Error("Érvénytelen pontszám."), { kod: "pont_hatar", parameterek: { cim: "T", max: 5 } });
+  const a = t.hibaAtvezet("invalid-argument", kodolt);
+  assert.equal(a.details.kod, "pont_hatar");
+  assert.equal(a.details.max, 5);
+  assert.equal(a.message, kodolt.message);
 
   const sima = t.hibaAtvezet("invalid-argument", new Error("valami"));
   assert.equal(sima.details, undefined);
@@ -146,18 +120,14 @@ test("a pontszám-hiba kódot és paramétereket kap, a magyar üzenet változat
 
 test("minden szerver-hibakódhoz van szöveg mindkét nyelven, és nincs árva kulcs", async () => {
   const forras = readFileSync(new URL("../functions/index.js", import.meta.url), "utf8");
-  const kifejtosForras = readFileSync(new URL("../functions/kifejtos.js", import.meta.url), "utf8");
   const { SZOTARAK } = await import("../public/js/i18n.js");
 
   const hasznalt = new Set([
     ...[...forras.matchAll(/\bhiba\(\s*"[a-z-]+",\s*"(\w+)"/g)].map((m) => m[1]),
     ...[...forras.matchAll(/\bkod: "(\w+)"/g)].map((m) => m[1]),                 // pont_hatar
-    ...[...kifejtosForras.matchAll(/\{ kod: "(\w+)" \}/g)].map((m) => m[1]),    // nem_feladatlap…
     ...[...forras.matchAll(/belsoHiba\(e, "(\w+)"\)/g)].map((m) => m[1]),
     "szerver_hiba"                                                               // belsoHiba alapértéke
   ]);
-  // A "kulcshiba" külön szótári család (kulcshiba.*)
-  hasznalt.delete("kulcshiba");
   assert.ok(hasznalt.size >= 38, `túl kevés hibakód található (${hasznalt.size}) – a teszt regex elavult?`);
 
   for (const kod of hasznalt) {
@@ -184,8 +154,6 @@ test("a feladatleírás: azonos nyelven változatlan, más nyelvre E/2-ben", () 
     assert.match(p, /másodikszemélyben\s+\(E\/2\)/, kim);
     assert.match(p, /ne harmadik személyben|Soha ne harmadik/, kim);
   }
-  assert.match(kf.kulcsKeszitesPrompt("történelem", false), /Hosszabb szövegrészt a lapról ne másolj át/);
-  assert.match(kf.kulcsKeszitesPrompt("történelem", false), /másodikszemélyben \(E\/2\)/);
 });
 
 test("minden szabad szöveges mező a kért nyelvet kapja (nincs csendes magyar rész)", () => {
@@ -193,9 +161,6 @@ test("minden szabad szöveges mező a kért nyelvet kapja (nincs csendes magyar 
   assert.match(en, /KIMENET NYELVE[\s\S]*megjegyzes[\s\S]*erossegek[\s\S]*fejlesztendo[\s\S]*ANGOLUL/);
   const hu = t.ertekelesPrompt(feladat("hu"), "text");
   assert.match(hu, /KIMENET NYELVE[\s\S]*MAGYARUL/);
-  const kfEn = kf.kifejtosErtekelesPrompt(
-    { cim: "T", rubrika: { kimeneti_nyelv: "en" } }, { kerdesek: [] }, new Map());
-  assert.match(kfEn, /"magyarazat" angolul/);
 });
 
 test("bekezdesekre(): a diák szövege mindig bekezdésekben megy ki", () => {

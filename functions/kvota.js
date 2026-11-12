@@ -17,7 +17,6 @@
 const EGYSEG_KOLTSEG = {
   beadas: 1,       // egy dolgozat javítása (új beadás vagy újrafuttatás)
   feladatlap: 1,   // feladatlap → rubrika-javaslat
-  kulcs: 2,        // kifejtős megoldókulcs készítése (feladatlap + tananyag, nagy bemenet)
   elemzes: 1       // osztályszintű elemzés egy feladatra
 };
 

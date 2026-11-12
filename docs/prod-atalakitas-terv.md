@@ -104,7 +104,16 @@ A prod a teljes átalakítás végéig a régi kódon fut. Részleges prod-deplo
    csak `main`-ről (címke). CI mindkét ágon. A `CLAUDE.md` „Két telepítés, egy kódbázis” szabálya átíródik: a közös
    hibajavítást át kell vinni a másik ágra is.
 2. **Kivezetés.** A 6. pont elemeinek törlése a `main`-ről, a tesztekkel együtt. Utána a tanári felület leveles/esszé feladattal
-   működik, beadás még nincs.
+   működik, beadás még nincs. Három részben:
+   - **2a – kifejtős mód: kész (2026-11-12).** A közös rész (jegyskála, jegyjavaslat, bekezdésekre tagolás, a visszajelzés
+     nyelve) átkerült a `functions/skala.js`-be, a böngészős példánya a generált `public/js/skala.js` (`scripts/skala-kliens.mjs`).
+     Törölve: `functions/kifejtos.js`, `public/js/kifejtos*.js`, a `kulcsKeszites` függvény, a kifejtős ág a beadás-feldolgozásban,
+     a jóváhagyásban és az elemzésben, a `feladatok/{id}/kulcs` és a `tananyagok/` szabálya, a kvóta `kulcs` művelete, a kapcsolódó
+     szótári szövegek és tesztek. A nyitóoldal négy kifejtős állítása kiigazítva.
+     **Maradt (későbbi takarítás):** a kifejtős CSS-blokk az `app.css`-ben (halott kód); az AI-használat oldalon a „Kifejtős”
+     típus (a mérés általános, régi adatnál üres); a `mukodesi-leiras.md` kifejtős fejezetei (a 8. lépés írja át).
+   - **2b – fotós beadás és átírás.**
+   - **2c – diákfiók, osztályok, fejlődés-követés.**
 3. **Link és megosztási oldal (tanár).** `linkek` gyűjtemény, `linkInditas` / `linkLezaras` callable, megosztási oldal QR-kóddal
    (helyben tárolt QR-könyvtár, nem CDN), visszaszámlálóval, kivetítéssel.
 4. **Diákoldal.** Új `iras.html?k=…`: feladatleírás, becenév, írómező, piszkozat, beadás callable-en át, nyugta a diáklinkkel.

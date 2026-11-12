@@ -42,13 +42,6 @@ test("beírt beadás: engedett módnál rendben, fotós feladatnál elutasítva"
   assert.equal(t.beadasOsszerendeles("b1", beirt(), feladat({ beadasi_mod: "foto" })), "mod_nem_egyezik");
 });
 
-test("beírt beadás: kifejtős feladatra elutasítva, akkor is, ha a mód szoveg", () => {
-  assert.equal(
-    t.beadasOsszerendeles("b1", beirt(), feladat({ mod: "kifejtos", beadasi_mod: "szoveg" })),
-    "mod_nem_egyezik"
-  );
-});
-
 test("beírt beadás: üres, szóközös, túl hosszú vagy nem szöveg elutasítva; a határ még jó", () => {
   const f = feladat({ beadasi_mod: "szoveg" });
   for (const szoveg of ["", "   \n\t ", "a".repeat(t.BEIRT_SZOVEG_MAX + 1), 42, null, undefined, ["x"]]) {

@@ -91,9 +91,7 @@ test("a séma-átalakítás: additionalProperties:false, a nem támogatott megsz
 });
 
 test("az éles sémák mind átalakíthatók (nem marad bennük tiltott kulcs, minden objektum zárt)", () => {
-  const kifejtos = require("./kifejtos.js");
-  const semak = [t.ATIRAT_SCHEMA, t.rubrikaSchema("magyar"), t.rubrikaSchema("angol"),
-    ...Object.entries(kifejtos).filter(([n]) => /SCHEMA$/.test(n)).map(([, s]) => s)];
+  const semak = [t.ATIRAT_SCHEMA, t.ERTEKELES_SCHEMA, t.rubrikaSchema("magyar"), t.rubrikaSchema("angol")];
   const ellenoriz = (x, utvonal) => {
     if (!x || typeof x !== "object") return;
     if (Array.isArray(x)) return x.forEach((e, i) => ellenoriz(e, `${utvonal}[${i}]`));
