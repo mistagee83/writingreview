@@ -10,9 +10,9 @@ A prod nyelvtanári, diákfiók nélküli változatra alakul át: 24 órás fela
 Az MI-t a tanár indítja, és van beillesztés-tiltás. A pilot saját `pilot` ágra kerül, és változatlan marad. A terv és a
 lépések: [`prod-atalakitas-terv.md`](prod-atalakitas-terv.md).
 
-**1. lépés (ágak szétválasztása): kód kész.** A `deploy.mjs` ágat ellenőriz (pilot: `pilot`, prod: `main`), a CI mindkét
-ágon fut, és a `CLAUDE.md` szabálya átíródott. **Hátra:** commit, utána a `pilot` ág létrehozása ebből a commitból
-(`git branch pilot`) és a pushok (`git push origin main pilot`). Amíg a `pilot` ág nem létezik, pilotra nem lehet deployolni.
+**1. lépés (ágak szétválasztása): kész (2026-11-12, `c4f95e3`).** A `deploy.mjs` ágat ellenőriz (pilot: `pilot`, prod: `main`),
+a CI mindkét ágon fut, és a `CLAUDE.md` szabálya átíródott. A `pilot` ág ebből a commitból indult, és a GitHubon is megvan.
+Pilot-deploy innentől: `git switch pilot`, majd `node scripts/deploy.mjs pilot --only ...`. Nem kellett deployolni.
 Következő: 2. lépés (kivezetés a `main`-ről).
 
 ## 0. Utolsó munkamenet összegzése (2026-10-05) – ha másik gépen folytatod, ezt olvasd először
