@@ -1,4 +1,4 @@
-# Jogi dokumentumok – piszkozatok (2026-10-10)
+# Jogi dokumentumok – piszkozatok (2026-10-10; a prod új működéséhez igazítva 2026-11-12)
 
 > **Ezek PISZKOZATOK, nem publikálhatók jogi felülvizsgálat nélkül.** A készítőjük (MI) nem jogász. A cél: a szolgáltatás **valós működését**
 > pontosan leírni, és minden nyitott jogi döntést jól láthatóan megjelölni, hogy a jogász tudja, mit kell eldöntenie, és a tulajdonos tudja, mit kell
@@ -28,8 +28,10 @@ angol változat a közzététel előtt pótlandó.
    Google feltételei miatt blokkoló kérdés (lásd alább).
 3. **MI-feldolgozás:** a Google Gemini API fizetős szintje; EU-s feldolgozási garancia **nincs**, az adat átmenetileg bármely országban tárolódhat vagy gyorsítótárba
    kerülhet. A szöveg ezt nyíltan kimondja.
-4. **Nincs automatikus törlés és nincs önkiszolgáló fiók- vagy adattörlés.** A szöveg csak azt ígéri, amit az Üzemeltető kézzel vállalni tud (kérésre történő törlés),
-   és ezt `[NINCS MEGÉPÍTVE]`-vel jelöli.
+4. **Automatikus törlés (2026-11-12 óta megépítve):** a beadás 12 hónap után, a lejárt link 12 hónap után, a 12 hónapja nem beadó csoport-diák.
+   **Önkiszolgáló fiók- vagy adattörlés nincs**: a szöveg itt csak a kérésre történő kézi törlést ígéri, és `[NINCS MEGÉPÍTVE]`-vel jelöli.
+5. **A prod diákadata (2026-11-12 óta):** nincs diákfiók, név, e-mail; a diák becenévvel ír a tanár linkjén. A becenév és a szöveg álnevesített, de a GDPR szerint
+   továbbra is személyes adat lehet (a dolgozat tartalma miatt is). A tanár csoportjain belül a becenév szerinti összekapcsolás egy álnevesített tanulási profilt ad.
 
 ## A három legfontosabb nyitott pont (ezek nélkül éles kiskorú-használat nem indulhat)
 
@@ -37,7 +39,10 @@ angol változat a közzététel előtt pótlandó.
    individuals under 18”. A WritingReview diákjai kiskorúak. Részletek, forráslinkek, lehetséges megoldások: `docs/kornyezetek-terv.md` 5.2,
    `docs/google-korhatar-level.md`. **A felhasználási feltételekben ezért nincs olyan mondat, hogy az MI-t kiskorúak is használhatják; ezt a döntés után kell megfogalmazni.**
 2. **Adatkezelői szerepek és jogalap a diákok adataira** (tanár/iskola vs. Üzemeltető; 16 év alatti hozzájárulás, iskolai közfeladat vagy jogos érdek).
-3. **Megőrzési idő és törlés.** Jelenleg nincs; a jogász válasza után kell megépíteni (és a tájékoztatót pontosítani).
+3. **Megőrzési idő és törlés.** 12 hónap van megépítve (a tulajdonos döntése); a jogásznak meg kell erősítenie.
+
+További új kérdések (2026-11-12): a **csoporton belüli, becenév szerinti fejlődéskövetés** (álnevesített profil több beadáson át), és a **Google reCAPTCHA**
+(Firebase App Check) a diákoldalon – a beadás védelméhez; a diák böngészőjéről műszaki jellemzők jutnak a Google-hoz.
 
 A teljes kérdéslista (18 kérdés): [`../adatvedelmi-kerdesek.md`](../adatvedelmi-kerdesek.md).
 

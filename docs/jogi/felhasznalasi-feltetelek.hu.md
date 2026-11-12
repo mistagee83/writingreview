@@ -1,7 +1,7 @@
 # Felhasználási feltételek (ÁSZF) – WritingReview
 
 > **PISZKOZAT – jogi felülvizsgálat nélkül nem tehető közzé.** Jelölések és munkahipotézisek: [`README.md`](README.md).
-> A szöveg a **2026. október 10-i tényleges működést** írja le. **Árakat és kereteket szándékosan nem tartalmaz:** azok mindig a szolgáltatás nyitóoldalán és a főoldalon láthatók (egy forrásból jönnek
+> A szöveg a **prod 2026. november 12-i működését** írja le (feladatlink, becenév, diákfiók és kézírás nélkül). **Árakat és kereteket szándékosan nem tartalmaz:** azok mindig a szolgáltatás nyitóoldalán és a főoldalon láthatók (egy forrásból jönnek
 > a rendszer beállításaiból), így a feltételek és az árak nem térhetnek el egymástól.
 
 *Hatályos: [KITÖLTENDŐ: dátum].*
@@ -9,42 +9,43 @@
 ## 1. A szolgáltató és a szolgáltatás
 
 - Szolgáltató („**Üzemeltető**”): **[KITÖLTENDŐ: név]**, egyéni vállalkozó; székhely: **[KITÖLTENDŐ]**; adószám: **[KITÖLTENDŐ]**; nyilvántartási szám: **[KITÖLTENDŐ]**; e-mail: **[KITÖLTENDŐ]**.
-- A **WritingReview** egy webalkalmazás, amellyel a tanár a diákok dolgozatait mesterséges intelligencia (MI) támogatásával javíthatja: az MI a kézírást átírja, és **javaslatot tesz**
-  a pontszámra és a visszajelzésre; a végső értékelést **a tanár** hagyja jóvá. A szolgáltatást a **tanároknak** nyújtjuk; a diákok a tanáruk meghívására (osztálykóddal) csatlakoznak.
+- A **WritingReview** egy webalkalmazás, amellyel a nyelvtanár a diákok írásbeli dolgozatait mesterséges intelligencia (MI) támogatásával javíthatja: a tanár által
+  indított értékelésnél az MI **javaslatot tesz** a pontszámra és a visszajelzésre; a végső értékelést **a tanár** hagyja jóvá. A szolgáltatást a **tanároknak**
+  nyújtjuk; a diákok a tanártól kapott, 24 óráig élő linken, fiók nélkül, becenévvel írnak.
 - A felhasználási feltételek („**Feltételek**”) a szolgáltatás használatára vonatkoznak. A szolgáltatás használatával a Felhasználó elfogadja őket. **[NINCS MEGÉPÍTVE: az elfogadás rögzítése regisztrációkor – jelölőnégyzet és naplózás.]**
 
 ## 2. Fogalmak
 
-- **Tanár**: a szolgáltatást a saját (vagy iskolája) nevében használó természetes személy; **Diák**: a tanár által meghívott, az osztálykóddal csatlakozó felhasználó; **Felhasználó**: mindkettő.
-- **Egység**: a szolgáltatás használatának mértékegysége. Egy dolgozat javítása egy egységet fogyaszt; a feladatlap feldolgozása, az osztályszintű elemzés és a megoldókulcs készítése is fogyaszt egységet,
+- **Tanár**: a szolgáltatást a saját (vagy iskolája) nevében használó természetes személy; **Diák**: aki a tanártól kapott linken dolgozatot ír és bead (fiókja nincs); **Felhasználó**: a Tanár, és ahol a Feltételek kifejezetten említik, a Diák.
+- **Egység**: a szolgáltatás használatának mértékegysége. Egy dolgozat értékelése egy egységet fogyaszt; a feladatlap feldolgozása és az osztályszintű elemzés is fogyaszt egységet,
   mert ezek is az MI-t hívják. A csomagok kerete egységben van megadva.
 
 ## 3. Regisztráció és fiók
 
 1. Tanár e-mail-címmel és jelszóval vagy Google-fiókkal regisztrálhat. A tanári jogosultságot **megerősített e-mail-cím** esetén adjuk meg.
-2. A Diák az osztálykóddal csatlakozik a tanára osztályához. **[JOGÁSZ – BLOKKOLÓ: a diákok életkora és a hozzájárulás; a Google feltételei tiltják az olyan alkalmazást, ami „valószínűleg 18 év alattiak által elérhető”. A szerződéses szöveg
+2. A Diák nem regisztrál: a tanártól kapott linken, becenévvel ír, és a beadáskor kapott saját linkjén látja a jóváhagyott visszajelzést. **[JOGÁSZ – BLOKKOLÓ: a diákok életkora és a hozzájárulás; a Google feltételei tiltják az olyan alkalmazást, ami „valószínűleg 18 év alattiak által elérhető”. A szerződéses szöveg
    a diákok használatáról csak ennek tisztázása után írható meg.]**
-3. A Felhasználó a fiókjáért és a jelszavának titokban tartásáért **maga felel**; a fiókját másnak nem adhatja át. A visszaélés gyanúját az Üzemeltetőnek késedelem nélkül jelezni kell.
+3. A Tanár a fiókjáért és a jelszavának titokban tartásáért **maga felel**; a fiókját másnak nem adhatja át. A visszaélés gyanúját az Üzemeltetőnek késedelem nélkül jelezni kell.
 4. Pontos adatokat kell megadni. A fiók egy természetes személyé.
 
 ## 4. A mesterséges intelligencia használata és korlátai
 
-1. Az MI **javaslatot** ad. Nem pedagógiai döntés, nem hivatalos értékelés, és **hibázhat**: a kézírás-felismerés pontossága a kézírás olvashatóságától függ, a javítás és a pontszám is lehet téves.
-2. **A tanár felel** a diákok felé adott végső értékelésért. A diák csak a tanár által jóváhagyott visszajelzést látja. A tanár az átiratot és a javaslatot köteles ellenőrizni jóváhagyás előtt.
+1. Az MI **javaslatot** ad. Nem pedagógiai döntés, nem hivatalos értékelés, és **hibázhat**: a javítás és a pontszám is lehet téves.
+2. **A tanár felel** a diákok felé adott végső értékelésért. A diák csak a tanár által jóváhagyott visszajelzést látja. A tanár a javaslatot köteles ellenőrizni jóváhagyás előtt.
 3. Az Üzemeltető **nem felel** azért, hogy az MI javaslata helyes, teljes vagy egy adott vizsga/értékelési rend szerint megfelelő. **[JOGÁSZ: a felelősségkorlátozás mértéke, lásd 12. pont.]**
 4. A szolgáltatás **nem alkalmas** hivatalos vizsgák, érettségi vagy más, jogkövetkezménnyel járó értékelés **egyedüli** alapjául.
 
 ## 5. A tanár kötelezettségei a diákok adataival kapcsolatban
 
 1. A tanár (vagy az iskola) a diákok adatainak **adatkezelője**, az Üzemeltető az **adatfeldolgozója** (lásd az Adatkezelési tájékoztatót). **[JOGÁSZ: a szerepek és a szükséges megállapodás.]**
-2. A tanár **kizárólag olyan diákokat hívhat** a szolgáltatásba, akiknek az adatkezeléséhez megvan a szükséges jogalapja (és kiskorúaknál a szülő/iskola megfelelő tájékoztatása vagy hozzájárulása). **[JOGÁSZ]**
+2. A tanár **kizárólag olyan diákoknak adhatja meg a linket**, akiknek az adatkezeléséhez megvan a szükséges jogalapja (és kiskorúaknál a szülő/iskola megfelelő tájékoztatása vagy hozzájárulása). **[JOGÁSZ]**
 3. A tanár nem tölthet fel és nem kérhet a diákoktól **különleges személyes adatot** (egészség, vallás, politikai nézet stb.) vagy más, a feladat céljához nem kapcsolódó adatot.
-4. A tanár tájékoztatja a diákokat arról, hogy a dolgozatukat MI támogatja, és hogy az értékelést ő hagyja jóvá. Beírt dolgozatnál az írás közbeni jelzésekről a diákot a rendszer előre tájékoztatja; a tanár ezeket **csak tájékoztató jelzésként**
+4. A tanár tájékoztatja a diákokat arról, hogy a dolgozatuk értékelését MI támogatja, és hogy az értékelést ő hagyja jóvá. Az írás közbeni jelzésekről a diákot a rendszer előre tájékoztatja; a tanár ezeket **csak tájékoztató jelzésként**
    kezelheti, **nem bizonyítékként**. **[JOGÁSZ: kiskorúak viselkedésének megfigyelése – 17. kérdés az `adatvedelmi-kerdesek.md`-ben.]**
 
 ## 6. Tartalom és szerzői jog
 
-1. A feltöltött **dolgozat a Diák (szerzője) tulajdona**; a feladatlap, a tananyag, a megoldókulcs és az értékelési szempontok a **tanáré** (vagy jogosultjáé). Az Üzemeltető ezekre nem szerez tulajdonjogot.
+1. A feltöltött **dolgozat a Diák (szerzője) tulajdona**; a feladatlap, a feladatleírás és az értékelési szempontok a **tanáré** (vagy jogosultjáé). Az Üzemeltető ezekre nem szerez tulajdonjogot.
 2. A Felhasználó **nem kizárólagos, díjmentes felhasználási jogot** ad az Üzemeltetőnek arra, hogy a tartalmat **kizárólag a szolgáltatás nyújtásához szükséges mértékben** tárolja, feldolgozza és az MI-szolgáltatónak továbbítsa.
 3. Az Üzemeltető a tartalmat **nem használja MI-modell tanítására**, nem értékesíti, és marketing célra nem adja át. Az MI-szolgáltató a fizetős szint adatait a feltételei szerint termékfejlesztésre nem használja
    **[ELLENŐRIZNI: az aktuális szolgáltatói feltételek]**.
@@ -54,7 +55,7 @@
 ## 7. Csomagok, díjak, fizetés
 
 1. A szolgáltatásnak **Ingyenes**, **Alap** és **Profi** csomagja van. Az **Ingyenes** csomag egyszeri kipróbálási keretet ad; az **Alap** és a **Profi** **havi előfizetés**, havi kerettel. A csomagok **pontos tartalmát, árát és keretét**
-   a szolgáltatás nyitóoldala és főoldala mutatja; ez a rendelés pillanatában érvényes. Az **osztályszintű elemzés** az Alap csomagtól, a **diákonkénti fejlődés-követés** a Profi csomag része; a **színválasztás** az Alap csomagtól érhető el.
+   a szolgáltatás nyitóoldala és főoldala mutatja; ez a rendelés pillanatában érvényes. Az **osztályszintű elemzés** az Alap csomagtól, a **fejlődéskövetés a csoportokban** (becenév alapján) a Profi csomag része; a **színválasztás** az Alap csomagtól érhető el.
 2. A fizetést a **Stripe** bonyolítja; a bankkártya-adatokat az Üzemeltető nem látja és nem tárolja. Az előfizetés **havonta automatikusan megújul**, amíg le nem mondják.
 3. **Lemondás:** az előfizetés bármikor lemondható a főoldalon az „Előfizetés kezelése” gombbal (Stripe ügyfélportál). A lemondás a **kifizetett időszak végén** lép életbe; addig a csomag jogai megmaradnak, utána a fiók az **Ingyenes**
    csomagra áll vissza, és a csomaghoz kötött beállítások (például a színtéma) visszaállnak az alapértékre. **[JOGÁSZ: a lemondás és a visszatérítés szabályai.]**

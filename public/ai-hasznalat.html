@@ -54,14 +54,6 @@
         <p class="halvany" data-i18n="aih.szamolo_leiras">A számoló a fent látható mért átlagot használja. Az árfolyamokat és az árszorzót módosíthatod.</p>
         <div class="szamolo-racs">
           <div class="form-group">
-            <label for="sz-tipus" data-i18n="aih.sz_tipus">Dolgozat típusa</label>
-            <select id="sz-tipus">
-              <option value="mind" data-i18n="aih.tipus_mind">Összes</option>
-              <option value="leveles" data-i18n="aih.tipus_leveles">Leveles</option>
-              <option value="kifejtos" data-i18n="aih.tipus_kifejtos">Kifejtős</option>
-            </select>
-          </div>
-          <div class="form-group">
             <label for="sz-db" data-i18n="aih.sz_db">Dolgozat a csomagban</label>
             <input type="number" id="sz-db" value="100" min="1" step="10" />
           </div>
@@ -179,7 +171,6 @@
   }
   const panel = (cim, torzs) => `<div class="panel"><div class="panel-header"><h2>${cim}</h2></div>
     <div class="panel-body flush">${torzs}</div></div>`;
-  const tipusNev = (mod) => (mod === 'leveles' || mod === 'kifejtos' ? t(`aih.tipus_${mod}`) : '–');
   const muveletNev = (m) => {
     const kulcs = `aih.m_${m}`;
     return t(kulcs) !== kulcs ? t(kulcs) : esc(m);
@@ -225,10 +216,8 @@
 
     const dolgozat = panel(t('aih.dolgozat_cim'),
       `<p class="halvany" style="padding:0 1.5rem;">${t('aih.dolgozat_leiras')}</p>` +
-      tabla([t('aih.oszlop_tipus'), t('aih.oszlop_futas'), t('aih.oszlop_atlag_futas'), t('aih.oszlop_osszeg')],
-        ['mind', 'leveles', 'kifejtos'].map((k) => [
-          t(`aih.tipus_${k}`), szam(j.beadas[k].futas_db), usd(j.beadas[k].atlag_koltseg_usd), usd(j.beadas[k].koltseg_usd)
-        ])));
+      tabla([t('aih.oszlop_futas'), t('aih.oszlop_atlag_futas'), t('aih.oszlop_osszeg')],
+        [[szam(j.beadas.mind.futas_db), usd(j.beadas.mind.atlag_koltseg_usd), usd(j.beadas.mind.koltseg_usd)]]));
 
     const muveletek = panel(t('aih.muvelet_cim'),
       tabla([t('aih.oszlop_muvelet'), t('aih.oszlop_hivas'), t('aih.oszlop_bemenet'), t('aih.oszlop_kimenet'), t('aih.oszlop_atlag_hivas'), t('aih.oszlop_koltseg')],
@@ -243,8 +232,8 @@
         j.tanar.map((x) => [esc(x.nev || x.email || x.tanar_id), szam(x.futas_db), szam(x.hivas), usd(x.koltseg_usd)])));
 
     const feladatok = panel(t('aih.feladat_cim'),
-      tabla([t('aih.oszlop_feladat'), t('aih.oszlop_tipus'), t('aih.oszlop_futas'), t('aih.oszlop_atlag_dolgozat'), t('aih.oszlop_koltseg')],
-        j.feladat.map((f) => [esc(f.cim || f.feladat_id), tipusNev(f.mod), szam(f.futas_db), usd(f.atlag_futas_usd), usd(f.koltseg_usd)])));
+      tabla([t('aih.oszlop_feladat'), t('aih.oszlop_futas'), t('aih.oszlop_atlag_dolgozat'), t('aih.oszlop_koltseg')],
+        j.feladat.map((f) => [esc(f.cim || f.feladat_id), szam(f.futas_db), usd(f.atlag_futas_usd), usd(f.koltseg_usd)])));
 
     tartalom.innerHTML = kartyak + dolgozat + muveletek + modellek + tanarok + feladatok;
     szamol();
@@ -262,8 +251,7 @@
     const meretekEl = document.getElementById('sz-meretek');
     if (!adat) return;
     const num = (id) => Number(document.getElementById(id).value) || 0;
-    const tipus = document.getElementById('sz-tipus').value;
-    const atlagUsd = adat.beadas[tipus]?.atlag_koltseg_usd;
+    const atlagUsd = adat.beadas.mind?.atlag_koltseg_usd;
     if (atlagUsd === null || atlagUsd === undefined) {
       eredmeny.innerHTML = `<p class="halvany">${t('aih.sz_nincs_adat')}</p>`;
       ajanloEl.innerHTML = '';
@@ -341,7 +329,7 @@
 
   document.getElementById('btn-frissit').addEventListener('click', betolt);
   honapEl.addEventListener('change', betolt);
-  for (const id of ['sz-tipus', 'sz-ar', 'sz-db', 'sz-cel', 'sz-afa', 'sz-szorzo', 'sz-usdeur', 'sz-eurhuf', 'sz-tanari',
+  for (const id of ['sz-ar', 'sz-db', 'sz-cel', 'sz-afa', 'sz-szorzo', 'sz-usdeur', 'sz-eurhuf', 'sz-tanari',
                     'sz-dij', 'sz-fix', 'sz-billing', 'sz-valtas']) {
     document.getElementById(id).addEventListener('input', szamol);
   }

@@ -1,7 +1,8 @@
 # Adatkezelési tájékoztató – WritingReview
 
 > **PISZKOZAT – jogi felülvizsgálat nélkül nem tehető közzé.** Jelölések és munkahipotézisek: [`README.md`](README.md).
-> A szöveg a **2026. október 10-i tényleges működést** írja le; ahol a működés még nincs megépítve vagy jogi döntésre vár, ott jelölés áll.
+> A szöveg a **prod 2026. november 12-i működését** írja le (feladatlink, becenév, diákfiók és kézírás nélkül; `docs/prod-atalakitas-terv.md`); ahol a működés még nincs megépítve vagy jogi döntésre vár, ott jelölés áll.
+> A korábbi (diákfiókos, kézírásos) változatra írt szöveg a git-történetben és a `pilot` ágon érhető el.
 
 *Hatályos: [KITÖLTENDŐ: dátum]. Utolsó módosítás: [KITÖLTENDŐ].*
 
@@ -18,10 +19,11 @@ Adatvédelmi tisztviselőt nem neveztünk ki. **[JOGÁSZ: kötelező-e?]**
 
 ## 2. Mi ez a szolgáltatás, és mire használjuk az adatokat?
 
-A WritingReview nyelvtanároknak (és kifejtős dolgozatokhoz bármely tantárgy tanárának) szóló webalkalmazás. A tanár osztályt és feladatot hoz létre; a diákok az
-osztálykóddal csatlakoznak, és a kézzel írt dolgozatukról fényképet töltenek fel, vagy a dolgozatot az oldalon beírják. A rendszer egy mesterséges intelligencia
-(MI) modellel átírja a kézírást, és **javaslatot tesz** a pontszámra és a visszajelzésre. **A tanár átnézi, szükség esetén módosítja és jóváhagyja** – a diák csak a tanár által
-jóváhagyott visszajelzést látja. A diák nem ír az MI-nek, nincs csevegés.
+A WritingReview nyelvtanároknak szóló webalkalmazás. A tanár feladatot hoz létre, és **24 óráig élő linket** indít hozzá. A diák ezen a linken, **fiók és
+regisztráció nélkül, egy általa választott becenévvel** írja meg és adja be a dolgozatot; nevet, e-mail-címet, jelszót nem adunk meg tőle. Beadáskor a diák
+kap egy saját linket, amelyen később a visszajelzést látja. **A tanár indítja** az értékelést: ekkor egy mesterséges intelligencia (MI) modell **javaslatot tesz**
+a pontszámra és a visszajelzésre. **A tanár átnézi, szükség esetén módosítja és jóváhagyja** – a diák csak a tanár által jóváhagyott visszajelzést látja. A diák
+nem ír az MI-nek, a diák beadása nem indít MI-t, nincs csevegés.
 
 ## 3. Ki melyik adatot kezeli, és milyen szerepben?
 
@@ -30,7 +32,7 @@ jóváhagyott visszajelzést látja. A diák nem ír az MI-nek, nincs csevegés.
 | Adat | Kinek az adata | Az Üzemeltető szerepe |
 |---|---|---|
 | A tanári fiók adatai (név, e-mail, csomag, használat, fizetési állapot) | a tanár | **adatkezelő** |
-| A diákok adatai (név, e-mail, osztálytagság, dolgozatok, értékelések) | a diák | **adatfeldolgozó** – a tanár (vagy az iskola) az adatkezelő, és az ő utasítására kezeljük |
+| A diákok adatai (becenév, dolgozat, írás közbeni jelzések, értékelések; csoportnál a becenév szerinti összekapcsolás) | a diák | **adatfeldolgozó** – a tanár (vagy az iskola) az adatkezelő, és az ő utasítására kezeljük |
 
 A tanár, aki a diákjait a szolgáltatásba hívja, **maga felel azért**, hogy a diákok adatainak kezelésére jogalapja van, és hogy a diákokat (kiskorúaknál a szülőket) a
 szükséges módon tájékoztatta. **[JOGÁSZ: kell-e külön adatfeldolgozói megállapodás a tanárokkal/iskolákkal; ennek sablonja még nincs.]**
@@ -46,21 +48,27 @@ szükséges módon tájékoztatta. **[JOGÁSZ: kell-e külön adatfeldolgozói m
 | Csomag, az AI-egységek használata (számláló), a választott színtéma | a csomag keretének érvényesítése, a szolgáltatás nyújtása | szerződés teljesítése | a fiók fennállásáig |
 | Fizetés: a Stripe-ügyfélazonosító, az előfizetés azonosítója, állapota és időszak-vége. **Kártyaadatot nem kezelünk és nem látunk, azt a Stripe kezeli.** | előfizetés kezelése, a csomag beállítása | szerződés teljesítése | a fiók fennállásáig |
 | Számlázási adatok (számla kiállítása) | a számviteli és adójogi kötelezettség teljesítése | jogi kötelezettség (6. cikk (1) c)) | a számviteli törvény szerint: **[JOGÁSZ/KÖNYVELŐ: 8 év]** |
-| A tanár által létrehozott osztályok, feladatok, feladatlapok, tananyagok, megoldókulcsok | a szolgáltatás nyújtása | szerződés teljesítése | a törlésig; **[NINCS MEGÉPÍTVE]** |
+| A tanár által létrehozott feladatok, feladatlapok, értékelési szempontok, feladatlinkek, csoportok (pl. „9.B angol”) | a szolgáltatás nyújtása | szerződés teljesítése | a feladat és a csoport a tanár törléséig **[NINCS MEGÉPÍTVE: fióktörléskor]**; a feladatlink a lejárata után 12 hónappal automatikusan törlődik |
 
 ### 4.2. Diákok (a tanár utasítására)
 
 | Adat | Cél | Jogalap | Megőrzés |
 |---|---|---|---|
-| Név, e-mail-cím, bejelentkezési azonosító, osztálytagság (mikor csatlakozott) | a diák azonosítása, osztályba sorolása | **[JOGÁSZ: a tanár/iskola jogalapja: közfeladat, jogos érdek vagy hozzájárulás; 16 év alatt a szülő hozzájárulása?]** | a fiók/osztály fennállásáig; **[NINCS MEGÉPÍTVE: törlés és megőrzési idő]** |
-| A kézzel írt dolgozatról feltöltött fénykép(ek); a beírt dolgozat szövege | a dolgozat átírása és értékelése | **[JOGÁSZ]** | **[JOGÁSZ: megőrzési idő]**; jelenleg nincs automatikus törlés |
-| A fényképből készült szöveges átirat; az MI nyers értékelése (pontszám, hibák jelölése, javaslat) – ezt csak a tanár látja | az értékelés elkészítése, a tanár támogatása | **[JOGÁSZ]** | mint fent |
-| A tanár által jóváhagyott visszajelzés, pontszám, jegy – ezt a diák is látja | a diák tájékoztatása | **[JOGÁSZ]** | mint fent |
-| A beadások időpontja és állapota | a folyamat kezelése | **[JOGÁSZ]** | mint fent |
-| *Beírt dolgozatnál:* tájékoztató jelzések a tanárnak (az ablak elhagyásának száma és időtartama, a beillesztések darabszáma, karakterszáma és helye a szövegben; a beillesztett szöveg maga nem tárolódik). A diák **előre látja**, hogy ezt jelezzük; nem MI-detektor, nem bizonyíték. **[ELLENŐRIZNI: a funkció a prodon éles-e]** | a tanár tájékoztatása az írás körülményeiről | **[JOGÁSZ: kiskorúak viselkedésének megfigyelése – külön jogi kérdés, 17. kérdés az `adatvedelmi-kerdesek.md`-ben]** | a beadással együtt |
+A diáktól **nem kérünk nevet, e-mail-címet, jelszót, és nincs diákfiók**. A diák a tanártól kapott linken, egy általa választott becenévvel ír.
 
-**A dolgozatban szereplő, a diák által leírt személyes adat** (például a lapra írt név, cím, családi történet) a fényképpel vagy a szöveggel együtt eljuthat az MI-hez
-és a tanárhoz; erre a feladat kiírásakor érdemes felhívni a diákok figyelmét. Különleges adatot (egészség, vallás stb.) a szolgáltatásnak nem kell és nem szabad tartalmaznia.
+| Adat | Cél | Jogalap | Megőrzés |
+|---|---|---|---|
+| **Becenév** (linkenként egyedi; a diák választja) | a beadás megjelölése a tanárnak, a becenév-ütközés kizárása | **[JOGÁSZ: a tanár/iskola jogalapja: közfeladat, jogos érdek vagy hozzájárulás; 16 év alatt a szülő hozzájárulása?]** | a beadással együtt (lásd lent) |
+| A beírt **dolgozat szövege**; a beadás időpontja és állapota | a dolgozat értékelése | **[JOGÁSZ]** | a beadástól **12 hónapig**, utána automatikusan törlődik |
+| Az MI nyers értékelése (pontszám, hibák jelölése, javaslat) – ezt csak a tanár látja | az értékelés elkészítése, a tanár támogatása | **[JOGÁSZ]** | mint fent |
+| A tanár által jóváhagyott visszajelzés, pontszám, jegy – a diák a saját linkjén látja | a diák tájékoztatása | **[JOGÁSZ]** | mint fent; a diák linkje a beadástól 14 napig (jóváhagyás után legalább 7 napig) él |
+| **Írás közbeni jelzések** a tanárnak: az ablak elhagyásának száma, időtartama és időpontja; a **tiltott** beillesztési kísérletek száma és időpontja; a hirtelen nagy szövegbetoldás jelzése; az írási idő. A diák **előre látja**, hogy ezt jelezzük; nem MI-detektor, nem bizonyíték. | a tanár tájékoztatása az írás körülményeiről | **[JOGÁSZ: kiskorúak viselkedésének megfigyelése – külön jogi kérdés, 17. kérdés az `adatvedelmi-kerdesek.md`-ben]** | a beadással együtt |
+| A diák saját linkjének **lenyomata** (a link maga nincs tárolva) | a visszajelzés megnyitása csak a link birtokosának | **[JOGÁSZ]** | a beadással együtt |
+| **Csoportos linknél:** a becenév szerinti összekapcsolás a tanár csoportján belül (az azonos becenévvel beadott dolgozatok egy „diákhoz” tartoznak; a tanár összevonhatja és szétválaszthatja), és ebből a tanárnak a diák **fejlődése** feladatról feladatra (pontok, ismétlődő hibák) | a tanár lássa egy diák fejlődését fiók nélkül | **[JOGÁSZ: ez egy álnevesített tanulási profil több beadáson át – külön kérdés]** | a csoport diákja a 12 hónapja nem beadó diáknál automatikusan törlődik |
+
+**A dolgozatban szereplő, a diák által leírt személyes adat** (például valódi név, cím, családi történet) a szöveggel együtt eljuthat az MI-hez és a tanárhoz.
+A diákoldal ezért kéri, hogy a becenév ne a valódi neve legyen, és hogy a szövegbe se írjon valódi személyes adatot (`iras.becenev_tipp`, `iras.figyelmeztetes`).
+Különleges adatot (egészség, vallás stb.) a szolgáltatásnak nem kell és nem szabad tartalmaznia.
 
 ### 4.3. Műszaki adatok
 
@@ -74,11 +82,12 @@ szükséges módon tájékoztatta. **[JOGÁSZ: kell-e külön adatfeldolgozói m
 
 ## 5. Mesterséges intelligencia
 
-- A dolgozat **képe (vagy beírt szövege)** és a feladat **szempontjai** (az értékelési szempontok, a megoldókulcs, a feladatleírás) a **Google Gemini API**-nak (fizetős szint) kerülnek elküldésre az átíráshoz és
-  az értékeléshez. Ugyancsak az MI-hez kerül a **tanár által feltöltött feladatlap és tananyag**, amikor a tanár értékelési szempontokat vagy megoldókulcsot kér. **A diák neve és e-mail-címe nem kerül az MI-hez.**
-  (Ha a diák a lapra leírja a nevét, az a képpel együtt eljut az MI-hez.)
+- A dolgozat **beírt szövege** és a feladat adatai (az értékelési szempontok, a feladatleírás) a **Google Gemini API**-nak (fizetős szint) kerülnek elküldésre az
+  értékeléshez – **csak akkor, amikor a tanár elindítja az értékelést**; a diák beadása nem küld semmit az MI-nek. Az osztályszintű elemzéshez a már elkészült
+  értékelések összesítése (pontok, hibák idézetei) kerül az MI-hez. Ugyancsak az MI-hez kerül a **tanár által feltöltött feladatlap**, amikor a tanár értékelési
+  szempontokat kér. **A becenév nem kerül az MI-hez.** (Ha a diák a szövegbe a valódi nevét írja, az a szöveggel együtt eljut az MI-hez.)
 - **Automatizált döntéshozatal nincs:** az MI csak javaslatot tesz, a pontszámról és a jegyről a **tanár dönt**, és a diák csak a jóváhagyott eredményt látja.
-- Az MI hibázhat (a kézírás-felismerés is), ezért van a tanári jóváhagyás. Az átiratot a tanár a fotó mellett látja, így észreveheti a félreolvasást.
+- Az MI hibázhat, ezért van a tanári jóváhagyás.
 - A Google a feltételei szerint a fizetős szint adatait **nem használja** termékfejlesztésre/modell-tanításra, de az adat **átmenetileg bármely országban tárolódhat vagy gyorsítótárba kerülhet**
   (lásd 7. pont). **[ELLENŐRIZNI: az aktuális Google-feltételek közzététel napján; a hivatkozás: <https://ai.google.dev/gemini-api/terms>]**
 - Az Üzemeltető a feltöltött tartalmat **nem használja MI-modell tanítására**, és nem ad át harmadik félnek marketing célra.
@@ -88,13 +97,15 @@ szükséges módon tájékoztatta. **[JOGÁSZ: kell-e külön adatfeldolgozói m
 
 | Szolgáltató | Mire használjuk | Hol |
 |---|---|---|
-| **Google Cloud / Firebase** (Google Ireland Limited / Google LLC) | tárhely és adatbázis (Firestore), fájltárhely (a fotók), szerverfüggvények, bejelentkezés, weboldal-kiszolgálás | adatbázis: **EU (eur3, több EU-régió)**; fotók: **Varsó (europe-central2)**; függvények: **Belgium (europe-west1)** |
-| **Google Gemini API** | a dolgozat átírása és az értékelési javaslat | **nem garantáltan az EU-ban** (lásd 7. pont) |
+| **Google Cloud / Firebase** (Google Ireland Limited / Google LLC) | tárhely és adatbázis (Firestore), fájltárhely (a tanár feladatlapjai), szerverfüggvények, a tanárok bejelentkezése, weboldal-kiszolgálás | adatbázis: **EU (eur3, több EU-régió)**; fájlok: **Varsó (europe-central2)**; függvények: **Belgium (europe-west1)** |
+| **Google Gemini API** | az értékelési javaslat, az osztályelemzés, a feladatlapból a szempontjavaslat | **nem garantáltan az EU-ban** (lásd 7. pont) |
+| **Google reCAPTCHA (Firebase App Check)** **[A KÓD KÉSZ, KIKAPCSOLVA: csak kulcs megadása után töltődik be a diákoldalon]** | a diákoldali beadás védelme automatizált visszaélés ellen; a diák böngészőjéről műszaki jellemzők jutnak a Google-hoz | **[ELLENŐRIZNI és JOGÁSZ: a reCAPTCHA adatkezelése, tájékoztatási kötelezettség, süti-/hozzájárulás-kérdés a diákoldalon]** |
 | **Stripe** (Stripe Payments Europe, Ltd., Írország) | az előfizetés fizetése és kezelése (kártyaadat, számlák, ügyfélportál) | a Stripe tájékoztatója szerint |
 | *[NINCS MEGÉPÍTVE: a számlázó szolgáltatás – számlázz.hu –, ha bekötjük]* | számla kiállítása | **[KITÖLTENDŐ]** |
 
-Az adatokhoz az Üzemeltető fér hozzá, szükség szerinti körben (hibakeresés, ügyfélkérés). **A tanár a saját osztályai diákjainak adatait látja, a diák csak a sajátját;** ezt az adatbázis
-hozzáférési szabályai szerver oldalon kényszerítik. Más tanár vagy diák nem látja.
+Az adatokhoz az Üzemeltető fér hozzá, szükség szerinti körben (hibakeresés, ügyfélkérés). **A tanár csak a saját feladatai beadásait látja; a diák csak a saját
+jóváhagyott visszajelzését, a saját linkjén.** A diák az adatbázishoz közvetlenül nem fér hozzá (minden diákoldali művelet szerveren, a link alapján fut); ezt
+az adatbázis hozzáférési szabályai szerver oldalon kényszerítik. Más tanár vagy diák nem látja.
 
 ## 7. Adattovábbítás az EU-n kívülre
 
@@ -104,14 +115,26 @@ platformon (regionális végponttal) lehetséges; ennek bevezetése **[KITÖLTEN
 
 ## 8. Meddig őrizzük az adatokat, és hogyan törölhető?
 
-**[NINCS MEGÉPÍTVE]** Jelenleg **nincs automatikus megőrzési idő és nincs önkiszolgáló fiók- vagy adattörlés** (csak a diák eltávolítása az osztályból; a diák korábbi beadásai ilyenkor
-megmaradnak, hogy a tanár és a diák továbbra is lássa őket). A törlést **kérésre kézzel végezzük el**: **[KITÖLTENDŐ/VÁLLALÁS: határidő, pl. 30 nap]**. A jogász válasza után
-megépítjük az automatikus megőrzést és az önkiszolgáló törlést, és ezt a tájékoztatót módosítjuk. A törölt adat a 14 napos mentésben még legfeljebb 14 napig szerepelhet.
+**Automatikus törlés (naponta fut):**
+
+- a **beadás** (a dolgozat, a jelzések, az MI-értékelés és a tanári visszajelzés) a beadástól **12 hónap** után;
+- a **feladatlink** a lejárata után 12 hónappal; a link becenév-foglalásai már a lejárat után 1 nappal;
+- a **csoport diákja** (a becenév szerinti összekapcsolás), ha 12 hónapja nem adott be.
+
+A 12 hónap a tulajdonos döntése (2026-11-12), **[JOGÁSZ: megfelelő-e]**. A diák saját linkje a beadástól 14 napig él (jóváhagyás után legalább 7 napig); utána
+a diák már nem éri el a visszajelzést, a tanár igen.
+
+**[NINCS MEGÉPÍTVE]** Önkiszolgáló fióktörlés a tanárnak; egy beadás kézi törlése a tanárnak. A fiók és az egyes adatok törlését **kérésre kézzel végezzük el**:
+**[KITÖLTENDŐ/VÁLLALÁS: határidő, pl. 30 nap]**. A diák a becenevéről azonosítható beadására vonatkozó kérését a tanárához intézheti (lásd 11. pont).
+A törölt adat a 14 napos mentésben még legfeljebb 14 napig szerepelhet. Az osztályszintű elemzés (összesítés, idézetekkel) a feladattal együtt marad, a
+beadások törlése nem érinti **[JOGÁSZ: kell-e törölni vagy anonimizálni]**.
 
 ## 9. Sütik és a böngésző tárolója
 
 Nincs analitika, nincs reklám- vagy követő süti és nincs harmadik fél követőkódja. A böngésző helyi tárolóját **kizárólag a működéshez** használjuk (ehhez nem kér hozzájárulást a törvény; ezért nincs hozzájárulási sáv):
-a bejelentkezés (Firebase), a választott nyelv, a választott színtéma, a beépített bemutató állapota, a beírt dolgozat írás közbeni jelzéseinek ideiglenes állapota.
+a tanár bejelentkezése (Firebase), a választott nyelv, a választott színtéma, a beépített bemutató állapota, az utoljára választott csoport és jegyskála; a diák
+oldalán a **piszkozat** (hogy egy véletlen frissítés ne vigye el a szöveget) és a **nyugta a saját linkjével**. A diák böngészőjében tárolt adat nem kerül
+hozzánk, amíg a diák be nem adja a dolgozatot.
 
 A **betűtípusokat** saját tárhelyünkről szolgáljuk ki **[ELLENŐRIZNI: a prodon éles-e a változás; korábban a Google Fonts szerveréről jöttek]**. A weboldal működéséhez szükséges **Firebase-programkönyvtárat a Google tartalomkézbesítő hálózatáról
 (`www.gstatic.com`) töltjük be**, ezért a böngésző IP-címe ennek kiszolgálójához is eljut. **[JOGÁSZ: elegendő-e ez a tájékoztatás, vagy helyi kiszolgálás kell.]**
@@ -133,7 +156,8 @@ vagy bírósághoz fordulhat. **[JOGÁSZ: más országból regisztráló felhasz
 ## 12. Gyermekek és kiskorúak
 
 **[JOGÁSZ – BLOKKOLÓ: ez a fejezet a jogi válaszok (a tanár/iskola szerepe, a hozzájárulás életkori határa, a Google feltételei) után írható meg. Addig nem szabad olyat állítani, ami a kiskorúak használatát előre
-jóváhagyná vagy kizárná.]** A szolgáltatás a tanárokat célozza; a diákok a tanárjuk meghívására (osztálykóddal) csatlakoznak.
+jóváhagyná vagy kizárná.]** A szolgáltatás a tanárokat célozza; a diákok a tanáruktól kapott linken, fiók nélkül, becenévvel írnak. A generatív MI-t a tanár
+indítja, a diák MI-ből származó szöveget csak a tanár jóváhagyása után lát (`docs/prod-atalakitas-terv.md` 9.; a Google-nak szóló levelet ezzel kell frissíteni).
 
 ## 13. A tájékoztató módosítása
 
