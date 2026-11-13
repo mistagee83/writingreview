@@ -34,7 +34,9 @@ kikerült. **Új (2026-11-12): 8b – csoportok és becenév alapú fejlődés-k
 összevonás, leválasztás, `csoport.html`): kész (nincs deployolva).** **8b/3 (fejlődés-nézet, Profi): kész (nincs
 deployolva).** Ezzel a 8b teljes. **8c (nyitóoldal az új folyamattal): kész (nincs deployolva).** **8d (takarítás:
 kifejtős CSS, AI-használat típusai, működési leírás újraírva, jogi piszkozatok igazítva): kész.** **8e (App Check): a kód
-kész, kikapcsolva** – kulcs és kapcsoló nélkül semmit nem változtat. Következő: 8f kiadás
+kész, kikapcsolva** – kulcs és kapcsoló nélkül semmit nem változtat. **8f (kiadás): KIMENT, a prod a `v2.0.0`-n fut
+(2026-11-13, `573cfa4`, GitHub Actions „Prod deploy” sikeres).** Hátra: élő végigpróbálás a prodon (lásd 8f/6), utána az
+App Check bekapcsolása (8e).
 
 **8e – teendők a bekapcsoláshoz (tulajdonos, a `writerev2` projektben, ebben a sorrendben):**
 1. Google Cloud Console → *reCAPTCHA Enterprise* API engedélyezése, és egy **webes kulcs** (pontozásos, nem jelölőnégyzetes)
@@ -48,7 +50,10 @@ kész, kikapcsolva** – kulcs és kapcsoló nélkül semmit nem változtat. Kö
 6. Jogi: a reCAPTCHA új adatfeldolgozó a diákoldalon (`docs/jogi/README.md`) – a jogásznak jelezni.
 
 **8f – kiadás előtti ellenőrzés (2026-11-12, csak olvasás a prodon; részletek: `prod-atalakitas-terv.md` 8f).**
-A címkés kiadás **a mostani állapotban elbukna**, két okból. Teendők a tulajdonosra, a címke ELŐTT, ebben a sorrendben:
+**Állapot (2026-11-13): az 1–5. pont kész, a `v2.0.0` kiment.** Ellenőrizve (csak olvasás): az Actions futás sikeres, a
+prodon az `iras.html`, `visszajelzes.html`, `csoport.html` kiszolgálva, a régi `beadas.html` 404. **Hátra: a 6. pont.**
+PowerShell 5.1-ben a `&&` nem működik: a címke két külön parancs (`git tag v2.0.0`, majd `git push origin v2.0.0`).
+Az eredeti teendőlista (a címke ELŐTT, ebben a sorrendben):
 1. **Cloud Scheduler** (az új, ütemezett `takaritas` függvényhez; a prodban még nincs bekapcsolva, és a CI fióknak nincs joga
    bekapcsolni):
    `gcloud services enable cloudscheduler.googleapis.com --project writerev2`
