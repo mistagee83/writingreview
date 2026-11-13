@@ -38,7 +38,8 @@ kész, kikapcsolva** – kulcs és kapcsoló nélkül semmit nem változtat. **8
 (2026-11-13, `573cfa4`, GitHub Actions „Prod deploy” sikeres).** Hátra: élő végigpróbálás a prodon (lásd 8f/6), utána az
 App Check bekapcsolása (8e).
 **Élő végigpróbálás a prodon (2026-11-13, a tulajdonos): sikeres** (tanár → feladat → link → beadás → értékelés →
-jóváhagyás → diáklink). Hátra: a `takaritas` ütemezett feladat ellenőrzése a konzolon, az App Check (8e).
+jóváhagyás → diáklink). A `takaritas` ütemezett feladata a Cloud Schedulerben létrejött, engedélyezve. Hátra: az App
+Check (8e).
 **Diák nyugtája (2026-11-13, `7326f90`, KIADVA a `v2.0.1`-gyel, élőben kipróbálva: működik):** az élő próbán kiderült, hogy a
 beadás utáni nyugtán a diák linkje csak másolható/QR volt. Most kattintható („Visszajelzés megnyitása”), és ha a diák
 ugyanazon az eszközön visszajön a feladatlinkre, a nyugta megkérdezi a `diakVisszajelzes`-t: jóváhagyás után ott is
