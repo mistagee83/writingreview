@@ -39,6 +39,7 @@
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra } from './js/ui.js';
   import { jelzesFigyelo, szoszam, SZOVEG_MAX } from './js/iras-jelzes.js';
   import { qrSvg } from './js/megosztas.js';
+  import { visszajelzesHtml } from './js/visszajelzes-nezet.js';
   import { functions, httpsCallable, appCheckInditas } from './js/firebase-config.js';
   import { APP_CHECK_KULCS } from './js/kornyezet.js';
 
@@ -48,6 +49,7 @@
 
   const linkAdatok = httpsCallable(functions, 'linkAdatok');
   const linkBeadas = httpsCallable(functions, 'linkBeadas');
+  const diakVisszajelzes = httpsCallable(functions, 'diakVisszajelzes');
 
   const token = new URLSearchParams(location.search).get('k') || '';
   const tartalom = document.getElementById('tartalom');
@@ -68,34 +70,79 @@
   // ══════════════════════════════════════════
   // NYUGTA: a diák saját visszajelzés-linkje
   // ══════════════════════════════════════════
-  function nyugtaMutat(nyugta) {
+  // A nyugta a diák saját linkjét mutatja (kattintható, QR-ral és másolással az eszközváltáshoz), és – ha
+  // `ellenoriz` – megkérdezi a szervert, jóváhagyta-e már a tanár: ha igen, itt is megjelenik a visszajelzés.
+  // Közvetlenül a beadás után nem kérdez (akkor biztosan várakozik); folyamatos lekérdezés nincs, csak a gomb.
+  function nyugtaMutat(nyugta, { ellenoriz = false } = {}) {
     const url = `${location.origin}/visszajelzes.html?d=${encodeURIComponent(nyugta.diakToken)}`;
     const lejar = datumSzoveg(new Date(nyugta.diaklinkLejar));
-    tartalom.innerHTML = `
-      <div class="panel">
-        <div class="panel-header"><h2>${t('iras.nyugta_cim')}</h2></div>
-        <div class="panel-body">
-          <p>${t('iras.nyugta_leiras', { becenev: esc(nyugta.becenev || '') })}</p>
-          <div class="link-megosztas" style="margin-top:1rem;">
-            <div class="link-qr">${qrSvg(url, { cim: t('iras.nyugta_qr_alt') })}</div>
-            <div class="link-adatok">
-              <label for="diaklink">${t('iras.nyugta_link')}</label>
-              <div class="code-input-row">
-                <input type="text" id="diaklink" readonly value="${esc(url)}" />
-                <button class="btn-sm" id="btn-masol">${t('iras.masolas')}</button>
-              </div>
-              <p class="iras-figyelmeztetes" style="margin-top:1rem;">${t('iras.nyugta_mentsd', { datum: esc(lejar) })}</p>
-            </div>
+    const linkBlokk = `
+      <div class="link-megosztas" style="margin-top:1rem;">
+        <div class="link-qr">${qrSvg(url, { cim: t('iras.nyugta_qr_alt') })}</div>
+        <div class="link-adatok">
+          <a class="btn-primary" id="btn-megnyit" href="${esc(url)}">${t('iras.nyugta_megnyit')}</a>
+          <label for="diaklink" style="margin-top:1rem;">${t('iras.nyugta_link')}</label>
+          <div class="code-input-row">
+            <input type="text" id="diaklink" readonly value="${esc(url)}" />
+            <button class="btn-sm" id="btn-masol">${t('iras.masolas')}</button>
           </div>
+          <p class="iras-figyelmeztetes" style="margin-top:1rem;">${t('iras.nyugta_mentsd', { datum: esc(lejar) })}</p>
         </div>
       </div>`;
-    document.getElementById('btn-masol').addEventListener('click', (e) =>
+    const masolasBekot = () => document.getElementById('btn-masol').addEventListener('click', (e) =>
       vagolapra(document.getElementById('diaklink').value, e.currentTarget));
+
+    function varakozoNyugta(allapotSzoveg) {
+      tartalom.innerHTML = `
+        <div class="panel">
+          <div class="panel-header"><h2>${t('iras.nyugta_cim')}</h2></div>
+          <div class="panel-body">
+            <p>${t('iras.nyugta_leiras', { becenev: esc(nyugta.becenev || '') })}</p>
+            <div class="code-input-row" style="margin-top:1rem; align-items:center;">
+              <p class="halvany" id="nyugta-allapot" style="margin:0; flex:1;">${esc(allapotSzoveg)}</p>
+              <button class="btn-sm" id="btn-frissit">${t('iras.nyugta_frissit')}</button>
+            </div>
+            ${linkBlokk}
+          </div>
+        </div>`;
+      masolasBekot();
+      document.getElementById('btn-frissit').addEventListener('click', () => allapotKerdez());
+    }
+
+    function keszNyugta(adat) {
+      tartalom.innerHTML = `${visszajelzesHtml(adat)}
+        <div class="panel">
+          <div class="panel-header"><h2>${t('iras.nyugta_link')}</h2></div>
+          <div class="panel-body">${linkBlokk}</div>
+        </div>`;
+      masolasBekot();
+    }
+
+    async function allapotKerdez() {
+      const gomb = document.getElementById('btn-frissit');
+      if (gomb) gomb.disabled = true;
+      const allapot = document.getElementById('nyugta-allapot');
+      if (allapot) allapot.textContent = t('iras.nyugta_ellenorzes');
+      let adat;
+      try {
+        ({ data: adat } = await diakVisszajelzes({ token: nyugta.diakToken }));
+      } catch (e) {
+        // Hálózati vagy szerverhiba: a link marad, a diák később újra próbálhatja.
+        varakozoNyugta(e?.details?.kod === 'diaklink_ervenytelen' ? t('vj.ervenytelen') : hibaSzoveg(e));
+        return;
+      }
+      if (adat.allapot === 'kesz') keszNyugta(adat);
+      else if (adat.allapot === 'lejart') uzenetLap('⏰', t('vj.lejart'));
+      else varakozoNyugta(t('iras.nyugta_varakozik'));
+    }
+
+    varakozoNyugta(t('iras.nyugta_varakozik'));
+    if (ellenoriz) allapotKerdez();
   }
 
   const mentettNyugta = tarol((ls) => JSON.parse(ls.getItem(NYUGTA) || 'null'));
   if (mentettNyugta?.diakToken) {
-    nyugtaMutat(mentettNyugta);
+    nyugtaMutat(mentettNyugta, { ellenoriz: true });
   } else {
     await betolt();
   }

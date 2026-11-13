@@ -197,19 +197,8 @@ function hibaKijelzes(szoveg) {
   if (loading) loading.textContent = szoveg;
 }
 
-/**
- * HTML-escape – listákat innentől ezzel rendereljünk, mert a
- * feladatcímeket és diáknevek felhasználói input.
- */
-export function esc(ertek) {
-  return String(ertek ?? "").replace(/[&<>"']/g, (ch) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[ch]));
-}
+/** HTML-escape: a tiszta esc.js-ben él, innen továbbadva (a lapok innen importálják). */
+export { esc } from "./esc.js";
 
 /** Firestore Timestamp → dátum az aktuális nyelv formátumában. */
 export function datum(ts) {
