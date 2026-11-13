@@ -37,11 +37,13 @@ kifejtős CSS, AI-használat típusai, működési leírás újraírva, jogi pis
 kész, kikapcsolva** – kulcs és kapcsoló nélkül semmit nem változtat. **8f (kiadás): KIMENT, a prod a `v2.0.0`-n fut
 (2026-11-13, `573cfa4`, GitHub Actions „Prod deploy” sikeres).** Hátra: élő végigpróbálás a prodon (lásd 8f/6), utána az
 App Check bekapcsolása (8e).
-**Diák nyugtája (2026-11-13, a `main`-en, NINCS kiadva – a prod a régi nyugtát mutatja):** az élő próbán kiderült, hogy a
+**Élő végigpróbálás a prodon (2026-11-13, a tulajdonos): sikeres** (tanár → feladat → link → beadás → értékelés →
+jóváhagyás → diáklink). Hátra: a `takaritas` ütemezett feladat ellenőrzése a konzolon, az App Check (8e).
+**Diák nyugtája (2026-11-13, `7326f90`, KIADVA a `v2.0.1`-gyel, élőben kipróbálva: működik):** az élő próbán kiderült, hogy a
 beadás utáni nyugtán a diák linkje csak másolható/QR volt. Most kattintható („Visszajelzés megnyitása”), és ha a diák
 ugyanazon az eszközön visszajön a feladatlinkre, a nyugta megkérdezi a `diakVisszajelzes`-t: jóváhagyás után ott is
 megjelenik a visszajelzés (közös nézet: `public/js/visszajelzes-nezet.js`; „Frissítés” gomb, folyamatos lekérdezés nincs).
-Teszt: `tests/iras-nyugta.test.mjs`. A pilotot nem érinti (ott nincs feladatlink). Élesítés: címke, pl. `v2.0.1`.
+Teszt: `tests/iras-nyugta.test.mjs`. A pilotot nem érinti (ott nincs feladatlink).
 
 **8e – teendők a bekapcsoláshoz (tulajdonos, a `writerev2` projektben, ebben a sorrendben):**
 1. Google Cloud Console → *reCAPTCHA Enterprise* API engedélyezése, és egy **webes kulcs** (pontozásos, nem jelölőnégyzetes)
