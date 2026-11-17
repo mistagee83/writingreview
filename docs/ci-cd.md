@@ -48,7 +48,7 @@ gcloud iam workload-identity-pools providers create-oidc github --project $PROJE
   --location=global --workload-identity-pool=github \
   --issuer-uri="https://token.actions.githubusercontent.com" \
   --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
-  --attribute-condition="assertion.repository=='$REPO' && assertion.sub=='repo:$REPO:environment:prod'"
+  --attribute-condition="assertion.repository=='$REPO'"   # a sub-feltétel (environment:prod) a GitHub tokenjén elbukik; a jóváhagyást a prod environment adja
 
 gcloud iam service-accounts add-iam-policy-binding $SA --project $PROJECT \
   --role=roles/iam.workloadIdentityUser \
