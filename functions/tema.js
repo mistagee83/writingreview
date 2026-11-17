@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════
-// A tanári felület színtémái (a színválasztó, Alap csomagtól)
+// A tanári felület színtémái (a színválasztó, a Hub pass része)
 //
 // Fix, kontraszt-ellenőrzött paletták (nem szabad színválasztó: a hozzáférhetőség
 // miatt). A színértékek a public/css/app.css-ben vannak (`:root[data-tema="…"]`);

@@ -1,9 +1,9 @@
 // ══════════════════════════════════════════════════════
-// „Fejlődés az idő mentén” – a Profi csomag diákonkénti követő nézete (8b/3: a csoport
+// „Fejlődés az idő mentén” – a Hub pass diákonkénti követő nézete (8b/3: a csoport
 // becenév szerint párosított diákjain, lásd docs/prod-atalakitas-terv.md 8b)
 //
-// Itt csak a tiszta számtan és a csomag-zár döntése van (adatbázis nélkül,
-// tesztelhetően); a Firestore-olvasás és a jogosultság a functions/index.js-ben
+// Itt csak a tiszta számtan van (adatbázis nélkül, tesztelhetően); a Firestore-olvasás,
+// a jogosultság és a Hub pass-zár a functions/index.js-ben
 // (csoportFejlodesLista, csoportFejlodesDiak).
 //
 // Mi számít bele: csak a tanár által JÓVÁHAGYOTT (statusz: elkuldve) beadás, a
@@ -11,21 +11,8 @@
 // `hibak[]` tömbjéből jönnek (a tanári oldalon nincs hibalista).
 // ══════════════════════════════════════════════════════
 
-const kvota = require("./kvota.js");
-
-/** Ezeknél a csomagoknál nyílik meg a nézet (kvótás környezetben); a tábla a kvota.js-ben van. */
-const FEJLODES_CSOMAGOK = kvota.FUNKCIOK.fejlodes;
-
 /** Ennyi százalékpont változás alatt a trend „változatlan”. */
 const TREND_KUSZOB = 5;
-
-/**
- * A nézet elérhető-e. A kvóta nélküli környezetben (pilot) mindenkinek; egyébként
- * csak Profi és korlátlan csomagnál. Az ismeretlen/hiányzó csomag ingyenesnek számít.
- */
-function fejlodesEngedelyezett(beallitasok, csomag) {
-  return kvota.funkcioEngedelyezett(Boolean(beallitasok?.kvota), csomag, "fejlodes");
-}
 
 /** Firestore Timestamp / Date / szám → ezredmásodperc (egyébként 0). */
 function idoMs(ido) {
@@ -139,9 +126,7 @@ function diakLista(diakok, pontokDiakonkent) {
 }
 
 module.exports = {
-  FEJLODES_CSOMAGOK,
   TREND_KUSZOB,
-  fejlodesEngedelyezett,
   idoMs,
   idovonalPont,
   idovonalRendezes,

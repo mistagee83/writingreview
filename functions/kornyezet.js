@@ -27,29 +27,23 @@ function corsLista(projekt, domainek = "") {
 }
 
 /**
- * A fizetés visszatérési címe (a Stripe ide irányítja vissza a tanárt): csak https-eredet,
- * záró perjel nélkül; hiányzó vagy érvénytelen érték esetén a projekt Firebase-címe.
+ * A hub egy https-címe (pl. a fiókoldal): csak https-eredet + útvonal, egyébként az alapérték.
+ * A tanár ide megy kreditért és Hub passért (a fizetés a hub fizetési központjában van, 4d).
  */
-function visszaUrl(projekt, ertek = "") {
+function hubUrl(ertek, alap) {
   const e = String(ertek || "").trim().replace(/\/+$/, "");
-  return /^https:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d+)?$/i.test(e) ? e : `https://${projekt}.web.app`;
+  return /^https:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d+)?(\/[A-Za-z0-9._~\/#-]*)?$/i.test(e) ? e : alap;
 }
 
 /** A beállítások egy környezeti változó-készletből (alapból a process.env-ből). */
 function beallitasok(env = process.env) {
   const kornyezet = KORNYEZETEK.includes(env.KORNYEZET) ? env.KORNYEZET : "pilot";
   const projekt = env.GCLOUD_PROJECT || ALAP_PROJEKT;
-  // A Stripe-os fizetés: csak a prodon, és csak ha az `alap` csomag árazonosítója be van állítva
-  // (functions/.env.prod: FIZETES_AR_ALAP=price_...). Az árazonosító nem titok; a kulcsok a Secret Managerben vannak.
-  const arAlap = String(env.FIZETES_AR_ALAP || "").trim();
-  // A Profi csomag ára külön, nem kötelező: üresen a Profi nem kínálható (az alap igen).
-  const arProfi = String(env.FIZETES_AR_PROFI || "").trim();
-  const arAzonosito = (a) => (/^price_[A-Za-z0-9_]+$/.test(a) ? a : "");
   return {
     kornyezet,
     projekt,
-    // A kvóta csak a kereskedelmi verzióban él (a pilot nem korlátoz).
-    kvota: kornyezet === "prod",
+    // A hub-kredit csak a kereskedelmi verzióban él (a pilot nem korlátoz). Lásd functions/kredit.js.
+    kredit: kornyezet === "prod",
     // Az AI-szolgáltató: "claude" (AI_SZOLGALTATO=claude a functions/.env.<alias>-ban) vagy alapból "gemini".
     aiSzolgaltato: String(env.AI_SZOLGALTATO || "").trim().toLowerCase() === "claude" ? "claude" : "gemini",
     // Az Anthropic-munkaterület azonosítója (nem titok): akkor kell, ha a kulcs nem munkaterülethez kötött
@@ -62,20 +56,11 @@ function beallitasok(env = process.env) {
     // App Check a diákoldali függvényeken (linkAdatok, linkBeadas, diakVisszajelzes): csak ha APP_CHECK=igen.
     // Előbb a kliensnek kell küldenie a tokent (config/<env>.json: app_check_kulcs), különben minden diákhívás elbukik.
     appCheck: String(env.APP_CHECK || "").trim().toLowerCase() === "igen",
-    fizetes: kornyezet === "prod" && /^price_[A-Za-z0-9_]+$/.test(arAlap),
-    fizetesArAlap: arAlap,
-    fizetesArProfi: arAzonosito(arProfi),
-    // a felületen megjelenő ár szövege (pl. "7 EUR / hó"); a tényleges árat a Stripe-ban állítod
-    fizetesArSzoveg: String(env.FIZETES_AR_SZOVEG || "").trim().slice(0, 40),
-    fizetesArProfiSzoveg: String(env.FIZETES_AR_PROFI_SZOVEG || "").trim().slice(0, 40),
-    // Automatikus számla a számlázz.hu-val: csak a prodon, ha a fizetés él és a SZAMLAZZ=igen be van állítva.
-    // (A titok csak ilyenkor kötődik a webhookhoz, így a pilot deployához nem kell.)
-    szamlazz: kornyezet === "prod" && /^price_[A-Za-z0-9_]+$/.test(arAlap) && String(env.SZAMLAZZ || "").trim().toLowerCase() === "igen",
-    szamlazzBank: String(env.SZAMLAZZ_BANK || "").trim().slice(0, 60),
-    szamlazzBankszamla: String(env.SZAMLAZZ_BANKSZAMLA || "").trim().slice(0, 60),
-    visszaUrl: visszaUrl(projekt, env.FIZETES_VISSZA_URL),
+    // A hub fiókoldala (kredit, Hub pass) és adminja (kézi jóváírás): HUB_FIOK_URL / HUB_ADMIN_URL a functions/.env.<alias>-ban.
+    hubFiokUrl: hubUrl(env.HUB_FIOK_URL, "https://mrandrewshub.com/account"),
+    hubAdminUrl: hubUrl(env.HUB_ADMIN_URL, "https://mrandrewshub.com/admin/#/credits"),
     cors: corsLista(projekt, env.ENGEDELYEZETT_DOMAINEK)
   };
 }
 
-module.exports = { corsLista, beallitasok, visszaUrl, KORNYEZETEK, HELYI_CIMEK };
+module.exports = { corsLista, beallitasok, hubUrl, KORNYEZETEK, HELYI_CIMEK };

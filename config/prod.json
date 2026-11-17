@@ -1,17 +1,18 @@
 {
   "kornyezet": "prod",
-  "projekt": "writerev2",
+  "projekt": "mrashub",
   "alapnyelv": "en",
   "teszt_sav": false,
-  "kvota": true,
+  "kredit": true,
+  "hub_url": "https://dev--mrandrew-dev.netlify.app",
   "tanari_onregisztracio": true,
   "app_check_kulcs": "",
   "webConfig": {
-    "apiKey": "AIzaSyAw9teit8cYFK_bBNCap_G2wIg0Eub8YiU",
-    "authDomain": "writerev2.firebaseapp.com",
-    "projectId": "writerev2",
-    "storageBucket": "writerev2.firebasestorage.app",
-    "messagingSenderId": "536484732023",
-    "appId": "1:536484732023:web:49d674b0850223acbbba72"
+    "apiKey": "AIzaSyDfK-2VYD8bU2lK4JfKbCQGx-foswmIlq8",
+    "authDomain": "mrashub.firebaseapp.com",
+    "projectId": "mrashub",
+    "storageBucket": "mrashub.firebasestorage.app",
+    "messagingSenderId": "870232062269",
+    "appId": "1:870232062269:web:98518a83cdc00d17b7ed54"
   }
 }

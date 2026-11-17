@@ -3,7 +3,8 @@
   "projekt": "writingreview-41e59",
   "alapnyelv": "hu",
   "teszt_sav": false,
-  "kvota": false,
+  "kredit": false,
+  "hub_url": "",
   "tanari_onregisztracio": true,
   "app_check_kulcs": "",
   "webConfig": {

@@ -1,15 +1,21 @@
 {
   "firestore": {
     "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+    "indexes": "firestore.indexes.json",
+    "predeploy": [
+      "node scripts/tiltott-deploy.mjs firestore"
+    ]
   },
   "storage": {
-    "rules": "storage.rules"
+    "rules": "storage.rules",
+    "predeploy": [
+      "node scripts/tiltott-deploy.mjs storage"
+    ]
   },
   "functions": [
     {
       "source": "functions",
-      "codebase": "default",
+      "codebase": "wr",
       "disallowLegacyRuntimeConfig": true,
       "ignore": [
         "node_modules",

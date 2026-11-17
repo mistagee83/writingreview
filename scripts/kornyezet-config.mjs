@@ -5,7 +5,6 @@
 // ══════════════════════════════════════════════════════
 
 import { readFileSync, existsSync } from "node:fs";
-import { createRequire } from "node:module";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,7 +24,7 @@ export function konfigBetoltes(nev, gyoker = GYOKER) {
   return JSON.parse(readFileSync(join(gyoker, "config", `${nev}.json`), "utf8"));
 }
 
-/** A Firebase-projekt azonosítója a `.firebaserc` aliasából (pl. prod → writerev2). */
+/** A Firebase-projekt azonosítója a `.firebaserc` aliasából (pl. prod → mrashub). */
 export function celProjekt(alias, gyoker = GYOKER) {
   const rc = JSON.parse(readFileSync(join(gyoker, ".firebaserc"), "utf8"));
   return rc.projects?.[alias];
@@ -111,7 +110,11 @@ export function konfigHibak(cfg, { kitoltott = false, elvartKornyezet, celProjek
   if (!KORNYEZETEK.includes(cfg?.kornyezet)) hibak.push("kornyezet: ismeretlen érték");
   if (!NYELVEK.includes(cfg?.alapnyelv)) hibak.push("alapnyelv: hu vagy en");
   if (typeof cfg?.teszt_sav !== "boolean") hibak.push("teszt_sav: logikai érték kell");
-  if (typeof cfg?.kvota !== "boolean") hibak.push("kvota: logikai érték kell");
+  if (typeof cfg?.kredit !== "boolean") hibak.push("kredit: logikai érték kell");
+  // A hub címe (a nyitóoldal árazás-linkje: <hub_url>/account); https vagy üres (pilot).
+  if (typeof cfg?.hub_url !== "string" || !/^(https:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?)?$/i.test(cfg.hub_url)) {
+    hibak.push("hub_url: https://-eredet (perjel nélkül) vagy üres szöveg");
+  }
   if (typeof cfg?.tanari_onregisztracio !== "boolean") hibak.push("tanari_onregisztracio: logikai érték kell");
   // Az App Check (reCAPTCHA Enterprise) webkulcsa: nem titok, a böngészőbe kerül; üresen nincs App Check.
   if (typeof cfg?.app_check_kulcs !== "string" || !/^[A-Za-z0-9_-]{0,100}$/.test(cfg.app_check_kulcs)) {
@@ -152,39 +155,13 @@ export function envBetoltes(fajl) {
   return ki;
 }
 
-/** Ugyanaz a szabály, mint a szervernél (functions/kornyezet.js): csak érvényes Stripe-árazonosító számít. */
-const ARAZONOSITO = /^price_[A-Za-z0-9_]+$/;
-
-/**
- * A nyitóoldalon megjelenő csomag-adatok EGY forrásból: az árak szövege a functions/.env.<alias>-ból
- * (ugyanaz, amit a szerver a csomag-panelnek ad), a keretek a functions/kvota.js-ből. A fizetés csak ott él,
- * ahol a szerveren is (prod, beállított alap-ár); egyébként a nyitóoldal nem mutat árakat.
- */
-export function csomagAdatok(alias, gyoker = GYOKER) {
-  const env = envBetoltes(join(gyoker, "functions", `.env.${alias}`));
-  const kvota = createRequire(import.meta.url)(join(gyoker, "functions", "kvota.js"));
-  const szoveg = (kulcs) => String(env[kulcs] || "").trim().slice(0, 40);
-  const fizetes = alias === "prod" && ARAZONOSITO.test(String(env.FIZETES_AR_ALAP || "").trim());
-  const profiAr = ARAZONOSITO.test(String(env.FIZETES_AR_PROFI || "").trim());
-  return {
-    fizetes,
-    arak: fizetes ? { alap: szoveg("FIZETES_AR_SZOVEG"), ...(profiAr ? { profi: szoveg("FIZETES_AR_PROFI_SZOVEG") } : {}) } : {},
-    keretek: Object.fromEntries(["ingyenes", "alap", "profi"].map((n) => [n, kvota.CSOMAGOK[n].keret]))
-  };
-}
-
-/** A public/js/kornyezet.js (pilot) alapértékei: a build nélküli helyi előnézet és a teszt ezzel egyezik. */
-const PILOT_CSOMAG = { fizetes: false, arak: {}, keretek: { ingyenes: 20, alap: 150, profi: 500 } };
-
 /** A dist/js/kornyezet.js forrása (a public/js/kornyezet.js mintájára). */
-export function kornyezetJs(cfg, sablon, csomag = PILOT_CSOMAG) {
+export function kornyezetJs(cfg, sablon) {
   const csere = {
-    FIZETES: JSON.stringify(csomag.fizetes),
-    ARAK: JSON.stringify(csomag.arak),
-    KERETEK: JSON.stringify(csomag.keretek),
     KORNYEZET: JSON.stringify(cfg.kornyezet),
     ALAPNYELV: JSON.stringify(cfg.alapnyelv),
-    KVOTA: JSON.stringify(cfg.kvota),
+    KREDIT: JSON.stringify(cfg.kredit),
+    HUB_URL: JSON.stringify(cfg.hub_url || ""),
     TANARI_ONREGISZTRACIO: JSON.stringify(cfg.tanari_onregisztracio),
     TESZT_SAV: JSON.stringify(cfg.teszt_sav),
     APP_CHECK_KULCS: JSON.stringify(cfg.app_check_kulcs || "")

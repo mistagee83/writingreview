@@ -28,7 +28,7 @@
     <nav class="lp-menu" aria-label="Fő menü" data-i18n-aria="landing.menu_aria">
       <a href="#hogyan" data-i18n="landing.menu_hogyan">Hogyan működik</a>
       <a href="#funkciok" data-i18n="landing.menu_funkciok">Funkciók</a>
-      <a href="#csomagok" data-csak="fizetes" hidden data-i18n="landing.menu_csomagok">Csomagok</a>
+      <a href="#csomagok" data-csak="fizetes" hidden data-i18n="landing.menu_csomagok">Árak</a>
       <a href="#gyik" data-i18n="landing.menu_gyik">GYIK</a>
     </nav>
     <div class="lp-jobb">
@@ -165,13 +165,42 @@
     </div>
   </section>
 
-  <!-- CSOMAGOK (csak ahol él a fizetés) -->
+  <!-- KREDIT ÉS HUB PASS (csak ahol a hub-kredit él). A számok (árak, kreditek) a hub fiókoldalán vannak,
+       egy helyen; itt csak a modell. -->
   <section class="lp-szakasz" id="csomagok" data-csak="fizetes" hidden aria-labelledby="csomagok-cim">
     <div class="lp-sor">
-      <h2 id="csomagok-cim" data-i18n="landing.csomagok_cim">Csomagok</h2>
-      <p class="lp-szakasz-alcim" data-i18n="landing.csomagok_alcim">Kezdd ingyen, és válts, ha több kell. A havi előfizetés bármikor lemondható.</p>
-      <ul class="lp-csomagok" id="csomag-lista"></ul>
-      <p class="lp-megjegyzes lp-kozep" data-i18n="landing.csomagok_megjegyzes">A fizetős csomagot a belépés után, a főoldalon választhatod ki.</p>
+      <h2 id="csomagok-cim" data-i18n="landing.csomagok_cim">Árak</h2>
+      <p class="lp-szakasz-alcim" data-i18n="landing.csomagok_alcim">Kreditből javítasz: minden AI-művelet kreditbe kerül. A kredit Mr. Andrew's összes appjában közös.</p>
+      <ul class="lp-csomagok">
+        <li class="lp-csomag">
+          <h3 data-i18n="landing.csomag_kezdes">Ingyenes kezdés</h3>
+          <ul class="lp-pontok">
+            <li data-i18n="landing.pont_ajandek">Ajándékkredit a regisztrációkor</li>
+            <li data-i18n="landing.pont_javitas">Dolgozatjavítás és jóváhagyás</li>
+            <li data-i18n="landing.pont_link">Feladatlink QR-kóddal, diákfiók nélkül</li>
+            <li data-i18n="landing.pont_nyelvek">Nyolc nyelv</li>
+          </ul>
+        </li>
+        <li class="lp-csomag">
+          <h3 data-i18n="landing.csomag_hubpass">Hub pass</h3>
+          <ul class="lp-pontok">
+            <li data-i18n="landing.pont_havi_kredit">Kredit minden hónapban</li>
+            <li data-i18n="landing.pont_elemzes">Osztályelemzés</li>
+            <li data-i18n="landing.pont_fejlodes">A diákok fejlődésének követése csoportonként</li>
+            <li data-i18n="landing.pont_szinek">Választható színtéma</li>
+            <li data-i18n="landing.pont_minden_app">Mr. Andrew's összes appja</li>
+          </ul>
+        </li>
+        <li class="lp-csomag">
+          <h3 data-i18n="landing.csomag_kredit">Kreditcsomag</h3>
+          <ul class="lp-pontok">
+            <li data-i18n="landing.pont_egyszeri">Egyszeri vásárlás, előfizetés nélkül</li>
+            <li data-i18n="landing.pont_minden_appban">Minden appban felhasználható</li>
+          </ul>
+        </li>
+      </ul>
+      <p class="lp-kozep" data-csak="hub-link" hidden><a class="btn-primary lp-gomb" id="arak-link" href="#" target="_blank" rel="noopener" data-i18n="landing.arak_gomb">Árak és vásárlás</a></p>
+      <p class="lp-megjegyzes lp-kozep" data-i18n="landing.csomagok_megjegyzes">Kreditet és Hub passt a fiókodnál veszel, Mr. Andrew's EdTech Hubon. Ugyanazzal a fiókkal lépsz be.</p>
     </div>
   </section>
 
@@ -189,7 +218,7 @@
       </details>
       <details class="lp-kerdes" data-csak="fizetes" hidden>
         <summary data-i18n="landing.gyik_kovetes_k">Hogyan látom egy diák fejlődését, ha nincs fiókja?</summary>
-        <p data-i18n="landing.gyik_kovetes_v">Létrehozol egy csoportot (például „9.B angol”), és a linket ehhez rendeled. A csoportban az azonos becenévvel beadott dolgozatok ugyanahhoz a diákhoz kerülnek. Ha valaki más becenevet használt, egy kattintással összevonod. A fejlődéskövetés a Profi csomag része.</p>
+        <p data-i18n="landing.gyik_kovetes_v">Létrehozol egy csoportot (például „9.B angol”), és a linket ehhez rendeled. A csoportban az azonos becenévvel beadott dolgozatok ugyanahhoz a diákhoz kerülnek. Ha valaki más becenevet használt, egy kattintással összevonod. A fejlődéskövetés a Hub pass része.</p>
       </details>
       <details class="lp-kerdes">
         <summary data-i18n="landing.gyik1_k">Kinek készült?</summary>
@@ -204,16 +233,16 @@
         <p data-i18n="landing.gyik3_v">Nyolc nyelven javíthatsz dolgozatot: angolul, németül, franciául, spanyolul, olaszul, oroszul, latinul és magyarul. A felület magyarul és angolul érhető el.</p>
       </details>
       <details class="lp-kerdes" data-csak="fizetes" hidden>
-        <summary data-i18n="landing.gyik4_k">Mi számít egy egységnek?</summary>
-        <p data-i18n="landing.gyik4_v">A keretet egységekben számoljuk: egy dolgozat javítása egy egység. Egységbe kerül a feladatlap feldolgozása és az osztályelemzés is, mert ezek is az AI-t használják.</p>
+        <summary data-i18n="landing.gyik4_k">Mibe kerül egy javítás?</summary>
+        <p data-i18n="landing.gyik4_v">Egy dolgozat javítása kreditbe kerül. Kreditbe kerül a feladatlap feldolgozása és az osztályelemzés is, mert ezek is az AI-t használják. Az aktuális árakat a fiókodnál látod.</p>
       </details>
       <details class="lp-kerdes" data-csak="fizetes" hidden>
-        <summary data-i18n="landing.gyik5_k">Mi történik, ha elfogy a keret?</summary>
-        <p data-i18n="landing.gyik5_v">Addig nem indíthatsz új javítást. A fizetős csomagok kerete minden hónap elején megújul; az ingyenes keret egyszeri, az nem töltődik újra.</p>
+        <summary data-i18n="landing.gyik5_k">Mi történik, ha elfogy a kredit?</summary>
+        <p data-i18n="landing.gyik5_v">Addig nem indíthatsz új javítást. Vehetsz kreditcsomagot, vagy a Hub passszal minden hónapban kapsz kreditet.</p>
       </details>
       <details class="lp-kerdes" data-csak="fizetes" hidden>
         <summary data-i18n="landing.gyik6_k">Lemondhatom?</summary>
-        <p data-i18n="landing.gyik6_v">Igen, bármikor, a főoldalon az „Előfizetés kezelése” gombbal. Az előfizetésed a kifizetett időszak végéig érvényes, utána az ingyenes csomagra kerülsz vissza.</p>
+        <p data-i18n="landing.gyik6_v">Igen, bármikor, a fiókodnál, Mr. Andrew's EdTech Hubon. A Hub pass a kifizetett időszak végéig érvényes; a megmaradt kredited utána is megmarad, amíg le nem jár.</p>
       </details>
     </div>
   </section>
@@ -243,63 +272,20 @@
 
 <script type="module">
   import { t } from './js/i18n.js';
-  import { FIZETES, TANARI_ONREGISZTRACIO, ARAK, KERETEK } from './js/kornyezet.js';
+  import { KREDIT, TANARI_ONREGISZTRACIO, HUB_URL } from './js/kornyezet.js';
 
-  // A környezet-függő részek: a fizetős tartalom csak ott, ahol a fizetés él; a regisztrációs gomb csak ott,
+  // A környezet-függő részek: az árazás csak ott, ahol a hub-kredit él; a regisztrációs gomb csak ott,
   // ahol a tanár önállóan regisztrálhat. Ahol egyik sem (pilot), a belépés az egyetlen gomb.
-  const latszik = { fizetes: FIZETES, regisztracio: TANARI_ONREGISZTRACIO, 'belepes-egyedul': !TANARI_ONREGISZTRACIO };
+  const hubLink = KREDIT && /^https:\/\//.test(HUB_URL);
+  const latszik = {
+    fizetes: KREDIT, regisztracio: TANARI_ONREGISZTRACIO, 'belepes-egyedul': !TANARI_ONREGISZTRACIO, 'hub-link': hubLink
+  };
   document.querySelectorAll('[data-csak]').forEach((el) => {
     el.hidden = !latszik[el.dataset.csak];
   });
 
-  // Az ár szövege a szerver beállításából jön (pl. "7 EUR / hó"); az időszak jelölése a felület nyelvén jelenik meg.
-  const osszeg = (ar) => String(ar || '').split('/')[0].trim();
-
-  if (FIZETES) {
-    document.getElementById('hero-ingyenes').textContent = t('landing.hero_ingyenes', { db: KERETEK.ingyenes });
-
-    // A csomag-kártyák: név, ár, keret és a tartalom pontjai (a szótári kulcsok a pont_* alakúak)
-    const CSOMAGOK = [
-      { nev: 'ingyenes', ar: null, keretKulcs: 'landing.keret_egyszeri', pontok: ['javitas', 'link', 'nyelvek'] },
-      { nev: 'alap', ar: ARAK.alap, keretKulcs: 'landing.keret_havi', pontok: ['ingyenes_minden', 'elemzes', 'szinek'] },
-      { nev: 'profi', ar: ARAK.profi, keretKulcs: 'landing.keret_havi', pontok: ['alap_minden', 'fejlodes', 'nagyobb_keret'] }
-    ].filter((c) => c.nev === 'ingyenes' || c.ar);
-
-    const lista = document.getElementById('csomag-lista');
-    for (const c of CSOMAGOK) {
-      const li = document.createElement('li');
-      li.className = 'lp-csomag';
-      const cim = document.createElement('h3');
-      cim.textContent = t(`landing.csomag_${c.nev}`);
-      const ar = document.createElement('p');
-      ar.className = 'lp-ar';
-      if (c.ar) {
-        const szam = document.createElement('strong');
-        szam.textContent = osszeg(c.ar);
-        const per = document.createElement('span');
-        per.textContent = ` ${t('landing.per_ho')}`;
-        ar.append(szam, per);
-      } else {
-        // az ingyenes csomag ára "0" ugyanabban a pénznemben, mint a fizetősöké
-        const penznem = osszeg(ARAK.alap).replace(/[\d.,\s]+/, '').trim();
-        const szam = document.createElement('strong');
-        szam.textContent = `${t('landing.ingyenes_ar')} ${penznem}`.trim();
-        ar.append(szam);
-      }
-      const keret = document.createElement('p');
-      keret.className = 'lp-keret';
-      keret.textContent = t(c.keretKulcs, { db: KERETEK[c.nev] });
-      const pontok = document.createElement('ul');
-      pontok.className = 'lp-pontok';
-      for (const p of c.pontok) {
-        const pont = document.createElement('li');
-        pont.textContent = t(`landing.pont_${p}`);
-        pontok.appendChild(pont);
-      }
-      li.append(cim, ar, keret, pontok);
-      lista.appendChild(li);
-    }
-  }
+  if (KREDIT) document.getElementById('hero-ingyenes').textContent = t('landing.hero_ingyenes');
+  if (hubLink) document.getElementById('arak-link').href = `${HUB_URL}/account`;
 </script>
 </body>
 </html>

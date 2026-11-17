@@ -2,12 +2,12 @@
 // WritingReview – a színválasztó lenyíló menüje (a felső sáv jobb oldalán, minden tanári oldalon)
 //
 // A guard.js tölti be a tanári oldalakon (dinamikus import: ha hibázik, a belépést nem akadályozza). A választás a
-// szerveren mentődik (temaBeallitas callable; az alapszínen kívül az Alap csomagtól), a téma csak sikeres mentés után vált.
+// szerveren mentődik (temaBeallitas callable; az alapszínen kívül a Hub passszal), a téma csak sikeres mentés után vált.
 // A menüpontok és a feliratok a DOM API-val készülnek (szöveget csak textContent-tel írunk).
 // ══════════════════════════════════════════════════════
 
 import { t } from "./i18n.js";
-import { KVOTA } from "./kornyezet.js";
+import { KREDIT } from "./kornyezet.js";
 import { functions, httpsCallable } from "./firebase-config.js";
 import { hibaSzoveg } from "./ui.js";
 import { TEMAK, ALAP_TEMA, temaAlkalmaz } from "./tema.js";
@@ -48,10 +48,10 @@ export function temaMenuBeallit({ profil }) {
   lenyilo.setAttribute("role", "menu");
   lenyilo.setAttribute("aria-label", t("tanar.tema_menu_cim"));
 
-  // a fejléc: rövid leírás, és csak ahol a csomagok élnek (prod), az "Alap csomagtól" megjegyzés
+  // a fejléc: rövid leírás, és csak ahol a kredit él (prod), a "Hub pass része" megjegyzés
   const fejlec = elem("p", "tema-fejlec", t("tanar.tema_leiras"));
-  if (KVOTA) {
-    fejlec.append(" ", elem("strong", null, t("tanar.jegyzet_alap")));
+  if (KREDIT) {
+    fejlec.append(" ", elem("strong", null, t("tanar.jegyzet_hub_pass")));
   }
   lenyilo.appendChild(fejlec);
 
@@ -106,7 +106,7 @@ export function temaMenuBeallit({ profil }) {
       zar(true);
     } catch (e) {
       console.error(e);
-      // pl. az ingyenes csomag: a szerver "az Alap csomagtól érhető el" üzenete; a menü nyitva marad
+      // pl. Hub pass nélkül: a szerver "a Hub pass része" üzenete; a menü nyitva marad
       uzenet.textContent = hibaSzoveg(e);
     } finally {
       for (const b of elemek) b.disabled = false;

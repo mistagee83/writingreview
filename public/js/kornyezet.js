@@ -12,7 +12,10 @@
 
 export const KORNYEZET = "pilot";
 export const ALAPNYELV = "hu";
-export const KVOTA = false;
+// A hub-kredit (prod): a tanári felület kreditegyenleget és Hub pass-jelzéseket mutat.
+export const KREDIT = false;
+// A hub (Mr. Andrew's EdTech Hub) címe: a nyitóoldal árazás-linkje ide mutat (<HUB_URL>/account); üresen nincs link.
+export const HUB_URL = "";
 // Önkiszolgáló tanári regisztráció (a regisztrációs űrlap „Tanár vagyok” választója).
 // A szerver ugyanezt a KORNYEZET-ből dönti el (functions/kornyezet.js), ezért a
 // kettőnek egyeznie kell – a tests/kornyezet.test.mjs ellenőrzi.
@@ -21,13 +24,6 @@ export const TESZT_SAV = false;
 // Az App Check (reCAPTCHA Enterprise) webkulcsa a diákoldalakhoz (iras.html, visszajelzes.html); üresen nincs App Check.
 // A szerver csak akkor követeli meg, ha a functions/.env.<alias>-ban APP_CHECK=igen (8e, docs/folytatas.md).
 export const APP_CHECK_KULCS = "";
-// A csomagok a nyitóoldalnak (a build a functions/.env.<alias>-ból és a functions/kvota.js-ből tölti ki; lásd
-// scripts/kornyezet-config.mjs, csomagAdatok). FIZETES: él-e a Stripe-fizetés (prod, beállított ár) – ha nem,
-// a nyitóoldal nem mutat árakat. ARAK: az ár szövege csomagonként; KERETEK: az AI-egység keret csomagonként.
-export const FIZETES = false;
-export const ARAK = {};
-export const KERETEK = {"ingyenes":20,"alap":150,"profi":500};
-
 // A „TESZT” sáv: a pilot-telepítést jelöli, hogy ne tévesszék össze az
 // éles verzióval. Nyelvfüggetlen felirat, nem kell szótári kulcs; az
 // egérnek átlátszó, nem takar el semmit.

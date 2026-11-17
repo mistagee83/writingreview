@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════
-// „Fejlődés az idő mentén” (Profi csomag): a tiszta számtan, a csomag-zár és a
+// „Fejlődés az idő mentén” (Hub pass): a tiszta számtan, a Hub pass-zár és a
 // tulajdonos-ellenőrzés. Emulátor nélkül fut: a Firestore-t egy kis memóriabeli
 // hamis helyettesíti (a lekérdezés csak egyenlőséget ismer, ennyit használ a kód).
 // ══════════════════════════════════════════════════════
@@ -16,28 +16,9 @@ const f = require("./fejlodes.js");
 const fn = require("./index.js");
 const t = fn._teszt;
 
-const PROD = { kvota: true };
-const PILOT = { kvota: false };
-
-// ── a csomag-zár döntése ──
-
-test("kvótás környezetben csak a Profi és a korlátlan csomag nyitja meg a nézetet", () => {
-  assert.equal(f.fejlodesEngedelyezett(PROD, "profi"), true);
-  assert.equal(f.fejlodesEngedelyezett(PROD, "korlatlan"), true);
-  assert.equal(f.fejlodesEngedelyezett(PROD, "alap"), false);
-  assert.equal(f.fejlodesEngedelyezett(PROD, "ingyenes"), false);
-});
-
-test("a hiányzó, ismeretlen vagy hamisított csomagnév ingyenesnek számít (zárt)", () => {
-  for (const csomag of [undefined, null, "", "Profi", "profi ", "__proto__", "toString", "admin"]) {
-    assert.equal(f.fejlodesEngedelyezett(PROD, csomag), false, String(csomag));
-  }
-});
-
-test("a pilotban (nincs kvóta) mindenkinek elérhető", () => {
-  assert.equal(f.fejlodesEngedelyezett(PILOT, "ingyenes"), true);
-  assert.equal(f.fejlodesEngedelyezett(PILOT, undefined), true);
-});
+const PROD = { kredit: true };
+const PILOT = { kredit: false };
+const HUB_PASS = { entitlements: { all: { status: "active", tier: "hub" } } };
 
 // ── az idővonal-pont ──
 
@@ -163,8 +144,8 @@ const csBeadas = (extra = {}) => ({
 });
 
 const ADAT = {
-  "tanarok/t1": { csomag: "profi" },
-  "tanarok/t2": { csomag: "alap" },
+  "users/t1": HUB_PASS,
+  "users/t2": { entitlements: { all: { status: "canceled" } } },
   "csoportok/cs1": { tanar_id: "t1", nev: "9.B" },
   "csoportok/cs1/diakok/d1": { nev: "Anna", becenevek: ["anna"] },
   "csoportok/cs1/diakok/d2": { nev: "Béla", becenevek: ["bela"] },
@@ -192,14 +173,14 @@ const kod = async (futas) => {
   return "nem-hibazott";
 };
 
-test("kvótás környezetben az alap csomagú tanárt a szerver elutasítja (csomag_profi_kell), adatolvasás előtt", async () => {
+test("kredites környezetben a Hub pass nélküli tanárt a szerver elutasítja (fejlodes_hub_pass_kell), adatolvasás előtt", async () => {
   const fs = hamisFirestore(ADAT);
-  assert.equal(await kod(() => t.csoportFejlodesListaLogika(fs, "t2", { csoportId: "cs1" }, PROD)), "csomag_profi_kell");
-  assert.equal(await kod(() => t.csoportFejlodesDiakLogika(fs, "t2", { csoportId: "cs1", diakId: "d1" }, PROD)), "csomag_profi_kell");
-  assert.equal(await kod(() => t.fejlodesKapu(fs, "nincs-ilyen-tanar", PROD)), "csomag_profi_kell");
+  assert.equal(await kod(() => t.csoportFejlodesListaLogika(fs, "t2", { csoportId: "cs1" }, PROD)), "fejlodes_hub_pass_kell");
+  assert.equal(await kod(() => t.csoportFejlodesDiakLogika(fs, "t2", { csoportId: "cs1", diakId: "d1" }, PROD)), "fejlodes_hub_pass_kell");
+  assert.equal(await kod(() => t.fejlodesKapu(fs, "nincs-ilyen-tanar", PROD)), "fejlodes_hub_pass_kell");
 });
 
-test("a Profi csomagú tanár megkapja a csoport listáját és a diák idővonalát", async () => {
+test("a Hub passos tanár megkapja a csoport listáját és a diák idővonalát", async () => {
   const fs = hamisFirestore(ADAT);
   const lista = await t.csoportFejlodesListaLogika(fs, "t1", { csoportId: "cs1" }, PROD);
   assert.deepEqual(lista.diakok, [
@@ -215,13 +196,13 @@ test("a Profi csomagú tanár megkapja a csoport listáját és a diák idővona
   assert.equal(nezet.pontok[0].diak_id, undefined, "a diák azonosítója nem szivárog a pontokba");
 });
 
-test("kvóta nélkül (pilot-beállítás) a csomag nem számít", async () => {
-  const fs = hamisFirestore({ ...ADAT, "tanarok/t1": { csomag: "ingyenes" } });
+test("kredit nélkül (pilot-beállítás) a Hub pass nem számít", async () => {
+  const fs = hamisFirestore({ ...ADAT, "users/t1": {} });
   assert.equal((await t.csoportFejlodesListaLogika(fs, "t1", { csoportId: "cs1" }, PILOT)).diakok.length, 2);
   assert.equal(await kod(() => t.fejlodesKapu(fs, "t2", PILOT)), "nem-hibazott");
 });
 
-test("idegen csoportot Profi tanár sem kérhet le; hiányzó vagy ismeretlen csoport és diák hibát ad", async () => {
+test("idegen csoportot Hub passos tanár sem kérhet le; hiányzó vagy ismeretlen csoport és diák hibát ad", async () => {
   const fs = hamisFirestore(ADAT);
   assert.equal(await kod(() => t.csoportFejlodesListaLogika(fs, "t1", { csoportId: "cs9" }, PROD)), "csoport_nincs");
   assert.equal(await kod(() => t.csoportFejlodesDiakLogika(fs, "t1", { csoportId: "cs9", diakId: "x" }, PROD)), "csoport_nincs");
@@ -229,7 +210,7 @@ test("idegen csoportot Profi tanár sem kérhet le; hiányzó vagy ismeretlen cs
   assert.equal(await kod(() => t.csoportFejlodesListaLogika(fs, "t1", {}, PROD)), "csoport_nincs");
   assert.equal(await kod(() => t.csoportFejlodesDiakLogika(fs, "t1", { csoportId: "cs1" }, PROD)), "csoport_diak_nincs");
   assert.equal(await kod(() => t.csoportFejlodesDiakLogika(fs, "t1", { csoportId: "cs1", diakId: "nincs" }, PROD)), "csoport_diak_nincs");
-  // kvóta nélkül is: a tulajdonos-ellenőrzés nem a csomagon múlik
+  // kredit nélkül is: a tulajdonos-ellenőrzés nem a Hub passon múlik
   assert.equal(await kod(() => t.csoportFejlodesListaLogika(fs, "t2", { csoportId: "cs1" }, PILOT)), "csoport_nincs");
 });
 
@@ -259,53 +240,24 @@ test("a grafikon minden hibakategóriájának van felirata magyarul és angolul,
   assert.ok(kategoriak.length <= 7);
 });
 
-// ── csomaghoz kötött funkciók: az osztályszintű elemzés az Alap csomagtól ──
+// ── Hub passhoz kötött funkciók: az osztályszintű elemzés ──
 
-const kvotaModul = require("./kvota.js");
-
-test("az osztályszintű elemzés az Alaptól elérhető, az ingyenesnek nem; a fejlődés-követés csak a Profitól", () => {
-  const ok = (csomag, funkcio) => kvotaModul.funkcioEngedelyezett(true, csomag, funkcio);
-  assert.equal(ok("ingyenes", "osztaly_elemzes"), false);
-  assert.equal(ok("alap", "osztaly_elemzes"), true);
-  assert.equal(ok("profi", "osztaly_elemzes"), true);
-  assert.equal(ok("korlatlan", "osztaly_elemzes"), true);
-  assert.equal(ok("alap", "fejlodes"), false);
-  assert.equal(ok("profi", "fejlodes"), true);
-});
-
-test("a hiányzó, hamisított csomag és az ismeretlen funkció zárt; kvóta nélkül (pilot) minden nyitott", () => {
-  for (const csomag of [undefined, null, "", "Alap", "alap ", "__proto__", "toString"]) {
-    assert.equal(kvotaModul.funkcioEngedelyezett(true, csomag, "osztaly_elemzes"), false, String(csomag));
-  }
-  assert.equal(kvotaModul.funkcioEngedelyezett(true, "korlatlan", "nincs_ilyen"), false);
-  assert.equal(kvotaModul.funkcioEngedelyezett(true, "profi", "__proto__"), false);
-  assert.equal(kvotaModul.funkcioEngedelyezett(false, "ingyenes", "osztaly_elemzes"), true);
-});
-
-test("minden fizetős csomag, ami a Profi szintje, az Alap funkcióit is megkapja", () => {
-  // A csomagok egymásra épülnek: ami az Alapban van, az a Profiban és a korlátlanban is.
-  const { FUNKCIOK } = kvotaModul;
-  for (const csomag of FUNKCIOK.fejlodes) {
-    assert.ok(FUNKCIOK.osztaly_elemzes.includes(csomag), csomag);
-  }
-});
-
-test("az osztályelemzés zárja: az ingyenes tanárt a szerver elutasítja (csomag_alap_kell), az Alap és a Profi átmegy", async () => {
+test("az osztályelemzés zárja: Hub pass nélkül a szerver elutasítja (elemzes_hub_pass_kell), Hub passszal átmegy", async () => {
   const fs = hamisFirestore({
-    "tanarok/ingyenes": { csomag: "ingyenes" },
-    "tanarok/regi": {},
-    "tanarok/alap": { csomag: "alap" },
-    "tanarok/profi": { csomag: "profi" }
+    "users/nincs": {},
+    "users/lejart": { entitlements: { all: { status: "canceled" } } },
+    "users/hub": HUB_PASS,
+    "users/wr": { entitlements: { "writing-review": { status: "active", source: "admin" } } }
   });
-  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "ingyenes", PROD)), "csomag_alap_kell");
-  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "regi", PROD)), "csomag_alap_kell", "csomag nélküli régi tanár = ingyenes");
-  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "nincs-ilyen", PROD)), "csomag_alap_kell");
-  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "alap", PROD)), "nem-hibazott");
-  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "profi", PROD)), "nem-hibazott");
-  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "ingyenes", PILOT)), "nem-hibazott", "a pilotban nincs zár");
+  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "nincs", PROD)), "elemzes_hub_pass_kell");
+  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "lejart", PROD)), "elemzes_hub_pass_kell");
+  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "nincs-ilyen", PROD)), "elemzes_hub_pass_kell");
+  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "hub", PROD)), "nem-hibazott");
+  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "wr", PROD)), "nem-hibazott", "a WR saját kulcsa is nyit");
+  assert.equal(await kod(() => t.osztalyElemzesKapu(fs, "nincs", PILOT)), "nem-hibazott", "a pilotban nincs zár");
 });
 
-test("a feladatElemzes a csomag-zárat az első adatolvasás és az AI-hívás előtt hívja", async () => {
+test("a feladatElemzes a Hub pass-zárat az első adatolvasás és az AI-hívás előtt hívja", async () => {
   const { readFileSync } = await import("node:fs");
   const forras = readFileSync(new URL("../functions/index.js", import.meta.url), "utf8");
   const torzs = forras.slice(forras.indexOf("exports.feladatElemzes = onCall("));
@@ -315,13 +267,3 @@ test("a feladatElemzes a csomag-zárat az első adatolvasás és az AI-hívás e
   assert.ok(kapu < torzs.indexOf("aiHivas("), "a zár az AI-hívás után van");
 });
 
-test("minden csomagnak van neve és tartalom-leírása a csomag-panelen, magyarul és angolul", async () => {
-  const hu = (await import("../public/js/i18n-hu.js")).default;
-  const en = (await import("../public/js/i18n-en.js")).default;
-  for (const csomag of Object.keys(kvotaModul.CSOMAGOK)) {
-    for (const [nyelv, szotar] of [["hu", hu], ["en", en]]) {
-      assert.ok(szotar[`admin.csomag_${csomag}`], `${nyelv}: admin.csomag_${csomag}`);
-      assert.ok(szotar[`tanar.csomag_fn_${csomag}`], `${nyelv}: tanar.csomag_fn_${csomag}`);
-    }
-  }
-});

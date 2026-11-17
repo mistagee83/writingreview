@@ -37,7 +37,6 @@ const SZULO = {
   "csoportok.html": "tanar.html",
   "admin.html": "tanar.html",
   "ai-hasznalat.html": "tanar.html",
-  "szamlazando.html": "tanar.html",
   // Az elemzést egy feladat sorából indítja a tanár, tehát oda tér vissza
   "elemzes.html": "feladatok.html",
   // A megosztási oldalt is egy feladat sorából nyitja a tanár
@@ -54,7 +53,6 @@ const NEVEK = {
   "csoportok.html": "nav.csoportok",
   "admin.html": "nav.szerepkezeles",
   "ai-hasznalat.html": "nav.ai_hasznalat",
-  "szamlazando.html": "nav.szamlazando"
 };
 
 function jelenlegiOldal() {

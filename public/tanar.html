@@ -44,35 +44,23 @@
         <div class="stat-label" data-i18n="tanar.stat_feladatok">Aktív feladatok</div>
         <div class="stat-value" id="stat-feladatok">–</div>
       </a>
-      <!-- Havi AI-keret: csak ott látszik, ahol a kvóta él (prod). -->
-      <div class="stat-card" id="kvota-kartya" style="display:none;">
-        <div class="stat-label" data-i18n="tanar.stat_keret">AI-keret (e hónap)</div>
-        <div class="stat-value" id="stat-keret">–</div>
+      <!-- Kreditegyenleg: csak ott látszik, ahol a hub-kredit él (prod). -->
+      <div class="stat-card" id="kredit-kartya" style="display:none;">
+        <div class="stat-label" data-i18n="tanar.stat_kredit">Kredit</div>
+        <div class="stat-value" id="stat-kredit">–</div>
       </div>
     </div>
 
-    <!-- Csomag és előfizetés: csak ott látszik, ahol a fizetés be van kapcsolva (prod). -->
-    <div class="panel" id="csomag-panel" style="display:none;">
-      <div class="panel-header"><h2 data-i18n="tanar.csomag_cim">💳 Csomag</h2></div>
+    <!-- Kredit és Hub pass: a vásárlás a hub fiókoldalán van (Mr. Andrew's EdTech Hub), itt csak az állapot. -->
+    <div class="panel" id="kredit-panel" style="display:none;">
+      <div class="panel-header"><h2 data-i18n="tanar.kredit_cim">💳 Kredit és Hub pass</h2></div>
       <div class="panel-body">
-        <p id="csomag-szoveg"></p>
-        <p class="halvany" id="csomag-masodlagos"></p>
-        <ul class="csomag-funkciok" id="csomag-funkciok"></ul>
-        <button class="btn-sm" id="btn-osszehasonlit" type="button" aria-expanded="false" aria-controls="csomag-tablazat" style="display:none;margin-top:0.75rem;" data-i18n="tanar.cmp_gomb">Csomagok összehasonlítása</button>
-        <div class="csomag-tabla" id="csomag-tablazat" hidden></div>
+        <p id="kredit-szoveg"></p>
+        <p class="halvany" id="kredit-arak"></p>
+        <p class="halvany" id="kredit-hubpass"></p>
         <div class="gomb-sor">
-          <span id="csomag-gombok"></span>
-          <button class="btn-sm" id="btn-kezeles" style="display:none;" data-i18n="tanar.gomb_kezeles">⚙️ Előfizetés kezelése</button>
+          <a class="btn-sm" id="btn-fiok" href="#" target="_blank" rel="noopener" data-i18n="tanar.gomb_fiok">Kredit és Hub pass</a>
         </div>
-        <!-- A csomag kiválasztása még NEM visz a fizetésre: előbb itt kell jóváhagyni -->
-        <div class="csomag-megerosites" id="csomag-megerosites" style="display:none;" role="group" aria-live="polite">
-          <p id="megerosites-szoveg"></p>
-          <div class="gomb-sor">
-            <button class="btn-primary" id="btn-tovabb" data-i18n="tanar.gomb_tovabb">Tovább a fizetéshez</button>
-            <button class="btn-sm" id="btn-megse" data-i18n="tanar.gomb_megse">Mégse</button>
-          </div>
-        </div>
-        <div class="msg" id="csomag-msg"></div>
       </div>
     </div>
 
@@ -90,7 +78,7 @@
       <a class="module-card" href="feladatok.html">
         <div class="module-icon">📊</div>
         <div class="module-title" data-i18n="tanar.modul_elemzes_cim">Osztályszintű elemzés</div>
-        <div class="module-desc"><span data-i18n="tanar.modul_elemzes_leiras">Egy feladat beadásaiból típushibák, javasolt gyakorlatok és kész feladatgeneráló prompt. A feladatlistából, a 📊 gombbal.</span> <strong class="csomag-jegyzet" data-i18n="tanar.jegyzet_alap" hidden>Az Alap csomagtól.</strong></div>
+        <div class="module-desc"><span data-i18n="tanar.modul_elemzes_leiras">Egy feladat beadásaiból típushibák, javasolt gyakorlatok és kész feladatgeneráló prompt. A feladatlistából, a 📊 gombbal.</span> <strong class="csomag-jegyzet" data-i18n="tanar.jegyzet_hub_pass" hidden>A Hub pass része.</strong></div>
       </a>
     </div>
   </main>
@@ -100,7 +88,7 @@
   import { vedettOldal } from './js/guard.js';
   import { oldalsav } from './js/nav.js';
   import { t } from './js/i18n.js';
-  import { hibaSzoveg, gombVar, uzenet } from './js/ui.js';
+  import { temaAlkalmaz, ALAP_TEMA } from './js/tema.js';
   import {
     db, collection, getDocs, query, where, functions, httpsCallable
   } from './js/firebase-config.js';
@@ -133,276 +121,40 @@
     }
   }
 
-  // A havi AI-keret (egység): a limit a csomagtól függ, null = korlátlan.
-  async function keret() {
+  // A kreditegyenleg és a Hub pass (a hub közös kreditjei; a szerver: kreditAllapot).
+  async function kredit() {
     try {
-      const { data } = await httpsCallable(functions, 'kvotaAllapot')();
-      if (!data.kvota) return;   // pilot: nincs korlát, nincs kártya
-      // a csomag-megjegyzések (modul-kártyák) csak ott értelmesek, ahol a csomagok élnek
-      document.querySelectorAll(".csomag-jegyzet").forEach((e) => { e.hidden = false; });
-      kiir('stat-keret', `${data.hasznalt} / ${data.limit ?? '∞'}`);
-      // Az ingyenes keret egyszeri (nem újul meg): a felirat is ezt mondja.
-      if (data.idoszak === 'egyszeri') {
-        const cimke = document.querySelector('#kvota-kartya .stat-label');
-        cimke.setAttribute('data-i18n', 'tanar.stat_keret_egyszeri');
-        cimke.textContent = t('tanar.stat_keret_egyszeri');
+      const { data } = await httpsCallable(functions, 'kreditAllapot')();
+      if (!data.kredit) return;   // pilot: nincs kredit, nincs kártya
+      // lejárt Hub pass: a szerver visszaállította az alapszínt, a felület is álljon vissza
+      if (data.tema_visszaallitva) {
+        temaAlkalmaz(ALAP_TEMA);
       }
-      document.getElementById('kvota-kartya').style.display = '';
-      if (data.limit !== null && data.hasznalt >= data.limit) {
-        document.getElementById('stat-keret').classList.add('accent');
-      }
-      csomagRajzol(data);
-      return data;
+      // a Hub pass-megjegyzések (modul-kártyák) csak ott értelmesek, ahol a kredit él
+      document.querySelectorAll('.csomag-jegyzet').forEach((e) => { e.hidden = !!data.hub_pass; });
+      kiir('stat-kredit', data.korlatlan ? '∞' : String(data.egyenleg));
+      document.getElementById('kredit-kartya').style.display = '';
+      if (!data.korlatlan && data.egyenleg <= 0) document.getElementById('stat-kredit').classList.add('accent');
+
+      document.getElementById('kredit-szoveg').textContent = data.korlatlan
+        ? t('tanar.kredit_korlatlan')
+        : t(data.egyenleg > 0 ? 'tanar.kredit_egyenleg' : 'tanar.kredit_elfogyott', { n: data.egyenleg });
+      const ar = data.arak?.beadas;
+      document.getElementById('kredit-arak').textContent =
+        ar == null ? '' : t('tanar.kredit_ar_beadas', { n: ar });
+      document.getElementById('kredit-hubpass').textContent = t(data.hub_pass ? 'tanar.hubpass_aktiv' : 'tanar.hubpass_nincs');
+      const fiok = document.getElementById('btn-fiok');
+      // csak https-cím (a szerver beállításából)
+      if (/^https:\/\//.test(String(data.fiok_url || ''))) fiok.href = data.fiok_url;
+      else fiok.hidden = true;
+      document.getElementById('kredit-panel').style.display = '';
     } catch (e) {
-      console.error('Keret lekérdezési hiba:', e);   // a kártya rejtve marad
+      console.error('Kredit lekérdezési hiba:', e);   // a kártya rejtve marad
     }
-  }
-
-  // ══════════════════════════════════════════
-  // CSOMAG ÉS ELŐFIZETÉS (Stripe; csak ha a szerver bekapcsolta)
-  // A fizetőoldalra és a kezelőportálra a szerver ad címet; a kártyaadat nem érinti az appot.
-  // ══════════════════════════════════════════
-  const STRIPE_HOSTOK = ['checkout.stripe.com', 'billing.stripe.com'];
-  const datumSzoveg = (mp) => new Date(mp * 1000).toLocaleDateString();
-
-  function csomagRajzol(d) {
-    const panel = document.getElementById('csomag-panel');
-    if (d.fizetes !== true) { panel.style.display = 'none'; return; }
-    panel.style.display = '';
-    const e = d.elofizetes;
-    const joElofizetes = e && ['active', 'trialing', 'past_due'].includes(e.statusz);
-    const szoveg = document.getElementById('csomag-szoveg');
-    const masodlagos = document.getElementById('csomag-masodlagos');
-    const gombok = document.getElementById('csomag-gombok');
-    const btnKezeles = document.getElementById('btn-kezeles');
-    masodlagos.textContent = '';
-    gombok.innerHTML = '';
-    megerositesElrejt();
-    btnKezeles.style.display = 'none';
-    funkciokRajzol(d);
-    tablazatRajzol(d, joElofizetes);
-
-    if (d.csomag_forras === 'admin' && d.csomag !== 'ingyenes') {
-      szoveg.textContent = t('tanar.csomag_kezi');
-    } else if (joElofizetes) {
-      szoveg.textContent = t('tanar.csomag_aktiv', { nev: t(`admin.csomag_${d.csomag}`), limit: d.limit ?? '∞' });
-      if (e.statusz === 'past_due') {
-        masodlagos.textContent = t('tanar.csomag_fizetesi_hiba');
-      } else if (e.periodus_vege) {
-        masodlagos.textContent = e.lemondva
-          ? t('tanar.csomag_lemondva', { datum: datumSzoveg(e.periodus_vege) })
-          : t('tanar.csomag_megujul', { datum: datumSzoveg(e.periodus_vege) });
-      }
-      if (e.van_ugyfel) btnKezeles.style.display = '';
-      // az alap csomagról a nagyobbra a Stripe portálján lehet váltani
-      if (d.csomag === 'alap' && (d.csomagok || []).some((c) => c.nev === 'profi')) {
-        masodlagos.textContent += ` ${t('tanar.csomag_valtas_tipp')}`;
-      }
-    } else {
-      szoveg.textContent = t('tanar.csomag_ingyenes', { hasznalt: d.hasznalt, limit: d.limit ?? '∞' });
-      masodlagos.textContent = t('tanar.csomag_ajanlat');
-      // egy gomb minden kínálható csomaghoz (név, ár, keret a szervertől)
-      for (const c of d.csomagok || []) {
-        const gomb = document.createElement('button');
-        // a két csomag egyenrangú választás: egyforma stílus (a kiválasztottat az aria-pressed emeli ki)
-        gomb.className = 'btn-sm';
-        gomb.textContent = t('tanar.gomb_elofizet_csomag', { nev: t(`admin.csomag_${c.nev}`), ar: c.ar || '', limit: c.keret ?? '∞' });
-        // a kattintás csak kijelöli a csomagot; a fizetésre a "Tovább" gomb visz, jóváhagyás után
-        gomb.setAttribute('aria-pressed', 'false');
-        gomb.addEventListener('click', () => kivalaszt(c, gomb));
-        gombok.appendChild(gomb);
-      }
-      if (e?.van_ugyfel) btnKezeles.style.display = '';   // korábbi előfizetés számlái
-    }
-  }
-
-  // Mit tartalmaz a csomag: az ingyenes és a szerver által kínált csomagok, a sajátod kiemelve.
-  function funkciokRajzol(d) {
-    const lista = document.getElementById('csomag-funkciok');
-    lista.replaceChildren();
-    const nevek = ['ingyenes', ...(d.csomagok || []).map((c) => c.nev)];
-    for (const nev of nevek) {
-      const li = document.createElement('li');
-      const cim = document.createElement('strong');
-      cim.textContent = t(`admin.csomag_${nev}`);
-      li.append(cim, ` ${t(`tanar.csomag_fn_${nev}`)}`);
-      if (nev === d.csomag) {
-        li.classList.add('aktualis');
-        li.setAttribute('aria-current', 'true');
-        li.append(` ${t('tanar.csomag_fn_tied')}`);
-      }
-      lista.appendChild(li);
-    }
-  }
-
-  // ── csomagok összehasonlítása: táblázat (a funkciók a szervertől jönnek, egy forrásból: kvota.FUNKCIOK) ──
-  // A Korlátlan csomagot nem mutatjuk (csak az admin adja, nem vásárolható).
-  let tablazatNyitva = false;
-  const btnOsszehasonlit = document.getElementById('btn-osszehasonlit');
-  function tablazatKapcsol(nyitva) {
-    tablazatNyitva = nyitva;
-    document.getElementById('csomag-tablazat').hidden = !nyitva;
-    btnOsszehasonlit.setAttribute('aria-expanded', String(nyitva));
-    btnOsszehasonlit.textContent = t(nyitva ? 'tanar.cmp_gomb_be' : 'tanar.cmp_gomb');
-  }
-  btnOsszehasonlit.addEventListener('click', () => tablazatKapcsol(!tablazatNyitva));
-
-  function tablazatRajzol(d, joElofizetes) {
-    const hely = document.getElementById('csomag-tablazat');
-    const kinalt = d.csomagok || [];
-    const adminCsomag = d.csomag_forras === 'admin' && d.csomag !== 'ingyenes';
-    if (adminCsomag || !kinalt.length) {
-      btnOsszehasonlit.style.display = 'none';
-      hely.hidden = true;
-      hely.replaceChildren();
-      return;
-    }
-    btnOsszehasonlit.style.display = '';
-    const nevek = ['ingyenes', ...kinalt.map((c) => c.nev)];
-    const mas = (tag, szoveg, osztaly) => {
-      const e = document.createElement(tag);
-      if (szoveg !== undefined) e.textContent = szoveg;
-      if (osztaly) e.className = osztaly;
-      return e;
-    };
-    const jelCella = (van) => {
-      const td = mas('td');
-      const jel = mas('span', van ? '✓' : '–');
-      jel.setAttribute('aria-hidden', 'true');
-      td.append(jel, mas('span', t(van ? 'tanar.cmp_van' : 'tanar.cmp_nincs'), 'sr-only'));
-      return td;
-    };
-    const benne = (funkcio, nev) => (d.funkciok?.[funkcio] || []).includes(nev);
-    const csomagAdat = (nev) => kinalt.find((c) => c.nev === nev);
-    const kerettel = (nev) => (nev === 'ingyenes'
-      ? t('tanar.cmp_keret_egyszeri', { n: d.ingyenes_keret })
-      : t('tanar.cmp_keret_havi', { n: csomagAdat(nev).keret ?? '∞' }));
-    const sorok = [
-      [t('tanar.cmp_sor_ar'), (nev) => mas('td', nev === 'ingyenes' ? t('tanar.cmp_ingyenes_ar') : (csomagAdat(nev).ar || '–'))],
-      [t('tanar.cmp_sor_keret'), (nev) => mas('td', kerettel(nev))],
-      [t('tanar.cmp_sor_javitas'), () => jelCella(true)],
-      [t('tanar.cmp_sor_osztaly'), (nev) => jelCella(benne('osztaly_elemzes', nev))],
-      [t('tanar.cmp_sor_szin'), (nev) => jelCella(benne('szinvalasztas', nev))],
-      [t('tanar.cmp_sor_fejlodes'), (nev) => jelCella(benne('fejlodes', nev))]
-    ];
-
-    const tabla = mas('table');
-    tabla.append(mas('caption', t('tanar.cmp_cim'), 'sr-only'));
-    const fej = mas('tr');
-    const sarok = mas('th', t('tanar.cmp_funkcio'));
-    sarok.scope = 'col';
-    fej.append(sarok);
-    for (const nev of nevek) {
-      const th = mas('th', t(`admin.csomag_${nev}`), nev === d.csomag ? 'aktualis' : '');
-      th.scope = 'col';
-      fej.append(th);
-    }
-    const thead = mas('thead');
-    thead.append(fej);
-    tabla.append(thead);
-    const torzs = mas('tbody');
-    for (const [cimke, cella] of sorok) {
-      const tr = mas('tr');
-      const th = mas('th', cimke);
-      th.scope = 'row';
-      tr.append(th);
-      for (const nev of nevek) {
-        const td = cella(nev);
-        if (nev === d.csomag) td.classList.add('aktualis');
-        tr.append(td);
-      }
-      torzs.append(tr);
-    }
-    // utolsó sor: vásárlás (új előfizetőnek) vagy váltás (a meglévőnek a Stripe portálján)
-    const vasarlas = mas('tr');
-    vasarlas.append(mas('td'));
-    for (const nev of nevek) {
-      const td = mas('td', undefined, nev === d.csomag ? 'aktualis' : '');
-      if (nev === d.csomag) {
-        td.textContent = t('tanar.cmp_tied');
-      } else if (nev !== 'ingyenes') {
-        const gomb = mas('button', t(joElofizetes ? 'tanar.cmp_valtas' : 'tanar.cmp_valaszt'), 'btn-sm');
-        gomb.type = 'button';
-        gomb.addEventListener('click', () => {
-          if (joElofizetes) { atiranyit('fizetesKezeles', gomb); return; }
-          const c = csomagAdat(nev);
-          const sajatGomb = document.getElementById('csomag-gombok').children[kinalt.indexOf(c)];
-          kivalaszt(c, sajatGomb);
-          megerosites.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        });
-        td.append(gomb);
-      }
-      vasarlas.append(td);
-    }
-    torzs.append(vasarlas);
-    tabla.append(torzs);
-    const gorgeto = mas('div', undefined, 'csomag-tabla-gorgeto');
-    gorgeto.append(tabla);
-    hely.replaceChildren(gorgeto);
-    tablazatKapcsol(tablazatNyitva);
-  }
-
-  // ── a csomag kiválasztása és jóváhagyása a fizetés előtt ──
-  let kivalasztott = null;
-  const megerosites = document.getElementById('csomag-megerosites');
-
-  function megerositesElrejt() {
-    kivalasztott = null;
-    megerosites.style.display = 'none';
-    for (const g of document.getElementById('csomag-gombok').children) g.setAttribute('aria-pressed', 'false');
-  }
-
-  function kivalaszt(c, gomb) {
-    kivalasztott = c;
-    uzenet('csomag-msg', '', 'success');
-    for (const g of document.getElementById('csomag-gombok').children) g.setAttribute('aria-pressed', String(g === gomb));
-    document.getElementById('megerosites-szoveg').textContent = t('tanar.megerosites_szoveg', {
-      nev: t(`admin.csomag_${c.nev}`), ar: c.ar || '', limit: c.keret ?? '∞'
-    });
-    megerosites.style.display = '';
-  }
-
-  document.getElementById('btn-tovabb').addEventListener('click', (e) => {
-    if (kivalasztott) atiranyit('fizetesIndit', e.currentTarget, { csomag: kivalasztott.nev });
-  });
-  document.getElementById('btn-megse').addEventListener('click', megerositesElrejt);
-
-  async function atiranyit(callableNev, gomb, adat = {}) {
-    uzenet('csomag-msg', '', 'success');
-    const vissza = gombVar(gomb, t('tanar.fizetes_var'));
-    try {
-      const { data } = await httpsCallable(functions, callableNev)(adat);
-      const url = new URL(data.url);
-      // Védelem: csak a Stripe saját oldalaira irányítunk át
-      if (url.protocol !== 'https:' || !STRIPE_HOSTOK.includes(url.hostname)) throw new Error('unexpected redirect target');
-      location.href = url.href;
-    } catch (e) {
-      console.error(e);
-      uzenet('csomag-msg', t('tanar.fizetes_hiba', { ok: hibaSzoveg(e) }));
-      vissza();
-    }
-  }
-  document.getElementById('btn-kezeles').addEventListener('click', (e) => atiranyit('fizetesKezeles', e.currentTarget));
-
-  // Visszatérés a Stripe-ról: a webhook pár másodperc késéssel állítja át a csomagot, ezért rövid ideig újra kérdezünk.
-  async function fizetesVisszateres() {
-    const eredmeny = new URLSearchParams(location.search).get('fizetes');
-    if (eredmeny === 'megszakitva') {
-      uzenet('csomag-msg', t('tanar.fizetes_megszakitva'), 'success');
-    } else if (eredmeny === 'sikeres') {
-      uzenet('csomag-msg', t('tanar.fizetes_sikeres'), 'success');
-      for (let i = 0; i < 10; i++) {
-        await new Promise((r) => setTimeout(r, 2000));
-        const d = await keret();
-        if (d?.elofizetes && ['active', 'trialing'].includes(d.elofizetes.statusz)) break;
-      }
-    }
-    if (eredmeny) history.replaceState(null, '', location.pathname);
   }
 
   statisztika();
-  await keret();
-  fizetesVisszateres();
+  await kredit();
 </script>
 </body>
 </html>

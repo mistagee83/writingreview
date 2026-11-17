@@ -4,6 +4,13 @@
 folytatni, és mi a következő lépés. A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
 
+## 000. Költözés a mrashub-projektbe (hub 4d, 2026-11-17) – kód kész, nincs deployolva
+
+A `main` (prod) a közös `mrashub` projektbe költözik (Mr. Andrew's EdTech Hub): a kvóta és a saját Stripe/számlázz.hu
+helyett a hub kreditjei és Hub passa, codebase `wr`, hosting site `mrashub-review`. A szabályokat a hub repója telepíti.
+Részletek, teendők sorrendben (Auth, titok, első admin, CI): [`mrashub-koltozes.md`](mrashub-koltozes.md).
+A `pilot` ág és projekt változatlan. A régi `writerev2` prod érintetlen, a hub 5. fázisában áll le.
+
 ## 00. Prod-átalakítás (2026-11-12) – terv kész, kód még nem változott
 
 A prod nyelvtanári, diákfiók nélküli változatra alakul át: 24 órás feladatlink + becenév, kézírás és kifejtős mód nélkül.

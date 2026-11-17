@@ -21,6 +21,11 @@ Rövid szabályok:
   szöveg. A `public/js/skala.js` generált fájl (forrása `functions/skala.js`) – ne szerkeszd kézzel.
 - Módosítás után futtasd a teszteket (`node --test tests/<fájl>`; a `rules`/`claim`/`functions`
   teszt Firebase-emulátort igényel) és a `node scripts/build.mjs`-t.
+- **A prod a közös `mrashub` projektben (2026-11-17, hub 4d):** kredit és Hub pass a hubból (`functions/kredit.js`,
+  a hub `shared/credits.js` másolata: `node scripts/hub-masolat.mjs`), nincs Stripe-kód; codebase `wr`, deploy:
+  `node scripts/deploy.mjs prod --yes --only hosting,functions:wr`. A Firestore-/Storage-szabályokat és az indexeket a hub
+  repója telepíti (az itteni fájlok az emulátoros tesztekhez; változás itt ÉS a hubban). Lásd
+  [`docs/mrashub-koltozes.md`](docs/mrashub-koltozes.md).
 - **Két telepítés, két ág (2026-11-12 óta):** a **pilot** a `pilot` ágon él (a teljes, régi
   alkalmazás: kézírás, kifejtős mód, diákfiók; kézi deploy), a **prod** a `main`-en (nyelvtanári,
   diákfiók nélküli változat, lásd [`docs/prod-atalakitas-terv.md`](docs/prod-atalakitas-terv.md);

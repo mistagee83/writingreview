@@ -89,15 +89,14 @@
 
   const felhasznalokListaja = httpsCallable(functions, 'felhasznalokListaja');
   const szerepBeallitas = httpsCallable(functions, 'szerepBeallitas');
-  const csomagBeallitas = httpsCallable(functions, 'csomagBeallitas');
 
   const lista = document.getElementById('lista');
   const kereso = document.getElementById('kereso');
   const szuro = document.getElementById('szuro');
   let felhasznalok = [];
-  // Csomagok és havi kereteik (egység; null = korlátlan) – csak ott, ahol a kvóta él.
-  let kvotaAktiv = false;
-  let csomagok = {};
+  // A tanárok kreditegyenlege – csak ott, ahol a hub-kredit él. Jóváírás: a hub adminja (Admin → Credits).
+  let kreditAktiv = false;
+  let hubAdminUrl = '';
 
   // ══════════════════════════════════════════
   // BETÖLTÉS
@@ -107,8 +106,8 @@
     try {
       const { data } = await felhasznalokListaja();
       felhasznalok = data.felhasznalok;
-      kvotaAktiv = data.kvota === true;
-      csomagok = data.csomagok || {};
+      kreditAktiv = data.kredit === true;
+      hubAdminUrl = /^https:\/\//.test(String(data.hub_admin_url || '')) ? data.hub_admin_url : '';
 
       document.getElementById('stat-tanar').textContent =
         felhasznalok.filter((f) => f.szerep === 'tanar').length;
@@ -153,7 +152,7 @@
 
     lista.innerHTML = sorok.map((f) => {
       const enSajat = f.uid === user.uid;
-      const csomagos = kvotaAktiv && f.szerep === 'tanar';
+      const kredites = kreditAktiv && f.szerep === 'tanar' && f.kredit;
       return `
         <div class="list-card">
           <div>
@@ -164,8 +163,9 @@
                 ${f.szerep === 'tanar' ? t('admin.tanar_jelzo') : t('admin.jog_nelkul_jelzo')}
               </span>
               ${f.admin ? `<span class="badge javitva">${t('admin.admin_jelzo')}</span>` : ''}
-              ${csomagos
-                ? `<span class="badge inaktiv">${t('admin.keret_hasznalat', { hasznalt: f.hasznalt ?? 0, limit: csomagok[f.csomag]?.keret ?? '∞' })}</span>`
+              ${kredites
+                ? `<span class="badge inaktiv">${t('admin.kredit_egyenleg', { n: f.kredit.korlatlan ? '∞' : f.kredit.egyenleg })}</span>`
+                  + (f.kredit.hub_pass ? ` <span class="badge aktiv">${t('admin.hub_pass_jelzo')}</span>` : '')
                 : ''}
               ${f.tukor_eltero
                 ? `<span class="badge feltoltve" title="${t('admin.belepes_kell_tipp')}">${t('admin.belepes_kell')}</span>`
@@ -173,12 +173,7 @@
             </div>
           </div>
           <div class="list-card-actions">
-            ${csomagos ? `
-            <select class="csomag-valaszto" data-uid="${esc(f.uid)}" data-nev="${esc(f.nev)}" aria-label="${t('admin.csomag')}">
-              ${Object.entries(csomagok).map(([nev, c]) =>
-                `<option value="${esc(nev)}" ${nev === f.csomag ? 'selected' : ''}>${t(`admin.csomag_${nev}`)}${c.keret === null ? '' : ` (${c.keret}${c.idoszak === 'havi' ? t('admin.havonta') : ''})`}</option>`
-              ).join('')}
-            </select>` : ''}
+            ${kredites && hubAdminUrl ? `<a class="btn-sm" href="${esc(hubAdminUrl)}" target="_blank" rel="noopener">${t('admin.kredit_hubon')}</a>` : ''}
             <button class="btn-sm" data-akcio="szerep"
                     data-uid="${esc(f.uid)}"
                     data-szerep="${f.szerep === 'tanar' ? 'nincs' : 'tanar'}"
@@ -238,22 +233,6 @@
     } catch (err) {
       uzenet('msg', hibaSzoveg(err));
       vissza();
-    }
-  });
-
-  // Csomagváltás (a fizetés bekötéséig az admin állítja)
-  lista.addEventListener('change', async (e) => {
-    const s = e.target.closest('select.csomag-valaszto');
-    if (!s) return;
-    uzenetTorles('msg');
-    s.disabled = true;
-    try {
-      await csomagBeallitas({ uid: s.dataset.uid, csomag: s.value });
-      await betolt();
-      uzenet('msg', t('admin.modositva', { nev: s.dataset.nev }), 'success');
-    } catch (err) {
-      uzenet('msg', hibaSzoveg(err));
-      await betolt();   // a lista a valós csomagot mutassa újra
     }
   });
 

@@ -26,11 +26,11 @@ const MINDEN_KAPUS = {
   belepes: ["nevModositas", "tanariRegisztracio"],
   tanar: [
     "feladatlapElemzes", "beadasUjrafuttatas",
-    "visszajelzesJovahagyas", "feladatElemzes", "kvotaAllapot",
-    "fizetesIndit", "fizetesKezeles", "temaBeallitas", "linkInditas", "linkLezaras", "ertekelesInditas",
+    "visszajelzesJovahagyas", "feladatElemzes", "kreditAllapot",
+    "temaBeallitas", "linkInditas", "linkLezaras", "ertekelesInditas",
     "csoportDiakOsszevonas", "csoportBeadasLevalasztas", "csoportFejlodesLista", "csoportFejlodesDiak"
   ],
-  admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes", "csomagBeallitas", "szamlazandoLista", "szamlaJeloles"],
+  admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes"],
   // Belépés NÉLKÜL hívható (a diák a feladatlinken): a jogosultság a token, a függvény maga ellenőrzi
   nyilvanos: ["linkAdatok", "linkBeadas", "diakVisszajelzes"]
 };

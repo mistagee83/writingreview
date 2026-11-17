@@ -93,14 +93,14 @@
 
     // ── FEJLŐDÉS (Profi, 8b/3) ──
     // A lista (utolsó eredmény, irány) és a diákonkénti idővonal a szerverről jön; a csomag-zárat is a
-    // szerver dönti el (csomag_profi_kell). Az adat a jóváhagyott beadásokból számol: ha ezek köre
+    // szerver dönti el (fejlodes_hub_pass_kell). Az adat a jóváhagyott beadásokból számol: ha ezek köre
     // vagy a diákok köre változik (jóváhagyás, összevonás, leválasztás), újratöltjük.
     let profiZar = false;
     const osszegzes = new Map();       // diák → { utolso_szazalek, trend }
     const fejlodesAdat = new Map();    // diák → { allapot: 'tolt' | 'kesz' | 'hiba', adat?, hiba? }
     const fejlodesNyitva = new Set();
     let alairas = null;
-    const zarVolt = (e) => e?.details?.kod === 'csomag_profi_kell';
+    const zarVolt = (e) => e?.details?.kod === 'fejlodes_hub_pass_kell';
 
     async function osszegzesFrissit() {
       const uj = JSON.stringify([
@@ -229,7 +229,7 @@
       }
       const zar = profiZar ? `<div class="panel"><div class="panel-body">
           <p style="margin:0;"><strong>${t('diakok.zar_cim')}</strong> – ${t('diakok.zar_szoveg')}</p>
-          <p style="margin:0.5rem 0 0;"><a class="btn-sm" href="tanar.html#csomag-panel">${t('diakok.zar_gomb')}</a></p>
+          <p style="margin:0.5rem 0 0;"><a class="btn-sm" href="tanar.html#kredit-panel">${t('diakok.zar_gomb')}</a></p>
         </div></div>` : '';
       lista.innerHTML = zar + `<p class="halvany" style="margin-bottom:0.75rem;">${t('csd.osszesen', { db: mind.length })}</p>`
         + mind.map((d) => diakBlokk(d, mind)).join('');

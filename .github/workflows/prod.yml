@@ -51,4 +51,4 @@ jobs:
           service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
 
       - name: Deploy (prod)
-        run: node scripts/deploy.mjs prod --yes --only hosting,functions,firestore:rules,firestore:indexes,storage
+        run: node scripts/deploy.mjs prod --yes --only hosting,functions:wr

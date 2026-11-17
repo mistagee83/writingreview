@@ -2,7 +2,7 @@
   "projects": {
     "default": "writingreview-41e59",
     "pilot": "writingreview-41e59",
-    "prod": "writerev2"
+    "prod": "mrashub"
   },
   "targets": {
     "writingreview-41e59": {
@@ -12,10 +12,10 @@
         ]
       }
     },
-    "writerev2": {
+    "mrashub": {
       "hosting": {
         "app": [
-          "writing-review"
+          "mrashub-review"
         ]
       }
     }

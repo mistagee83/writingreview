@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════
-// Nyitóoldal (index.html): szótári kulcsok, az árak egy forrásból, hivatkozások, és hogy az oldal nem állít
+// Nyitóoldal (index.html): szótári kulcsok, a kredit- és Hub pass-állítások a kóddal egyezően, hivatkozások, és hogy az oldal nem állít
 // semmit a jogilag nyitott témákról (kiskorúak, EU-s feldolgozás, adatkezelés: docs/kovetkezo-munkamenet.md).
 // Emulátor nélkül fut.
 // ══════════════════════════════════════════════════════
@@ -7,16 +7,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, copyFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { readFileSync, existsSync } from "node:fs";
 
 process.env.GCLOUD_PROJECT = "wr-landing-teszt";
 process.env.GEMINI_API_KEY = "teszt-kulcs";
 
 const require = createRequire(new URL("../functions/package.json", import.meta.url));
-const kvota = require("./kvota.js");
+const kredit = require("./kredit.js");
 const { _teszt: szerver } = require("./index.js");
 const config = await import("../scripts/kornyezet-config.mjs");
 const hu = (await import("../public/js/i18n-hu.js")).default;
@@ -35,16 +32,11 @@ test("a nyitóoldal minden szótári kulcsa létezik magyarul és angolul, és a
     assert.ok(hu[k] !== undefined, `hu: ${k}`);
     assert.ok(en[k] !== undefined, `en: ${k}`);
   }
-  // a szkriptben sablonból épülő kulcsok: csomag_<név>, pont_<pont>
-  const csomagNevek = [...html.matchAll(/nev: '(\w+)'/g)].map((m) => m[1]);
-  const pontok = [...html.matchAll(/pontok: \[([^\]]+)\]/g)].flatMap((m) => m[1].match(/'(\w+)'/g).map((s) => s.slice(1, -1)));
-  assert.deepEqual(csomagNevek.sort(), ["alap", "ingyenes", "profi"]);
-  assert.equal(pontok.length, 9, "Ingyenes 3, Alap 3, Profi 3 (az Alap mindene + fejlődéskövetés + nagyobb keret)");
-  for (const n of csomagNevek) assert.ok(hu[`landing.csomag_${n}`] && en[`landing.csomag_${n}`], `csomag_${n}`);
-  for (const p of pontok) assert.ok(hu[`landing.pont_${p}`] && en[`landing.pont_${p}`], `pont_${p}`);
-  for (const k of ["landing.hero_ingyenes", "landing.per_ho", "landing.ingyenes_ar", "landing.keret_egyszeri", "landing.keret_havi"]) {
-    assert.ok(hu[k] !== undefined && en[k] !== undefined, k);
-  }
+  // a szkriptben használt kulcs
+  for (const k of ["landing.hero_ingyenes"]) assert.ok(hu[k] !== undefined && en[k] !== undefined, k);
+  // a három kártya: ingyenes kezdés, Hub pass, kreditcsomag
+  const kartyak = [...html.matchAll(/data-i18n="landing\.csomag_(\w+)"/g)].map((m) => m[1]);
+  assert.deepEqual(kartyak, ["kezdes", "hubpass", "kredit"]);
   assert.deepEqual(landingKulcsok(hu).sort(), landingKulcsok(en).sort());
 });
 
@@ -61,76 +53,31 @@ test("a nyitóoldal nem állít semmit a jogilag nyitott témákról (kiskorúak
   assert.ok(!tiltott.test(forras.replace(/<meta name="description"[^>]*>/, "")), "a HTML szövegében tiltott állítás van");
 });
 
-test("a szövegek állításai egyeznek a kóddal: nyolc nyelv, a dolgozat egy egység, a Profi és az Alap tartalma", () => {
+test("a szövegek állításai egyeznek a kóddal: nyolc nyelv, kreditből fogy minden AI-művelet, a Hub pass tartalma", () => {
   assert.equal(szerver.NYELVEK.length, 8);
-  assert.equal(kvota.EGYSEG_KOLTSEG.beadas, 1, "a GYIK szerint egy dolgozat javítása egy egység");
-  assert.ok(kvota.EGYSEG_KOLTSEG.feladatlap > 0 && kvota.EGYSEG_KOLTSEG.elemzes > 0,
-    "a GYIK szerint a feladatlap és az elemzés is fogyaszt");
-  // a csomag-pontok a funkciótáblát követik: az elemzés és a színválasztás az Alaptól, a fejlődés-követés
-  // (8b/3: a csoportokban, becenév alapján) a Profitól
-  assert.ok(kvota.FUNKCIOK.osztaly_elemzes.includes("alap") && !kvota.FUNKCIOK.osztaly_elemzes.includes("ingyenes"));
-  assert.ok(kvota.FUNKCIOK.fejlodes.includes("profi") && !kvota.FUNKCIOK.fejlodes.includes("alap"));
-  assert.match(html, /nev: 'profi'.*'fejlodes'/, "a Profi kártya ígéri a fejlődéskövetést");
-  assert.ok(kvota.FUNKCIOK.szinvalasztas.includes("alap") && !kvota.FUNKCIOK.szinvalasztas.includes("ingyenes"));
-  assert.ok(kvota.CSOMAGOK.profi.keret > kvota.CSOMAGOK.alap.keret, "a Profi 'nagyobb havi keret'");
-});
-
-// ── az árak és keretek egy forrásból ──
-
-test("a nyitóoldal árai a functions/.env.prod-ból, a keretek a kvota.js-ből jönnek; a pilotban nincs fizetés", () => {
-  const prod = config.csomagAdatok("prod");
-  const env = config.envBetoltes(fileURLToPath(new URL("../functions/.env.prod", import.meta.url)));
-  assert.equal(prod.fizetes, true);
-  assert.equal(prod.arak.alap, env.FIZETES_AR_SZOVEG);
-  assert.equal(prod.arak.profi, env.FIZETES_AR_PROFI_SZOVEG);
-  for (const nev of ["ingyenes", "alap", "profi"]) assert.equal(prod.keretek[nev], kvota.CSOMAGOK[nev].keret, nev);
-
-  const pilot = config.csomagAdatok("pilot");
-  assert.equal(pilot.fizetes, false);
-  assert.deepEqual(pilot.arak, {});
-});
-
-test("fizetés csak érvényes árazonosítóval él, a Profi csak ha az ára is be van állítva (mint a szerveren)", () => {
-  const gyoker = mkdtempSync(join(tmpdir(), "wr-landing-"));
-  mkdirSync(join(gyoker, "functions"));
-  copyFileSync(fileURLToPath(new URL("../functions/kvota.js", import.meta.url)), join(gyoker, "functions", "kvota.js"));
-  const env = (tartalom, alias = "prod") => {
-    writeFileSync(join(gyoker, "functions", `.env.${alias}`), tartalom);
-    return config.csomagAdatok(alias, gyoker);
-  };
-
-  const csakAlap = env("FIZETES_AR_ALAP=price_abc\nFIZETES_AR_SZOVEG=5 EUR / hó\n");
-  assert.equal(csakAlap.fizetes, true);
-  assert.deepEqual(csakAlap.arak, { alap: "5 EUR / hó" }, "Profi-ár nélkül nincs Profi");
-
-  const mindketto = env("# komment\nFIZETES_AR_ALAP=price_abc\nFIZETES_AR_SZOVEG=5 EUR / hó\nFIZETES_AR_PROFI=price_def\nFIZETES_AR_PROFI_SZOVEG=12 EUR / hó\n");
-  assert.deepEqual(mindketto.arak, { alap: "5 EUR / hó", profi: "12 EUR / hó" });
-
-  for (const rossz of ["", "FIZETES_AR_ALAP=\n", "FIZETES_AR_ALAP=hamis\n", "FIZETES_AR_ALAP=price_ab cd\n"]) {
-    const r = env(rossz);
-    assert.equal(r.fizetes, false, JSON.stringify(rossz));
-    assert.deepEqual(r.arak, {}, "fizetés nélkül nincs ár");
+  // a GYIK szerint a javítás, a feladatlap és az elemzés is kreditbe kerül
+  assert.deepEqual(Object.keys(kredit.AKCIOK).sort(), ["beadas", "elemzes", "feladatlap"]);
+  // a Hub pass-kártya az elemzést, a fejlődéskövetést és a színválasztást ígéri – pontosan a zárt funkciókat
+  const hubpass = html.slice(html.indexOf('data-i18n="landing.csomag_hubpass"'), html.indexOf('data-i18n="landing.csomag_kredit"'));
+  for (const p of ["elemzes", "fejlodes", "szinek"]) assert.ok(hubpass.includes(`landing.pont_${p}`), p);
+  assert.deepEqual([...kredit.HUB_PASS_FUNKCIOK].sort(), ["fejlodes", "osztaly_elemzes", "szinvalasztas"]);
+  // a nyitóoldal nem ír ki árat vagy kreditszámot: a számok a hub fiókoldalán vannak
+  for (const [nyelv, szotar] of [["hu", hu], ["en", en]]) {
+    for (const k of landingKulcsok(szotar).filter((k) => /csomag|pont_|hero_ingyenes|gyik[456]/.test(k))) {
+      assert.ok(!/\d+\s*(EUR|USD|\$|€|Ft|kredit|credit)/i.test(szotar[k]), `${nyelv} ${k}: szám az árazásban`);
+    }
   }
-  // a pilotban az ár sem számít, ha be volt állítva
-  assert.equal(env("FIZETES_AR_ALAP=price_abc\nFIZETES_AR_SZOVEG=5 EUR / hó\n", "pilot").fizetes, false);
-  // hiányzó .env fájl: nincs fizetés, nem hiba
-  const ures = mkdtempSync(join(tmpdir(), "wr-landing-ures-"));
-  mkdirSync(join(ures, "functions"));
-  copyFileSync(fileURLToPath(new URL("../functions/kvota.js", import.meta.url)), join(ures, "functions", "kvota.js"));
-  assert.equal(config.csomagAdatok("prod", ures).fizetes, false);
 });
 
-test("a build a prod értékeit írja a kornyezet.js-be, a public/ és a pilot a fizetés nélküli alapot", () => {
+test("a build a kredit-kapcsolót és a hub címét írja a kornyezet.js-be; a public/ a pilot alapja", () => {
   const pubKorny = olvas("../public/js/kornyezet.js");
   const pilotCfg = config.konfigBetoltes("pilot");
   const prodCfg = config.konfigBetoltes("prod");
   assert.equal(config.kornyezetJs(pilotCfg, pubKorny), pubKorny, "a public/ a pilot alapértékeit hordozza");
-  assert.equal(config.kornyezetJs(pilotCfg, pubKorny, config.csomagAdatok("pilot")), pubKorny);
-
-  const prod = config.kornyezetJs(prodCfg, pubKorny, config.csomagAdatok("prod"));
-  assert.match(prod, /export const FIZETES = true;/);
-  assert.match(prod, /export const ARAK = \{"alap":"[^"]+","profi":"[^"]+"\};/);
-  assert.match(prod, /export const KERETEK = \{"ingyenes":20,"alap":150,"profi":500\};/);
+  const prod = config.kornyezetJs(prodCfg, pubKorny);
+  assert.match(prod, /export const KREDIT = true;/);
+  assert.match(prod, /export const HUB_URL = "https:\/\/[^"]+";/);
+  assert.doesNotMatch(prod, /FIZETES|ARAK|KERETEK/);
 });
 
 // ── a lap szerkezete ──
@@ -152,7 +99,7 @@ test("a nyitóoldal helyi hivatkozásai létező oldalakra mutatnak, külső hiv
 
 test("a környezet-függő részek jelölése érvényes: csak ismert data-csak értékek", () => {
   const ertekek = new Set([...html.matchAll(/data-csak="([\w-]+)"/g)].map((m) => m[1]));
-  assert.deepEqual([...ertekek].sort(), ["belepes-egyedul", "fizetes", "regisztracio"]);
+  assert.deepEqual([...ertekek].sort(), ["belepes-egyedul", "fizetes", "hub-link", "regisztracio"]);
   // a fizetős szakaszok (árak, csomagok) alapból rejtettek: build nélkül sem villanhatnak fel
   assert.match(html, /id="csomagok" data-csak="fizetes" hidden/);
   assert.match(html, /<a href="#csomagok" data-csak="fizetes" hidden/);

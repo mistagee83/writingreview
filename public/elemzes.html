@@ -281,8 +281,8 @@
       const { data } = await feladatElemzes({ feladatId });
       rajzol(data);
     } catch (e) {
-      // A szerver a csomag-zárat csomag_alap_kell kóddal jelzi: ilyenkor a barátságos kártya jön, nem hibaüzenet.
-      if (e?.details?.kod === 'csomag_alap_kell') {
+      // A szerver a Hub pass-zárat elemzes_hub_pass_kell kóddal jelzi: ilyenkor a barátságos kártya jön, nem hibaüzenet.
+      if (e?.details?.kod === 'elemzes_hub_pass_kell') {
         zarKartya();
         return;
       }
@@ -298,7 +298,7 @@
         <div class="panel-body">
           <p>${t('elz.zar_szoveg')}</p>
           <div class="gomb-sor">
-            <a class="btn-primary" href="tanar.html#csomag-panel">${t('elz.zar_gomb')}</a>
+            <a class="btn-primary" href="tanar.html#kredit-panel">${t('elz.zar_gomb')}</a>
           </div>
         </div>
       </div>`;

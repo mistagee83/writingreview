@@ -56,14 +56,16 @@ test("a pilot teljesen kitöltött; a prod a B. lépésig üres lehet, de akkor 
   else assert.equal(r.status, 0, r.stderr);
 });
 
-test("a kereskedelmi verzió jellemzői: angol alapnyelv és kvóta; a pilot magyar, kvóta nélkül; egyikben sincs TESZT sáv", () => {
+test("a kereskedelmi verzió jellemzői: angol alapnyelv és hub-kredit; a pilot magyar, kredit nélkül; egyikben sincs TESZT sáv", () => {
   assert.equal(pilot.alapnyelv, "hu");
   // A pilotot a kollégák éles munkára is használják, ezért nincs rajta „TESZT” sáv.
   assert.equal(pilot.teszt_sav, false);
-  assert.equal(pilot.kvota, false);
+  assert.equal(pilot.kredit, false);
+  assert.equal(pilot.hub_url, "");
   assert.equal(prod.alapnyelv, "en");
   assert.equal(prod.teszt_sav, false);
-  assert.equal(prod.kvota, true);
+  assert.equal(prod.kredit, true);
+  assert.ok(prod.hub_url.startsWith("https://"));
 });
 
 test("az önkiszolgáló tanári regisztráció mindkét környezetben él (a pilotban 2026-10-13-tól), a kliens és a szerver egyezően", () => {
@@ -81,7 +83,7 @@ test("az önkiszolgáló tanári regisztráció mindkét környezetben él (a pi
 test("a konfig-ellenőrzés elkapja a hibás értékeket", () => {
   const rossz = structuredClone(pilot);
   rossz.alapnyelv = "de";
-  rossz.kvota = "igen";
+  rossz.kredit = "igen";
   rossz.tanari_onregisztracio = 1;
   delete rossz.webConfig.appId;
   assert.equal(konfigHibak(rossz).length, 4);
@@ -114,7 +116,7 @@ test("a prod konfig a kornyezet.js és a firebase-config.js megfelelő részeit 
   const k = kornyezetJs(kesz, publikus("kornyezet.js"));
   assert.match(k, /export const KORNYEZET = "prod";/);
   assert.match(k, /export const ALAPNYELV = "en";/);
-  assert.match(k, /export const KVOTA = true;/);
+  assert.match(k, /export const KREDIT = true;/);
   assert.match(k, /export const TANARI_ONREGISZTRACIO = true;/);
   assert.match(k, /export const TESZT_SAV = false;/);
 
@@ -158,12 +160,13 @@ test("a pilot CORS-lista pontosan a korábbi, beégetett lista", () => {
   ]);
 });
 
-test("a szerver beállításai: alapból pilot, kvóta csak prodban; ismeretlen érték → pilot", () => {
+test("a szerver beállításai: alapból pilot, kredit csak prodban; ismeretlen érték → pilot", () => {
   assert.equal(beallitasok({}).kornyezet, "pilot");
-  assert.equal(beallitasok({}).kvota, false);
+  assert.equal(beallitasok({}).kredit, false);
   assert.equal(beallitasok({}).projekt, "writingreview-41e59");
   const p = beallitasok({ KORNYEZET: "prod", GCLOUD_PROJECT: "wr-prod", ENGEDELYEZETT_DOMAINEK: "https://app.pelda.hu" });
-  assert.equal(p.kvota, true);
+  assert.equal(p.kredit, true);
+  assert.ok(p.hubFiokUrl.startsWith("https://") && p.hubFiokUrl.endsWith("/account"));
   assert.ok(p.cors.includes("https://wr-prod.web.app") && p.cors.includes("https://app.pelda.hu"));
   assert.equal(beallitasok({ KORNYEZET: "staging" }).kornyezet, "pilot");
 });

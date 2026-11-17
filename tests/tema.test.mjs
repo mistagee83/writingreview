@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════
-// Színtémák (a tanári felület színválasztója, Alap csomagtól)
+// Színtémák (a tanári felület színválasztója, a Hub pass része)
 //
 // Emulátor nélkül fut (hamis Firestore). Védi: a négy névlista egyezését (szerver, modul, korai szkript,
 // CSS), a paletták kontrasztját, a szerveroldali zárat és azt, hogy a diák felület kék marad.
@@ -15,14 +15,14 @@ process.env.GEMINI_API_KEY = "teszt-kulcs";
 
 const require = createRequire(new URL("../functions/package.json", import.meta.url));
 const szerver = require("./tema.js");
-const kvota = require("./kvota.js");
 const t = require("./index.js")._teszt;
 const kliens = await import("../public/js/tema.js");
 const olvas = (f) => readFileSync(new URL(f, import.meta.url), "utf8");
 const css = olvas("../public/css/app.css");
 
-const PROD = { kvota: true };
-const PILOT = { kvota: false };
+const PROD = { kredit: true, hubFiokUrl: "https://hub.example/account" };
+const PILOT = { kredit: false };
+const HUB_PASS = { entitlements: { all: { status: "active", tier: "hub" } } };
 
 // ── a névlisták egyeznek ──
 
@@ -128,7 +128,7 @@ test("a diák felület kék marad: a téma a <html>-en van, a body.theme-diak sa
   assert.match(css, /body\.theme-diak \{[^}]*--accent:\s+#2563eb/);
   assert.match(css, /body\.theme-diak \{ background-image: none; \}/);
   // a tanári oldalak kapják a korai szkriptet, a diák oldalak nem
-  for (const f of ["tanar", "feladatok", "javitas", "elemzes", "admin", "ai-hasznalat", "szamlazando"]) {
+  for (const f of ["tanar", "feladatok", "javitas", "elemzes", "admin", "ai-hasznalat"]) {
     assert.ok(olvas(`../public/${f}.html`).includes("js/tema-korai.js"), f);
   }
   for (const f of ["belepes", "index"]) {
@@ -157,9 +157,9 @@ function hamisFirestore(dokumentumok) {
 }
 
 const ADAT = {
-  "tanarok/ingyenes": { csomag: "ingyenes" },
-  "tanarok/alap": { csomag: "alap" },
-  "tanarok/profi": { csomag: "profi" }
+  "users/ingyenes": {},
+  "users/alap": HUB_PASS,
+  "users/profi": { entitlements: { "writing-review": { status: "active", source: "admin" } } }
 };
 
 const kod = async (futas) => {
@@ -167,14 +167,14 @@ const kod = async (futas) => {
   return "nem-hibazott";
 };
 
-test("az ingyenes tanár nem választhat színt (szinvalasztas_alap_kell), és semmi nem íródik", async () => {
+test("Hub pass nélkül nem lehet színt választani (szinvalasztas_hub_pass_kell), és semmi nem íródik", async () => {
   const fs = hamisFirestore(ADAT);
-  assert.equal(await kod(() => t.temaBeallitasLogika(fs, "ingyenes", { tema: "kek" }, PROD)), "szinvalasztas_alap_kell");
-  assert.equal(await kod(() => t.temaBeallitasLogika(fs, "nincs-ilyen", { tema: "kek" }, PROD)), "szinvalasztas_alap_kell");
+  assert.equal(await kod(() => t.temaBeallitasLogika(fs, "ingyenes", { tema: "kek" }, PROD)), "szinvalasztas_hub_pass_kell");
+  assert.equal(await kod(() => t.temaBeallitasLogika(fs, "nincs-ilyen", { tema: "kek" }, PROD)), "szinvalasztas_hub_pass_kell");
   assert.deepEqual(fs.irasok, []);
 });
 
-test("az Alap és a Profi tanár választhat, a mentés a felhasznalok/{uid}.tema mezőbe megy", async () => {
+test("Hub passszal (az all vagy a WR saját kulcsa) lehet választani, a mentés a felhasznalok/{uid}.tema mezőbe megy", async () => {
   const fs = hamisFirestore(ADAT);
   assert.deepEqual(await t.temaBeallitasLogika(fs, "alap", { tema: "zold" }, PROD), { tema: "zold" });
   assert.deepEqual(await t.temaBeallitasLogika(fs, "profi", { tema: "pala" }, PROD), { tema: "pala" });
@@ -193,7 +193,7 @@ test("az alapszínre visszaállás az ingyenes tanárnak is szabad, és a mezőt
   assert.equal(typeof fs.irasok[0].adat.tema, "object", "a mező törlésjelzője (FieldValue.delete)");
 });
 
-test("a pilotban a csomag nem számít; az ismeretlen téma mindenhol hiba", async () => {
+test("a pilotban a Hub pass nem számít; az ismeretlen téma mindenhol hiba", async () => {
   const fs = hamisFirestore(ADAT);
   assert.deepEqual(await t.temaBeallitasLogika(fs, "ingyenes", { tema: "lila" }, PILOT), { tema: "lila" });
   for (const rossz of [undefined, "piros", "__proto__"]) {
@@ -202,20 +202,12 @@ test("a pilotban a csomag nem számít; az ismeretlen téma mindenhol hiba", asy
   assert.equal(await kod(() => t.temaBeallitasLogika(fs, "profi", undefined, PROD)), "tema_ervenytelen");
 });
 
-test("a színválasztás az Alaptól elérhető (a funkciótábla), az ingyenesnek nem", () => {
-  assert.equal(kvota.funkcioEngedelyezett(true, "ingyenes", "szinvalasztas"), false);
-  for (const csomag of ["alap", "profi", "korlatlan"]) {
-    assert.equal(kvota.funkcioEngedelyezett(true, csomag, "szinvalasztas"), true, csomag);
-  }
-  assert.equal(kvota.funkcioEngedelyezett(false, "ingyenes", "szinvalasztas"), true, "pilot");
-});
-
-// ── a téma az előfizetéssel jár: csomagváltásnál visszaáll az alapszínre ──
+// ── a téma a Hub passszal jár: ha lejár, a kreditállapot lekérésekor visszaáll az alapszínre ──
 
 const { FieldValue } = require("firebase-admin/firestore");
 const torles = (v) => v && typeof v === "object" && typeof v.isEqual === "function" && v.isEqual(FieldValue.delete());
 
-// Memóriabeli Firestore tranzakcióval: elég a webhook és az admin csomagbeállítás útjához.
+// Memóriabeli Firestore (doc get/set merge-dzsel, FieldValue.delete-tel)
 function memFirestore(kezdo) {
   const tar = structuredClone(kezdo);
   const ir = (ut, adat, opcio) => {
@@ -230,93 +222,25 @@ function memFirestore(kezdo) {
     get: async () => ({ exists: ut in tar, data: () => tar[ut] }),
     set: async (adat, opcio) => ir(ut, adat, opcio)
   });
-  return {
-    tar,
-    collection: (nev) => ({ doc: (id) => doc(`${nev}/${id}`) }),
-    runTransaction: async (fn) => fn({
-      get: async (ref) => ({ exists: ref.path in tar, data: () => tar[ref.path] }),
-      set: (ref, adat, opcio) => ir(ref.path, adat, opcio)
-    })
-  };
+  return { tar, collection: (nev) => ({ doc: (id) => doc(`${nev}/${id}`) }), doc: (ut) => doc(ut) };
 }
 
-const AR = "price_alap_teszt";
-const AR_PROFI = "price_profi_teszt";
-const BE = { kvota: true, fizetes: true, fizetesArAlap: AR, fizetesArProfi: AR_PROFI };
-let sorszam = 0;
-const esemeny = (tipus, ar, objFelul = {}) => ({
-  id: `evt_${++sorszam}`, type: tipus, created: 1000 + sorszam,
-  data: { object: {
-    id: "sub_1", customer: "cus_1", status: "active", metadata: { uid: "t1" },
-    cancel_at_period_end: false, cancel_at: null,
-    items: { data: [{ price: { id: ar }, current_period_end: 5000 }] }, ...objFelul
-  } }
-});
-const kezdo = (csomag, extra = {}) => ({
-  "tanarok/t1": { csomag, csomag_forras: "stripe", ...extra },
-  "felhasznalok/t1": { nev: "Teszt Tanár", tema: "kek" }
-});
-
-test("a lemondott előfizetés a forduló végén megszűnik: a téma visszaáll az alapszínre, a név marad", async () => {
-  const fs = memFirestore(kezdo("alap"));
-  const r = await t.stripeEsemenyFeldolgozas(fs, esemeny("customer.subscription.deleted", AR), BE);
-  assert.equal(r.csomag, "ingyenes");
-  assert.equal(fs.tar["tanarok/t1"].csomag, "ingyenes");
+test("lejárt Hub passnál a választott szín visszaáll az alapszínre, a név marad", async () => {
+  const fs = memFirestore({ "users/t1": { entitlements: { all: { status: "canceled" } } }, "felhasznalok/t1": { nev: "Teszt Tanár", tema: "kek" } });
+  const a = await t.kreditAllapotLogika(fs, "t1", PROD);
+  assert.equal(a.hub_pass, false);
+  assert.equal(a.tema_visszaallitva, true);
   assert.equal(fs.tar["felhasznalok/t1"].tema, undefined, "a téma törlődik");
   assert.equal(fs.tar["felhasznalok/t1"].nev, "Teszt Tanár", "a többi mező érintetlen");
+  // másodszor már nincs mit visszaállítani
+  assert.equal((await t.kreditAllapotLogika(fs, "t1", PROD)).tema_visszaallitva, false);
 });
 
-test("a hó közben lemondott (még élő) előfizetés megtartja a színt a fordulóig", async () => {
-  const fs = memFirestore(kezdo("alap"));
-  const r = await t.stripeEsemenyFeldolgozas(fs, esemeny("customer.subscription.updated", AR, { cancel_at_period_end: true }), BE);
-  assert.equal(r.csomag, "alap");
-  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek");
-});
-
-test("a csomagváltás Profiról Alapra nem vesz el színt; a fizetési hiba (past_due) alatt is marad", async () => {
-  const fs = memFirestore(kezdo("profi"));
-  await t.stripeEsemenyFeldolgozas(fs, esemeny("customer.subscription.updated", AR), BE);
-  assert.equal(fs.tar["tanarok/t1"].csomag, "alap");
-  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek");
-  await t.stripeEsemenyFeldolgozas(fs, esemeny("customer.subscription.updated", AR, { status: "past_due" }), BE);
-  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek");
-});
-
-test("az admin által adott csomagot a Stripe nem bántja, így a színt sem", async () => {
-  const fs = memFirestore(kezdo("profi", { csomag_forras: "admin" }));
-  await t.stripeEsemenyFeldolgozas(fs, esemeny("customer.subscription.deleted", AR), BE);
-  assert.equal(fs.tar["tanarok/t1"].csomag, "profi");
-  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek");
-});
-
-test("ugyanaz az esemény kétszer nem csinál semmit, és az ingyenesen már nincs mit visszaállítani", async () => {
-  const fs = memFirestore(kezdo("alap"));
-  const e = esemeny("customer.subscription.deleted", AR);
-  await t.stripeEsemenyFeldolgozas(fs, e, BE);
-  fs.tar["felhasznalok/t1"].tema = "zold";   // közben (valamiért) mégis lett témája
-  const masodik = await t.stripeEsemenyFeldolgozas(fs, e, BE);
-  assert.equal(masodik.kihagyva, "mar_feldolgozva");
-  assert.equal(fs.tar["felhasznalok/t1"].tema, "zold", "az idempotens újrajátszás nem nyúl hozzá");
-});
-
-test("az admin az alapcsomagra állítja: a téma visszaáll; fizetősre állítva marad; pilotban semmi", async () => {
-  let fs = memFirestore(kezdo("profi"));
-  await t.csomagBeallitasLogika(fs, "t1", "ingyenes", BE);
-  assert.equal(fs.tar["felhasznalok/t1"].tema, undefined);
-  assert.equal(fs.tar["tanarok/t1"].csomag, "ingyenes");
-
-  fs = memFirestore(kezdo("ingyenes"));
-  await t.csomagBeallitasLogika(fs, "t1", "profi", BE);
-  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek");
-
-  fs = memFirestore(kezdo("profi"));
-  await t.csomagBeallitasLogika(fs, "t1", "ingyenes", PILOT);
-  assert.equal(fs.tar["felhasznalok/t1"].tema, "kek", "kvóta nélkül a csomag nem számít");
-});
-
-test("a temaElveszik a funkciótáblát követi", () => {
-  assert.equal(t.temaElveszik("ingyenes", PROD), true);
-  assert.equal(t.temaElveszik(undefined, PROD), true);
-  for (const csomag of ["alap", "profi", "korlatlan"]) assert.equal(t.temaElveszik(csomag, PROD), false, csomag);
-  assert.equal(t.temaElveszik("ingyenes", PILOT), false);
+test("aktív Hub passnál a szín marad; a pilotban semmi nem változik", async () => {
+  const fs = memFirestore({ "users/t1": HUB_PASS, "felhasznalok/t1": { tema: "zold" } });
+  assert.equal((await t.kreditAllapotLogika(fs, "t1", PROD)).tema_visszaallitva, false);
+  assert.equal(fs.tar["felhasznalok/t1"].tema, "zold");
+  const pilot = memFirestore({ "felhasznalok/t1": { tema: "zold" } });
+  assert.deepEqual(await t.kreditAllapotLogika(pilot, "t1", PILOT), { kredit: false });
+  assert.equal(pilot.tar["felhasznalok/t1"].tema, "zold");
 });

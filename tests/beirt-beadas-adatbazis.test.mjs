@@ -154,40 +154,46 @@ test("sor feldolgozása: a sorban lévő beadás egy értékeléssel javított l
   assert.equal((await firestore.collection("beadasok").doc("b1").get()).data().statusz, "javitva");
 });
 
-test("sor feldolgozása: elfogyott keretnél a beadás visszakerül a beadottak közé, nem hibára", async () => {
+const ARLISTA = { prices: { "writing-review/check": 1 } };
+
+test("sor feldolgozása: elfogyott kreditnél a beadás visszakerül a beadottak közé, nem hibára", async () => {
   await beadasLetrehoz({ forras: "szoveg", szoveg: SZOVEG });
   await logika.ertekelesInditasLogika(firestore, "t1", { beadasIds: ["b1"] });
-  // a keret közben elfogyott (ingyenes csomag: 20 egység)
-  await firestore.collection("tanarok").doc("t1").collection("hasznalat").doc("osszes").set({ egyseg: 20 });
+  // a kredit közben elfogyott (a tanárnak 0 kreditje van)
+  await firestore.doc("settings/credits").set(ARLISTA);
+  await firestore.collection("users").doc("t1").set({ credits: { included: 0, purchased: 0 } });
   const kerek = [];
   geminiStub(kerek);
-  const eredeti = logika.BEALLITASOK.kvota;
-  logika.BEALLITASOK.kvota = true;
+  const eredeti = logika.BEALLITASOK.kredit;
+  logika.BEALLITASOK.kredit = true;
   try {
     const r = await logika.sorFeldolgozas("b1");
-    assert.deepEqual(r, { kvota: true });
+    assert.deepEqual(r, { kredit: true });
   } finally {
-    logika.BEALLITASOK.kvota = eredeti;
-    await firestore.collection("tanarok").doc("t1").collection("hasznalat").doc("osszes").delete();
+    logika.BEALLITASOK.kredit = eredeti;
+    await firestore.collection("users").doc("t1").delete();
+    await firestore.doc("settings/credits").delete();
   }
   assert.equal(kerek.length, 0);
   const b = (await firestore.collection("beadasok").doc("b1").get()).data();
   assert.equal(b.statusz, "feltoltve");
-  assert.equal(b.hiba_kod, "kvota_elfogyott_egyszeri");
+  assert.equal(b.hiba_kod, "kredit_elfogyott");
 });
 
-test("sorba állítás a maradék keretig: ami nem fér bele, beadott marad, és a válasz jelzi", async () => {
+test("sorba állítás a maradék kreditig: ami nem fér bele, beadott marad, és a válasz jelzi", async () => {
   await beadasLetrehoz({ forras: "szoveg", szoveg: SZOVEG });
   await firestore.collection("beadasok").doc("b2").set({ feladat_id: "f1", tanar_id: "t1", forras: "szoveg", szoveg: SZOVEG, statusz: "feltoltve" });
-  await firestore.collection("tanarok").doc("t1").collection("hasznalat").doc("osszes").set({ egyseg: 19 });
-  const eredeti = logika.BEALLITASOK.kvota;
-  logika.BEALLITASOK.kvota = true;
+  await firestore.doc("settings/credits").set(ARLISTA);
+  await firestore.collection("users").doc("t1").set({ credits: { included: 1, purchased: 0 } });
+  const eredeti = logika.BEALLITASOK.kredit;
+  logika.BEALLITASOK.kredit = true;
   try {
     const r = await logika.ertekelesInditasLogika(firestore, "t1", { feladatId: "f1" });
-    assert.deepEqual(r, { inditva: 1, kimaradt: 1, kimaradt_ok: "kvota" });
+    assert.deepEqual(r, { inditva: 1, kimaradt: 1, kimaradt_ok: "kredit" });
   } finally {
-    logika.BEALLITASOK.kvota = eredeti;
-    await firestore.collection("tanarok").doc("t1").collection("hasznalat").doc("osszes").delete();
+    logika.BEALLITASOK.kredit = eredeti;
+    await firestore.collection("users").doc("t1").delete();
+    await firestore.doc("settings/credits").delete();
   }
   const allapotok = (await firestore.collection("beadasok").get()).docs.map((d) => d.data().statusz).sort();
   assert.deepEqual(allapotok, ["feltoltve", "sorban"]);
