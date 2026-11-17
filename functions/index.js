@@ -1428,6 +1428,8 @@ exports._teszt = {
   FOGLALAS_LEJARAT_MS,
   tanariRegisztracioLogika,
   kreditLevonas,
+  wrFelhasznalo,
+  wrFelhasznalok,
   kreditVisszairas,
   kreditbol,
   kreditAllapotLogika,
@@ -1510,13 +1512,37 @@ function claimOsszefuzes(meglevo, valtozasok) {
 // ── FELHASZNÁLÓK LISTÁJA ──
 // A felhasznalok kollekciót a szabályok senkinek nem engedik listázni;
 // itt admin SDK-val olvassuk, admin jogosultsághoz kötve.
+/** WR-felhasználó-e a közös Auth egy fiókja: nem anonim, és van WR-profilja vagy WR-claimje. */
+function wrFelhasznalo(u, wrProfil) {
+  if (!u.providerData?.length) return false;   // anonim (pl. a QotD játékosai)
+  return wrProfil.has(u.uid) || !!u.customClaims?.szerep || u.customClaims?.admin === true;
+}
+
+/** Az Auth összes fiókja lapozva (legfeljebb FELHASZNALO_LAPOK × 1000); pageToken: van-e még. */
+const FELHASZNALO_LAPOK = 20;
+async function wrFelhasznalok(auth = getAuth()) {
+  const users = [];
+  let pageToken;
+  for (let i = 0; i < FELHASZNALO_LAPOK; i++) {
+    const lap = await auth.listUsers(1000, pageToken);
+    users.push(...lap.users);
+    pageToken = lap.pageToken;
+    if (!pageToken) break;
+  }
+  return { users, pageToken };
+}
+
 exports.felhasznalokListaja = onCall(HIVAS_OPCIOK, async (request) => {
   admin(request);
 
   const [authLista, profilok] = await Promise.all([
-    getAuth().listUsers(1000),
+    wrFelhasznalok(),
     db().collection("felhasznalok").get()
   ]);
+  // A mrashub Auth-ja közös a hubbal és a többi appal (QotD anonim játékosai, hub-vásárlók): csak a WR
+  // felhasználóit mutatjuk – akinek WR-profilja (felhasznalok/{uid}) vagy WR-szerepe / admin joga van.
+  const wrProfil = new Set(profilok.docs.map((d) => d.id));
+  authLista.users = authLista.users.filter((u) => wrFelhasznalo(u, wrProfil));
 
   // A tanárok kreditegyenlege és Hub passa (csak ahol a kredit él). A kreditet a hub adminja
   // (Admin → Credits) írja jóvá; itt csak a tájékoztatás.
