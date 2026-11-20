@@ -9,6 +9,8 @@ folytatni, és mi a következő lépés. A program működéséről a
 - A hub „Open app” gombja `https://review.mrandrewshub.com/#sso=<kód>`-dal nyit; a nyitóoldal (`public/index.html` első szkriptje) a `belepes.html`-re küldi, ott a hub `redeemSsoCode` functionje custom tokenre cseréli (claims nélkül, a `szerep` claim marad) → `signInWithCustomToken` → a szokásos belépés utáni út (`belepesUtan`).
 - A „Fiók létrehozása” gomb a hub regisztrációjára visz `return`-nel: regisztráció után a hub belépve hozza vissza a `belepes.html`-re.
 - `public/js/hub/sso.js` = a hub `shared/sso.js` másolata (`node scripts/hub-masolat.mjs` most ezt is másolja); `firebase-config.js` exportálja a `signInWithCustomToken`-t.
+- **Javítás (2026-11-20, a tulajdonos végigpróbálása után):** a hub „Open app” a WR-ben a nyitóoldalon ragadt, mert a `/` (gyökér) nem illett a `**/*.html` no-cache szabályra, és a Firebase Hosting `max-age=3600`-at adott – a böngésző a deploy előtti, továbbküldés nélküli nyitóoldalt használta. A `firebase.json`-ban a `/` is no-cache (regressziós teszt: `tests/pwa.test.mjs`). A hub naplója szerint a WR-nek kiadott kódokat a WR addig egyszer sem váltotta be.
+- **Nyelv (2026-11-20, a tulajdonos döntése):** a prod angolul nyit magyar böngészőben is (a böngésző nyelvét nem nézzük, `i18n.js`); a pilot alapnyelve marad a magyar; a nyelvválasztó megmarad.
 - Ellenőrizve: `npm test` (emulátor) 631 zöld, `node scripts/build.mjs` (a `js/hub/sso.*.js` hashelve). Böngészőben és élesben még nincs kipróbálva. Deploy: `node scripts/deploy.mjs prod --yes --only hosting` (csak kérésre).
 
 ## 000. Költözés a mrashub-projektbe (hub 4d, 2026-11-17) – kód kész, nincs deployolva

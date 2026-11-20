@@ -133,6 +133,15 @@ test("a hosting nem engedi cache-elni a sw.js-t", () => {
   assert.match(cc, /no-cache|max-age=0/, `a sw.js cache-elhető: "${cc}"`);
 });
 
+test("a nyitóoldal (/) sem cache-elhető", () => {
+  // A „**/*.html” szabály a gyökérre (/) nem illik: a Firebase Hosting alapból max-age=3600-at ad, így
+  // deploy után egy óráig a régi nyitóoldal jött (2026-11-20: a hub „Open app” kódját nem küldte tovább).
+  const fejlec = hosting.hosting.headers.find((h) => h.source === "/");
+  assert.ok(fejlec, "nincs fejléc-szabály a /-re");
+  const cc = fejlec.headers.find((h) => h.key === "Cache-Control")?.value || "";
+  assert.match(cc, /no-cache|max-age=0/, `a nyitóoldal cache-elhető: "${cc}"`);
+});
+
 test("az ikonok nem kapnak örök cache-t", () => {
   // Nem tartalom-hasheltek, tehát egy ikoncsere sosem jutna ki.
   const fejlec = hosting.hosting.headers.find((h) => h.source === "/icons/**");

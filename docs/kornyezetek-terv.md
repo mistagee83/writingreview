@@ -48,7 +48,7 @@ A funkciók régiója (`europe-west1`) és a `REGION` állandó a két környeze
 **Kliens (hosting):**
 - `config/pilot.json` és `config/prod.json`: web-config (az nem titok), `kornyezet` (`"pilot"`/`"prod"`), alapnyelv, a „TESZT” sáv, kvóta-megjelenítés.
 - A `scripts/build.mjs` kap egy környezet-kapcsolót (`--env prod` vagy `WR_ENV`), és a kiválasztott konfigból generálja a `firebase-config.js`-t és egy `kornyezet.js`-t a `dist/`-ben. A `public/` mappa alapból a pilot konfigját tartalmazza, így a helyi előnézet változatlanul működik.
-- A „TESZT” sáv és az alapnyelv a `kornyezet.js`-ből jön (a `i18n.js` a böngésző nyelve és a mentett választás után ezt használja tartaléknak).
+- A „TESZT” sáv és az alapnyelv a `kornyezet.js`-ből jön (a `i18n.js` a mentett választás után ezt használja; a böngésző nyelvét 2026-11-20 óta nem nézi).
 
 **Szerver (functions):**
 - Firebase-paraméterek és környezetfájlok: `functions/.env.pilot`, `functions/.env.prod` (pl. `KORNYEZET`, `ENGEDELYEZETT_DOMAINEK`, kvóta-beállítások). Titok csak a Secret Managerben van.

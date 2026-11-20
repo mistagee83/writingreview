@@ -26,8 +26,9 @@
 //
 // NYELV KIVÁLASZTÁSA
 // 1. a felhasználó választása (localStorage "wr_nyelv"),
-// 2. a böngésző nyelve, ha támogatott (magyar böngésző → magyar),
-// 3. a telepítés alapnyelve (pilot: magyar, prod: angol).
+// 2. a telepítés alapnyelve (pilot: magyar, prod: angol).
+// A böngésző nyelvét 2026-11-20 óta nem nézzük (a tulajdonos döntése): a prod a hub többi appjához
+// hasonlóan angolul nyit, magyar böngészőben is; a nyelvválasztóval bárki átválthat.
 // ══════════════════════════════════════════════════════
 
 import hu from "./i18n-hu.js";
@@ -60,7 +61,7 @@ export function bongeszoNyelv(lista = (typeof navigator !== "undefined" && navig
 function kezdoNyelv() {
   const mentett = tarol(() => localStorage.getItem(KULCS));
   if (mentett && SZOTARAK[mentett]) return mentett;
-  return bongeszoNyelv() || TARTALEK_NYELV;
+  return TARTALEK_NYELV;
 }
 
 let aktualis = kezdoNyelv();

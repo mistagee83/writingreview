@@ -782,8 +782,7 @@ A felület **magyarul és angolul** is használható (a tanári oldalak, a diák
 ### 13.1 A nyelv kiválasztása
 
 1. a felhasználó választása (fejléc, belépő oldal; böngészőnként megmarad),
-2. a böngésző nyelve, ha támogatott,
-3. angol.
+2. a telepítés alapnyelve: a prodon angol, a pilotban magyar (a böngésző nyelvét 2026-11-20 óta nem nézzük – a hub többi appjához hasonlóan angolul nyit).
 
 A nyelvváltás újratölti az oldalt. A magyar a **forrásnyelv**: új szöveg először oda kerül.
 
