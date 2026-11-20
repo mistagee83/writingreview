@@ -1,7 +1,16 @@
 [
   {
-    "origin": ["https://mrashub-review.web.app", "https://mrashub-review.firebaseapp.com"],
-    "method": ["GET", "POST", "PUT", "DELETE"],
+    "origin": [
+      "https://review.mrandrewshub.com",
+      "https://mrashub-review.web.app",
+      "https://mrashub-review.firebaseapp.com"
+    ],
+    "method": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
     "maxAgeSeconds": 3600
   }
 ]

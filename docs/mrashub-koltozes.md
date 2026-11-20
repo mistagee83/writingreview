@@ -71,6 +71,10 @@ mrashub-os értékekre. Ha a deploy a titoknál akad el, a futtató fióknak (`<
 A CI csak a `wr` codebase-t és a hostingot telepíti (`--only hosting,functions:wr`), és csak a `prod`
 environment jóváhagyásával fut; a kulcs nélküli WIF-et csak ez a repó (`attribute-condition`) használhatja.
 
+## Saját aldomain (2026-11-20)
+
+A prod címe `https://review.mrandrewshub.com` (Firebase Hosting egyéni domain a `mrashub-review` site-on; Cloudflare DNS: CNAME `review` → `mrashub-review.web.app`, **DNS only**, különben a Firebase nem tud tanúsítványt kiállítani). A `mrashub-review.web.app` is működik tovább. Az új cím a Firebase Auth Authorized domains, a `functions/.env.prod` `ENGEDELYEZETT_DOMAINEK` és a `cors.prod.json` listáján.
+
 ## A régi prod (writerev2)
 
 Nem nyúlunk hozzá: rajta nincs felhasználó; a hub 5. fázisában állítjuk le (külön kérésre, mert visszafordíthatatlan).
