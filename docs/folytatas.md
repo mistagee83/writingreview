@@ -4,7 +4,7 @@
 folytatni, és mi a következő lépés. A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
 
-## 0000. Egy hub-fiók: egy kattintás a hubról (2026-11-20) – kód kész, nincs commitolva/deployolva
+## 0000. Egy hub-fiók: egy kattintás a hubról (2026-11-20) – **élesítve** (hosting, `3953086`), valódi fiókkal még nincs kipróbálva
 
 - A hub „Open app” gombja `https://review.mrandrewshub.com/#sso=<kód>`-dal nyit; a nyitóoldal (`public/index.html` első szkriptje) a `belepes.html`-re küldi, ott a hub `redeemSsoCode` functionje custom tokenre cseréli (claims nélkül, a `szerep` claim marad) → `signInWithCustomToken` → a szokásos belépés utáni út (`belepesUtan`).
 - A „Fiók létrehozása” gomb a hub regisztrációjára visz `return`-nel: regisztráció után a hub belépve hozza vissza a `belepes.html`-re.
