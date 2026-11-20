@@ -4,6 +4,13 @@
 folytatni, és mi a következő lépés. A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
 
+## 0000. Egy hub-fiók: egy kattintás a hubról (2026-11-20) – kód kész, nincs commitolva/deployolva
+
+- A hub „Open app” gombja `https://review.mrandrewshub.com/#sso=<kód>`-dal nyit; a nyitóoldal (`public/index.html` első szkriptje) a `belepes.html`-re küldi, ott a hub `redeemSsoCode` functionje custom tokenre cseréli (claims nélkül, a `szerep` claim marad) → `signInWithCustomToken` → a szokásos belépés utáni út (`belepesUtan`).
+- A „Fiók létrehozása” gomb a hub regisztrációjára visz `return`-nel: regisztráció után a hub belépve hozza vissza a `belepes.html`-re.
+- `public/js/hub/sso.js` = a hub `shared/sso.js` másolata (`node scripts/hub-masolat.mjs` most ezt is másolja); `firebase-config.js` exportálja a `signInWithCustomToken`-t.
+- Ellenőrizve: `npm test` (emulátor) 631 zöld, `node scripts/build.mjs` (a `js/hub/sso.*.js` hashelve). Böngészőben és élesben még nincs kipróbálva. Deploy: `node scripts/deploy.mjs prod --yes --only hosting` (csak kérésre).
+
 ## 000. Költözés a mrashub-projektbe (hub 4d, 2026-11-17) – kód kész, nincs deployolva
 
 A `main` (prod) a közös `mrashub` projektbe költözik (Mr. Andrew's EdTech Hub): a kvóta és a saját Stripe/számlázz.hu

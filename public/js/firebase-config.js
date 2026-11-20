@@ -59,7 +59,8 @@ export {
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithPopup,
-  getRedirectResult
+  getRedirectResult,
+  signInWithCustomToken
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 export {

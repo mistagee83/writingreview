@@ -1,10 +1,11 @@
 // ══════════════════════════════════════════════════════
-// A hub közös moduljainak másolata (kreditek, jogosultság)
+// A hub közös moduljainak másolata (kreditek, jogosultság, közös belépés)
 //
-// A forrás a hub repója (Mr. Andrew's EdTech Hub: shared/credits.js, shared/entitlements.js);
+// A forrás a hub repója (Mr. Andrew's EdTech Hub: shared/credits.js, shared/entitlements.js, shared/sso.js);
 // változtatni CSAK ott szabad, utána ezzel a szkripttel kell frissíteni a másolatokat.
 // A másolatok a repóban vannak (a CI a hub repóját nem látja):
 //   functions/hub/*.mjs  – a Cloud Functions (CommonJS) dinamikus import()-tal tölti be
+//   public/js/hub/sso.js – a belépőoldal (egy kattintás a hubról, regisztráció a hubon; 2026-11-20)
 // (a tanári felület nem számol: a kreditállapotot a kreditAllapot callable adja)
 //
 // Használat: node scripts/hub-masolat.mjs [a hub mappája]   (alapból: ../Edtechhub)
@@ -19,8 +20,10 @@ const args = process.argv.slice(2);
 const ellenoriz = args.includes("--ellenoriz");
 const hub = resolve(args.find((a) => !a.startsWith("--")) ?? join(GYOKER, "..", "Edtechhub"));
 
-const FAJLOK = ["credits", "entitlements"];
-const CELOK = (nev) => [join(GYOKER, "functions", "hub", `${nev}.mjs`)];
+const FAJLOK = ["credits", "entitlements", "sso"];
+const CELOK = (nev) => (nev === "sso"
+  ? [join(GYOKER, "public", "js", "hub", "sso.js")]
+  : [join(GYOKER, "functions", "hub", `${nev}.mjs`)]);
 
 if (!existsSync(join(hub, "shared", "credits.js"))) {
   console.error(`Nem találom a hub repót: ${hub} (add meg az útvonalát: node scripts/hub-masolat.mjs <mappa>)`);

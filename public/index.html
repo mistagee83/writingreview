@@ -2,6 +2,8 @@
 <html lang="hu">
 <head>
   <meta charset="UTF-8" />
+  <!-- A hub „Open app” gombja (egy kattintás, belépve; 2026-11-20): a kód a belépőoldalra megy tovább. -->
+  <script>if (/^#sso=/.test(location.hash)) location.replace("belepes.html" + location.hash);</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title data-i18n="landing.oldalcim">WritingReview – személyes visszajelzés a diákok dolgozataira</title>
   <meta name="description" content="AI-assisted grading and personal feedback on student writing: the AI suggests, the teacher approves."/>

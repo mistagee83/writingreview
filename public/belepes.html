@@ -146,9 +146,12 @@
     signInWithPopup,
     signOut,
     getRedirectResult,
+    signInWithCustomToken,
     httpsCallable
   } from './js/firebase-config.js';
   import { swRegisztracio, telepitoSav } from './js/pwa.js';
+  // A hub közös belépési modulja (másolat: node scripts/hub-masolat.mjs; 2026-11-20).
+  import { hubAccountUrl, redeemSso, takeSsoCode } from './js/hub/sso.js';
 
   // Telepíthető alkalmazás: a service worker bejegyzése és a telepítő
   // sáv. Mindkettő hibatűrő – ha nem megy, a belépés attól működik.
@@ -193,10 +196,10 @@
   let aktivFul = 'login';
 
   // A regisztráció a hubon (2026-11-20): a gomb a hub regisztrációs oldalára visz. Hub-cím nélkül
-  // (helyi előnézet) csak a Google-os regisztráció marad.
+  // (helyi előnézet) csak a Google-os regisztráció marad. A hub a regisztráció után ide hoz vissza, belépve.
   {
     const hubReg = document.getElementById('btn-hub-reg');
-    if (/^https:\/\//.test(HUB_URL)) hubReg.href = `${HUB_URL}/account?signup=1`;
+    if (/^https:\/\//.test(HUB_URL)) hubReg.href = hubAccountUrl({ signup: true, returnTo: `${location.origin}/belepes.html` }, HUB_URL);
     else { hubReg.hidden = true; document.getElementById('reg-hub-leiras').hidden = true; }
   }
 
@@ -360,6 +363,24 @@
   window.tanariKilepes = async () => {
     try { await signOut(auth); } finally { window.location.reload(); }
   };
+
+  // ── EGY KATTINTÁS A HUBRÓL (2026-11-20) ──
+  // A hub „Open app” gombja /belepes.html#sso=<kód>-dal nyit: a kódot a hub redeemSsoCode functionje custom
+  // tokenre cseréli (claims nélkül: a meglévő szerep-claim marad), és a szokásos belépés utáni út fut le.
+  {
+    const ssoKod = takeSsoCode();
+    if (ssoKod) {
+      document.getElementById('redirect-overlay').classList.add('show');
+      redeemSso({
+        code: ssoKod,
+        redeem: (d) => httpsCallable(functions, 'redeemSsoCode')(d).then((r) => r.data),
+        signIn: (token) => signInWithCustomToken(auth, token),
+      }).catch((e) => {
+        console.warn('Hub-belépés:', e?.code || e?.message);
+        document.getElementById('redirect-overlay').classList.remove('show');
+      });
+    }
+  }
 
   // ── MÁR BE VAN LÉPVE? ──
   onAuthStateChanged(auth, (user) => {
