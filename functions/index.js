@@ -1787,9 +1787,15 @@ async function tanariRegisztracioLogika(firestore, authKliens, uid, beallitasok)
     { merge: true }
   );
 
-  // A users/{uid}-t és a regisztrációs ajándékkreditet a hub onUserCreated triggere adja (fiók létrehozásakor).
+  // A hub regisztrációs ajándéka megerősített e-mailre jár (2026-11-20): a Google-fiók a létrehozáskor kapja
+  // (hub onUserCreated), az e-mailes a megerősítés után – vagy a hubon (claimSignupBonus), vagy itt, ha a
+  // tanár a hubot nem nyitja meg. Ismételten nem jár (signupBonusAt). Hiba nem akasztja meg a tanári jogot.
+  const ajandek = beallitasok.kredit
+    ? await kredit.ajandekJovairas(firestore, uid, { email: user.email, nev: user.displayName ?? null })
+        .catch((e) => { logger.error("Az ajándékkredit jóváírása nem sikerült", { uid, hiba: e.message }); return null; })
+    : null;
 
-  logger.info("Önkiszolgáló tanári regisztráció", { uid });
+  logger.info("Önkiszolgáló tanári regisztráció", { uid, ajandek });
   return { szerep: "tanar", mar_tanar: false };
 }
 

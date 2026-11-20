@@ -216,6 +216,29 @@ test("tanári regisztráció: megerősített e-mail + tanári kérelem → claim
   assert.equal(profil.nev, "Új Tanár", "a profil többi mezője érintetlen");
 });
 
+test("tanári regisztráció (kredites prod): a hub ajándékkreditje a megerősített fióknak egyszer jár (2026-11-20)", async () => {
+  await tanariKerelmesProfil();
+  await firestore.doc("settings/credits").set({ signupBonus: 20, signupBonusDays: 30 });
+  try {
+    const auth = hamisAuth({ email: "uj@iskola.hu", emailVerified: true, customClaims: {} });
+    await tanariReg(auth, { ...PROD, kredit: true });
+    const u = (await firestore.collection("users").doc("uj-uid").get()).data();
+    assert.equal(u.credits.included, 20);
+    assert.ok(u.credits.signupBonusAt, "az ajándék időpontja rögzítve");
+    const sor = (await firestore.collection("creditLedger").doc("signup-uj-uid").get()).data();
+    assert.equal(sor.reason, "signup");
+    assert.equal(sor.app, null, "mint a hub ajándéksora: app nélkül");
+    // ismételt hívás (pl. újra belép, és még nem tanár a tokenje): nem ad újra
+    await firestore.collection("felhasznalok").doc("uj-uid").set({ szerep: "nincs" }, { merge: true });
+    await tanariReg(hamisAuth({ email: "uj@iskola.hu", emailVerified: true, customClaims: {} }), { ...PROD, kredit: true });
+    assert.equal((await firestore.collection("users").doc("uj-uid").get()).data().credits.included, 20);
+  } finally {
+    await firestore.collection("users").doc("uj-uid").delete();
+    await firestore.collection("creditLedger").doc("signup-uj-uid").delete();
+    await firestore.doc("settings/credits").delete();
+  }
+});
+
 test("tanári regisztráció: a pilotban (kikapcsolva) elutasítva, semmi nem változik", async () => {
   await tanariKerelmesProfil();
   const auth = hamisAuth({ email: "uj@iskola.hu", emailVerified: true });

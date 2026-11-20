@@ -65,7 +65,12 @@ test("a Firebase CLI verziója rögzítve van a workflow-kban (a deploy ne vált
   }
 });
 
-test("a WIF-recept a provider szintjén a prod environmentre szűkít (nem csak a repóra)", () => {
+// 2026-11-20: a sub-feltétel (environment:prod) a GitHub tokenjén elbukott (a mrashub-os első deploy), ezért a
+// provider csak a repóra szűkít (mint a writerev2-n); a prod-környezet védelme a GitHub environment jóváhagyása.
+test("a WIF-recept a provider szintjén erre a repóra szűkít, a prod védelmét a GitHub environment adja", () => {
   const d = readFileSync(new URL("../docs/ci-cd.md", import.meta.url), "utf8");
-  assert.match(d, /attribute-condition="assertion\.repository==[^"]*assertion\.sub==[^"]*environment:prod/);
+  assert.match(d, /attribute-condition="assertion\.repository=='\$REPO'"/);
+  assert.doesNotMatch(d, /attribute-condition="[^"]*assertion\.sub==/, "a sub-feltétel elutasítja a GitHub tokenjét");
+  const prod = readFileSync(new URL("../.github/workflows/prod.yml", import.meta.url), "utf8");
+  assert.match(prod, /environment: prod/);
 });

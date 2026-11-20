@@ -73,7 +73,7 @@ function kreditIras(tx, firestore, uid, terv, meta, naploId) {
   }
   const delta = (terv.split?.included ?? 0) + (terv.split?.purchased ?? 0);
   tx.set(naplo.doc(naploId), {
-    uid, delta, split: terv.split, reason: meta.reason, app: APP, action: meta.action ?? null,
+    uid, delta, split: terv.split, reason: meta.reason, app: meta.app === undefined ? APP : meta.app, action: meta.action ?? null,
     ref: meta.ref ?? null, balanceAfter: terv.balanceAfter, createdAt: FieldValue.serverTimestamp()
   });
 }
@@ -151,6 +151,30 @@ function hanyFer(all, muvelet) {
   return Math.floor(all.egyenleg / ar);
 }
 
+/**
+ * A hub regisztrációs ajándéka (settings/credits.signupBonus / signupBonusDays) egy MEGERŐSÍTETT fióknak,
+ * ha még nem kapta meg (2026-11-20). Ugyanaz, mint a hub createUserWithBonus(grant: true)-ja: a naplósor id-ja
+ * `signup-<uid>`, és a signupBonusAt miatt kétszer nem jár. A hívó felel azért, hogy az e-mail megerősített.
+ * @returns {Promise<{ajandek: number} | {kihagyva: string}>}
+ */
+async function ajandekJovairas(firestore, uid, { email = null, nev = null } = {}) {
+  const { planSignup } = await hub();
+  const userRef = firestore.collection("users").doc(uid);
+  return firestore.runTransaction(async (tx) => {
+    const beall = await tx.get(firestore.doc("settings/credits"));
+    const s = beall.exists ? beall.data() : {};
+    const snap = await tx.get(userRef);
+    const user = snap.data() ?? {};
+    const terv = planSignup(user.credits, { amount: s.signupBonus ?? 10, days: s.signupBonusDays ?? 30 });
+    if (!terv.ok) return { kihagyva: terv.reason };
+    if (!snap.exists) {
+      tx.set(userRef, { email, displayName: nev, entitlements: {}, createdAt: FieldValue.serverTimestamp() });
+    }
+    kreditIras(tx, firestore, uid, terv, { reason: "signup", app: null }, `signup-${uid}`);  // mint a hubé: app nélkül
+    return { ajandek: terv.split.included };
+  }, TRANZAKCIO);
+}
+
 /** Hub pass (a WR saját kulcsa vagy az `all`) aktív-e. */
 async function hubPass(firestore, uid) {
   const { hasAccess } = await hub();
@@ -158,4 +182,4 @@ async function hubPass(firestore, uid) {
   return hasAccess(snap.data()?.entitlements, APP);
 }
 
-module.exports = { APP, AKCIOK, HUB_PASS_FUNKCIOK, KreditHiba, levonas, visszairas, allapot, hanyFer, hubPass, hub };
+module.exports = { APP, AKCIOK, HUB_PASS_FUNKCIOK, KreditHiba, levonas, visszairas, allapot, hanyFer, hubPass, ajandekJovairas, hub };

@@ -78,21 +78,10 @@
 
     <!-- REGISZTRÁCIÓ -->
     <div id="form-register" style="display:none;">
-      <div class="form-group">
-        <label for="reg-name" data-i18n="index.teljes_nev">Neved</label>
-        <input type="text" id="reg-name" placeholder="Pl. Kiss Péter" data-i18n-placeholder="index.nev_pelda" autocomplete="name" />
-      </div>
-      <p class="jelszo-sugo" id="tanari-jog-megjegyzes" data-i18n="index.tanari_jog_megjegyzes">A tanári jogot az üzemeltető adja meg: regisztrálj, majd jelezd neki.</p>
-      <!-- Ide megy a megerősítő levél. -->
-      <div class="form-group" id="reg-email-csoport">
-        <label for="reg-email" data-i18n="index.email">E-mail-cím</label>
-        <input type="email" id="reg-email" placeholder="pelda@email.com" data-i18n-placeholder="index.email_pelda" autocomplete="email" />
-      </div>
-      <div class="form-group">
-        <label for="reg-password" data-i18n="index.jelszo">Jelszó</label>
-        <input type="password" id="reg-password" placeholder="min. 6 karakter" data-i18n-placeholder="index.jelszo_pelda" autocomplete="new-password" />
-      </div>
-      <button class="btn-primary" id="btn-register" onclick="emailRegister()" data-i18n="index.fiok_letrehozas">Fiók létrehozása</button>
+      <!-- 2026-11-20: a fiók a közös Mr. Andrew's Hub-fiók; e-maillel a hubon jön létre (ott a regisztrációs
+           ajándék és a megerősítés), Google-lel itt is. Belépés után a tanári jog magától megjön. -->
+      <p class="jelszo-sugo" id="reg-hub-leiras" data-i18n="index.reg_hub_leiras">Egy fiókkal Mr. Andrew's összes appját használhatod. E-mail-címmel Mr. Andrew's Hubon hozod létre, utána itt ugyanazzal lépsz be.</p>
+      <a class="btn-primary" id="btn-hub-reg" href="#" data-i18n="index.reg_hub_gomb">Fiók létrehozása</a>
       <div class="divider" data-i18n="index.vagy">vagy</div>
       <button class="btn-google" id="btn-google-reg" onclick="googleLogin()">
         <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5L31.8 34c-2.1 1.4-4.7 2-7.8 2-5.2 0-9.5-2.9-11.2-7l-6.6 5C9.7 39.7 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l5.7 5c3.4-3.1 5.6-7.8 5.6-14.4 0-1.3-.1-2.7-.8-4z"/></svg>
@@ -146,14 +135,13 @@
 <script type="module">
   import { t, nyelv } from './js/i18n.js';
   import { hibaSzoveg } from './js/ui.js';
-  import { TANARI_ONREGISZTRACIO } from './js/kornyezet.js';
+  import { TANARI_ONREGISZTRACIO, HUB_URL } from './js/kornyezet.js';
   import {
     auth, db, functions, googleProvider,
     doc, getDoc, setDoc, updateDoc, serverTimestamp,
     onAuthStateChanged,
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
-    createUserWithEmailAndPassword,
     sendEmailVerification,
     signInWithPopup,
     signOut,
@@ -204,12 +192,13 @@
 
   let aktivFul = 'login';
 
-  // Ahol nincs önkiszolgáló tanári regisztráció, a tanári jogot az üzemeltető adja meg.
-  function nezetFrissit() {
-    document.getElementById('tanari-jog-megjegyzes').style.display =
-      aktivFul === 'register' && !TANARI_ONREGISZTRACIO ? '' : 'none';
+  // A regisztráció a hubon (2026-11-20): a gomb a hub regisztrációs oldalára visz. Hub-cím nélkül
+  // (helyi előnézet) csak a Google-os regisztráció marad.
+  {
+    const hubReg = document.getElementById('btn-hub-reg');
+    if (/^https:\/\//.test(HUB_URL)) hubReg.href = `${HUB_URL}/account?signup=1`;
+    else { hubReg.hidden = true; document.getElementById('reg-hub-leiras').hidden = true; }
   }
-  nezetFrissit();
 
   // ── PROFIL LÉTREHOZÁS / LEKÉRÉS ──
   // Új fiók "nincs" szereppel jön létre (nincs tanári jog; diák szerep 2026-11-12
@@ -307,7 +296,7 @@
 
   async function levelKuldes(user) {
     auth.languageCode = nyelv();   // a levél a felület nyelvén érkezzen
-    await sendEmailVerification(user);
+    await sendEmailVerification(user, { url: `${location.origin}/belepes.html` });
   }
 
   async function tanariBefejezes(user) {
@@ -395,7 +384,6 @@
     document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
     document.getElementById('tab-login').classList.toggle('active', isLogin);
     document.getElementById('tab-register').classList.toggle('active', !isLogin);
-    nezetFrissit();
     clearMsg();
   };
 
@@ -437,27 +425,6 @@
     }
   };
 
-  // ── EMAIL REGISZTRÁCIÓ ──
-  window.emailRegister = async () => {
-    const name = document.getElementById('reg-name').value.trim();
-    const email = document.getElementById('reg-email').value.trim();
-    const password = document.getElementById('reg-password').value;
-    if (!name || !email || !password) { showMsg(t('index.tolts_ki')); return; }
-    if (password.length < 6) { showMsg(t('index.jelszo_rovid')); return; }
-    setLoading('btn-register', true, t('index.fiok_letrehozas'));
-    try {
-      // A név ELŐRE, mert a createUser azonnal kiváltja az
-      // onAuthStateChanged-et, és az ér ide előbb.
-      regisztracioNev = name;
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await belepesUtan(cred.user);
-    } catch (e) {
-      regisztracioNev = null;
-      showMsg(translateError(e.code));
-      setLoading('btn-register', false, t('index.fiok_letrehozas'));
-    }
-  };
-
   // ── GOOGLE BELÉPÉS ──
   // A belépő és a regisztrációs fülről ugyanaz: új fióknál tanári kérelem
   // (a Google-fiók e-mail-címe megerősített, a tanári jog azonnal megjön).
@@ -487,7 +454,6 @@
     if (!document.getElementById('tanari-megerosites').hidden || !document.getElementById('nincs-jog').hidden) return;
     const loginVisible = document.getElementById('form-login').style.display !== 'none';
     if (loginVisible) window.emailLogin();
-    else window.emailRegister();
   });
 
   // ── HIBAFORDÍTÁS ──
