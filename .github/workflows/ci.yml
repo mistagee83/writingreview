@@ -17,9 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      # Az action-verziók Node 24-en futnak (a v4-esek Node 20-ra készültek, a GitHub 2026-ban kivezette).
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -28,7 +29,7 @@ jobs:
             tests/package-lock.json
 
       # A Firestore-emulátornak Java 21 kell (újabb Javával nem indul)
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
