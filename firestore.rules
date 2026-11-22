@@ -37,8 +37,10 @@ service cloud.firestore {
       return v == null || (v is number && v >= 0 && v <= 100000);
     }
 
+    // A rubrika legfeljebb 40 mezős map (hub biztonsági audit 2026-11-22, A-5: mező- és méretkorlát).
     function rubrikaMezokOk(r) {
       return r is map
+        && r.keys().size() <= 40
         && szamVagyNull(r.get('min_szo', null))
         && szamVagyNull(r.get('max_szo', null));
     }
@@ -108,7 +110,9 @@ service cloud.firestore {
       // Tanári lista (tanar_id szűrő).
       allow list: if tanar() && resource.data.tanar_id == request.auth.uid;
 
+      // Csak a kliens által írt mezők (A-5): ismeretlen mezővel nem lehet adatot tárolni a dokumentumon.
       allow create: if tanar()
+        && request.resource.data.keys().hasOnly(['tanar_id', 'cim', 'hatarido', 'aktiv', 'rubrika', 'letrehozva', 'feladatlap'])
         && request.resource.data.tanar_id == request.auth.uid
         && !('osztaly_id' in request.resource.data)
         && rubrikaMezokOk(request.resource.data.rubrika)
@@ -214,12 +218,16 @@ service cloud.firestore {
         && request.resource.data.nev is string
         && request.resource.data.nev.size() > 0
         && request.resource.data.nev.size() <= 100
-        && request.resource.data.rubrika is map;
+        && request.resource.data.keys().hasOnly(['nev', 'rubrika', 'tanar_id', 'letrehozva'])
+        && request.resource.data.rubrika is map
+        && request.resource.data.rubrika.keys().size() <= 40;
 
       allow update: if tanar()
         && resource.data.tanar_id == request.auth.uid
         && request.resource.data.tanar_id == resource.data.tanar_id
-        && csakEzekValtoznak(['nev', 'rubrika', 'frissitve']);
+        && csakEzekValtoznak(['nev', 'rubrika', 'frissitve'])
+        && request.resource.data.rubrika is map
+        && request.resource.data.rubrika.keys().size() <= 40;
 
       allow delete: if tanar() && resource.data.tanar_id == request.auth.uid;
     }

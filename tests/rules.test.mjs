@@ -795,3 +795,31 @@ test("csoport diákjai (8b/2): csak a csoport tanára olvassa, kliensről senki 
     await assertFails(setDoc(doc(kliens, "csoportok", "csd", "becenevek", "masik"), { diak_id: "d1" }));
   }
 });
+
+// ══════════════════════════════════════════
+// Hub biztonsági audit 2026-11-22, A-5: mező- és méretkorlátok
+// ══════════════════════════════════════════
+
+test("feladat: ismeretlen mezővel nem hozható létre", async () => {
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", "f-mezok-ok"), ujFeladat()));
+  await assertFails(setDoc(doc(tanar(), "feladatok", "f-mezok-rossz"), ujFeladat({ tarhely: "x".repeat(1000) })));
+  await assertFails(setDoc(doc(tanar(), "feladatok", "f-mezok-rossz"), ujFeladat({ szerep: "admin" })));
+});
+
+test("feladat: a rubrika legfeljebb 40 mezős lehet (létrehozás és módosítás)", async () => {
+  const mezok = (n) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`m${i}`, i]));
+  await assertSucceeds(setDoc(doc(tanar(), "feladatok", "f-rub-40"), ujFeladat({ rubrika: mezok(40) })));
+  await assertFails(setDoc(doc(tanar(), "feladatok", "f-rub-41"), ujFeladat({ rubrika: mezok(41) })));
+  await assertFails(updateDoc(doc(tanar(), "feladatok", FELADAT), { rubrika: mezok(41) }));
+});
+
+test("rubrika-sablon: ismeretlen mező és 40-nél több rubrikamező elutasítva", async () => {
+  const mezok = (n) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`m${i}`, i]));
+  const sablon = (felul = {}) => ({ nev: "Sablon", rubrika: { tipus: "esszé" }, tanar_id: TANAR, letrehozva: new Date(), ...felul });
+  await assertSucceeds(setDoc(doc(tanar(), "rubrikak", "s-ok"), sablon()));
+  await assertFails(setDoc(doc(tanar(), "rubrikak", "s-extra"), sablon({ tarhely: "x" })));
+  await assertFails(setDoc(doc(tanar(), "rubrikak", "s-nagy"), sablon({ rubrika: mezok(41) })));
+  await assertSucceeds(updateDoc(doc(tanar(), "rubrikak", "s-ok"), { rubrika: mezok(40), frissitve: new Date() }));
+  await assertFails(updateDoc(doc(tanar(), "rubrikak", "s-ok"), { rubrika: mezok(41), frissitve: new Date() }));
+  await assertFails(updateDoc(doc(tanar(), "rubrikak", "s-ok"), { rubrika: "szöveg", frissitve: new Date() }));
+});
