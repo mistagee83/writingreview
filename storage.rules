@@ -20,8 +20,9 @@ service firebase.storage {
         && request.auth.token.szerep == 'tanar';
     }
 
+    // Raszteres kép (a telefonos HEIC/HEIF is) vagy PDF; SVG nem (szkriptet hordozhat – audit 2026-11-22, A-6).
     function kepVagyPdf() {
-      return request.resource.contentType.matches('image/.*')
+      return request.resource.contentType.matches('image/(png|jpeg|webp|gif|heic|heif)')
         || request.resource.contentType == 'application/pdf';
     }
 
