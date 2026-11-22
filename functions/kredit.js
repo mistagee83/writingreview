@@ -14,6 +14,7 @@
 // frissítés: node scripts/hub-masolat.mjs); ESM, ezért dinamikus import()-tal töltjük be.
 // A users és a creditLedger kliensről nem írható (a hub firestore.rules-a).
 // ══════════════════════════════════════════════════════
+const { createHash } = require("node:crypto");
 const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 
 const APP = "writing-review";
@@ -152,6 +153,27 @@ function hanyFer(all, muvelet) {
 }
 
 /**
+ * Az ajándék e-mail-címenkénti jele: a normalizált cím SHA-256 lenyomata (signupBonuses/{kulcs}, csak szerver).
+ * UGYANAZ a szabály, mint a hub functions/credits-store.js normalizeBonusEmail / bonusEmailKey függvénye
+ * (kisbetű, a +utótag levágva, Gmailnél a pontok is) – ha ott változik, itt is változnia kell
+ * (a tests/ajandek-email.test.mjs példái ugyanazok, mint a hub tests/refunds.test.mjs-ében).
+ */
+function ajandekEmailNormal(email) {
+  const e = String(email ?? "").trim().toLowerCase();
+  const kukac = e.lastIndexOf("@");
+  if (kukac < 1) return "";
+  let nev = e.slice(0, kukac).split("+")[0];
+  let domain = e.slice(kukac + 1);
+  if (domain === "googlemail.com") domain = "gmail.com";
+  if (domain === "gmail.com") nev = nev.replace(/\./g, "");
+  return nev ? `${nev}@${domain}` : "";
+}
+function ajandekEmailKulcs(email) {
+  const n = ajandekEmailNormal(email);
+  return n ? createHash("sha256").update(n).digest("hex") : null;
+}
+
+/**
  * A hub regisztrációs ajándéka (settings/credits.signupBonus / signupBonusDays) egy MEGERŐSÍTETT fióknak,
  * ha még nem kapta meg (2026-11-20). Ugyanaz, mint a hub createUserWithBonus(grant: true)-ja: a naplósor id-ja
  * `signup-<uid>`, és a signupBonusAt miatt kétszer nem jár. A hívó felel azért, hogy az e-mail megerősített.
@@ -160,6 +182,8 @@ function hanyFer(all, muvelet) {
 async function ajandekJovairas(firestore, uid, { email = null, nev = null } = {}) {
   const { planSignup } = await hub();
   const userRef = firestore.collection("users").doc(uid);
+  const kulcs = ajandekEmailKulcs(email);
+  const kulcsRef = kulcs ? firestore.collection("signupBonuses").doc(kulcs) : null;
   return firestore.runTransaction(async (tx) => {
     const beall = await tx.get(firestore.doc("settings/credits"));
     const s = beall.exists ? beall.data() : {};
@@ -167,6 +191,11 @@ async function ajandekJovairas(firestore, uid, { email = null, nev = null } = {}
     const user = snap.data() ?? {};
     const terv = planSignup(user.credits, { amount: s.signupBonus ?? 10, days: s.signupBonusDays ?? 30 });
     if (!terv.ok) return { kihagyva: terv.reason };
+    // E-mail-címenként egyszer (hub biztonsági audit 2026-11-22, K-4): ha ez a cím más uid-dal már kapott
+    // ajándékot (a fiók törlése és újraregisztrálása, Gmail-alias), most nem jár.
+    const foglalt = kulcsRef ? await tx.get(kulcsRef) : null;
+    if (foglalt?.exists && foglalt.data()?.uid !== uid) return { kihagyva: "email_already_granted" };
+    if (kulcsRef) tx.set(kulcsRef, { uid, grantedAt: FieldValue.serverTimestamp() });
     if (!snap.exists) {
       tx.set(userRef, { email, displayName: nev, entitlements: {}, createdAt: FieldValue.serverTimestamp() });
     }
@@ -182,4 +211,7 @@ async function hubPass(firestore, uid) {
   return hasAccess(snap.data()?.entitlements, APP);
 }
 
-module.exports = { APP, AKCIOK, HUB_PASS_FUNKCIOK, KreditHiba, levonas, visszairas, allapot, hanyFer, hubPass, ajandekJovairas, hub };
+module.exports = {
+  APP, AKCIOK, HUB_PASS_FUNKCIOK, KreditHiba, levonas, visszairas, allapot, hanyFer, hubPass, ajandekJovairas, hub,
+  ajandekEmailNormal, ajandekEmailKulcs
+};
