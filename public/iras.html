@@ -38,8 +38,9 @@
   import { esc } from './js/guard.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar, vagolapra } from './js/ui.js';
   import { jelzesFigyelo, szoszam, SZOVEG_MAX } from './js/iras-jelzes.js';
+  import { nagyTorles, megorzendo, visszaallithato, bekezdesSzam, szoSav, taroloMukodik } from './js/iras-szerkeszto.js';
   import { qrSvg } from './js/megosztas.js';
-  import { visszajelzesHtml } from './js/visszajelzes-nezet.js';
+  import { visszajelzesHtml, beadottSzovegHtml } from './js/visszajelzes-nezet.js';
   import { functions, httpsCallable, appCheckInditas } from './js/firebase-config.js';
   import { APP_CHECK_KULCS } from './js/kornyezet.js';
 
@@ -61,6 +62,8 @@
   const BECENEV = `wr-iras-becenev-${token}`;
   const NYUGTA = `wr-iras-nyugta-${token}`;
   const JELZES = `wr-iras-jelzes-${token}`;
+  const TOROLT = `wr-iras-torolt-${token}`;   // törlésvédelem: a nagy törlés előtti változat
+  const BETUMERET = 'wr-iras-nagybetu';        // íróüzem: nagyobb betű (minden feladatra érvényes)
 
   function uzenetLap(ikon, szoveg) {
     tartalom.innerHTML = `<div class="panel"><div class="panel-body"><div class="empty-state bare">
@@ -91,6 +94,8 @@
       </div>`;
     const masolasBekot = () => document.getElementById('btn-masol').addEventListener('click', (e) =>
       vagolapra(document.getElementById('diaklink').value, e.currentTarget));
+    // A beadott szöveg: a beadáskor a nyugtába mentett példány, vagy (régebbi nyugtánál) a szerver válasza.
+    let beadottSzoveg = typeof nyugta.szoveg === 'string' ? nyugta.szoveg : '';
 
     function varakozoNyugta(allapotSzoveg) {
       tartalom.innerHTML = `
@@ -104,7 +109,8 @@
             </div>
             ${linkBlokk}
           </div>
-        </div>`;
+        </div>
+        ${beadottSzoveg ? beadottSzovegHtml(beadottSzoveg) : ''}`;
       masolasBekot();
       document.getElementById('btn-frissit').addEventListener('click', () => allapotKerdez());
     }
@@ -131,6 +137,7 @@
         varakozoNyugta(e?.details?.kod === 'diaklink_ervenytelen' ? t('vj.ervenytelen') : hibaSzoveg(e));
         return;
       }
+      if (typeof adat.szoveg === 'string' && adat.szoveg) beadottSzoveg = adat.szoveg;
       if (adat.allapot === 'kesz') keszNyugta(adat);
       else if (adat.allapot === 'lejart') uzenetLap('⏰', t('vj.lejart'));
       else varakozoNyugta(t('iras.nyugta_varakozik'));
@@ -179,6 +186,13 @@
       : f.min_szo ? t('iras.szo_legalabb', { min: f.min_szo })
       : f.max_szo ? t('iras.szo_legfeljebb', { max: f.max_szo }) : '';
     document.title = `${adat.cim} – WritingReview`;
+    const feladatTorzs = `
+          ${f.leiras ? `<p class="feladat-leiras">${esc(f.leiras)}</p>` : `<p class="halvany">${t('iras.nincs_leiras')}</p>`}
+          ${f.szempontok.length ? `
+            <table class="tabla" style="margin-top:1rem;">
+              <thead><tr><th>${t('iras.szempont')}</th><th>${t('iras.pont')}</th></tr></thead>
+              <tbody>${f.szempontok.map((sz) => `<tr><td>${esc(sz.cim)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
+            </table>` : ''}`;
 
     tartalom.innerHTML = `
       <div class="page-header">
@@ -188,28 +202,38 @@
 
       <div class="panel">
         <div class="panel-header"><h2>${t('iras.feladat_cim')}</h2></div>
-        <div class="panel-body">
-          ${f.leiras ? `<p class="feladat-leiras">${esc(f.leiras)}</p>` : `<p class="halvany">${t('iras.nincs_leiras')}</p>`}
-          ${f.szempontok.length ? `
-            <table class="tabla" style="margin-top:1rem;">
-              <thead><tr><th>${t('iras.szempont')}</th><th>${t('iras.pont')}</th></tr></thead>
-              <tbody>${f.szempontok.map((sz) => `<tr><td>${esc(sz.cim)}</td><td>${esc(sz.suly)}</td></tr>`).join('')}</tbody>
-            </table>` : ''}
-        </div>
+        <div class="panel-body">${feladatTorzs}</div>
       </div>
 
-      <div class="panel">
-        <div class="panel-header"><h2>${t('iras.iras_cim')}</h2></div>
+      <!-- Íróüzem: ugyanez a panel tölti ki a képernyőt (iro-uzem osztály); a szövegmező ugyanaz marad,
+           így a beillesztés tiltása és a jelzések változatlanul működnek. -->
+      <div class="panel iras-panel" id="iras-panel">
+        <div class="panel-header">
+          <h2>${t('iras.iras_cim')}</h2>
+          <button type="button" class="btn-sm" id="btn-iro" aria-pressed="false">${t('iras.iro_be')}</button>
+        </div>
         <div class="panel-body">
-          <div class="form-group">
+          <div class="form-group iro-rejt">
             <label for="becenev">${t('iras.becenev')}</label>
             <input type="text" id="becenev" maxlength="30" autocomplete="off" spellcheck="false"
                    placeholder="${esc(t('iras.becenev_pelda'))}" />
             <small>${t('iras.becenev_tipp')}${adat.csoportos ? ` <strong>${t('iras.becenev_csoport')}</strong>` : ''}</small>
           </div>
-          <p class="halvany">${t('iras.mentes_tipp')}</p>
           <!-- A diák ELŐRE látja, mit jelzünk a tanárnak (átláthatóság). -->
-          <p class="halvany iras-figyelmeztetes">${t('iras.figyelmeztetes')}</p>
+          <p class="halvany iras-figyelmeztetes iro-rejt">${t('iras.figyelmeztetes')}</p>
+          <p class="iras-figyelmeztetes" id="mentes-hiba" hidden>${t('iras.mentes_nem_megy')}</p>
+          <div class="iras-eszkozsor">
+            <button type="button" class="btn-sm" id="btn-vissza">${t('iras.visszavonas')}</button>
+            <button type="button" class="btn-sm iro-csak" id="btn-feladat" aria-expanded="false" aria-controls="iro-feladat">${t('iras.iro_feladat')}</button>
+            <button type="button" class="btn-sm iro-csak" id="btn-betu" aria-pressed="false">${t('iras.iro_betu')}</button>
+            <span class="mentes-allapot" id="mentes-allapot" aria-live="polite"></span>
+          </div>
+          <div class="iro-feladat" id="iro-feladat" hidden>${feladatTorzs}</div>
+          <div class="torles-sav" id="torles-sav" role="alert" hidden>
+            <span>${t('iras.torles_kerdes')}</span>
+            <button type="button" class="btn-sm btn-primary" id="btn-visszaallit">${t('iras.torles_visszaallit')}</button>
+            <button type="button" class="btn-sm" id="btn-torles-elvet">${t('iras.torles_elvet')}</button>
+          </div>
           <!-- A helyesírás-javítás és az automatikus nyelvhelyesség alapból KI van kapcsolva: a szöveget a
                diák saját tudása szerint kell értékelni. A böngésző helyesírás-ellenőrzését a tanár
                feladatonként engedheti meg (rubrika.helyesiras_engedett); a nyelvhelyesség-bővítmények
@@ -218,12 +242,13 @@
                     spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
                     data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
                     aria-label="${esc(t('iras.szoveg_aria'))}" placeholder="${esc(t('iras.szoveg_pelda'))}"></textarea>
-          <div class="szamlalo" id="szamlalo" aria-live="polite"></div>
+          <div class="szo-sav" id="szo-sav" hidden><div class="szo-sav-tolt" id="szo-sav-tolt"></div></div>
+          <div class="szamlalo"><span id="szamlalo" aria-live="polite"></span> · <span id="bekezdesek"></span></div>
           <div class="msg" id="iras-msg"></div>
-          <div class="gomb-sor">
+          <div class="gomb-sor iro-rejt">
             <button class="btn-primary" id="btn-bead">${t('iras.bead_gomb')}</button>
           </div>
-          <p class="halvany" style="margin-top:0.75rem;">${t('iras.vegleges')}</p>
+          <p class="halvany iro-rejt" style="margin-top:0.75rem;">${t('iras.vegleges')}</p>
         </div>
       </div>`;
 
@@ -242,16 +267,147 @@
       mezo.setAttribute('autocorrect', 'on');
       mezo.setAttribute('autocapitalize', 'sentences');
     }
-    const szamlaloFrissit = () => { szamlalo.textContent = szoszamSzoveg(szoszam(mezo.value), f.min_szo, f.max_szo); };
+    const bekezdesek = document.getElementById('bekezdesek');
+    const savElem = document.getElementById('szo-sav');
+    const savTolt = document.getElementById('szo-sav-tolt');
+    const szamlaloFrissit = () => {
+      const n = szoszam(mezo.value);
+      szamlalo.textContent = szoszamSzoveg(n, f.min_szo, f.max_szo);
+      bekezdesek.textContent = t('iras.bekezdes', { n: bekezdesSzam(mezo.value) });
+      const sav = szoSav(n, f.min_szo, f.max_szo);
+      savElem.hidden = !sav;
+      if (sav) {
+        savTolt.style.width = `${sav.szazalek}%`;
+        savElem.dataset.allapot = sav.allapot;
+      }
+    };
     szamlaloFrissit();
 
+    // ── Mentés, látható állapottal ──
+    // A diák lássa, hogy a szövege megvan. Ha a böngésző nem tud menteni (privát ablak), azt mondjuk ki,
+    // és a lap bezárása előtt a böngésző rákérdez.
+    const mentesAllapot = document.getElementById('mentes-allapot');
+    const mentesHiba = document.getElementById('mentes-hiba');
+    const tudMenteni = tarol((ls) => taroloMukodik(ls)) === true;
+    const oraPerc = () => new Date().toLocaleTimeString(document.documentElement.lang || undefined, { hour: '2-digit', minute: '2-digit' });
+    function allapotJelez(allapot) {
+      mentesAllapot.dataset.allapot = allapot;
+      mentesAllapot.textContent = allapot === 'mentes' ? t('iras.mentes_folyamat')
+        : allapot === 'mentve' ? t('iras.mentve', { ido: oraPerc() })
+        : t('iras.mentes_hiba');
+      mentesHiba.hidden = allapot !== 'hiba';
+    }
     let mentesIdo = null;
-    mezo.addEventListener('input', () => {
-      szamlaloFrissit();
+    function ment() {
       clearTimeout(mentesIdo);
-      mentesIdo = setTimeout(() => tarol((ls) => ls.setItem(PISZKOZAT, mezo.value)), 400);
+      mentesIdo = null;
+      const ok = tarol((ls) => { ls.setItem(PISZKOZAT, mezo.value); return true; }) === true;
+      allapotJelez(ok ? 'mentve' : 'hiba');
+    }
+    const kesleltetettMentes = () => {
+      if (mentesAllapot.dataset.allapot !== 'hiba') allapotJelez('mentes');
+      clearTimeout(mentesIdo);
+      mentesIdo = setTimeout(ment, 400);
+    };
+    // Bezáráskor, másik lapra váltáskor azonnal mentünk (a telefon a háttérben lévő lapot bezárhatja).
+    const azonnalMent = () => { if (mentesIdo !== null) ment(); };
+    addEventListener('pagehide', azonnalMent);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') azonnalMent(); });
+    function bezarasElott(e) {
+      if (mentesAllapot.dataset.allapot === 'hiba' && mezo.value.trim()) { e.preventDefault(); e.returnValue = ''; }
+    }
+    addEventListener('beforeunload', bezarasElott);
+    if (tudMenteni) { if (mezo.value) allapotJelez('mentve'); } else allapotJelez('hiba');
+
+    // ── Törlésvédelem ──
+    // Ha egy bevitellel sok szöveg tűnik el (kijelölés + törlés), az előző változatot megőrizzük,
+    // és a sáv felajánlja a visszaállítást – újratöltés után is, amíg a diák el nem veti.
+    const torlesSav = document.getElementById('torles-sav');
+    let orzott = tarol((ls) => ls.getItem(TOROLT)) || '';
+    let elozo = mezo.value;
+    const savFrissit = () => { torlesSav.hidden = !visszaallithato(orzott, mezo.value); };
+    function orzottTorol() {
+      orzott = '';
+      tarol((ls) => ls.removeItem(TOROLT));
+      savFrissit();
+    }
+    function visszaallit() {
+      mezo.value = orzott;
+      figyelo.szinkron();    // a saját szövege: nem beillesztés, nem nagy betoldás
+      elozo = mezo.value;
+      orzottTorol();
+      szamlaloFrissit();
+      ment();
+      mezo.focus();
+    }
+    savFrissit();
+    document.getElementById('btn-visszaallit').addEventListener('click', visszaallit);
+    document.getElementById('btn-torles-elvet').addEventListener('click', () => { orzottTorol(); mezo.focus(); });
+
+    mezo.addEventListener('input', (e) => {
+      const visszavonas = typeof e.inputType === 'string' && e.inputType.startsWith('history');
+      if (!visszavonas && nagyTorles(elozo, mezo.value)) {
+        orzott = megorzendo(orzott, elozo);
+        tarol((ls) => ls.setItem(TOROLT, orzott));
+      }
+      elozo = mezo.value;
+      savFrissit();
+      szamlaloFrissit();
+      kesleltetettMentes();
     });
     becenevMezo.addEventListener('input', () => tarol((ls) => ls.setItem(BECENEV, becenevMezo.value)));
+
+    // ── Visszavonás gomb (telefonon nincs Ctrl+Z) ──
+    // A böngésző saját visszavonását hívja (a jelzések ezt nem számolják betoldásnak). Ha ott nincs mit
+    // visszavonni (pl. újratöltés után), de van megőrzött törölt szöveg, azt állítja vissza.
+    document.getElementById('btn-vissza').addEventListener('click', () => {
+      uzenetTorles('iras-msg');
+      mezo.focus();
+      const elotte = mezo.value;
+      try { document.execCommand('undo'); } catch (_) { /* nem támogatott: lent a tartalék */ }
+      if (mezo.value !== elotte) return;
+      if (visszaallithato(orzott, mezo.value)) visszaallit();
+      else uzenet('iras-msg', t('iras.nincs_visszavonas'), 'info');
+    });
+
+    // ── Íróüzem ──
+    // A szövegpanel kitölti a képernyőt; a feladat behajtható, a betű nagyítható. Kilépés: gomb vagy Esc.
+    const panel = document.getElementById('iras-panel');
+    const btnIro = document.getElementById('btn-iro');
+    const btnFeladat = document.getElementById('btn-feladat');
+    const iroFeladat = document.getElementById('iro-feladat');
+    const btnBetu = document.getElementById('btn-betu');
+    function betuBeallit(nagy) {
+      panel.classList.toggle('nagy-betu', nagy);
+      btnBetu.setAttribute('aria-pressed', String(nagy));
+    }
+    betuBeallit(tarol((ls) => ls.getItem(BETUMERET)) === '1');
+    btnBetu.addEventListener('click', () => {
+      const nagy = !panel.classList.contains('nagy-betu');
+      betuBeallit(nagy);
+      tarol((ls) => (nagy ? ls.setItem(BETUMERET, '1') : ls.removeItem(BETUMERET)));
+    });
+    btnFeladat.addEventListener('click', () => {
+      iroFeladat.hidden = !iroFeladat.hidden;
+      btnFeladat.setAttribute('aria-expanded', String(!iroFeladat.hidden));
+    });
+    function irouzemBe() {
+      panel.classList.add('iro-uzem');
+      document.body.classList.add('iro-uzem-nyitva');
+      btnIro.setAttribute('aria-pressed', 'true');
+      btnIro.textContent = t('iras.iro_ki');
+      mezo.focus();
+    }
+    const irouzemKi = () => {
+      panel.classList.remove('iro-uzem');
+      document.body.classList.remove('iro-uzem-nyitva');
+      btnIro.setAttribute('aria-pressed', 'false');
+      btnIro.textContent = t('iras.iro_be');
+      iroFeladat.hidden = true;
+      btnFeladat.setAttribute('aria-expanded', 'false');
+    };
+    btnIro.addEventListener('click', () => (panel.classList.contains('iro-uzem') ? irouzemKi() : irouzemBe()));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.classList.contains('iro-uzem')) irouzemKi(); });
 
     document.getElementById('btn-bead').addEventListener('click', async (e) => {
       uzenetTorles('iras-msg');
@@ -267,11 +423,15 @@
       const vissza = gombVar(e.currentTarget, t('iras.bead_folyamat'));
       try {
         const { data } = await linkBeadas({ token, becenev, szoveg, jelzesek: figyelo.dokumentum(szoveg) });
-        const nyugta = { ...data, becenev };
+        // A beadott szöveg is a nyugtába kerül: a diák beadás után is meg tudja nyitni.
+        const nyugta = { ...data, becenev, szoveg };
         tarol((ls) => {
           ls.setItem(NYUGTA, JSON.stringify(nyugta));
           ls.removeItem(PISZKOZAT);
+          ls.removeItem(TOROLT);
         });
+        irouzemKi();
+        removeEventListener('beforeunload', bezarasElott);
         clearTimeout(mentesIdo);
         figyelo.torles();
         figyelo.leallit();

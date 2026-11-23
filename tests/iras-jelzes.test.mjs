@@ -297,6 +297,21 @@ test("tiltás: a nagy betoldást az input-esemény hosszváltozásából méri; 
   f.leallit();
 });
 
+// Regresszió (2026-11-23): a törölt szöveg visszaállítása (törlésvédelem) programból állítja a mezőt;
+// enélkül a következő leütés a teljes visszaállított hosszt nagy betoldásnak venné.
+test("tiltás: a visszaállítás után (szinkron) a következő leütés nem nagy betoldás", () => {
+  const mezo = mezoAl(); let most = 0;
+  const f = m.jelzesFigyelo(mezo, { kulcs: "k", tiltas: true, tarolo: tarolo(), ablak: new EventTarget(), dok: dok(), ora: () => most });
+  const ir = (ujErtek, inputType = "insertText") => { mezo.value = ujErtek; mezo.dispatchEvent(Object.assign(new Event("input"), { inputType })); };
+  ir("D"); most = 1000;
+  ir("");  most = 2000;                                     // törlés
+  mezo.value = "Dear Ben, " + "x".repeat(200);              // visszaállítás programból (nincs input-esemény)
+  f.szinkron();
+  ir(mezo.value + "y");                                     // egy leütés
+  assert.equal(f.dokumentum(mezo.value).nagy_betoldas_db, 0);
+  f.leallit();
+});
+
 test("tiltás: az elhagyás is az időrendbe kerül; a jelzés-dokumentum csupa nemnegatív egész", () => {
   const d = dok(); const ablak = new EventTarget(); const mezo = mezoAl(); let most = 0;
   const f = m.jelzesFigyelo(mezo, { kulcs: "k", tiltas: true, tarolo: tarolo(), ablak, dok: d, ora: () => most });

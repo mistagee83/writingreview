@@ -61,6 +61,19 @@ beadás utáni nyugtán a diák linkje csak másolható/QR volt. Most kattinthat
 ugyanazon az eszközön visszajön a feladatlinkre, a nyugta megkérdezi a `diakVisszajelzes`-t: jóváhagyás után ott is
 megjelenik a visszajelzés (közös nézet: `public/js/visszajelzes-nezet.js`; „Frissítés” gomb, folyamatos lekérdezés nincs).
 Teszt: `tests/iras-nyugta.test.mjs`. A pilotot nem érinti (ott nincs feladatlink).
+**Írófelület: mentés, visszavonás, íróüzem (2026-11-23, commitolva, NINCS kiadva):** egy diák véletlenül kijelölte
+és törölte a szövegét, az automatikus mentés az üreset mentette. Új: látható mentésjelzés és figyelmeztetés privát
+ablakban, „Visszavonás” gomb, törlésvédelem (visszaállító sáv, újratöltés után is), íróüzem (teljes képernyő, behajtható
+feladat, nagyobb betű, szószám-sáv), és a beadott szöveg megnyitható a nyugtán és a diáklinken. A `diakVisszajelzes`
+változott (a várakozó válasz is visszaadja a diák szövegét): **hosting + functions kiadás kell** (`--only hosting,functions:wr`, mrashub). Tesztek:
+`tests/iras-szerkeszto.test.mjs`, `iras-nyugta`, `iras-jelzes`, `functions` (a teljes sor az emulátorokkal: 644/644).
+Helyi, Firebase-helyettesítős előnézetben ellenőrizve (asztali és telefonos méret). A pilotot nem érinti.
+Ugyanekkor a `public/js/hub/sso.js` másolata a hub mostani `shared/sso.js`-ére frissült (`node scripts/hub-masolat.mjs D:/dev/Edtechhub`:
+belépőkód csak az appok belépőoldalaira, WordNerd és Potluck az app-originek közt).
+**Emulátoros tesztek ezen a gépen:** a Java 26 nem jó, de van Java 21: PowerShellben
+`$env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jre-21.0.11.10-hotspot"; $env:Path="$env:JAVA_HOME\bin;$env:Path"`, majd a `tests` mappában `npm test`.
+**Munka előtt:** `git pull` (és `npm ci` a `functions`/`tests` mappában, ha a lockfájl változott). A OneDrive a másik gép
+munkafájljait átszinkronizálja, a git-állapotot nem: 2026-11-23-án ettől látszott félkésznek a már kész hub-költözés.
 
 **8e – teendők a bekapcsoláshoz (tulajdonos, a `writerev2` projektben, ebben a sorrendben):**
 1. Google Cloud Console → *reCAPTCHA Enterprise* API engedélyezése, és egy **webes kulcs** (pontozásos, nem jelölőnégyzetes)

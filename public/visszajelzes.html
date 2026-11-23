@@ -34,7 +34,7 @@
   // Csak az escape-függvény kell innen; a védett oldal kapuja (vedettOldal) itt NEM fut.
   import { esc } from './js/guard.js';
   import { hibaSzoveg } from './js/ui.js';
-  import { visszajelzesHtml, idoSzoveg as ido } from './js/visszajelzes-nezet.js';
+  import { visszajelzesHtml, beadottSzovegHtml, idoSzoveg as ido } from './js/visszajelzes-nezet.js';
   import { functions, httpsCallable, appCheckInditas } from './js/firebase-config.js';
   import { APP_CHECK_KULCS } from './js/kornyezet.js';
 
@@ -67,6 +67,8 @@
     uzenetLap('⏰', t('vj.lejart'));
   } else if (adat.allapot === 'varakozik') {
     uzenetLap('⏳', t('vj.varakozik', { datum: ido(adat.lejar) }), adat.cim);
+    // A diák a saját beadott szövegét a jóváhagyás előtt is megnyithatja.
+    if (adat.szoveg) tartalom.insertAdjacentHTML('beforeend', beadottSzovegHtml(adat.szoveg));
   } else {
     tartalom.innerHTML = visszajelzesHtml(adat);
   }

@@ -321,11 +321,18 @@ A diáknak nincs fiókja. Két oldala van, mindkettő belépés nélkül, a link
   becenevet használja.
 - **Írómező:** szószámláló a határokhoz; a böngésző helyesírás-ellenőrzése csak akkor, ha a tanár engedi; a
   beillesztés tiltott. A diák előre látja, mit jelzünk (7. fejezet). A **piszkozat a böngészőben mentődik**, így egy
-  véletlen frissítés nem viszi el.
+  véletlen frissítés nem viszi el. A mentés **látszik** („Mentve ebben a böngészőben · 14:32”); ha a böngésző nem tud
+  menteni (privát ablak), az oldal kimondja, és bezárás előtt rákérdez. Lap elhagyásakor azonnal ment.
+- **Visszavonás és törlésvédelem** (`js/iras-szerkeszto.js`): „Visszavonás” gomb (telefonon nincs Ctrl+Z). Ha egy
+  bevitellel sok szöveg tűnik el (kijelölés + törlés), az előző változat külön mentésbe kerül, és egy sáv felajánlja a
+  visszaállítást – újratöltés után is. A visszaállított szöveget a jelzések nem számolják betoldásnak.
+- **Íróüzem:** a szövegpanel kitölti a képernyőt; a feladat behajtható, a betű nagyítható, szószám-sáv és
+  bekezdésszám. Ugyanaz a szövegmező, így a beillesztés tiltása és a jelzések változatlanok.
 - **Beadás** (`linkBeadas`, egy tranzakcióban): a link él és nincs betelve, a feladat nyitott, a becenév szabad;
   létrejön a beadás, lefoglalódik a becenév, nő a számláló. **AI nem indul.**
 - **Nyugta:** a saját **diáklink** (és QR-kódja, hogy telefonra vihesse); a nyugta újratöltés után is látszik
-  (a böngészőben megmarad).
+  (a böngészőben megmarad). A diák a **beadott szövegét** a nyugtán és a saját linkjén a jóváhagyás előtt is
+  megnyithatja (a `diakVisszajelzes` várakozó válaszában is benne van a szöveg).
 - Lejárt, lezárt, betelt vagy érvénytelen linknél érthető üzenet.
 
 ### 5.2 Visszajelzés (`visszajelzes.html?d=…`)

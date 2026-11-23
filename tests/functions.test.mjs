@@ -744,7 +744,8 @@ test("diáklink: jóváhagyás előtt csak a várakozás látszik, utána csak a
   assert.equal(elotte.cim, "Letter to Ben");
   assert.equal(elotte.becenev, "Kék Sárkány");
   assert.equal(elotte.visszajelzes, undefined);
-  assert.equal(elotte.szoveg, undefined);
+  // a saját beadott szövegét jóváhagyás előtt is látja (2026-11-23)
+  assert.equal(elotte.szoveg, "Dear Ben,\nthank you for your letter.");
 
   // Az AI már értékelt (javitva), de a tanár még nem hagyta jóvá: a diák semmit nem lát belőle.
   const ref = firestore.collection("beadasok").doc(id);

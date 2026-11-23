@@ -1511,6 +1511,42 @@ a.brand:focus-visible { outline: 2px solid var(--accent-on-dark); outline-offset
 .mod-fulek .btn-sm[aria-pressed="true"] { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .iras-szoveg { width: 100%; min-height: 18rem; font: inherit; line-height: 1.65; resize: vertical; margin-top: 0.5rem; }
 .szamlalo { margin-top: 0.4rem; font-size: 0.85rem; color: var(--muted); }
+.msg.info { background: var(--accent-light); color: var(--ink); display: block; }
+
+/* A diák írófelülete (iras.html): eszközsor, mentésjelzés, törlésvédelem, szószám-sáv, íróüzem */
+.iras-eszkozsor { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
+.mentes-allapot { margin-left: auto; font-size: 0.85rem; color: var(--muted); }
+.mentes-allapot[data-allapot="mentve"] { color: var(--ok); }
+.mentes-allapot[data-allapot="hiba"] { color: var(--err); font-weight: 600; }
+.torles-sav {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.75rem;
+  padding: 0.6rem 0.75rem; border: 1.5px solid var(--warn); border-radius: 8px; background: var(--warn-light);
+}
+.torles-sav > span { flex: 1 1 14rem; }
+.torles-sav[hidden], .iro-feladat[hidden], .szo-sav[hidden], #mentes-hiba[hidden] { display: none; }
+.szo-sav { height: 6px; margin-top: 0.5rem; border-radius: 3px; background: var(--border); overflow: hidden; }
+.szo-sav-tolt { height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
+.szo-sav[data-allapot="jo"] .szo-sav-tolt { background: var(--ok); }
+.szo-sav[data-allapot="sok"] .szo-sav-tolt { background: var(--err); }
+.iro-csak { display: none; }
+.iro-feladat { margin-top: 0.75rem; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--paper); max-height: 40vh; overflow-y: auto; }
+.iras-panel.nagy-betu .iras-szoveg { font-size: 1.25rem; }
+
+/* Íróüzem: a szövegpanel kitölti a képernyőt, a többi rész nem látszik és nem görget. */
+body.iro-uzem-nyitva { overflow: hidden; }
+.iras-panel.iro-uzem {
+  position: fixed; inset: 0; z-index: 1000; margin: 0; border: 0; border-radius: 0;
+  display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+}
+.iras-panel.iro-uzem .panel-header { padding: 0.6rem 1rem; }
+.iras-panel.iro-uzem .panel-body {
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  width: 100%; max-width: 52rem; margin: 0 auto; padding: 0.5rem 1rem 1rem;
+}
+.iras-panel.iro-uzem .iro-rejt { display: none; }
+.iras-panel.iro-uzem .iro-csak { display: inline-flex; }
+.iras-panel.iro-uzem .iras-szoveg { flex: 1; min-height: 8rem; resize: none; font-size: 1.1rem; line-height: 1.8; }
+.iras-panel.iro-uzem.nagy-betu .iras-szoveg { font-size: 1.4rem; }
 .iras-figyelmeztetes { background: var(--warn-light); border-left: 3px solid var(--warn); padding: 0.5rem 0.75rem; border-radius: 0 6px 6px 0; }
 mark.beillesztett { background: #fde68a; color: inherit; padding: 0 0.1em; border-radius: 2px; }
 /* A kiválasztott csomag jelölése és a fizetés előtti jóváhagyás */
@@ -1732,3 +1768,8 @@ body.theme-diak { background-image: none; }
 .link-inditas label { display: block; font-size: 0.85rem; margin-bottom: 0.35rem; }
 .link-inditas select { flex: 1; min-width: 0; }
 .link-inditas .halvany { margin-top: 0.5rem; }
+
+/* A beadott szöveg, behajtva (js/visszajelzes-nezet.js: beadottSzovegHtml) */
+details.beadott-szoveg > summary.panel-header { list-style: none; font-size: 0.95rem; font-weight: 600; }
+details.beadott-szoveg > summary::-webkit-details-marker { display: none; }
+details.beadott-szoveg:not([open]) > summary.panel-header { border-bottom: 0; }

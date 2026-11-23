@@ -235,7 +235,7 @@ export const BEILLESZTO_BEVITELEK = ["insertFromPaste", "insertFromPasteAsQuotat
  * nem nullázza őket). `tarolo`: localStorage-szerű (getItem/setItem/removeItem), hibatűrő módon használva.
  * `tiltas: true`: a beillesztés (vágólap, húzás, a telefonos billentyűzet vágólapja) meg van akadályozva,
  * a kísérlet jelzés; ilyenkor az írás menetét is naplózzuk (nagy betoldás, írási idő, időrend).
- * @returns {{dokumentum: (szoveg: string) => object, torles: () => void, leallit: () => void}}
+ * @returns {{dokumentum: (szoveg: string) => object, torles: () => void, szinkron: () => void, leallit: () => void}}
  */
 export function jelzesFigyelo(mezo, { kulcs, tiltas = false, tarolo = globalThis.localStorage, ablak = globalThis.window, dok = globalThis.document, ora = () => Date.now() }) {
   const olvas = () => {
@@ -325,6 +325,9 @@ export function jelzesFigyelo(mezo, { kulcs, tiltas = false, tarolo = globalThis
       most: ora()
     }),
     torles: () => { try { tarolo.removeItem(kulcs); } catch (_) { /* nincs mit */ } },
+    // A mező értékét a program állította (a diák saját törölt szövegének visszaállítása): a következő
+    // bevitel ehhez képest számol, így a visszaállított szöveg nem számít nagy betoldásnak.
+    szinkron: () => { elozoHossz = String(mezo.value ?? "").length; },
     leallit: () => {
       dok.removeEventListener("visibilitychange", frissit);
       ablak.removeEventListener("blur", frissit);

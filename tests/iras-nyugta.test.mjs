@@ -36,6 +36,19 @@ test("visszatéréskor a nyugta megkérdezi a szervert, és jóváhagyás után 
   assert.ok(!/setInterval/.test(iras));
 });
 
+// 2026-11-23: a diák beadás után (a jóváhagyás előtt is) meg tudja nyitni a beadott szövegét.
+test("a nyugtán és a saját linken a beadott szöveg jóváhagyás előtt is megnyitható", async () => {
+  assert.match(iras, /const nyugta = \{ \.\.\.data, becenev, szoveg \}/, "a szöveg a nyugtába kerül");
+  const torzs = fuggvenyTorzs(iras, "nyugtaMutat");
+  assert.match(torzs, /beadottSzovegHtml\(beadottSzoveg\)/);
+  assert.match(torzs, /beadottSzoveg = adat\.szoveg/, "régi nyugtánál a szerver válaszából");
+  assert.match(vj, /beadottSzovegHtml\(adat\.szoveg\)/);
+  const { beadottSzovegHtml } = await import("../public/js/visszajelzes-nezet.js");
+  const html = beadottSzovegHtml("Dear <Tom>,\nBye");
+  assert.match(html, /^\s*<details class="panel beadott-szoveg">/);
+  assert.ok(html.includes("Dear &lt;Tom&gt;,\nBye"));
+});
+
 test("a két diákoldal ugyanazt a közös nézetet használja", () => {
   for (const [lap, src] of [["iras.html", iras], ["visszajelzes.html", vj]]) {
     assert.match(src, /import \{ visszajelzesHtml[^}]*\} from '\.\/js\/visszajelzes-nezet\.js'/, lap);

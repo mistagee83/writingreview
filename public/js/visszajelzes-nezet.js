@@ -7,6 +7,15 @@ import { jegyMegjelenit } from './ui.js';
 
 export const idoSzoveg = (iso) => (iso ? datumSzoveg(new Date(iso)) : '');
 
+// A beadott szöveg, behajtva: a diák a jóváhagyás előtt is megnyithatja (a nyugtán és a saját linkjén).
+export function beadottSzovegHtml(szoveg) {
+  return `
+    <details class="panel beadott-szoveg">
+      <summary class="panel-header">${t('iras.nyugta_szoveg')}</summary>
+      <div class="panel-body"><pre class="atirat">${esc(szoveg)}</pre></div>
+    </details>`;
+}
+
 export function visszajelzesHtml(a) {
   const v = a.visszajelzes;
   const jegy = v.jegy != null ? esc(jegyMegjelenit(v.jegy, v.jegy_tipus)) : '';

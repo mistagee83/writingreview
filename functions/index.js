@@ -2627,13 +2627,15 @@ async function diakVisszajelzesLogika(firestore, adat, { most = Date.now() } = {
   if (!lejar || most > lejar) return { allapot: "lejart" };
 
   const feladatSnap = await firestore.collection("feladatok").doc(b.feladat_id).get();
+  // A diák a saját beadott szövegét mindig láthatja (2026-11-23): az nem a tanár vagy az AI munkája.
   const alap = {
     cim: String(feladatSnap.data()?.cim || ""),
     becenev: String(b.becenev || ""),
     beadva: isoIdo(b.letrehozva),
-    lejar: new Date(lejar).toISOString()
+    lejar: new Date(lejar).toISOString(),
+    szoveg: String(b.szoveg || "")
   };
-  // Amíg a tanár nem hagyta jóvá, a diák semmit nem lát (azt sem, hogy fut-e az értékelés).
+  // Amíg a tanár nem hagyta jóvá, a diák az értékelésből semmit nem lát (azt sem, hogy fut-e).
   if (b.statusz !== "elkuldve") return { allapot: "varakozik", ...alap };
   const tanari = (await ref.collection("ertekeles").doc("tanari").get()).data();
   if (!tanari) return { allapot: "varakozik", ...alap };
@@ -2642,7 +2644,6 @@ async function diakVisszajelzesLogika(firestore, adat, { most = Date.now() } = {
   return {
     allapot: "kesz",
     ...alap,
-    szoveg: String(b.szoveg || ""),
     visszajelzes: {
       jegy: tanari.jegy ?? null,
       jegy_tipus: typeof tanari.jegy_tipus === "string" ? tanari.jegy_tipus : null,
