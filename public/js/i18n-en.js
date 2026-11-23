@@ -837,7 +837,7 @@ export default {
   "iras.becenev": "Nickname",
   "iras.becenev_pelda": "e.g. Blue Dragon",
   "iras.becenev_tipp": "Not your real name. This is how your teacher knows which text is yours – tell them which one you chose.",
-  "iras.mentes_folyamat": "Saving…",
+  "iras.mentes_auto": "Saves automatically in this browser",
   "iras.mentve": "✓ Saved in this browser · {ido}",
   "iras.mentes_hiba": "⚠️ Not saved",
   "iras.mentes_nem_megy": "We can't save your text in this window (for example, in a private window). Don't close or reload the page until you submit.",

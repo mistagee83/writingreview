@@ -290,11 +290,17 @@
     const mentesHiba = document.getElementById('mentes-hiba');
     const tudMenteni = tarol((ls) => taroloMukodik(ls)) === true;
     const oraPerc = () => new Date().toLocaleTimeString(document.documentElement.lang || undefined, { hour: '2-digit', minute: '2-digit' });
+    // A felirat végig látszik, és csak mentéskor változik (az idő); gépelés közben ('mentes') a szöveg
+    // marad, csak halványabb – különben a „Mentés…” ↔ „Mentve … · 14:05” csere minden leütésnél
+    // új sorba törte az eszközsort, és ugrált a felület.
     function allapotJelez(allapot) {
       mentesAllapot.dataset.allapot = allapot;
-      mentesAllapot.textContent = allapot === 'mentes' ? t('iras.mentes_folyamat')
-        : allapot === 'mentve' ? t('iras.mentve', { ido: oraPerc() })
-        : t('iras.mentes_hiba');
+      if (allapot !== 'mentes') {
+        mentesAllapot.textContent = allapot === 'mentve' ? t('iras.mentve', { ido: oraPerc() })
+          : allapot === 'auto' ? t('iras.mentes_auto')
+          : t('iras.mentes_hiba');
+        mentesAllapot.title = mentesAllapot.textContent;
+      }
       mentesHiba.hidden = allapot !== 'hiba';
     }
     let mentesIdo = null;
@@ -317,7 +323,7 @@
       if (mentesAllapot.dataset.allapot === 'hiba' && mezo.value.trim()) { e.preventDefault(); e.returnValue = ''; }
     }
     addEventListener('beforeunload', bezarasElott);
-    if (tudMenteni) { if (mezo.value) allapotJelez('mentve'); } else allapotJelez('hiba');
+    if (tudMenteni) allapotJelez(mezo.value ? 'mentve' : 'auto'); else allapotJelez('hiba');
 
     // ── Törlésvédelem ──
     // Ha egy bevitellel sok szöveg tűnik el (kijelölés + törlés), az előző változatot megőrizzük,

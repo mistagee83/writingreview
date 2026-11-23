@@ -835,7 +835,7 @@ export default {
   "iras.becenev": "Becenév",
   "iras.becenev_pelda": "Pl. Kék Sárkány",
   "iras.becenev_tipp": "Ne a valódi neved legyen. A tanárod ebből tudja, kié a szöveg – mondd meg neki, melyik a tiéd.",
-  "iras.mentes_folyamat": "Mentés…",
+  "iras.mentes_auto": "Automatikus mentés ebben a böngészőben",
   "iras.mentve": "✓ Mentve ebben a böngészőben · {ido}",
   "iras.mentes_hiba": "⚠️ Nincs mentés",
   "iras.mentes_nem_megy": "Ebben az ablakban nem tudjuk menteni a szövegedet (például privát ablakban). Ne zárd be és ne töltsd újra a lapot, amíg be nem adod.",

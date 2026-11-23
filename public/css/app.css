@@ -1515,8 +1515,14 @@ a.brand:focus-visible { outline: 2px solid var(--accent-on-dark); outline-offset
 
 /* A diák írófelülete (iras.html): eszközsor, mentésjelzés, törlésvédelem, szószám-sáv, íróüzem */
 .iras-eszkozsor { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
-.mentes-allapot { margin-left: auto; font-size: 0.85rem; color: var(--muted); }
+/* Fix hely: a sortörés csak a gombokon és a 12rem-es alapszélességen múlik, a felirat hosszán nem
+   (ha nem fér ki, levágódik, a teljes szöveg a title-ben). Így a mentés nem tolja el a felületet. */
+.mentes-allapot {
+  flex: 1 1 12rem; min-width: 0; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 0.85rem; line-height: 1.4; color: var(--muted); transition: opacity 0.2s;
+}
 .mentes-allapot[data-allapot="mentve"] { color: var(--ok); }
+.mentes-allapot[data-allapot="mentes"] { opacity: 0.6; }
 .mentes-allapot[data-allapot="hiba"] { color: var(--err); font-weight: 600; }
 .torles-sav {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.75rem;
