@@ -71,3 +71,19 @@ test("az írófelület bekötése: mentésjelzés, visszavonás, törlésvédele
   assert.match(iras, /classList\.add\('iro-uzem'\)/);
   assert.match(iras, /e\.key === 'Escape'/);
 });
+
+// Regresszió (2026-11-23): a mentésjelzés minden leütésnél „Mentés…” ↔ „✓ Mentve … · 14:05” között
+// váltott; a hosszú felirat telefonon új sorba törte az eszközsort, és ugrált a felület.
+test("mentésjelzés: gépelés közben nem cserél szöveget, a helye fix, nem törik új sorba", () => {
+  const css = readFileSync(new URL("../public/css/app.css", import.meta.url), "utf8");
+  const szabaly = css.match(/\.mentes-allapot\s*\{([^}]*)\}/)?.[1] ?? "";
+  assert.match(szabaly, /white-space:\s*nowrap/);
+  assert.match(szabaly, /flex:\s*1 1 \d+(\.\d+)?rem/);          // fix alapszélesség, nem a felirat hossza
+  assert.match(szabaly, /text-overflow:\s*ellipsis/);
+  assert.doesNotMatch(iras, /iras\.mentes_folyamat/);             // nincs külön „Mentés…” felirat
+  assert.match(iras, /if \(allapot !== 'mentes'\)/);              // gépelés közben a szöveg marad
+  for (const nyelv of ["hu", "en"]) {
+    const i18n = readFileSync(new URL(`../public/js/i18n-${nyelv}.js`, import.meta.url), "utf8");
+    assert.match(i18n, /"iras\.mentes_auto":/);
+  }
+});

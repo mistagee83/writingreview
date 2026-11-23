@@ -356,6 +356,7 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
+- **JAVÍTVA A `main`-EN (`e5e493a`), 2026-11-23; ÉLESRE A `v2.2.1` CÍMKÉVEL MEGY, A PROD-DEPLOY JÓVÁHAGYÁSÁIG A PRODON A RÉGI: a diák írófelületén (`iras.html`) a mentésjelzés ugráltatta a felületet.** A „Mentés…” ↔ „✓ Mentve … · 14:05” csere telefonon minden leütésnél új sorba törte az eszközsort. Most a felirat végig látszik, gépelés közben csak halványul, fix alapszélességű, nem törik. A `pilot` ágon ez az oldal nincs meg. Regressziós teszt: `tests/iras-szerkeszto.test.mjs` („mentésjelzés: …”).
 - **JAVÍTVA A `main`-EN (`eb595d9`) ÉS A `pilot` ÁGON (`d5625be`), 2026-11-12; A PILOTBAN DEPLOYOLVA, A PRODON MÉG NEM: az AI-használat mérése a beírt dolgozatot nem
   számolta futásnak.** A jelentés (`functions/ai-hasznalat.js`, `jelentesOsszeallitas`) a javítási futást az átírási
   hívásnál számolta, a beírt dolgozatnak viszont nincs átírása: a költsége beszámított, a darabszáma nem, ezért a
