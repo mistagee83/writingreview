@@ -16,6 +16,8 @@ export const APP_ORIGINS = [
   'https://review.mrandrewshub.com',
   'https://quiz.mrandrewshub.com',
   'https://hubbaloo.mrandrewshub.com',
+  'https://wordnerd.mrandrewshub.com',
+  'https://potluck.mrandrewshub.com',
 ];
 // Helyi fejlesztés (bármely port): a kód a tanár saját gépére megy, onnan más nem éri el.
 const LOCAL = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{2,5})?$/;
@@ -24,15 +26,36 @@ export const APP_NAMES = {
   'https://review.mrandrewshub.com': 'Writing Review',
   'https://quiz.mrandrewshub.com': 'Quiz of the Damned',
   'https://hubbaloo.mrandrewshub.com': 'Hubbaloo',
+  'https://wordnerd.mrandrewshub.com': 'WordNerd',
+  'https://potluck.mrandrewshub.com': 'Potluck',
 };
 
-export const isAppOrigin = (origin) => APP_ORIGINS.includes(origin) || LOCAL.test(String(origin));
+// Az appok belépési útjai: kódot csak ezekre adunk (audit 2026-11-22, A-1). Ezek az oldalak váltják be és
+// törlik a címsorból a `#sso=` kódot (a nyitóoldal a belépőoldalra küldi tovább); más oldalon a kód a
+// címsorban maradna. Új belépőoldal = új sor itt. A záró perjel nem számít.
+export const APP_PATHS = {
+  'https://review.mrandrewshub.com': ['/', '/index.html', '/belepes.html', '/belepes'],
+  'https://quiz.mrandrewshub.com': ['/', '/teacher', '/host'],
+  'https://hubbaloo.mrandrewshub.com': ['/', '/teacher.html', '/teacher'],
+  'https://wordnerd.mrandrewshub.com': ['/', '/teacher', '/teacher.html'],
+  'https://potluck.mrandrewshub.com': ['/', '/teacher.html', '/teacher'],
+};
+
+export const isLocalOrigin = (origin) => LOCAL.test(String(origin));
+// `allowLocal`: helyi fejlesztői cím csak akkor engedett, ha a hívó maga is helyben fut (a hub kliense a saját
+// címéből, a function a kérés Origin-fejlécéből dönti el) – az éles hub soha nem küld kódot localhostra.
+export const isAppOrigin = (origin, { allowLocal = false } = {}) =>
+  APP_ORIGINS.includes(origin) || (allowLocal && isLocalOrigin(origin));
+
+const trimSlash = (p) => (p.length > 1 ? p.replace(/\/+$/, '') : p) || '/';
 
 // Engedélyezett app-cím → a normalizált cím (origin + út + query, horgony nélkül), egyébként null.
-export function appTarget(url) {
+// Éles appnál csak a belépési utak (APP_PATHS); helyi címnél (ha engedett) bármely út.
+export function appTarget(url, { allowLocal = false } = {}) {
   try {
     const u = new URL(String(url));
-    if (!isAppOrigin(u.origin)) return null;
+    if (!isAppOrigin(u.origin, { allowLocal })) return null;
+    if (APP_ORIGINS.includes(u.origin) && !(APP_PATHS[u.origin] ?? []).includes(trimSlash(u.pathname))) return null;
     return `${u.origin}${u.pathname}${u.search}`;
   } catch {
     return null;
@@ -69,7 +92,8 @@ export async function redeemSso({ redeem, signIn, code = takeSsoCode() }) {
 export function hubAccountUrl({ signup = false, returnTo = null } = {}, hubOrigin = HUB_ORIGIN) {
   const q = new URLSearchParams();
   if (signup) q.set('signup', '1');
-  const back = returnTo && appTarget(returnTo);
+  // az app a saját címét adja meg (helyben futva helyit): a hub dönti el, hogy vissza is küld-e oda
+  const back = returnTo && appTarget(returnTo, { allowLocal: true });
   if (back) q.set('return', back);
   const s = q.toString();
   return `${hubOrigin}/account${s ? `?${s}` : ''}`;
