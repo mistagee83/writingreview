@@ -73,6 +73,7 @@
   import { statuszBadge, uzenet, uzenetTorles, hibaSzoveg, gombVar, jegyMegjelenit } from './js/ui.js';
   import { skalaFeloldas, jegyJavaslat } from './js/skala.js';
   import { szovegJelolve, tartomanyokRendben, beillesztettArany } from './js/iras-jelzes.js';
+  import { eredmenyFajl, letoltes } from './js/beadas-export.js';
   import {
     db, functions, httpsCallable,
     collection, doc, getDoc, getDocs,
@@ -87,6 +88,9 @@
 
   const visszajelzesJovahagyas = httpsCallable(functions, 'visszajelzesJovahagyas');
   const beadasUjrafuttatas = httpsCallable(functions, 'beadasUjrafuttatas');
+  const beadasTorles = httpsCallable(functions, 'beadasTorles');
+  // A listában látott beadások (a letöltéshez és a törlés kérdéséhez)
+  let beadasCache = {};
 
   const lista = document.getElementById('lista');
   let leiratkozas = null;
@@ -171,8 +175,11 @@
         return;
       }
 
+      beadasCache = Object.fromEntries(snap.docs.map((d) => [d.id, d.data()]));
       const kartyak = await Promise.all(snap.docs.map(async (d) => {
         const b = d.data();
+        // Feldolgozás alatt nem törölhető (a szerver is elutasítja): a háttér-feldolgozó éppen írná.
+        const torolheto = !['sorban', 'folyamatban'].includes(b.statusz);
         const [f, e] = await Promise.all([
           feladatCim(b.feladat_id),
           b.statusz === 'elkuldve' ? eredmeny(d.id, b) : null
@@ -195,6 +202,11 @@
                 ? `<button class="btn-sm kiemelt" data-akcio="sorba" data-id="${esc(d.id)}">${t('jav.ertekeles_inditas')}</button>` : ''}
               ${['hiba', 'javitva'].includes(b.statusz)
                 ? `<button class="btn-sm" data-akcio="ujra" data-id="${esc(d.id)}">${t('jav.ujra')}</button>` : ''}
+              <button class="btn-sm" data-akcio="letolt" data-id="${esc(d.id)}"
+                      title="${esc(t('jav.letoltes_tipp'))}" aria-label="${esc(t('jav.letoltes_tipp'))}">${t('jav.letoltes')}</button>
+              ${torolheto
+                ? `<button class="btn-sm danger" data-akcio="torol" data-id="${esc(d.id)}"
+                      title="${esc(t('jav.torles_tipp'))}" aria-label="${esc(t('jav.torles_tipp'))}">${t('jav.torles')}</button>` : ''}
             </div>
           </div>`;
       }));
@@ -257,6 +269,39 @@
       try {
         const { data } = await ertekelesInditas({ beadasIds: [b.dataset.id] });
         if (data.kimaradt > 0) alert(t('jav.kvota_kimaradt', { db: data.kimaradt }));
+      } catch (err) {
+        alert(t('jav.nem_sikerult', { ok: hibaSzoveg(err) }));
+        vissza();
+      }
+      return;
+    }
+
+    if (b.dataset.akcio === 'letolt') {
+      const id = b.dataset.id;
+      const vissza = gombVar(b, t('jav.letoltes_folyamat'));
+      try {
+        const beadas = beadasCache[id];
+        if (!beadas) throw Object.assign(new Error(t('jav.nem_talalhato')), { helyi: true });
+        const [f, e] = await Promise.all([feladatCim(beadas.feladat_id), eredmeny(id, beadas)]);
+        letoltes(eredmenyFajl({ b: beadas, f, ai: e?.ai || null, tanari: e?.tanari || null }, { t, datum }));
+      } catch (err) {
+        alert(t('jav.nem_sikerult', { ok: hibaSzoveg(err) }));
+      } finally {
+        vissza();
+      }
+      return;
+    }
+
+    if (b.dataset.akcio === 'torol') {
+      const id = b.dataset.id;
+      const beadas = beadasCache[id];
+      const nev = beadas?.becenev || beadas?.diak_nev || t('jav.nevtelen_diak');
+      if (!confirm(t('jav.torles_kerdes', { becenev: nev }))) return;
+      const vissza = gombVar(b, t('jav.torles_folyamat'));
+      try {
+        await beadasTorles({ beadasId: id });
+        uzenet('lista-msg', t('jav.torles_kesz', { becenev: nev }), 'success');
+        // A lista a figyelőből magától frissül (a kártya eltűnik).
       } catch (err) {
         alert(t('jav.nem_sikerult', { ok: hibaSzoveg(err) }));
         vissza();

@@ -53,6 +53,7 @@
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar, statuszBadge } from './js/ui.js';
   import { csoportDiakjai } from './js/csoport.js';
   import { pontGrafikon, hibaGrafikon, ismetlodoLista } from './js/fejlodes-grafikon.js';
+  import { eredmenyFajl, letoltes } from './js/beadas-export.js';
   import {
     db, functions, httpsCallable,
     collection, doc, getDoc, getDocs, query, where, onSnapshot
@@ -65,6 +66,10 @@
   const levalasztas = httpsCallable(functions, 'csoportBeadasLevalasztas');
   const fejlodesLista = httpsCallable(functions, 'csoportFejlodesLista');
   const fejlodesDiak = httpsCallable(functions, 'csoportFejlodesDiak');
+  const beadasTorles = httpsCallable(functions, 'beadasTorles');
+  const csoportDiakTorles = httpsCallable(functions, 'csoportDiakTorles');
+  // Feldolgozás alatt nem törölhető (a szerver is elutasítja): a háttér-feldolgozó éppen írná.
+  const torolheto = (b) => !['sorban', 'folyamatban'].includes(b.statusz);
 
   const csoportId = new URLSearchParams(location.search).get('id');
   const lista = document.getElementById('lista');
@@ -174,9 +179,12 @@
             ${statuszBadge(b.statusz)}
           </div>
         </div>
-        ${levalaszthato ? `<div class="gomb-sor" style="margin-top:0;">
-          <button class="btn-sm" data-levalaszt="${esc(b.id)}" data-becenev="${esc(b.becenev || '')}">${t('csd.levalasztas')}</button>
-        </div>` : ''}
+        <div class="list-card-actions">
+          ${levalaszthato ? `<button class="btn-sm" data-levalaszt="${esc(b.id)}" data-becenev="${esc(b.becenev || '')}">${t('csd.levalasztas')}</button>` : ''}
+          <button class="btn-sm" data-letolt="${esc(b.id)}" title="${esc(t('jav.letoltes_tipp'))}">${t('jav.letoltes')}</button>
+          ${torolheto(b) ? `<button class="btn-sm danger" data-torol="${esc(b.id)}" data-becenev="${esc(b.becenev || '')}"
+            title="${esc(t('jav.torles_tipp'))}">${t('jav.torles')}</button>` : ''}
+        </div>
       </div>`;
     }
 
@@ -209,10 +217,11 @@
             </div>
           </div>
         </summary>
-        ${urlap ? `<div class="panel-body">${urlap}</div>` : !tobbi.length && profiZar ? '' : `<div class="panel-body">
+        ${urlap ? `<div class="panel-body">${urlap}</div>` : `<div class="panel-body">
           <div class="gomb-sor" style="margin-top:0;">
             ${profiZar ? '' : `<button class="btn-sm" data-fejlodes-gomb="${esc(d.id)}" aria-expanded="${fejlodesNyitva.has(d.id)}">${t(fejlodesNyitva.has(d.id) ? 'csd.fejlodes_bezar' : 'csd.fejlodes')}</button>`}
             ${tobbi.length ? `<button class="btn-sm" data-osszevon-nyit="${esc(d.id)}">${t('csd.osszevonas')}</button>` : ''}
+            ${d.beadasok.every(torolheto) ? `<button class="btn-sm danger" data-diak-torol="${esc(d.id)}">${t('csd.diak_torles')}</button>` : ''}
           </div>
         </div>`}
         ${fejlodesNyitva.has(d.id) && !profiZar ? `<div class="panel-body" data-fejlodes-hely="${esc(d.id)}"></div>` : ''}
@@ -275,6 +284,55 @@
           const r = await levalasztas({ beadasId: b.dataset.levalaszt });
           if (r.data?.diakId) nyitott.add(r.data.diakId);
           uzenet('msg', t('csd.levalasztva', { becenev: b.dataset.becenev }), 'success');
+        } catch (err) {
+          uzenet('msg', hibaSzoveg(err));
+          vissza();
+        }
+      }));
+      torlesGombok(mind);
+    }
+
+    // ── LETÖLTÉS ÉS TÖRLÉS (2026-11-24) ── (a gombok a rajzolás után kapnak eseményt)
+    async function beadasLetoltes(b) {
+      const [fSnap, ai, tanari] = await Promise.all([
+        getDoc(doc(db, 'feladatok', b.feladat_id)).catch(() => null),
+        getDoc(doc(db, 'beadasok', b.id, 'ertekeles', 'ai')),
+        getDoc(doc(db, 'beadasok', b.id, 'ertekeles', 'tanari'))
+      ]);
+      letoltes(eredmenyFajl({
+        b, f: fSnap?.exists() ? fSnap.data() : null,
+        ai: ai.exists() ? ai.data() : null, tanari: tanari.exists() ? tanari.data() : null
+      }, { t, datum }));
+    }
+
+    function torlesGombok(mind) {
+      lista.querySelectorAll('[data-letolt]').forEach((g) => g.addEventListener('click', async () => {
+        const b = beadasok.find((x) => x.id === g.dataset.letolt);
+        if (!b) return;
+        const vissza = gombVar(g, t('jav.letoltes_folyamat'));
+        try { await beadasLetoltes(b); } catch (err) { uzenet('msg', hibaSzoveg(err)); } finally { vissza(); }
+      }));
+      lista.querySelectorAll('[data-torol]').forEach((g) => g.addEventListener('click', async () => {
+        uzenetTorles('msg');
+        const becenev = g.dataset.becenev || t('jav.nevtelen_diak');
+        if (!confirm(t('jav.torles_kerdes', { becenev }))) return;
+        const vissza = gombVar(g, t('jav.torles_folyamat'));
+        try {
+          await beadasTorles({ beadasId: g.dataset.torol });
+          uzenet('msg', t('csd.beadas_torolve', { becenev }), 'success');
+        } catch (err) {
+          uzenet('msg', hibaSzoveg(err));
+          vissza();
+        }
+      }));
+      lista.querySelectorAll('[data-diak-torol]').forEach((g) => g.addEventListener('click', async () => {
+        uzenetTorles('msg');
+        const d = mind.find((x) => x.id === g.dataset.diakTorol);
+        if (!d || !confirm(t('csd.diak_torles_kerdes', { nev: d.nev, db: d.beadasok.length }))) return;
+        const vissza = gombVar(g, t('jav.torles_folyamat'));
+        try {
+          const { data } = await csoportDiakTorles({ csoportId, diakId: d.id });
+          uzenet('msg', t('csd.diak_torolve', { nev: d.nev, db: data.beadasok }), 'success');
         } catch (err) {
           uzenet('msg', hibaSzoveg(err));
           vissza();

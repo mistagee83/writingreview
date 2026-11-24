@@ -74,6 +74,19 @@ változott (a várakozó válasz is visszaadja a diák szövegét): a kiadás ez
 Helyi, Firebase-helyettesítős előnézetben ellenőrizve (asztali és telefonos méret). A pilotot nem érinti.
 Ugyanekkor a `public/js/hub/sso.js` másolata a hub mostani `shared/sso.js`-ére frissült (`node scripts/hub-masolat.mjs D:/dev/Edtechhub`:
 belépőkód csak az appok belépőoldalaira, WordNerd és Potluck az app-originek közt).
+**Beadás letöltése és törlése a javítási sorból (2026-11-24, adatvédelmi javaslat; NINCS kiadva):**
+minden kártyán „⬇️ Letöltés” (az eredmény szövegfájlként, `public/js/beadas-export.js`) és – feldolgozás alatt kivéve –
+„🗑️ Törlés” megerősítéssel (új callable: `beadasTorles`; részletek: `mukodesi-leiras.md` 4.4). A szabályok nem
+változtak (a törlés függvényen át megy), a hubban nincs teendő. **Kiadás: hosting + functions** (új függvény). Tesztek:
+`tests/beadas-export.test.mjs`, `functions` (3 új), `callable-jogosultsag`; a teljes sor az emulátorokkal 656/656. Helyi
+próbaoldalon (valódi CSS, Firebase nélkül) asztali és telefonos méretben ellenőrizve; élő függvénnyel még nem.
+Új funkció, csak a `main`-en (a pilotra nem kerül).
+**Ugyanekkor a csoportokra is (2026-11-24, NINCS kiadva):** a csoport oldalán (`csoport.html`) beadásonként Letöltés és
+Törlés, diákonként „Diák törlése” (új callable: `csoportDiakTorles`), a Csoportok listán „Törlés” a csoport nevének
+beírásával (új callable: `csoportTorles`; a linkjeit is lezárja és törli). Részletek: `mukodesi-leiras.md` 4.5. Két új
+szerverhibakód: `torles_tul_sok_beadas`, `csoport_feldolgozas_alatt`. A teljes sor az emulátorokkal 667/667; helyi
+próbaoldalon asztali és telefonos méretben ellenőrizve, élő függvénnyel még nem. **Kiadás: hosting + functions**
+(három új függvény). Nyitott: a jogi dokumentumokban (`docs/jogi/`) érdemes rögzíteni, hogy a tanár bármikor törölhet.
 **Emulátoros tesztek ezen a gépen:** a Java 26 nem jó, de van Java 21: PowerShellben
 `$env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jre-21.0.11.10-hotspot"; $env:Path="$env:JAVA_HOME\bin;$env:Path"`, majd a `tests` mappában `npm test`.
 **Munka előtt:** `git pull` (és `npm ci` a `functions`/`tests` mappában, ha a lockfájl változott). A OneDrive a másik gép

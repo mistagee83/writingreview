@@ -175,6 +175,8 @@ const HIBA_SZOVEG = {
   osszevonas_onmagaval: () => "Egy diákot nem vonhatsz össze önmagával.",
   levalasztas_egyetlen: () => "Ez a diák egyetlen beadása, nincs mit leválasztani.",
   csoport_tul_sok_beadas: () => "Ennél a diáknál túl sok a beadás ahhoz, hogy egyszerre áthelyezzük.",
+  torles_tul_sok_beadas: () => "Ennél a diáknál túl sok a beadás ahhoz, hogy egyszerre töröljük. Előbb törölj néhány beadást egyenként.",
+  csoport_feldolgozas_alatt: () => "A csoport néhány beadása épp értékelés alatt van. Várd meg, amíg elkészül, és utána töröld a csoportot.",
   nincs_kiertekelt: () => "Ehhez a feladathoz még nincs kiértékelt beadás.",
   feladat_zart: () => "Ez a feladat le van zárva. Nyisd meg újra a feladatlistában, ha linket indítanál hozzá.",
   link_id_kell: () => "Nem derül ki, melyik linkről van szó.",
@@ -2376,6 +2378,165 @@ exports.csoportDiakOsszevonas = onCall(HIVAS_OPCIOK, async (request) => {
 exports.csoportBeadasLevalasztas = onCall(HIVAS_OPCIOK, async (request) => {
   return csoportBeadasLevalasztasLogika(db(), tanar(request), request.data);
 });
+
+// ══════════════════════════════════════════════════════
+// 13/c. TÖRLÉS (tanár, 2026-11-24): beadás, a csoport egy diákja, egész csoport
+//
+// Adatvédelmi kérés: a tanár a diák szövegét és az értékelést ne csak a 12 hónapos takarításkor
+// tudja eltüntetni. Mindhárom végleges; a kliens előtte kérdez (a csoportnál a nevét kéri).
+// Feldolgozás alatt (sorban, folyamatban) álló beadás nem törölhető: a háttér-feldolgozó éppen
+// írná. Az értékelés alkollekciója (ertekeles/ai, ertekeles/tanari) a tranzakció után törlődik
+// (recursiveDelete). Az AI-használati napló (költség, a szöveg nincs benne) és az elhasznált kredit
+// marad. Szabályváltozás nincs: kliensről továbbra sem törölhető semmi.
+// ══════════════════════════════════════════════════════
+
+const feldolgozasAlatt = (b) => ["sorban", "folyamatban"].includes(b?.statusz);
+/** Egy tranzakcióban legfeljebb ennyi beadás törölhető (a Firestore 500 írásos korlátja alatt: beadásonként ≤ 3 írás). */
+const TORLES_TX_MAX = 150;
+
+/**
+ * Tranzakción belül a törlendő beadások linkoldali kötései: a becenév-foglalás (ha erre a beadásra
+ * mutat – élő linken a diák újra beadhat) és a link számlálója. OLVAS, és egy író függvényt ad
+ * vissza, amit a tranzakció a többi olvasás után hív (tranzakcióban az olvasás jár elöl).
+ */
+async function linkKotesekOlvasasa(firestore, tx, beadasok) {
+  const linkek = new Map();
+  const foglalasok = [];
+  for (const { id, b } of beadasok) {
+    if (typeof b.link_id !== "string" || !AZONOSITO_MINTA.test(b.link_id)) continue;
+    const ref = firestore.collection("linkek").doc(b.link_id);
+    linkek.set(b.link_id, { ref, db: (linkek.get(b.link_id)?.db || 0) + 1 });
+    if (b.becenev) foglalasok.push({ id, ref: ref.collection("becenevek").doc(feladatlink.becenevKulcs(b.becenev)) });
+  }
+  const l = [...linkek.values()];
+  const snapok = l.length + foglalasok.length ? await tx.getAll(...l.map((x) => x.ref), ...foglalasok.map((x) => x.ref)) : [];
+  return () => {
+    l.forEach((x, i) => {
+      const csokken = Math.min(x.db, snapok[i].exists ? snapok[i].data().beadas_db || 0 : 0);
+      if (csokken > 0) tx.update(x.ref, { beadas_db: FieldValue.increment(-csokken) });
+    });
+    foglalasok.forEach((f, i) => {
+      const s = snapok[l.length + i];
+      if (s.exists && s.data().beadas_id === f.id) tx.delete(f.ref);
+    });
+  };
+}
+
+/** A csoport egy diákjának becenév-hozzárendelései (csak amelyek tényleg rá mutatnak) – tranzakcióban olvasva. */
+async function diakAliasai(tx, csRef, diakSnap) {
+  const refek = (diakSnap.data().becenevek || []).map((k) => csRef.collection("becenevek").doc(k));
+  const aliasok = refek.length ? await tx.getAll(...refek) : [];
+  return aliasok.filter((a) => a.exists && a.data().diak_id === diakSnap.id).map((a) => a.ref);
+}
+
+/** Egy beadás törlése. Csoportos linknél a csoport diákja is megszűnik, ha ez volt az utolsó beadása. */
+async function beadasTorlesLogika(firestore, uid, adat) {
+  const beadasId = adat?.beadasId;
+  if (typeof beadasId !== "string" || !AZONOSITO_MINTA.test(beadasId)) throw hiba("invalid-argument", "beadas_id_kell");
+  const beadasRef = firestore.collection("beadasok").doc(beadasId);
+
+  const eredmeny = await firestore.runTransaction(async (tx) => {
+    const bSnap = await tx.get(beadasRef);
+    const b = bSnap.data();
+    if (!bSnap.exists || b.tanar_id !== uid) throw hiba("not-found", "beadas_nincs");
+    if (feldolgozasAlatt(b)) throw hiba("failed-precondition", "beadas_folyamatban");
+
+    const linkIras = await linkKotesekOlvasasa(firestore, tx, [{ id: beadasId, b }]);
+    let diakTorles = null;
+    if (typeof b.csoport_id === "string" && AZONOSITO_MINTA.test(b.csoport_id)
+      && typeof b.csoport_diak_id === "string" && AZONOSITO_MINTA.test(b.csoport_diak_id)) {
+      const csRef = firestore.collection("csoportok").doc(b.csoport_id);
+      const diakRef = csRef.collection("diakok").doc(b.csoport_diak_id);
+      const [diak, tobbi] = await Promise.all([
+        tx.get(diakRef),
+        tx.get(csoportDiakBeadasai(firestore, uid, b.csoport_id, b.csoport_diak_id))
+      ]);
+      if (diak.exists && tobbi.docs.every((d) => d.id === beadasId)) {
+        diakTorles = { diakRef, aliasok: await diakAliasai(tx, csRef, diak) };
+      }
+    }
+
+    linkIras();
+    if (diakTorles) {
+      for (const a of diakTorles.aliasok) tx.delete(a);
+      tx.delete(diakTorles.diakRef);
+    }
+    tx.delete(beadasRef);
+    return { csoportDiakTorolve: Boolean(diakTorles) };
+  });
+
+  // Az alkollekciók (értékelés): a szülő már nincs meg, a diáklink és a lista nem éri el őket.
+  await firestore.recursiveDelete(beadasRef);
+  logger.info("Beadás törölve", { tanar: uid, beadasId, ...eredmeny });
+  return { torolve: true, ...eredmeny };
+}
+
+/** A csoport egy diákja az összes beadásával (és értékelésével) és a becenév-hozzárendeléseivel együtt. */
+async function csoportDiakTorlesLogika(firestore, uid, adat) {
+  const csRef = await sajatCsoportRef(firestore, uid, adat?.csoportId);
+  const diakId = adat?.diakId;
+  if (typeof diakId !== "string" || !AZONOSITO_MINTA.test(diakId)) throw hiba("invalid-argument", "csoport_diak_nincs");
+  const diakRef = csRef.collection("diakok").doc(diakId);
+
+  const beadasRefek = await firestore.runTransaction(async (tx) => {
+    const diak = await tx.get(diakRef);
+    if (!diak.exists) throw hiba("not-found", "csoport_diak_nincs");
+    const beadasok = await tx.get(csoportDiakBeadasai(firestore, uid, csRef.id, diakId));
+    if (beadasok.size > TORLES_TX_MAX) throw hiba("failed-precondition", "torles_tul_sok_beadas");
+    if (beadasok.docs.some((d) => feldolgozasAlatt(d.data()))) throw hiba("failed-precondition", "beadas_folyamatban");
+    const linkIras = await linkKotesekOlvasasa(firestore, tx, beadasok.docs.map((d) => ({ id: d.id, b: d.data() })));
+    const aliasok = await diakAliasai(tx, csRef, diak);
+
+    linkIras();
+    for (const a of aliasok) tx.delete(a);
+    for (const d of beadasok.docs) tx.delete(d.ref);
+    tx.delete(diakRef);
+    return beadasok.docs.map((d) => d.ref);
+  });
+
+  for (const ref of beadasRefek) await firestore.recursiveDelete(ref);
+  logger.info("Csoport: diák törölve", { tanar: uid, csoport: csRef.id, diakId, beadasok: beadasRefek.length });
+  return { torolve: true, beadasok: beadasRefek.length };
+}
+
+/**
+ * Az egész csoport: a linkjei (előbb lezárva, hogy közben ne jöhessen új beadás), az összes beadása
+ * az értékelésekkel, a diákjai és a becenév-hozzárendelések. A feladatok megmaradnak. Nem egy
+ * tranzakció (egy csoportnak sok beadása lehet): ha félbeszakad, újra indítható – ugyanott folytatja.
+ */
+async function csoportTorlesLogika(firestore, uid, adat) {
+  const csRef = await sajatCsoportRef(firestore, uid, adat?.csoportId);
+  const beadasokQ = firestore.collection("beadasok").where("tanar_id", "==", uid).where("csoport_id", "==", csRef.id);
+  const linkek = await firestore.collection("linkek").where("tanar_id", "==", uid).where("csoport_id", "==", csRef.id).get();
+
+  if ((await beadasokQ.get()).docs.some((d) => feldolgozasAlatt(d.data()))) {
+    throw hiba("failed-precondition", "csoport_feldolgozas_alatt");
+  }
+  for (const l of linkek.docs) {
+    if (l.data().lezarva !== true) await l.ref.update({ lezarva: true, lezarva_at: FieldValue.serverTimestamp() });
+  }
+  // A lezárás után újra lekérdezve: a lezárás előtti pillanatban beérkezett beadás is törlődjön.
+  const beadasok = await beadasokQ.get();
+  for (const d of beadasok.docs) await firestore.recursiveDelete(d.ref);
+  for (const l of linkek.docs) await firestore.recursiveDelete(l.ref);
+  await firestore.recursiveDelete(csRef);
+
+  const eredmeny = { beadasok: beadasok.size, linkek: linkek.size };
+  logger.info("Csoport törölve", { tanar: uid, csoport: csRef.id, ...eredmeny });
+  return { torolve: true, ...eredmeny };
+}
+
+exports.beadasTorles = onCall(HIVAS_OPCIOK, async (request) => {
+  return beadasTorlesLogika(db(), tanar(request), request.data);
+});
+exports.csoportDiakTorles = onCall(HIVAS_OPCIOK, async (request) => {
+  return csoportDiakTorlesLogika(db(), tanar(request), request.data);
+});
+exports.csoportTorles = onCall({ ...HIVAS_OPCIOK, timeoutSeconds: 300 }, async (request) => {
+  return csoportTorlesLogika(db(), tanar(request), request.data);
+});
+
+Object.assign(exports._teszt, { beadasTorlesLogika, csoportDiakTorlesLogika, csoportTorlesLogika });
 
 Object.assign(exports._teszt, { csoportDiakOsszevonasLogika, csoportBeadasLevalasztasLogika });
 

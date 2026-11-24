@@ -64,11 +64,12 @@
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import { csoportRendezes, csoportNevTisztitas, CSOPORT_NEV_MAX } from './js/csoport.js';
   import {
-    db, collection, doc, addDoc, updateDoc, query, where, onSnapshot, serverTimestamp
+    db, functions, httpsCallable, collection, doc, addDoc, updateDoc, query, where, onSnapshot, serverTimestamp
   } from './js/firebase-config.js';
 
   const { user, admin } = await vedettOldal('tanar');
   oldalsav('csoportok.html', { admin });
+  const csoportTorles = httpsCallable(functions, 'csoportTorles');
 
   const lista = document.getElementById('lista');
   let csoportok = [];
@@ -117,6 +118,7 @@
         <button class="btn-sm" data-szerkeszt="${esc(cs.id)}">${t('cs.atnevezes')}</button>
         <button class="btn-sm" data-aktiv="${esc(cs.id)}" data-ertek="${cs.aktiv === false ? '1' : '0'}">
           ${cs.aktiv === false ? t('cs.visszaallitas') : t('cs.archivalas')}</button>
+        <button class="btn-sm danger" data-torol="${esc(cs.id)}" title="${esc(t('cs.torles_tipp'))}">${t('cs.torles')}</button>
       </div>
     </div>`;
   }
@@ -160,6 +162,23 @@
       try {
         await updateDoc(doc(db, 'csoportok', b.dataset.aktiv), { aktiv: aktivLesz });
       } catch (err) { uzenet('msg', hibaSzoveg(err)); }
+    }));
+    // Végleges törlés (2026-11-24): az összes diákkal és beadással – a csoport nevét kell beírni.
+    lista.querySelectorAll('[data-torol]').forEach((b) => b.addEventListener('click', async () => {
+      uzenetTorles('msg');
+      const cs = csoportok.find((c) => c.id === b.dataset.torol);
+      if (!cs) return;
+      const beirt = prompt(t('cs.torles_kerdes', { nev: cs.nev }));
+      if (beirt === null) return;
+      if (csoportNevTisztitas(beirt) !== csoportNevTisztitas(cs.nev)) { uzenet('msg', t('cs.torles_nem_egyezik')); return; }
+      const vissza = gombVar(b, t('cs.torles_folyamat'));
+      try {
+        const { data } = await csoportTorles({ csoportId: cs.id });
+        uzenet('msg', t('cs.torolve', { nev: cs.nev, db: data.beadasok }), 'success');
+      } catch (err) {
+        uzenet('msg', hibaSzoveg(err));
+        vissza();
+      }
     }));
   }
 

@@ -28,7 +28,8 @@ const MINDEN_KAPUS = {
     "feladatlapElemzes", "beadasUjrafuttatas",
     "visszajelzesJovahagyas", "feladatElemzes", "kreditAllapot",
     "temaBeallitas", "linkInditas", "linkLezaras", "ertekelesInditas",
-    "csoportDiakOsszevonas", "csoportBeadasLevalasztas", "csoportFejlodesLista", "csoportFejlodesDiak"
+    "csoportDiakOsszevonas", "csoportBeadasLevalasztas", "csoportFejlodesLista", "csoportFejlodesDiak",
+    "beadasTorles", "csoportDiakTorles", "csoportTorles"
   ],
   admin: ["felhasznalokListaja", "szerepBeallitas", "aiHasznalatJelentes"],
   // Belépés NÉLKÜL hívható (a diák a feladatlinken): a jogosultság a token, a függvény maga ellenőrzi

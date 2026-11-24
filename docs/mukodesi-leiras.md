@@ -224,6 +224,15 @@ nem) névvel menthető, betölthető, törölhető; tanáronként külön.
 
 - „Beadva” szűrőben: **„✨ Az összes beadott értékelése (N)”**, soronként **„✨ Értékelés indítása”** (mind a sorba megy).
 - 🔄 **Újra** *(hibás vagy jóváhagyásra váró beadásnál)*: újra lefuttatja az értékelést, és felülírja az előzőt.
+- ⬇️ **Letöltés** *(minden beadásnál, 2026-11-24)*: az eredmény UTF-8 szövegfájlként (`feladat_becenév_dátum.txt`,
+  a böngésző állítja össze, `public/js/beadas-export.js`): feladat, becenév, beadás ideje, a tanár elküldött
+  visszajelzése (pont, jegy, szempontok, szöveg) – ha még nincs elküldve, az AI javaslata, megjelölve –, és a diák
+  szövege. Az írás közbeni jelzések nincsenek benne.
+- 🗑️ **Törlés** *(nem feldolgozás alatt, 2026-11-24)*: megerősítés után végleges törlés (`beadasTorles`). Egy
+  tranzakcióban törlődik a beadás, a becenév-foglalás a linken (élő linken a diák újra beadhat) és csökken a link
+  számlálója; csoportos linknél a csoport diákja is megszűnik a becenév-hozzárendeléseivel, ha ez volt az utolsó
+  beadása. Utána az értékelés (`ertekeles/ai`, `ertekeles/tanari`). A diák linkje ettől kezdve érvénytelen. Az
+  elhasznált kredit nem jár vissza; az AI-használati napló (költség, szöveg nélkül) és a feladat osztályelemzése marad.
 
 #### A részletes ablak
 
@@ -246,8 +255,13 @@ szerepel a skálán, a pontokat a feladat szempontjaihoz szorítja, majd egyszer
 
 ### 4.5 Csoportok és fejlődéskövetés
 
-**Csoportok (`csoportok.html`):** új csoport (név, 1–60 karakter), átnevezés, archiválás/visszaállítás; törölni nem
-lehet (a linkek és a beadások hivatkoznak rá). Minden csomagban elérhető. Soronként „👤 Diákok”.
+**Csoportok (`csoportok.html`):** új csoport (név, 1–60 karakter), átnevezés, archiválás/visszaállítás. Minden
+csomagban elérhető. Soronként „👤 Diákok”.
+
+- **🗑️ Törlés** *(2026-11-24)*: a csoport nevének beírásával megerősítve, véglegesen (`csoportTorles`). Előbb lezárja a
+  csoport linkjeit (közben ne jöhessen új beadás), majd törli a csoport összes beadását az értékelésekkel, a linkjeit,
+  a diákjait és a becenév-hozzárendeléseket; a feladatok megmaradnak. Ha a csoportnak van értékelés alatt álló
+  beadása, nem indul el (`csoport_feldolgozas_alatt`). Nem egy tranzakció: ha félbeszakad, újraindítható.
 
 **Párosítás becenév szerint.** Csoportos linken a beadáskor a szerver (ugyanabban a tranzakcióban) megnézi a becenév
 kulcsát a csoportban: ismert becenév → a meglévő diákhoz kerül, új becenév → új diák. A diák neve az első
@@ -262,6 +276,10 @@ becenév-alakok, az utolsó beadás ideje.
   becenévvel, a becenév is átköltözik (egy téves összevonás így visszacsinálható); ha van (két diák írt ugyanazzal a
   becenévvel), a következő ilyen beadás a régihez kerül, és a tanár teszi át kézzel.
 - Mindkettő szerverfüggvény (`csoportDiakOsszevonas`, `csoportBeadasLevalasztas`), tranzakcióban a beadásokkal együtt.
+- **⬇️ Letöltés / 🗑️ Törlés** beadásonként *(2026-11-24)*: ugyanaz, mint a javítási sorban (4.4).
+- **🗑️ Diák törlése** *(2026-11-24, ha egyik beadása sincs értékelés alatt)*: megerősítés után, egy tranzakcióban
+  (`csoportDiakTorles`, legfeljebb 150 beadás): a diák összes beadása, a becenév-foglalások a linkeken és a link
+  számlálói, a becenév-hozzárendelések és maga a diák; utána az értékelések.
 
 **Fejlődés (Profi csomag):** a diák fejlécében az utolsó eredmény és az irány (▲ javul / ▼ romlik / ▬ változatlan;
 5 százalékpont alatt változatlan); a **„📈 Fejlődés”** gomb alatt:

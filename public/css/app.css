@@ -514,7 +514,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
 }
 .list-card h3 { font-weight: 500; font-size: 0.95rem; margin-bottom: 0.25rem; }
 .list-card-meta { font-size: 0.8rem; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
-.list-card-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+.list-card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; flex-shrink: 0; }
 
 .feladat-kod {
   font-family: 'Syne', sans-serif;

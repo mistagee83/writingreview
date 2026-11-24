@@ -968,3 +968,137 @@ test("takarítás: a 12 hónapja nem beadó csoport-diák és a becenevei törl�
   assert.equal((await cs.get()).exists, true, "a csoport megmarad");
   await csoportTorles("cst");
 });
+
+// ══════════════════════════════════════════
+// BEADÁS TÖRLÉSE (beadasTorles, 2026-11-24) – a tanár a javítási sorból véglegesen törli
+// ══════════════════════════════════════════
+
+test("törlés: a beadás az értékeléssel együtt törlődik, a becenév felszabadul, a számláló csökken", async () => {
+  const { token, linkId } = await diakLink();
+  const { diakToken } = await beadas(token);
+  const masik = await beadas(token, { becenev: "Zöld Béka" });
+  const id = await lenyomat(diakToken);
+  const ref = firestore.collection("beadasok").doc(id);
+  await ref.collection("ertekeles").doc("ai").set({ diak_szoveg: "AI" });
+  await ref.update({ statusz: "javitva" });
+  await logika.jovahagyasLogika("tanar-uid", { beadasId: id, jegy: 4, szoveg: "Szép munka!" });
+
+  assert.deepEqual(await logika.beadasTorlesLogika(firestore, "tanar-uid", { beadasId: id }), { torolve: true, csoportDiakTorolve: false });
+  assert.equal((await ref.get()).exists, false);
+  assert.equal((await ref.collection("ertekeles").get()).size, 0, "az AI- és a tanári értékelés is törlődik");
+  const link = firestore.collection("linkek").doc(linkId);
+  assert.equal((await link.get()).data().beadas_db, 1);
+  assert.equal((await link.collection("becenevek").doc("keksarkany").get()).exists, false, "a becenév újra szabad");
+  assert.equal(await kodja(() => logika.diakVisszajelzesLogika(firestore, { token: diakToken })), "diaklink_ervenytelen");
+  // a másik diák beadása érintetlen, és ugyanazzal a becenévvel újra be lehet adni
+  assert.equal((await firestore.collection("beadasok").doc(await lenyomat(masik.diakToken)).get()).exists, true);
+  await beadas(token);
+  assert.equal((await link.get()).data().beadas_db, 2);
+});
+
+test("törlés: idegen tanár, ismeretlen és rossz azonosító elutasítva; feldolgozás alatt nem törölhető", async () => {
+  const { token } = await diakLink();
+  const { diakToken } = await beadas(token);
+  const id = await lenyomat(diakToken);
+  const ref = firestore.collection("beadasok").doc(id);
+  assert.equal(await kodja(() => logika.beadasTorlesLogika(firestore, "masik-tanar", { beadasId: id })), "beadas_nincs");
+  assert.equal(await kodja(() => logika.beadasTorlesLogika(firestore, "tanar-uid", { beadasId: "f".repeat(64) })), "beadas_nincs");
+  for (const rossz of [undefined, "", "../x", 42]) {
+    assert.equal(await kodja(() => logika.beadasTorlesLogika(firestore, "tanar-uid", { beadasId: rossz })), "beadas_id_kell", String(rossz));
+  }
+  for (const statusz of ["sorban", "folyamatban"]) {
+    await ref.update({ statusz });
+    assert.equal(await kodja(() => logika.beadasTorlesLogika(firestore, "tanar-uid", { beadasId: id })), "beadas_folyamatban", statusz);
+  }
+  assert.equal((await ref.get()).exists, true);
+  await ref.update({ statusz: "hiba" });
+  await logika.beadasTorlesLogika(firestore, "tanar-uid", { beadasId: id });
+  assert.equal((await ref.get()).exists, false, "hibás állapotban törölhető");
+});
+
+test("törlés: a csoport diákja az utolsó beadásával megszűnik (a becenév-hozzárendeléssel), korábbi beadás mellett marad", async () => {
+  const l1 = await csoportosLink();
+  const l2 = await csoportosLink();
+  const elso = await beadas(l1.token, { becenev: "Peti" });
+  const masodik = await beadas(l2.token, { becenev: "Peti" });
+  const diakId = (await beadasAdat(elso.diakToken)).csoport_diak_id;
+  const cs = firestore.collection("csoportok").doc("csp");
+
+  const r1 = await logika.beadasTorlesLogika(firestore, "tanar-uid", { beadasId: await lenyomat(masodik.diakToken) });
+  assert.equal(r1.csoportDiakTorolve, false);
+  assert.equal((await cs.collection("diakok").doc(diakId).get()).exists, true, "van még beadása");
+
+  const r2 = await logika.beadasTorlesLogika(firestore, "tanar-uid", { beadasId: await lenyomat(elso.diakToken) });
+  assert.equal(r2.csoportDiakTorolve, true);
+  assert.equal((await cs.collection("diakok").doc(diakId).get()).exists, false);
+  assert.equal((await cs.collection("becenevek").doc("peti").get()).exists, false);
+  assert.equal((await cs.get()).exists, true, "a csoport megmarad");
+  await csoportTorles();
+});
+
+test("diák törlése: minden beadása (értékeléssel), becenevei és foglalásai törlődnek; a többi diák és a csoport marad", async () => {
+  const l1 = await csoportosLink();
+  const l2 = await csoportosLink();
+  const p1 = await beadas(l1.token, { becenev: "Peti" });
+  const p2 = await beadas(l2.token, { becenev: "Peti" });
+  const masik = await beadas(l1.token, { becenev: "Anna" });
+  const diakId = (await beadasAdat(p1.diakToken)).csoport_diak_id;
+  const p1Ref = firestore.collection("beadasok").doc(await lenyomat(p1.diakToken));
+  await p1Ref.collection("ertekeles").doc("tanari").set({ szoveg: "x" });
+  const cs = firestore.collection("csoportok").doc("csp");
+
+  assert.equal(await kodja(() => logika.csoportDiakTorlesLogika(firestore, "masik-tanar", { csoportId: "csp", diakId })), "csoport_nincs");
+  await p1Ref.update({ statusz: "folyamatban" });
+  assert.equal(await kodja(() => logika.csoportDiakTorlesLogika(firestore, "tanar-uid", { csoportId: "csp", diakId })), "beadas_folyamatban");
+  await p1Ref.update({ statusz: "elkuldve" });
+
+  assert.deepEqual(await logika.csoportDiakTorlesLogika(firestore, "tanar-uid", { csoportId: "csp", diakId }), { torolve: true, beadasok: 2 });
+  assert.equal((await p1Ref.get()).exists, false);
+  assert.equal((await p1Ref.collection("ertekeles").get()).size, 0);
+  assert.equal((await firestore.collection("beadasok").doc(await lenyomat(p2.diakToken)).get()).exists, false);
+  assert.equal((await cs.collection("diakok").doc(diakId).get()).exists, false);
+  assert.equal((await cs.collection("becenevek").doc("peti").get()).exists, false);
+  for (const l of [l1, l2]) {
+    assert.equal((await firestore.collection("linkek").doc(l.linkId).collection("becenevek").doc("peti").get()).exists, false);
+  }
+  assert.equal((await firestore.collection("linkek").doc(l1.linkId).get()).data().beadas_db, 1, "csak Peti beadása vonódik le");
+  assert.equal((await firestore.collection("beadasok").doc(await lenyomat(masik.diakToken)).get()).exists, true);
+  assert.equal((await csDiakok()).length, 1);
+  assert.equal(await kodja(() => logika.csoportDiakTorlesLogika(firestore, "tanar-uid", { csoportId: "csp", diakId })), "csoport_diak_nincs");
+  await csoportTorles();
+});
+
+test("csoport törlése: diákok, beadások (értékeléssel) és a csoport linkjei törlődnek; a feladat, a más csoport és a sima link marad", async () => {
+  const l1 = await csoportosLink();
+  const a = await beadas(l1.token, { becenev: "Peti" });
+  const aRef = firestore.collection("beadasok").doc(await lenyomat(a.diakToken));
+  await aRef.collection("ertekeles").doc("ai").set({ diak_szoveg: "x" });
+  await beadas(l1.token, { becenev: "Anna" });
+  const masCs = await csoportosLink("masik");
+  const marad = await beadas(masCs.token, { becenev: "Peti" });
+  const sima = await diakLink();
+  const simaBeadas = await beadas(sima.token, { becenev: "Bori" });
+
+  assert.equal(await kodja(() => logika.csoportTorlesLogika(firestore, "masik-tanar", { csoportId: "csp" })), "csoport_nincs");
+  await aRef.update({ statusz: "sorban" });
+  assert.equal(await kodja(() => logika.csoportTorlesLogika(firestore, "tanar-uid", { csoportId: "csp" })), "csoport_feldolgozas_alatt");
+  assert.equal((await firestore.collection("linkek").doc(l1.linkId).get()).data().lezarva, false, "elutasításkor a link sem zárul le");
+  await aRef.update({ statusz: "javitva" });
+
+  assert.deepEqual(await logika.csoportTorlesLogika(firestore, "tanar-uid", { csoportId: "csp" }), { torolve: true, beadasok: 2, linkek: 1 });
+  const cs = firestore.collection("csoportok").doc("csp");
+  assert.equal((await cs.get()).exists, false);
+  assert.equal((await cs.collection("diakok").get()).size, 0);
+  assert.equal((await cs.collection("becenevek").get()).size, 0);
+  assert.equal((await aRef.get()).exists, false);
+  assert.equal((await aRef.collection("ertekeles").get()).size, 0);
+  assert.equal((await firestore.collection("linkek").doc(l1.linkId).get()).exists, false);
+  assert.equal((await firestore.collection("linkek").doc(l1.linkId).collection("becenevek").get()).size, 0);
+  assert.equal(await kodja(() => beadas(l1.token, { becenev: "Új" })), "link_ervenytelen", "a csoport linkjén nem lehet többé beadni");
+  assert.equal((await firestore.collection("feladatok").doc("df1").get()).exists, true, "a feladat marad");
+  assert.equal((await firestore.collection("beadasok").doc(await lenyomat(marad.diakToken)).get()).exists, true);
+  assert.equal((await firestore.collection("beadasok").doc(await lenyomat(simaBeadas.diakToken)).get()).exists, true);
+  assert.equal((await firestore.collection("linkek").doc(masCs.linkId).get()).exists, true);
+  assert.equal((await csDiakok("masik")).length, 1);
+  await csoportTorles("masik");
+});
