@@ -1,7 +1,11 @@
 # WritingReview – folytatás másik gépen
 
-*Állapot: 2026-10-05 (pilot + prod élesben, végigpróbálva; CI/CD kész). Ez a jegyzet azt írja le, hol tart a projekt, hogyan lehet másik gépen
-folytatni, és mi a következő lépés. A program működéséről a
+*Állapot: 2026-11-24. A **prod** a `mrashub` projektben fut (`https://review.mrandrewshub.com`, codebase `wr`), a
+legutóbbi kiadás a **`v2.2.1`** (`3446fee`, 2026-11-23, GitHub Actions, a tulajdonos szerint lement); a `main` ezzel azonos.
+A **pilot** a `pilot` ágon, a `writingreview-41e59` projektben, változatlanul. A régi `writerev2` prod üres, a hub 5.
+fázisában áll le. Ez a jegyzet azt írja le, hol tart a projekt, hogyan lehet másik gépen
+folytatni, és mi a következő lépés. (Az 1–5. pont régebbi részei a `writerev2`-es időkből valók; ahol ellentmondanak,
+a fenti 0000–00. pont az érvényes.) A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
 
 ## 0000. Egy hub-fiók: egy kattintás a hubról (2026-11-20) – **élesítve** (hosting, `3953086`), valódi fiókkal még nincs kipróbálva
@@ -13,7 +17,7 @@ folytatni, és mi a következő lépés. A program működéséről a
 - **Nyelv (2026-11-20, a tulajdonos döntése):** a prod angolul nyit magyar böngészőben is (a böngésző nyelvét nem nézzük, `i18n.js`); a pilot alapnyelve marad a magyar; a nyelvválasztó megmarad.
 - Ellenőrizve: `npm test` (emulátor) 631 zöld, `node scripts/build.mjs` (a `js/hub/sso.*.js` hashelve). Böngészőben és élesben még nincs kipróbálva. Deploy: `node scripts/deploy.mjs prod --yes --only hosting` (csak kérésre).
 
-## 000. Költözés a mrashub-projektbe (hub 4d, 2026-11-17) – kód kész, nincs deployolva
+## 000. Költözés a mrashub-projektbe (hub 4d, 2026-11-17) – **kész, élesben** (a `v2.1.0` óta; CI a mrashub-ba deployol)
 
 A `main` (prod) a közös `mrashub` projektbe költözik (Mr. Andrew's EdTech Hub): a kvóta és a saját Stripe/számlázz.hu
 helyett a hub kreditjei és Hub passa, codebase `wr`, hosting site `mrashub-review`. A szabályokat a hub repója telepíti.
@@ -61,11 +65,11 @@ beadás utáni nyugtán a diák linkje csak másolható/QR volt. Most kattinthat
 ugyanazon az eszközön visszajön a feladatlinkre, a nyugta megkérdezi a `diakVisszajelzes`-t: jóváhagyás után ott is
 megjelenik a visszajelzés (közös nézet: `public/js/visszajelzes-nezet.js`; „Frissítés” gomb, folyamatos lekérdezés nincs).
 Teszt: `tests/iras-nyugta.test.mjs`. A pilotot nem érinti (ott nincs feladatlink).
-**Írófelület: mentés, visszavonás, íróüzem (2026-11-23, commitolva, NINCS kiadva):** egy diák véletlenül kijelölte
+**Írófelület: mentés, visszavonás, íróüzem (2026-11-23, KIADVA: `v2.2.0`, majd a mentésjelzés javításával `v2.2.1`, hosting + functions; élőben diákkal még nincs kipróbálva):** egy diák véletlenül kijelölte
 és törölte a szövegét, az automatikus mentés az üreset mentette. Új: látható mentésjelzés és figyelmeztetés privát
 ablakban, „Visszavonás” gomb, törlésvédelem (visszaállító sáv, újratöltés után is), íróüzem (teljes képernyő, behajtható
 feladat, nagyobb betű, szószám-sáv), és a beadott szöveg megnyitható a nyugtán és a diáklinken. A `diakVisszajelzes`
-változott (a várakozó válasz is visszaadja a diák szövegét): **hosting + functions kiadás kell** (`--only hosting,functions:wr`, mrashub). Tesztek:
+változott (a várakozó válasz is visszaadja a diák szövegét): a kiadás ezért hosting + functions volt (`--only hosting,functions:wr`, mrashub). Tesztek:
 `tests/iras-szerkeszto.test.mjs`, `iras-nyugta`, `iras-jelzes`, `functions` (a teljes sor az emulátorokkal: 644/644).
 Helyi, Firebase-helyettesítős előnézetben ellenőrizve (asztali és telefonos méret). A pilotot nem érinti.
 Ugyanekkor a `public/js/hub/sso.js` másolata a hub mostani `shared/sso.js`-ére frissült (`node scripts/hub-masolat.mjs D:/dev/Edtechhub`:
@@ -75,7 +79,10 @@ belépőkód csak az appok belépőoldalaira, WordNerd és Potluck az app-origin
 **Munka előtt:** `git pull` (és `npm ci` a `functions`/`tests` mappában, ha a lockfájl változott). A OneDrive a másik gép
 munkafájljait átszinkronizálja, a git-állapotot nem: 2026-11-23-án ettől látszott félkésznek a már kész hub-költözés.
 
-**8e – teendők a bekapcsoláshoz (tulajdonos, a `writerev2` projektben, ebben a sorrendben):**
+**8e – teendők a bekapcsoláshoz (tulajdonos, ebben a sorrendben).** *Figyelem: a lista még a `writerev2`-re készült;
+a prod azóta a `mrashub`-ban van, ezért a kulcs és az App Check-regisztráció a `mrashub`-ba kell, a címek
+`review.mrandrewshub.com`, `mrashub-review.web.app`, `mrashub-review.firebaseapp.com`, és a mrashub többi appjára is hat
+(egyeztetni a hubbal).*
 1. Google Cloud Console → *reCAPTCHA Enterprise* API engedélyezése, és egy **webes kulcs** (pontozásos, nem jelölőnégyzetes)
    a prod címeire: `writing-review.web.app`, `writerev2.web.app`, `writerev2.firebaseapp.com` (és az egyéni domain, ha lesz).
 2. Firebase-konzol → *App Check* → a webapp regisztrálása **reCAPTCHA Enterprise** szolgáltatóval, ezzel a kulccsal.
@@ -277,8 +284,8 @@ fejlődés-követés, osztályelemzés, színválasztó, új nyitóoldal (árak 
 
   | | **pilot** (a kollégák használják, éles munkára is) | **prod** (kereskedelmi, még üres) |
   |---|---|---|
-  | Firebase-projekt | `writingreview-41e59` | `writerev2` |
-  | Cím | <https://writingreview-41e59.web.app> | <https://writing-review.web.app> |
+  | Firebase-projekt | `writingreview-41e59` | `mrashub` (2026-11-17 előtt `writerev2`) |
+  | Cím | <https://writingreview-41e59.web.app> | <https://review.mrandrewshub.com> (régen <https://writing-review.web.app>) |
   | `firebase --project` alias | `pilot` (és `default`) | `prod` |
   | Alapnyelv | magyar | angol |
   | Firestore | `(default)`, `eur3` | `(default)`, `eur3` (lásd 5.) |
@@ -356,7 +363,7 @@ cd writingreview
 
 ## 5. Ismert hiányosságok és figyelmeztetések
 
-- **JAVÍTVA A `main`-EN (`e5e493a`), 2026-11-23; ÉLESRE A `v2.2.1` CÍMKÉVEL MEGY, A PROD-DEPLOY JÓVÁHAGYÁSÁIG A PRODON A RÉGI: a diák írófelületén (`iras.html`) a mentésjelzés ugráltatta a felületet.** A „Mentés…” ↔ „✓ Mentve … · 14:05” csere telefonon minden leütésnél új sorba törte az eszközsort. Most a felirat végig látszik, gépelés közben csak halványul, fix alapszélességű, nem törik. A `pilot` ágon ez az oldal nincs meg. Regressziós teszt: `tests/iras-szerkeszto.test.mjs` („mentésjelzés: …”).
+- **JAVÍTVA A `main`-EN (`e5e493a`), 2026-11-23; A PRODON KIADVA (`v2.2.1`): a diák írófelületén (`iras.html`) a mentésjelzés ugráltatta a felületet.** A „Mentés…” ↔ „✓ Mentve … · 14:05” csere telefonon minden leütésnél új sorba törte az eszközsort. Most a felirat végig látszik, gépelés közben csak halványul, fix alapszélességű, nem törik. A `pilot` ágon ez az oldal nincs meg. Regressziós teszt: `tests/iras-szerkeszto.test.mjs` („mentésjelzés: …”).
 - **JAVÍTVA A `main`-EN (`eb595d9`) ÉS A `pilot` ÁGON (`d5625be`), 2026-11-12; A PILOTBAN DEPLOYOLVA, A PRODON MÉG NEM: az AI-használat mérése a beírt dolgozatot nem
   számolta futásnak.** A jelentés (`functions/ai-hasznalat.js`, `jelentesOsszeallitas`) a javítási futást az átírási
   hívásnál számolta, a beírt dolgozatnak viszont nincs átírása: a költsége beszámított, a darabszáma nem, ezért a

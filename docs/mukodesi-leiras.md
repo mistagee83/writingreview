@@ -735,14 +735,15 @@ A kézírás-átírás és a kifejtős dolgozat próbáinak eredményei a pilot 
 
 ## 11. Állapot, hiányok, félretett ötletek
 
-### Állapot (2026-11-12)
+### Állapot (2026-11-24)
 
-- A prod-átalakítás 1–8e lépése kész (az App Check kikapcsolva) a `main`-en, **nincs deployolva**; a prod a régi (`v1.19.1`) kódon fut. Hátra:
-  8f (a régi adatok törlése és a kiadás). Lásd `prod-atalakitas-terv.md`.
+- A prod-átalakítás kész és élesben van (`v2.0.0`, 2026-11-13), a prod 2026-11-17 óta a közös `mrashub` projektben fut
+  (`review.mrandrewshub.com`, hub-kredit, lásd `mrashub-koltozes.md`); a legutóbbi kiadás a `v2.2.1` (a diák írófelülete).
+  Az App Check kódja kész, de ki van kapcsolva. Lásd `folytatas.md` és `prod-atalakitas-terv.md`.
 - Automatizált tesztek: az emulátor nélküli készlet és a Firebase-emulátort igénylő szabály-, függvény- és
   jogosultsági tesztek együtt ~700 teszt (`cd tests && npm test`, Java 21).
 - Az új folyamatot (link → beadás → értékelés → jóváhagyás → diáklink, csoport, fejlődés) **tesztek és helyi,
-  Firebase-helyettesítős előnézet** ellenőrizték; élő függvényekkel, valódi osztállyal még nem futott végig.
+  Firebase-helyettesítős előnézet** ellenőrizték, és a tulajdonos 2026-11-13-án élőben is végigpróbálta.
 
 ### Nincs meg (tudatosan)
 
