@@ -1,0 +1,98 @@
+{
+  "formatum_verzio": 1,
+  "id": "2013-okt-kozep",
+  "ev": 2013,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2013-10-17",
+  "kod": "1312",
+  "forras_fajlok": {
+    "feladatlap": "2013 - Középszintű októberi/k_angol_13okt_fl.pdf",
+    "utmutato": "2013 - Középszintű októberi/k_angol_13okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2013-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email applying for a kitchen hand job",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "You are spending 6 months in Melbourne on a scholarship. You would like to earn some money and you have found the following advertisement on the internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "Busy inner city Hotel seeks motivated, responsible individuals to join a great team as KITCHEN HANDS for a variety of tasks, from washing dishes and cutting food for meals which our expert chefs prepare to decorating fancy desserts",
+          "• temporary or permanent jobs available",
+          "• days, nights or weekends: work when it suits you",
+          "• flexible hours",
+          "• earn up to $26.11 per hour",
+          "Email Malcolm Hill, recruitment officer: malcolmh@pegasusgroup.com"
+        ],
+        "forras": "www.indeed.com.au/cmp/jobs/staff"
+      },
+      "teendo": "Write an email of 50-80 words to Mr Hill in which you apply for the job and",
+      "iranyito_szempontok": [
+        "say which task you would like to do,",
+        "ask about any necessary training,",
+        "say when and for how many hours a week you would like to work."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Mr Hill,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2013-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Myra about a summer acting job",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "Yesterday you received the following email from your 17-year-old American friend, Myra:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "One of my dreams has come true, and I’m still not entirely happy… Why does everything have to be so complicated? I need your help!",
+          "Two weeks ago my friend Vanessa came up to me and told me there was an audition for a play Tuesday night (she knew how much I was interested in acting). I went there and it turned out to be a summer job: we would be performing a play for little kids in daycares and the community center. It is sort of a big time commitment with all the rehearsals and performances several times a week. I'm already cast as a character! I must say I don’t even see it as a job, and even if it was unpaid I would still want to do it.",
+          "So, everything is great except that since I told my mom and dad that the performances will probably take my whole summer, they behave as if I let them down. They refuse to talk to me just because we have planned a big family vacation, the last one before I go to college next year, and now I may not be able to make it. You know how close I’ve always been to my parents, and I don’t want to be mean to them but I also feel I mustn’t miss this fantastic opportunity. Am I right? What do you think?"
+        ],
+        "forras": "www.allexperts.com/Teenage-Problems"
+      },
+      "teendo": "Write a letter of 100-120 words to Myra in which you",
+      "iranyito_szempontok": [
+        "congratulate Myra and ask about the play,",
+        "say what you think of the situation,",
+        "suggest ways of solving the conflict."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Myra,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

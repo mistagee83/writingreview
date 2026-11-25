@@ -1,0 +1,96 @@
+{
+  "formatum_verzio": 1,
+  "id": "2008-maj-kozep",
+  "ev": 2008,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2008-05-08",
+  "kod": "0803",
+  "forras_fajlok": {
+    "feladatlap": "2008. Középszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_08maj_fl.pdf",
+    "utmutato": "2008. Középszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_08maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2008-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Jack accepting a cookout invitation",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "You are studying in California and you’ve received the following invitation from one of your classmates, Jack Brown:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "Fire up the grill because it’s cookout season – Let’s get together, we don’t need a reason!",
+          "Oak Street Neighborhood Cookout",
+          "At the home of Sarah and William Brown",
+          "759 Oak Street",
+          "Friday,6:00 p.m."
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 50-80 words in which you",
+      "iranyito_szempontok": [
+        "politely accept the invitation;",
+        "ask how to get there; if you can bring your boyfriend/girlfriend; if you are supposed to bring anything."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Jack,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2008-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Martha about choosing a career",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You’ve received a letter from your English friend Martha. Here is the last part of it:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "Well, lately I have been getting told that I \"need to know what I want to be when I grow up\". I haven't got a clue. You know I like being outside, animals, drawing, photography, writing stories and poetry, I do enjoy maths, I ride horses – I’d like to have one, as a matter of fact, so any job you think of had better pay well, ha ha. Some things that I do not enjoy are office work, going from day to day with no excitement - and I don't want a job that will take me 10 years after leaving secondary school just to learn! Do you have any good ideas? Your help would be greatly appreciated!!!",
+          "Thanks",
+          "M"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 100-120 words to Martha in which you give her some advice, including the following:",
+      "iranyito_szempontok": [
+        "Recommend one job that you think might suit her.",
+        "Describe the advantages and possible disadvantages of this job.",
+        "Say if you personally would be interested in this job and why."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Martha,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

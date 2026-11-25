@@ -1,0 +1,93 @@
+{
+  "formatum_verzio": 1,
+  "id": "2010-okt-kozep",
+  "ev": 2010,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2010-10-21",
+  "kod": "1011",
+  "forras_fajlok": {
+    "feladatlap": "2010. Középszintű október-november érettségi/k_angol_10okt_fl.pdf",
+    "utmutato": "2010. Középszintű október-november érettségi/k_angol_10okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2010-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email inviting Jane to a wildlife photo exhibition",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "During your stay in London you have decided to see the following exhibition. You would like your friend Jane to go with you.",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "Every Friday evening from 6pm-9pm until November 29 you can see our 'Wildlife Photographer of the Year' exhibition at the Natural History Museum.",
+          "There is a champagne and cocktail bar serving Mexican food, where you can relax to the sounds of jazz, world and Latin music in the Central Hall, or visit the shop, with gift ideas.",
+          "London's most unique Friday night out at the Natural History",
+          "Museum."
+        ],
+        "forras": "http://www.timeout.com"
+      },
+      "teendo": "Write an email of 50-80 words to Jane in which you invite her to go with you next Friday. Include the following points:",
+      "iranyito_szempontok": [
+        "why you are interested in the exhibition;",
+        "why you think it will be a good programme for Friday night;",
+        "where and when you can meet."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Jane,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2010-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Email to Amy about a job interview",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have received the following email from your friend Amy.",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I decided to work at a travel agency during the summer holidays and I've got a job interview in a few days. I'm really worried about how to behave and everything. Am I right that you went to several interviews last year? If so, I hope you can give me some tips. I'd really appreciate it."
+        ],
+        "forras": "http://teenadvice.about.com"
+      },
+      "teendo": "Write an email of 100-120 words to Amy in which you",
+      "iranyito_szempontok": [
+        "ask for some details about the job she has applied for;",
+        "give her some general advice on how to behave; what to wear; what questions to expect at an interview."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Amy,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

@@ -1,0 +1,96 @@
+{
+  "formatum_verzio": 1,
+  "id": "2007-okt-emelt",
+  "ev": 2007,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2007-10-29",
+  "kod": "0621",
+  "forras_fajlok": {
+    "feladatlap": "2007. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_07okt_fl.pdf",
+    "utmutato": "2007. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_07okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2007-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to Robert choosing a London guided tour",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 150 words"
+      },
+      "helyzet": "You are going to visit your English friend, Robert, in the summer. He has sent you the following advertisements and wants to know which of the guided tours you would like to go on during your stay:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "\"Follow the Stars \" The London Film Locations Walk",
+        "bekezdesek": [
+          "On this walk we follow in the footsteps of Jude Law, Hugh Grant, Ralph Fiennes, Gwyneth Paltrow, Rene Zellweger and other stars of the big screen to discover some of London's film locations. London is providing the backdrop for an increasing number of films and on this tour we visit sites where movies such as \"Closer\", \"Four Weddings and a Funeral\", \" Bridget Jones' Diary\", \"Shakespeare in Love\", \"Notting Hill\", \"The Elephant Man\" and recent Bond movies have been made.",
+          "Gardens and a Green - Historic Kew",
+          "The Royal Botanical Gardens at Kew have just been made a World Heritage site but Kew has much more to offer. We'll learn about Kew Palace as a royal residence and discover the delights of Kew Green, where those who served at the palace made their homes. There's a chance to visit St Anne's Church, where famous artists were buried. All this plus fantastic riverside views."
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of about 150 words to Robert in which you include the following:",
+      "iranyito_szempontok": [
+        "Say which tour you would be most interested in",
+        "Give your reasons",
+        "Ask for more details of the tour you have chosen"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Robert,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2007-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Raphael about taking a year off",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "230 words"
+      },
+      "helyzet": "You have found an interesting Internet forum called This is your life where young people discuss important decisions which have changed or may change their lives. You have read the following question; you find it interesting and have decided to give your ideas:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Take a Year Off?",
+          "Question:",
+          "I am 17 years old and I'm just starting my senior year of high school. I have average grades, and good test scores. My problem is whether I should take a year off school after I graduate. I know what I would like to major in and what schools I'm interested in, but I'd also like to take a year off and work. I would appreciate any suggestions, and I'd like to know whether this would hurt my college chances.",
+          "Raphael, age 17"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 230 words to Raphael, in which you include the following:",
+      "iranyito_szempontok": [
+        "The advantages of taking a year off and how to make the most of it",
+        "How to avoid the possible dangers of interrupting your studies",
+        "If you have thought of taking a year off"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Raphael,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

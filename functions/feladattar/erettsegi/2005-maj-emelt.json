@@ -1,0 +1,95 @@
+{
+  "formatum_verzio": 1,
+  "id": "2005-maj-emelt",
+  "ev": 2005,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2005-05-12",
+  "kod": "0513",
+  "forras_fajlok": {
+    "feladatlap": "2005. Emeltszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_fl.pdf",
+    "utmutato": "2005. Emeltszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2005-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Ian about a conservation year in Africa",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "150 words"
+      },
+      "helyzet": "You and your British friend, Ian, have decided to spend a year after leaving school in an exotic country doing something different. He has sent you the following advertisement, which he found exciting, and wants your opinion about it.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "AFRICAN CONSERVATION OPPORTUNITIES",
+        "bekezdesek": [
+          "Tel: 0870 241 5816 Web site: www.ConservationAfrica.net",
+          "We arrange for motivated students to do conservation work in wildlife parks in Southern Africa, becoming involved in a wide range of conservation and research projects. Projects may include wildlife rehabilitation, game counts and monitoring, at times done on horseback. Dolphin and whale research may be part of the work programme."
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 150 words to Ian including the following points:",
+      "iranyito_szempontok": [
+        "if you are interested in taking part",
+        "if you think you are suitable for the job",
+        "if you need any more information to be able to decide"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ian,",
+      "oldalak": {
+        "feladatlap": [
+          38
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2005-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Louise about exam stress",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 200 words"
+      },
+      "helyzet": "In the “Exams” topic of the online magazine called The Problems of Life you found the following letter:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "”There is so much pressure placed on you to pass exams. I’m afraid of failing because I feel I would be letting my parents and my brother down if I didn’t do well.",
+          "I just sit there and read and revise for as long as I can. And when I go to bed afterwards, my mind is still going round and round and I can’t switch off.”",
+          "Louise, 18"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of about 200 words to Louise and give her some advice about how to avoid too much stress over exams. Include the following points:",
+      "iranyito_szempontok": [
+        "how to be positive",
+        "how to plan your work",
+        "how to relax",
+        "how to stay healthy"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Louise,",
+      "oldalak": {
+        "feladatlap": [
+          41
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

@@ -1,0 +1,103 @@
+{
+  "formatum_verzio": 1,
+  "id": "2005-nov-kozep",
+  "ev": 2005,
+  "idoszak": "nov",
+  "szint": "kozep",
+  "vizsga_datum": "2005-11-04",
+  "kod": "0521",
+  "forras_fajlok": {
+    "feladatlap": "2005. Hagyományos október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_05nov_fl.pdf",
+    "utmutato": "2005. Hagyományos október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_05nov_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2005-nov-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to Mark about the youth club programme",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "60 words"
+      },
+      "helyzet": "You are going to spend a month in Scotland as an exchange student. You are going to stay with a boy called Mark and his family. You have received a letter from Mark in which he asks if you are interested in any of the programmes of the Youth Club he is a member of:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "Conveniently located in the city-centre,",
+          "OUR YOUTH PROGRAMME",
+          "provides opportunities for young people to:",
+          "chill out in our dvd/tv/cinema room",
+          "access the internet via our broadband links",
+          "practice karaoke in our music room",
+          "engage in indoor-archery",
+          "practice game skills with playstations and other electronic games",
+          "participate in all sorts of sports",
+          "play snooker on full-size tables",
+          "take part in weekend trips away",
+          "If you require further information on any aspect of our youth programme then please contact our Youth & Community Worker."
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 60 words to Mark in which you include the following points:",
+      "iranyito_szempontok": [
+        "ask Mark to explain any of the activities you don’t know very well",
+        "choose two activities which you would be interested in doing",
+        "explain why you are interested in them"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Mark,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2005-nov-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Raoul about student jobs",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "120 words"
+      },
+      "helyzet": "You are a regular reader of a problem page on the Internet. Recently you have found the following letter:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I am a 17-year-old boy living with my mother and two sisters. My elder sister and my mother are working and my younger sister is still at school. I can see how difficult it is for my mother and sister to keep me and my younger sister comfortable and I want to help as much as I can although they say they don’t want me to. Can you suggest any ways which you or any of your friends know about by which I can earn some money?",
+          "Raoul"
+        ],
+        "forras": null
+      },
+      "teendo": "Give your opinion in a letter of 120 words including the following points:",
+      "iranyito_szempontok": [
+        "What do you think about doing a job as a student?",
+        "What jobs have you or any of your friends done?",
+        "What sort of experience was it?"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Raoul,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

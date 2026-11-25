@@ -1,0 +1,99 @@
+{
+  "formatum_verzio": 1,
+  "id": "2023-maj-emelt",
+  "ev": 2023,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2023-05-11",
+  "kod": "2312",
+  "forras_fajlok": {
+    "feladatlap": "2023  - Emeltszintű május/e_angol_23maj_fl.pdf",
+    "utmutato": "2023  - Emeltszintű május/e_angol_23maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2023-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Carl about ice skating courses",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are a visiting student at the University of Pittsburgh, US, and when one of your friends posts a couple of photos of himself skating and having a great time, you decide to have a go yourself. You have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Ice skating courses for adults in Pittsburgh",
+        "bekezdesek": [
+          "Whether you’re reigniting a childhood passion or just beginning your skating journey, Learn to Skate Pittsburgh® wants everyone to enjoy the magic of skating. The Adult curriculum is for anyone who wishes to improve their skills; it is designed for both beginning and experienced adult skaters, and you can join at the rink of your choice.",
+          "Participation in the program will help promote physical fitness and improve balance and coordination while teaching proper skating techniques. This is an exciting program for people who look at skating as an enjoyable part of a fit and healthy lifestyle.",
+          "Send us an email and tell us about your level and what course you have in mind. You can join a group or opt for individual coaching. We will find a tailored course for you near you wherever you live in Pittsburgh! You needn’t worry about the weather, as apart from outdoor rinks we can offer climatised indoor rinks open all year round as well.",
+          "Contact Carl: carl.hagen@learntoskatepittsburgh.us"
+        ],
+        "forras": "https://learntoskateusa.com/curriculum-detail-adult/"
+      },
+      "teendo": "Write an email of 120-150 words to Carl in which you",
+      "iranyito_szempontok": [
+        "tell him about the level of your skating skills,",
+        "say what kind of course you would like to take part in and how frequently you can go,",
+        "ask about the length of sessions, the necessary equipment, and fees."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Carl,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2023-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Post replying to Ida about a fortune teller",
+      "mufaj": "post",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have found the following post on the internet forum Do you believe in the paranormal?",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "My parents originally came from Poland, and I travelled a lot in my childhood. I have been living and studying in England since I was 12 and now I’m 17, preparing for my A-levels. My aunt Elvira has always been worried about my future since I attended so many different schools in different countries when I was younger. So, she decided to take me to this fortune teller whose speciality is diagnosing diseases just by holding your hand, as well as predicting your future (at least key events). The guy lives in a tiny village and has never travelled outside of it, nor does he have access to the internet. And, according to my aunt, unlike others who claim to be able to foresee the future, he’s a REAL clairvoyant and very good at his job.",
+          "With the exams coming up you become superstitious looking for ’signs’ even if you are pretty sceptical otherwise, so I thought why not? It sounded fun, a good way of both distracting myself and experiencing something new maybe.",
+          "However, as the day is approaching, I’m beginning to have doubts about whether it is really a good idea. If he predicts all sorts of positive things which never come true, well, I’ll be able to live with that. But what if he predicts that I’ll fail my exams or something even worse? Someone I love falling ill? Dying even? Will I be able to ignore it and continue my life without thinking about it all the time?",
+          "What should I do now? Shall I tell my aunt about my fears and make her cancel the appointment? What would you do?",
+          "Ida"
+        ],
+        "forras": "https://www.reddit.com/r/Paranormal/"
+      },
+      "teendo": "Write a post of 200-250 words replying to Ida in which you tell her",
+      "iranyito_szempontok": [
+        "what you think of paranormal abilities in general,",
+        "whether you know anyone who has had their future told,",
+        "if you think Ida’s aunt’s suggestion is a good idea,",
+        "what you think Ida should do."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Ida:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

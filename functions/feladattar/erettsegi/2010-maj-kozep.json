@@ -1,0 +1,107 @@
+{
+  "formatum_verzio": 1,
+  "id": "2010-maj-kozep",
+  "ev": 2010,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2010-05-06",
+  "kod": "0911",
+  "forras_fajlok": {
+    "feladatlap": "2010. Középszintű május-június érettségi/k_angol_10maj_fl.pdf",
+    "utmutato": "2010. Középszintű május-június érettségi/k_angol_10maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2010-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email applying to be in a TV ad",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "During your stay in London you have found the following advertisement on the internet and you decide to apply.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Multi-cultural cast wanted for tv ad - London",
+        "bekezdesek": [
+          "International production company looking for young people for a tv ad",
+          "Shoot dates: 22nd, 23rd or 24th June in central London",
+          "Payment details: £125 per day, to include all expenses",
+          "Cast details:",
+          "• 5 casually dressed males/ females aged 18-25",
+          "• 5 fashionably dressed females aged 18-25",
+          "• 5 smart/ business dressed males aged 18-25",
+          "Applications accepted by email until 16 June casting@itv.com"
+        ],
+        "forras": null
+      },
+      "teendo": "Write and email of 50-80 words in which you include the following:",
+      "iranyito_szempontok": [
+        "Introduce yourself and describe your level of English",
+        "Say why you are interested in the job",
+        "Ask for some more details about the task and the working hours"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Sir/ Madam,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2010-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Alex about voluntary work",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "Your British friend, Alex, has decided to do voluntary work in his hometown from September. He cannot make up his mind what to do and has sent you this list of the options so that you can help him decide:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "• Painting a local school.",
+          "• Visiting a local hospice.",
+          "• Conducting a story hour at a local children's centre.",
+          "• Helping in a local homeless shelter.",
+          "• Conducting a food or clothes drive for the needy.",
+          "• Spending an afternoon each week clearing rubbish from the local park.",
+          "• Training a youth sports team.",
+          "• Becoming involved in a local political campaign.",
+          "• Stocking shelves at the public library.",
+          "• Becoming a tutor at the nearby primary school."
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 100-120 words to Alex in which you include the following:",
+      "iranyito_szempontok": [
+        "Which activity do you think would be the most useful for the community and why?",
+        "Which one would be the most enjoyable for Alex and why?",
+        "Have you ever done/do you intend to do any voluntary work yourself?"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Alex,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

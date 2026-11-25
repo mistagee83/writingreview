@@ -1,0 +1,102 @@
+{
+  "formatum_verzio": 1,
+  "id": "2024-okt-kozep",
+  "ev": 2024,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2024-10-17",
+  "kod": "K2419",
+  "forras_fajlok": {
+    "feladatlap": "2024 - Középszintű október/k_angol_24okt_fl.pdf",
+    "utmutato": "2024 - Középszintű október/k_angol_24okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2024-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Sam accepting a 100th birthday invitation",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are staying in the UK and you have received the following invitation from your old friend, Sam:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "LOOK, WHO’S TURNING THE BIG 100!",
+          "I would like to invite you to my great‐grandma’s 100th birthday celebration. You have always been a special friend of mine and also my great‐grandma’s favourite; and because this is a very special moment for her and for our whole family, I’d really like you to be there to make this occasion all the more memorable.",
+          "The celebration will be taking place at the Red Lion Pub in Ascot at 12.00 p.m. on July 1st, and it will be followed by an informal lunch at the same premises.",
+          "If you need to know more about the event, you can always get in touch by phone or by email, I will be waiting to hear from you. Your presence at this celebration really means a lot to me and to all my family and I am looking forward to meeting you on this special day.",
+          "Hope to see you soon.",
+          "Best,",
+          "Sam"
+        ],
+        "forras": "https://www.pdffiller.com/497328158-?msclkid=7072eef7bbe91073f0a68d4ff752af50&utm_source=bing&utm_medium=cpc&utm_campaign=USLF_US_Top&utm_term=%2Blet"
+      },
+      "teendo": "Write an email of 80-100 words to Sam in which you",
+      "iranyito_szempontok": [
+        "accept the invitation,",
+        "ask about the dress code,",
+        "ask about the present you should bring."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Sam,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2024-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Alyssa about cheating in online exams",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have come across the following post on the problem page askaway.com:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Hi guys, I’m in my first year at uni and the exam period is coming up. One of my courses requires an online exam and I’ve been talking to a few of my classmates and found out that basically no one is planning to study much for it. On the contrary, they are planning to use anything and everything available (notes, parents, the internet) in order to pass. One of my friends even said, “Why bother to study if you can get good grades by cheating and everybody cheats on online exams anyway?”",
+          "Which got me thinking. I do like this subject, and I was planning on studying for the exam, however ridiculous that might sound. The teacher was really nice and fair, and I would feel bad if I wasn’t honest. My first idea was to talk to her about this, but then I realised that wouldn’t be too nice to the others.",
+          "Plus, if everybody cheats, it will result in a much higher average performance, putting anyone who doesn’t cheat at a disadvantage.",
+          "What do you think?",
+          "Alyssa, 19"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a comment of 100-120 words to Alyssa in which you tell her",
+      "iranyito_szempontok": [
+        "whether you have ever taken an online test or exam,",
+        "what you think about cheating at an online test or exam,",
+        "whether she should talk to her teacher about the situation, and",
+        "what you would do if you were in her shoes."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Alyssa,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

@@ -1,0 +1,100 @@
+{
+  "formatum_verzio": 1,
+  "id": "2023-maj-kozep",
+  "ev": 2023,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2023-05-11",
+  "kod": "2311",
+  "forras_fajlok": {
+    "feladatlap": "2023 - Középszintű május/k_angol_23maj_fl.pdf",
+    "utmutato": "2023 - Középszintű május/k_angol_23maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2023-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Message to Miranda about a day in Cambridge",
+      "mufaj": "message",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "Your English friend, Miranda invited you to stay with her for a day in Cambridge during your stay in Britain. She is offering you the following programmes to choose from:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "Visiting Ely Cathedral",
+          "Taking part in a guided tour of Trinity College",
+          "Going to a concert of the choir of King’s College",
+          "Punting on the River Cam"
+        ],
+        "forras": "https://www.timeout.com/cambridge/things-to-do/best-things-to-do-in-cambridge"
+      },
+      "teendo": "Write a message of 80-100 words to Miranda in which you thank her for the invitation and",
+      "iranyito_szempontok": [
+        "say which two programmes you would like to take part in,",
+        "explain why you have chosen them,",
+        "ask what time the programmes of your choice start, and how long they last."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Miranda,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": [
+        "A négy program a lapon képaláírás (fotók fölött); a szövegük teljes, a sorrend az oldalképről."
+      ]
+    },
+    {
+      "id": "2023-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Eliza about pets and kitchen hygiene",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have come across the following post on a problem page.",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "My boyfriend and I have been together for almost three months. Everything went fine until last week, when he invited me to meet his parents on his birthday. I had never been to his house before and was really nervous about meeting his parents for the first time. They turned out to be lovely people; kind and generous hosts, and we got along really well, but – and here comes my problem – I have a real issue with their kitchen hygiene and have no idea what I can do about it or how to bring it up, if at all...",
+          "Here’s the thing: they have three cats and treat them almost like children - I have no issue with that by the way, I'm a cat person myself, but they let them climb all over all the kitchen surfaces while they're cooking. I've seen them pet the cats while they're cooking, including letting the cats lick their hands and stick their faces in the food, and then carry right on without even washing their hands. There was a lot of cat hair all over the kitchen and the dining table, and the cats were allowed to jump on the table and sniff around during the birthday dinner, as well. I know every family has different rules about pets in their home, but this seems off to me and the things I've mentioned really gross me out.",
+          "I have no idea what to do about any of this. For my boyfriend it seemed completely normal, and I don’t even know how to bring this up. What shall I do?",
+          "Eliza, 17"
+        ],
+        "forras": "https://ask-agony-aunt.livejournal.com/28928.html"
+      },
+      "teendo": "Write a comment of 100-120 words to Eliza in which you write about",
+      "iranyito_szempontok": [
+        "whether you have ever been in a similar situation,",
+        "what you think about pets and hygiene in the household,",
+        "how to handle uncomfortable situations in a relationship, and",
+        "what she should do in your opinion."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Eliza:",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

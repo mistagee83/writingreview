@@ -1,0 +1,113 @@
+{
+  "formatum_verzio": 1,
+  "id": "2025-okt-kozep",
+  "ev": 2025,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2025-10-16",
+  "kod": "K2511",
+  "forras_fajlok": {
+    "feladatlap": "2025 - Középszintű október/k_angol_25okt_fl.pdf",
+    "utmutato": "2025 - Középszintű október/k_angol_25okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2025-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Rob about borrowing hiking equipment",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are in Edinburgh and you have signed up for a full-day hiking tour in the Scottish Highlands. You have received a list of necessary equipment from the organisers and found that there are some items that you haven’t got. You hope that your Scottish friend, Rob, who is an experienced hiker, can help you:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "To wear:",
+          "• Boots (with ankle support and soles which will grip on rock, grass and mud)",
+          "• General trekking trousers (not jeans or cotton material)",
+          "• Thermal top",
+          "• Fleece top",
+          "To carry:",
+          "• Rucksack (about 35 litres)",
+          "• Waterproof jacket (with hood)",
+          "• Waterproof over trousers",
+          "• Warm hat",
+          "• Gloves or mitts",
+          "• Compass",
+          "• Map (waterproof or in waterproof case)",
+          "• Watch",
+          "• Torch (preferably a head torch)",
+          "• Whistle",
+          "• First Aid Kit (small)",
+          "• Mobile phone",
+          "• Food and drink"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 80-100 words to Rob in which you",
+      "iranyito_szempontok": [
+        "tell him why you have signed up for the Highland tour,",
+        "ask him if he can lend you 3 items (of your choice) from the list,",
+        "offer to go to his place to collect them any time that suits him."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Rob,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2025-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Annabel about lost headphones",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have come across the following post on TeenLine.",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "My name is Annabel, and I’ve found myself in a situation I can’t seem to deal with on my own.",
+          "I bought some really expensive headphones, which I’d been saving up for for quite a long time. Since my parents told me they were not something they were willing to buy for me, I had to put aside some money every week for three months to have enough to buy them. Eventually, I did, and I was over the moon, of course, and really felt it was worth it.",
+          "Last week, my cousin Patrick asked if he could borrow them for his class trip, where he wanted to listen to music on the train ride. Imagine my outrage and disappointment when instead of phoning, he just texted me that he had lost my brand new headphones. He didn’t even apologise or tell me how it happened, moreover, he completely ghosted me. He isn’t answering my texts or returning my calls at all since he told me. What shall I do? Don’t I deserve an explanation, an apology, or a new headset, for that matter? Any advice, anyone?",
+          "Annabel, 17"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a comment of 100-120 words to Annabel in which you tell her",
+      "iranyito_szempontok": [
+        "if you’ve ever been in a similar situation,",
+        "what you think of lending your valued possessions to friends or family members,",
+        "what you think of Patrick’s behaviour,",
+        "what Annabel should do."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Annabel,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

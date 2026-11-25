@@ -1,0 +1,101 @@
+{
+  "formatum_verzio": 1,
+  "id": "2022-okt-emelt",
+  "ev": 2022,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2022-10-20",
+  "kod": "2219",
+  "forras_fajlok": {
+    "feladatlap": "2022 - Emeltszintű október/e_angol_22okt_fl.pdf",
+    "utmutato": "2022 - Emeltszintű október/e_angol_22okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2022-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Adam about joining the badminton club",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are continuing your studies at the University of Edinburgh, which offers several sports activities for its students. You have come across the following on the website of the Sports Union.",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "This year is a better time than ever to become a part of one of the biggest and best clubs in Edinburgh!",
+          "Having grown massively in recent years, we offer badminton for all abilities.",
+          "For those just looking to come along and have a laugh, we have weekly training sessions where you can learn the basics from our experienced coaches while enjoying the company of the brilliant members of our club. You are also welcome to join us on our Friday night bowling parties or pub quizzes.",
+          "On a more competitive note, our five mixed teams compete in the Scottish leagues with two teams in the top two divisions. We also have a large number of teams competing in the local Edinburgh league.",
+          "So whether you have never held a racquet in your life or you fancy yourself as a bit of a hotshot, come along to our club and we guarantee you won’t want to leave.",
+          "CONTACT Adam at badminton@ed.ac.uk."
+        ],
+        "forras": "https://www.eusu.ed.ac.uk/organisation/badminton/"
+      },
+      "teendo": "Write an email of 120-150 words to Adam in which you",
+      "iranyito_szempontok": [
+        "introduce yourself and say whether you have done any sports before,",
+        "say how good you are at badminton and why you want to join the club,",
+        "ask about the time and place of the training sessions, and about the Friday night activities."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Adam,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2022-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Reply to Josh about an overprotective mother",
+      "mufaj": "reply",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have found the following post on the internet forum Slings and Arrows:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Josh:",
+          "I'm a 19-year-old guy and study in Aberdeen. My parents live outside Pitlochry and they rent a room for me next to the university so that I needn’t commute every day. We regularly speak on the phone; however, my mum sometimes feels the need to see me so she just jumps into her car and turns up on my doorstep unexpectedly. If I’m out, she leaves home-made food in plastic boxes in the fridge, sometimes does a quick clean or puts my clothes into the washing machine in the laundry room and I find her there chatting with one of my flatmates I hardly know while waiting for the drier to finish.",
+          "You may say she’s fantastic, that I’m very lucky and should be happy to have such a caring mum… BUT! Can you imagine what it feels like when, after a party, I choose to sleep in and miss a morning class or two and wake up at 10 a.m. to find my mum sitting reproachfully next to my bed, telling me in a really annoying way that I seem to have forgotten the sacrifice she and dad have made to make university possible for me. Whatever I say we’ll end up arguing, with her in tears and me furious and shouting.",
+          "Believe me, I really appreciate everything they are doing to support me but I also think that living on my own should mean the beginning of my independent life and they should accept this, let me off the leash and stop controlling me. I don’t mind if they want to know my timetable or have a key to my place as long as they respect my privacy and start treating me as an adult.",
+          "What do you think?"
+        ],
+        "forras": "https://www.teenhut.net/"
+      },
+      "teendo": "Write a reply of 200-250 words to Josh in which you tell him what you think",
+      "iranyito_szempontok": [
+        "of his mother’s attitude,",
+        "of his feelings,",
+        "it means to be an adult,",
+        "he should do to change this situation."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Josh:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

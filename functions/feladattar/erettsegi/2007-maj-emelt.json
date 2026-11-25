@@ -1,0 +1,95 @@
+{
+  "formatum_verzio": 1,
+  "id": "2007-maj-emelt",
+  "ev": 2007,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2007-05-10",
+  "kod": "0623",
+  "forras_fajlok": {
+    "feladatlap": "2007. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_07maj_fl.pdf",
+    "utmutato": "2007. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_07maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2007-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to Nigel about an orangutan volunteer project",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 130 words"
+      },
+      "helyzet": "Your British friend, Nigel, has sent you an advertisement about a volunteer project which he would like to take part in. He wants to know if you would be interested in going with him in your summer holidays:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Orangutan Foundation Volunteer Programme",
+        "bekezdesek": [
+          "The Orangutan Foundation's Volunteer Programme was established in 2000 in Tanjung Puting National Park, Kalimantan (Indonesian Borneo). Our programme is like no other and promises some exciting opportunities for adventurous individuals; not only do volunteers participate in conservation fieldwork, they also get a chance to see orangutans in their natural habitat.",
+          "The main target area of the programme will be the Foundation's release site for rehabilitated orangutans. Here we need help to build a new release camp to allow us to reintroduce more orangutans from our Care Centre.",
+          "Previous experience in the field is not necessary. You must be in good health and prepared to undertake manual work. Living conditions are basic and very remote. Each volunteer team runs for a set period of six weeks.",
+          "Note: Participants on the Volunteer Programme will not have direct contact with orangutans."
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of about 130 words to Nigel in which you tell him:",
+      "iranyito_szempontok": [
+        "What you like and what you don’t like about the project",
+        "Whether you would like to take part or not and what your reasons are",
+        "If you need any further information to decide"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Nigel,",
+      "oldalak": {
+        "feladatlap": [
+          33
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2007-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Dean about test anxiety",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 230 words"
+      },
+      "helyzet": "You have recently found an online forum called Test-taking problems on the Internet. You have found the following letter and decided to give your opinion:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I am usually a pretty good student. When I was in sixth grade and below I had no problems getting A's. I'm in the 7th grade now and I'm doing so badly! It's not the class work, or even homework. I understand the stuff we do. It's when we take tests that I do badly. Is it possible for me to understand the school work, but just do poorly on tests? Because I get nervous and worried when I'm about to take one? I'll be getting my report card soon, in 2 weeks. Is there any way for me to still get at least a B? I care about my grades and I'd appreciate any advice. Thanks.",
+          "Dean 17"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of about 230 words to Dean in which you include the following points:",
+      "iranyito_szempontok": [
+        "What makes tests so stressful",
+        "How you can cope with stress before and during tests What to do; What not to do",
+        "Any personal experience of you or one of your friends managing stress successfully"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Dean,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

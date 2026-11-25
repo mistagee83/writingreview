@@ -1,0 +1,87 @@
+{
+  "formatum_verzio": 1,
+  "id": "2025-maj-kozep",
+  "ev": 2025,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2025-05-08",
+  "kod": "K2512",
+  "forras_fajlok": {
+    "feladatlap": "2025 - Középszintű május/k_angol_25maj_fl.pdf",
+    "utmutato": "2025 - Középszintű május/k_angol_25maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2025-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Ms Bennett about a book you forgot to return",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "As a visiting student in Sunningdale England, you took part in an optional online course on English literature and you had to write an essay on Charlotte Brontë’s Jane Eyre. Your English teacher at school, Carol Bennett lent you an old edition of the book with her handwritten notes in it. The term finished two weeks ago and you were packing for holiday when you found the book on your desk and realised that you had forgotten to return it to Ms Bennett.",
+      "bemenet": null,
+      "teendo": "Write an email of 80-100 words to Ms Bennett in which you",
+      "iranyito_szempontok": [
+        "say thank you for the book and say how her notes were helpful,",
+        "apologise for the delay,",
+        "offer two ways of returning the book."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Bennett,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2025-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Cynthia about a family dessert tradition",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your American friend, Cynthia:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "My boyfriend Tim’s mother is very fussy about food and before every holiday she spends long days planning, shopping for and preparing the festive meal, particularly Thanksgiving dinner! This one being the third Thanksgiving Tim and I will spend together, they probably thought that I could be regarded as a family member so I was invited for the family dinner.",
+          "As I’m not particularly interested in cooking (understatement), Tim and I never talked about the details of these family meals, so imagine my horror last week, when he told me that according to a family tradition, his mother would ask all the females in the family (btw why the females??? in my family my father is the best cook) to send “samples“ of the desserts they plan to bring to the celebration so that she can test if they are good enough to make it to the “festive menu“. His mother hoped that I would also take the challenge, he added with a smile.",
+          "As you know very well, I’ve never prepared a dessert more complicated than a fruit salad but that has never been a problem (not with Tim either) and I don’t feel like making an effort to give a false impression. On the contrary: the more I think about it the more surreal this so-called family tradition seems to me and I’d like to back out somehow. But how? Any ideas???"
+        ],
+        "forras": "https://www.reddit.com/r /comments/z01vg2/aita"
+      },
+      "teendo": "Write an email of 100-120 words to Cynthia in which you tell her what you think of",
+      "iranyito_szempontok": [
+        "the family tradition of testing dessert-samples,",
+        "the fact that Cynthia is not very good at cooking,",
+        "her feelings about the situation,",
+        "what she should do now."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Cyn,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

@@ -1,0 +1,88 @@
+{
+  "formatum_verzio": 1,
+  "id": "2026-maj-kozep",
+  "ev": 2026,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2026-05-07",
+  "kod": "K2611",
+  "forras_fajlok": {
+    "feladatlap": "2026 - Középszintű május/k_angol_26maj_fl.pdf",
+    "utmutato": "2026 - Középszintű május/k_angol_26maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2026-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Dr Evans rescheduling a dental appointment",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are a visiting student in Iowa, and you have an appointment with a local dentist, Dr Evans. This would be your second visit, but you have just realized that you won’t be able to make it.",
+      "bemenet": null,
+      "teendo": "Write an email of 80-100 words to Dr Evans in which you",
+      "iranyito_szempontok": [
+        "remind him of who you are and when your original appointment is,",
+        "apologize and explain why you can’t go,",
+        "ask for a new appointment, suggesting the days of the week that suit you."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Dr Evans,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2026-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Santokh about his sister's eating habits",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have an online group with international friends you used to study with in Britain, and you have recently found the following message from Santokh, a boy from India.",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "Hi Guys, You saw photos of my younger sister, Sriti, from last year, but I bet you wouldn’t recognize her now.",
+          "She is thirteen and has always been well-rounded. Some family members have teased her about this for years, and I don’t think they realize how much it has hurt her. Now she is getting thinner and thinner, and I’m very worried. She never seems to eat properly, and I’ve heard her tell our mother that she has eaten at school or at a friend’s house when I know it isn’t true. At mealtimes, she keeps saying that she doesn’t like this and that, apparently, she no longer likes her once-favourite dishes either. Our parents don’t notice this because they are too busy with their own problems.",
+          "I’m concerned she may have developed an eating disorder or whatever you call it, but she won’t talk about it, and I don’t know what to do.",
+          "Santokh"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a comment of 100-120 words to Santokh in which you tell him",
+      "iranyito_szempontok": [
+        "if you think his sister is in danger,",
+        "if it is an older brother’s duty to do something in a situation like this,",
+        "what you think could be done (at least 2 options),",
+        "which of the above options you would personally prefer and why."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Santokh:",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

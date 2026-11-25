@@ -1,0 +1,106 @@
+{
+  "formatum_verzio": 1,
+  "id": "2019-maj-kozep",
+  "ev": 2019,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2019-05-09",
+  "kod": "1812",
+  "forras_fajlok": {
+    "feladatlap": "2019 - Középszint május/k_angol_19maj_fl.pdf",
+    "utmutato": "2019 - Középszint május/k_angol_19maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2019-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Liam choosing a Newcastle tour",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are going to visit your British friend Liam in Newcastle. He has sent you the descriptions of the following guided tours and asked you which one you would like to take part in during your stay:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "Newcastle United F.C. Stadium Tour",
+          "• Visit areas of St. James’ Park that are usually only open to players and officials",
+          "• See where players and managers are interviewed in the media suite",
+          "• Visit the home dressing room, and sit in your favourite player’s seat",
+          "Historical Walking Tour of Newcastle",
+          "• Learn about Newcastle’s history and landmarks from an informative guide",
+          "• Uncover Newcastle’s dark past and hear about the city’s most notorious ghosts, criminals and gangsters",
+          "• See top Newcastle attractions such as Grey’s Monument and the medieval Blackfriars monastery",
+          "Trip to Hadrian’s Wall, a spectacular World Heritage Site from our Roman past",
+          "• Walk along a Roman high street in Corbridge Roman Town",
+          "• See full-size reconstructions of a commander’s house and a barrack block",
+          "• Visit Ravenglass Roman Bathhouse, where tired soldiers took hot and cold baths"
+        ],
+        "forras": "https://www.tripadvisor.co.uk"
+      },
+      "teendo": "Write an email of 80-100 words to Liam in which you",
+      "iranyito_szempontok": [
+        "say which tour you are most interested in and why,",
+        "ask about the length of your chosen tour,",
+        "ask about the time your chosen tour starts and how much it costs."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Liam,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2019-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Benjamin about becoming a teacher",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have read the following post on an internet forum called Career Choice:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Hi everyone. I believe it’s time for me to open up a bit more to the community. And I'll do that by telling you all about what I plan to do once I get into college and sharing my career problem with you.",
+          "I want to get an English Major and teach English literature to elementary school children across the USA. All my life I have heard kids complain that they \"hate\" reading. Those are the kids I want to reach out to. I want to make America literate again! (Pretty awesome slogan, eh?)",
+          "The only problem is that all my family and friends say that the last career I should choose is a teacher’s. They say that a teacher should be hardworking and patient whereas I’m lazy and moody. Do you agree that these are the most important personality traits of a teacher? As simple as that? I’d like to know what you think.",
+          "Benjamin 18"
+        ],
+        "forras": "http://www.teenhut.net/thread/162709"
+      },
+      "teendo": "Write a comment of 100-120 words to Benjamin’s post including the following",
+      "iranyito_szempontok": [
+        "what you think of his plans for the future,",
+        "how important you think the two qualities of a teacher mentioned in the post are,",
+        "if you think Benjamin would make a good teacher,",
+        "if you think Benjamin should choose a different career and why/why not."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Benjamin:",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

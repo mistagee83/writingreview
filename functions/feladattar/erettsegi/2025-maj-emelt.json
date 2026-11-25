@@ -1,0 +1,109 @@
+{
+  "formatum_verzio": 1,
+  "id": "2025-maj-emelt",
+  "ev": 2025,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2025-05-08",
+  "kod": "E2512",
+  "forras_fajlok": {
+    "feladatlap": "2025 - Emeltszintű május/e_angol_25maj_fl.pdf",
+    "utmutato": "2025 - Emeltszintű május/e_angol_25maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2025-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Mr Koopman about volunteering at a donkey sanctuary",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You have always wanted to visit a Caribbean island and you have found the following advertisement. Since you are an animal lover, you think that volunteering in a sanctuary might be a good opportunity to stay on the island of Bonaire free:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Donkey Sanctuary Bonaire",
+        "bekezdesek": [
+          "We are looking for volunteers!",
+          "Do you love animals, are you not afraid of getting dirty and sweaty? You may want to help us as a volunteer! We are a family-run sanctuary providing a protected life for sick, injured and orphaned donkeys.",
+          "You are expected to:",
+          "• be between 17 and 50 years old (fit & in good health)",
+          "• come and help us for at least 6 weeks, because it takes time to settle in and to let the donkeys get used to you",
+          "• help out 5 days a week, from 7:30 AM to 5:00 PM",
+          "• speak English",
+          "You do not need to have any experience in animal care, but you should like donkeys and be willing to learn. We offer you:",
+          "• a choice of jobs: you can help to take care of the donkeys AND/OR receive tourists in the tourist center and lead guided tours in the donkey park",
+          "• free accommodation in simple but fully equipped houses in the middle of the site",
+          "• the possibility to come in pairs, if you have a friend who also wants to work as a volunteer",
+          "• insurance for your full stay and half board free on weekdays",
+          "Are you interested and would you like to know more?",
+          "Please contact Ed Koopman, staff officer: info@donkeysanctuary.com"
+        ],
+        "forras": "https://www.donkeysanctuary.org/vrijwilliger-of-stage?lang=en"
+      },
+      "teendo": "Write an email of 120-150 words to Mr. Koopman in which you",
+      "iranyito_szempontok": [
+        "introduce yourself and say which type of job (animal care, tourist guide or both) you are interested in and why,",
+        "specify how long you would like to stay and which months suit you best,",
+        "ask three questions about any details of this opportunity you are interested in."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Mr Koopman,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2025-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Karl about using his cousin's paper",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have received the following email from your friend Karl.",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "Hi,",
+          "I haven’t heard from you in a while, and I’ve found myself in a bit of a situation I would appreciate your opinion on.",
+          "You know we’ve got our Geography competition coming up and as part of it, I have to hand in an assignment about a chosen topic – volcanoes, yay! – that I’m supposed to write all on my own, do the research, summarise my findings, etc. You know me, I’m a procrastinator, and as you can imagine, I haven’t even started working on it yet. Yesterday, we had a big family lunch on my grandma’s birthday, where I told everyone what I was supposed to be working on, and to my surprise, my cousin Ove told me he had written a paper on the same topic in the previous semester at university. He offered to send it over to me, suggested that I should change a few things – including the name of the author, of course - and hand it in.",
+          "The deadline is coming up, and I’m starting to panic. I won’t be able to do the research properly before then anyway, so I’m leaning towards accepting it. It’s a university paper, after all, how cool would it be to use some parts of it... or maybe the whole thing? No one would find out, I’m sure, and everyone would do the same if they had the chance – or have chat GPT write their essay in the first place. What do you say? Is it cheating if I’m doing it with my cousin’s consent?",
+          "Karl"
+        ],
+        "forras": "https://www.thestudentroom.co.uk/showthread.php?t=750084"
+      },
+      "teendo": "Write an email of 200-250 words to Karl in which you write about",
+      "iranyito_szempontok": [
+        "whether you consider using his cousin’s paper cheating in the competition,",
+        "whether it is possible to have fair competitions in the era of the Internet and AI,",
+        "what kind of help you think it is acceptable to use in situations like this,",
+        "what you would do if you were in his shoes."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Karl,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

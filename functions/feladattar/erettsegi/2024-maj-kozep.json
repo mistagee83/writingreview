@@ -1,0 +1,64 @@
+{
+  "formatum_verzio": 1,
+  "id": "2024-maj-kozep",
+  "ev": 2024,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2024-05-09",
+  "kod": "K2412",
+  "forras_fajlok": {
+    "feladatlap": "2024 - Középszintű május/k_angol_24maj_fl.pdf",
+    "utmutato": "2024 - Középszintű május/k_angol_24maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2024-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Pavel about his girlfriend's blue hair",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your 18-year-old Polish friend, Pavel:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "You know how opinionated my mum is; she holds strong opinions about everything and there is no way to make her change her mind. The other day she started criticising my 16-year-old cousin, who dyed her hair strawberry blond. No doubt it meant, she said, that she was seeking attention, or maybe she had mental issues. and a psychologist should be called in before something even more terrible happens.",
+          "You know my girlfriend Dorota. She’s a quiet, withdrawn girl, always shy in the company of new people. So I was a bit worried when my mum decided that it was time the family got to know her and that she should be invited to the family celebration of my birthday next weekend. I told Dorota about it and although she looked a bit nervous, I managed to convince her that it would be a relaxed family lunch, nothing to worry about.",
+          "I think you’ll understand why I was completely shocked when I met her yesterday, and saw that she had dyed her hair blue!!! She explained that she had decided to change something about her appearance to spice things up and now that she had eventually taken the step she felt fantastic, like a new person. If it wasn’t for my mother, who she’ll meet in a week’s time, I would agree that it's just a fun thing to do, a harmless way to look different, BUT…, I really don’t want to imagine the moment when I introduce her to my mum.",
+          "What do you think? Is there anything I could do to prevent a catastrophe?"
+        ],
+        "forras": "https://www.reddit.com/r/unpopularopinion/comments/oka0jz/the_fact_that_someone_has_dyed_their hair"
+      },
+      "teendo": "Write an email of 100-120 words to Pavel in which you tell him what you think",
+      "iranyito_szempontok": [
+        "of teenagers dying their hair,",
+        "of his mother’s opinion,",
+        "of Dorota’s explanation,",
+        "he could do in this situation."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [
+    {
+      "sorszam": 1,
+      "ok": "kep",
+      "megjegyzes": "„Here’s a photo you took of your room” – a 2. irányító szempont (hol hagyhatta az olvasót a szobában) a fotóra épül."
+    }
+  ],
+  "megjegyzesek": []
+}

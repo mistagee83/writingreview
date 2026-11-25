@@ -1,0 +1,93 @@
+{
+  "formatum_verzio": 1,
+  "id": "2008-okt-kozep",
+  "ev": 2008,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2008-10-27",
+  "kod": "0801",
+  "forras_fajlok": {
+    "feladatlap": "2008. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_08okt_fl.pdf",
+    "utmutato": "2008. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_08okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2008-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email applying for a babysitting job",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "You want to spend a year in England as a babysitter to improve your English. You have found the following advertisement on the Internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Babysitter Wanted - Portsmouth",
+        "bekezdesek": [
+          "We're looking for a reliable and loving sitter – male or female - for our 11-month-old son in our Portsmouth home. Hours are 8-2pm.",
+          "If you're interested, please contact Christine at 617-515-3924 or email ckruhnke@yahoo.com. Looking forward to hearing from you."
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 50-80 words to Christine in which you apply for the job. Include the following points:",
+      "iranyito_szempontok": [
+        "Introduce yourself and say why you want the job.",
+        "Ask about accommodation; free time; payment."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Christine,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2008-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Knit-Wit about an unpaid sweater",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have recently become a reader of the \"Teens’ Embarrassing Problems\" page on the Internet. You have found the following letter:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I’m 16, a high-school student who enjoys knitting. I’ve made myself some pretty sweaters. The lady next door complimented me on one of my creations and asked if I’d make one for her. She offered to pay me.",
+          "I was thrilled, bought the yarn the next day and had her sweater ready within a week. When I handed it to her, she said, \"Thank you. It’s lovely\" – and not one word about paying me. What should I do?",
+          "Knit-Wit"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 100-120 words to Knit-Wit and give your opinion. Include the following:",
+      "iranyito_szempontok": [
+        "what you would do in her place;",
+        "what she can learn from the incident;",
+        "what students can do to make money."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Knit-Wit,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

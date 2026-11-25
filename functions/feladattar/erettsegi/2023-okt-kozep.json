@@ -1,0 +1,98 @@
+{
+  "formatum_verzio": 1,
+  "id": "2023-okt-kozep",
+  "ev": 2023,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2023-10-19",
+  "kod": "2212",
+  "forras_fajlok": {
+    "feladatlap": "2023 - Középszintű október/k_angol_23okt_fl.pdf",
+    "utmutato": "2023 - Középszintű október/k_angol_23okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2023-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Miles about a second-hand bookshelf",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are studying in Leeds, England and you share a flat with some other students in a nearby town, Morley. You have decided to buy a second hand bookshelf and you have found the following advertisement on the homepage of the university:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Pine bookshelf in Morley £25 (Discount for students)",
+        "bekezdesek": [
+          "Handmade, used",
+          "Pine 2 shelf bookcase on bun feet in good condition. Adjustable shelves. 102cm high x 75cm wide x 27cm deep.",
+          "Collection is from Morley. Local delivery possible. Contact Miles by email miles.ash@gmail.com"
+        ],
+        "forras": "https://www.gumtree.com/bookshelves"
+      },
+      "teendo": "Write an email of 80-100 words to Miles in which you introduce yourself and ask about",
+      "iranyito_szempontok": [
+        "the weight of the bookcase,",
+        "the discount,",
+        "the price of local delivery and payment method."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Miles,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2023-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Mark about getting a pet",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have read the following post on an Internet forum called Pet Forum:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Hi everyone, I've wanted my own dog forever, but I guess haven't had the courage to get one yet. My sister's friend got a puppy recently and cried every day for the first month because she was so overwhelmed – I guess I'm scared that would happen to me! I want to make sure I'm ready. I know they are adorable and all, but all those duties, you know what I’m talking about. Or maybe a dog is too much of a commitment and I should go for a different pet – a cat maybe (at least I wouldn’t have to walk them) or a cute little hamster family?",
+          "A little info about me:",
+          "I'm 17, living at home with my family and going to school. I do athletics competitively and go to a theatre group twice a week.",
+          "Any advice would be very helpful. Thanks!!",
+          "Mark"
+        ],
+        "forras": "https://www.dogforums.com/threads/whats-it-like-to-own-a-dog.124658/"
+      },
+      "teendo": "Write a comment of 100-120 words to Mark’s post in which you tell him",
+      "iranyito_szempontok": [
+        "if you have (ever had) a pet,",
+        "what advantages keeping a pet has,",
+        "what sort of pet he should have,",
+        "what duties you think a pet-owner has."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Mark,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

@@ -1,0 +1,102 @@
+{
+  "formatum_verzio": 1,
+  "id": "2024-okt-emelt",
+  "ev": 2024,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2024-10-17",
+  "kod": "E2411",
+  "forras_fajlok": {
+    "feladatlap": "2024 - Emeltszintű október/e_angol_24okt_fl.pdf",
+    "utmutato": "2024 - Emeltszintű október/e_angol_24okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2024-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Jake about a charity garage sale",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "Your family is moving and you would like to get rid of some of your items you won’t need in the future. You come across the following advertisement.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "GARAGE SALE!",
+          "You don’t have to throw away what you don’t need anymore! Come to our garage sale on the first Sunday of every month, reserve a table for 10 euros, and let people fall in love with items you would otherwise throw away. Household items, outdoor furniture, tools, clothes, bags, furniture, old toys, electronics, and so much more. Bring and sell your stuff and support a good cause: we will use your table money (the money you’ve paid to reserve a table) to support a charitable organization of your choice.",
+          "City Dog Shelter – the place that takes care of and looks for responsible owners for cats and dogs lacking a home",
+          "Food Relief – the place that offers immediate food relief services to those in need",
+          "Christmas Box Operation – the organization that collects shoeboxes filled with love and toys at Christmas time",
+          "Want to reserve a table and/or have any questions? Contact Jake at jake@sellyourstuff.com."
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 120-150 words to Jake in which you",
+      "iranyito_szempontok": [
+        "write about what items you are planning to bring to sell,",
+        "write about which charitable organization you would like to offer your table money to and why,",
+        "ask about at least two practical details of the sale."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Jake,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": [
+        "A három szervezet a lapon három hasábban, fotók fölött áll; a szövegük teljes."
+      ]
+    },
+    {
+      "id": "2024-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Alison about loyalty between friends",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have read the following post on the internet forum Family Matters:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": "Alison",
+        "bekezdesek": [
+          "I’m 19 and I have a little sister, Fran, who is nearly 13. She has a best friend, Claire, with whom she was inseparable until fourth grade. Then Math prodigy Claire was put into the advanced classes whereas Fran started working her way into the popular girls’ group, extremely successfully – she has always been very sociable.",
+          "With her 13th birthday coming up Fran confidentially told me that she would ask our parents to let her go to a Taylor Swift concert in Manchester not far from our village. She wanted my support and asked if I could drive her there together with some other girls. It wasn’t until I asked about the number of passengers I’ll have that I realised that Claire was not among them. What’s more, it turned out that Fran hadn’t even asked her because the other girls persuaded her not to. ’That weirdo would only spoil the fun,’ they said.",
+          "I found this really disappointing, a betrayal of their friendship, but she just shrugged and said that Claire would probably not enjoy a programme like this anyway and added: ’People change, and that’s normal.’",
+          "Is it really? Still, it sounds quite heartless to me. I’d like to know what you think."
+        ],
+        "forras": null
+      },
+      "teendo": "Write a comment of 200-250 words in which you say",
+      "iranyito_szempontok": [
+        "what being loyal to your friends means to you,",
+        "whether it’s normal for childhood friends to drift away from each other in their teens,",
+        "if/how your friends influence your preferences and choices,",
+        "if you have ever experienced or heard of anything like the problem described in the post."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Alison:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

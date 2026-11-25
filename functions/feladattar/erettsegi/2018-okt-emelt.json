@@ -1,0 +1,103 @@
+{
+  "formatum_verzio": 1,
+  "id": "2018-okt-emelt",
+  "ev": 2018,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2018-10-18",
+  "kod": "1818",
+  "forras_fajlok": {
+    "feladatlap": "2018 - Emeltszintű októberi/e_angol_18okt_fl.pdf",
+    "utmutato": "2018 - Emeltszintű októberi/e_angol_18okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2018-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email applying for a landscape gardener job",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are studying in the UK and you have decided to take a part-time job. You have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Landscape Gardener",
+        "bekezdesek": [
+          "Nationwide Solutions - Bolton £3.30 an hour – Part time",
+          "Landscaping & ground care company situated in Horwich, Bolton is currently looking for a keen & enthusiastic individual to become an apprentice within their growing business.",
+          "Duties will include:",
+          "• lawn maintenance using power mowers & edgers,",
+          "• weeding, grubbing & removal of thatch as well as trimming and edging around flower beds, drives, walkways & walls,",
+          "• general landscaping and gardening duties.",
+          "Working hours will be 7am - 4pm Friday-Saturday-Sunday with flexibility around this. Full driving license would be useful but is not essential.",
+          "Candidates must be 16-24 years of age. Full time students are welcome, immediate start!",
+          "Email Miranda: mir.landscape@bolton.com"
+        ],
+        "forras": "http/uk.when.com/apprenticewanted"
+      },
+      "teendo": "Write an email of 120-150 words to Miranda in which you",
+      "iranyito_szempontok": [
+        "apply for the job and say why you are interested in it,",
+        "ask about the meaning of flexibility of working hours and state your preferences,",
+        "ask about clothing and transportation."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Miranda,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2018-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment on Sheldon's dilemma about a car",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have come across the following post on an internet forum called Moral Issues:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Sheldon G:",
+          "I’m facing a dilemma: I’m in my senior year and I’m going to be given a car by my parents. You may feel that it doesn’t sound like a dilemma but things aren’t that simple. At the beginning of this term my mom and dad told me that if I maintained a B or higher in my classes and followed the rules of the school and the family and never got involved in anything illegal, they would buy me a second-hand car for graduation. Supposedly I’ve done just that and my proud parents will reward me next month with the promised car. The problem is the “supposedly” bit. I have a secret, and if I share it with my parents, I will certainly lose the car, among other things.",
+          "In February, two months after I received my license, I borrowed my parents’ car, had a few beers, and drove off the road into a fence. Instead of telling my parents what had happened, I called and told them I was staying over at a friend’s house. Then I slept off the beers in the car and headed home in the morning. When I got home I told my parents a deer had jumped into the road on my way home that morning. Our house is in a rural area and it’s quite common for deer to be on the road, so my parents bought my story without any further questions. What a relief! But, after a few days I started feeling pretty guilty. I’m considering telling them about the real reason I messed up the car, but I’m still hesitating for two reasons. The first is that I don’t want to let them down: they think I’m a reliable kid who always does the right thing. What a disappointment it would be to find out that I’m a liar! The second is that I really want that car. Badly.",
+          "What do you think?"
+        ],
+        "forras": "https://studentshare.net/ ethical-issues"
+      },
+      "teendo": "Write a comment of 200-250 words in which you give your opinion about Sheldon’s dilemma. Include the following:",
+      "iranyito_szempontok": [
+        "what you think about the importance of honesty in the family,",
+        "if telling a lie can ever be justified,",
+        "what you think Sheldon should have done,",
+        "what you advise him to do now."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Sheldon:",
+      "oldalak": {
+        "feladatlap": [
+          40
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

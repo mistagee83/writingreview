@@ -1,0 +1,99 @@
+{
+  "formatum_verzio": 1,
+  "id": "2014-okt-emelt",
+  "ev": 2014,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2014-10-16",
+  "kod": "1319",
+  "forras_fajlok": {
+    "feladatlap": "2014 - Emeltszintű októberi/e_angol_14okt_fl.pdf",
+    "utmutato": "2014 - Emeltszintű októberi/e_angol_14okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2014-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to Josh about charity work in North Carolina",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are going to study in North Carolina for a year and you would like to do some charity work while you are there. Your American friend Josh has sent you a list of the activities you could do in the area:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": "Primary Care Solutions Community Base",
+        "bekezdesek": [
+          "Charlotte, NC 28212",
+          "Homeless Shelters",
+          "Most homeless shelters welcome volunteers and have a variety of programs through which you can get involved. You might help prepare or distribute meals, work behind the scenes in the office, help organize a food drive to stock the pantry, etc.",
+          "Helping Others Learn to Read",
+          "Reading is one of the most important skills an adult can have. Many adults, however, have never learned how to read. Literacy volunteers act as tutors who help illiterate children and adults learn this important skill.",
+          "Website Creation",
+          "Many small charities and organizations do not yet have web sites. You can help by volunteering your services. You could also raise money to pay for the web site, or seek help from a local company in the form of a donation."
+        ],
+        "forras": "http://www.impactonline.org/"
+      },
+      "teendo": "Write a letter of 120-150 words to Josh in which you:",
+      "iranyito_szempontok": [
+        "decide which of the activities you think you could do best and why,",
+        "say how you think you would benefit from the experience,",
+        "tell him about at least two practical questions you would need more details about."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello, Josh,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2014-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Message to Steve about helping a classmate",
+      "mufaj": "message",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have read about the following problem on the internet forum called Teen Advice:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "I’ve always been a fairly nice person, I even do some charity work. However, I have a very laid back personality, which makes some people think I am apathetic and arrogant.",
+          "In my class there’s a girl who used to be a good friend and was involved in a serious car accident and still has to see a psychologist regularly. When she came back to school we were asked to be nice to her. Normally, I can do that, but now that I’ve been asked I feel I’m a fake. I don’t want to hurt her but I’ve got no idea how to behave so I’m beginning to avoid her, which I know is awful. What shall I do?",
+          "Steve 17"
+        ],
+        "forras": "http://www.teenhut.net/"
+      },
+      "teendo": "Write a message of 200-250 words to Steve in which you include the following:",
+      "iranyito_szempontok": [
+        "what you think somebody in the girl’s situation needs,",
+        "how you think Steve should behave,",
+        "how you or your friends coped in a similar situation."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello, Steve,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

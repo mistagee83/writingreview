@@ -1,0 +1,100 @@
+{
+  "formatum_verzio": 1,
+  "id": "2025-okt-emelt",
+  "ev": 2025,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2025-10-16",
+  "kod": "E1919",
+  "forras_fajlok": {
+    "feladatlap": "2025 - Emeltszintű október/e_angol_25okt_fl.pdf",
+    "utmutato": "2025 - Emeltszintű október/e_angol_25okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2025-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Dr Brady about an Irish history course",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are an exchange student in Dublin, Ireland. You have decided to do a course on Irish history. Here is the description of the course you have found:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": "Trinity College Dublin",
+        "bekezdesek": [
+          "Irish Lives in War and Revolution: Exploring",
+          "Ireland's History 1912-1923",
+          "Explore the lives of men, women and children living through war and revolution and social changes that made modern Ireland.",
+          "This five‐week course looks beyond the familiar names and the famous faces ‐ the traditional histories can tell us about them. Instead, it explores how the events that shaped the nature of modern Ireland ‐ the Great War, the Easter Rising, the Irish war of independence and civil war ‐ were experienced by the people who lived through them or in spite of them.",
+          "Through videos, assignments and discussions, through innovative approaches, this course introduces you to the history of Ireland in one of its most tumultuous periods.",
+          "To register email Dr Ciaran Brady c.brady@trinity.com"
+        ],
+        "forras": "https://www.futurelearn.com/courses/irish-history"
+      },
+      "teendo": "Write an email of 120-150 words to Dr Brady in which you",
+      "iranyito_szempontok": [
+        "introduce yourself and explain why you would like to do the course,",
+        "ask about the frequency of the classes and access to a coursebook or other teaching material,",
+        "say what other courses (at least one) connected to Ireland you would be interested in."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Dr Brady,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2025-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Kathy about whether college is worth it",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have found the following post on an internet forum called Jobs and Careers:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": "Kathy 18",
+        "bekezdesek": [
+          "Schools let us down",
+          "I want to share with you my doubts about whether going to college is the best option for any of us no matter how bright we are. Provided that we want to be successful in life, a winner, if you like.",
+          "My sister has been through college and I know how tough it is. Courses, tests and assignments! But is it worth all the time and effort? The truth is that a lot of college graduates still struggle after graduation. They can't find jobs and have lots of debt. They realise (way too late) that schools and colleges only train you to be in the poor groups: Employee and Small Business. You will never get rich here! Why? First, the harder you work, the more money the government is going to take from you through tax. Second, your income is low. What schools and colleges don’t teach you is how to get into in the rich groups: Big Business and Investor. Most people in the world get stuck in the poor groups and they don’t know how to step forward.",
+          "As I see it the reason for this lies in the fact that schools and colleges don’t equip you with winning survival techniques, practical knowledge and the skill to upgrade yourself. I wonder if you agree with me and if you have any ideas how schools and colleges should change their ways to provide us with the skills we really need in life to be successful."
+        ],
+        "forras": "http://www.teenhut.net"
+      },
+      "teendo": "Write a comment of 200-250 words to Kathy’s post in which you tell her",
+      "iranyito_szempontok": [
+        "how far you agree with her opinion about going to college,",
+        "if your idea of success is the same as hers,",
+        "whether you feel you have been sufficiently prepared for real life at school,",
+        "whether/how schools should change what they teach and how they do it to provide more useful skills."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Kathy:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

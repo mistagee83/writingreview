@@ -1,0 +1,95 @@
+{
+  "formatum_verzio": 1,
+  "id": "2005-nov-emelt",
+  "ev": 2005,
+  "idoszak": "nov",
+  "szint": "emelt",
+  "vizsga_datum": "2005-11-04",
+  "kod": "0521",
+  "forras_fajlok": {
+    "feladatlap": "2005. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_05nov_fl.pdf",
+    "utmutato": "2005. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_05nov_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2005-nov-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Job application to The Picture People",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "120 words"
+      },
+      "helyzet": "You are staying in England taking part in a six-month language course. You would like to take a job in order to earn some money and improve your English. You have found the following advertisement on the Internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Find a Part Time Job at The Picture People",
+        "bekezdesek": [
+          "Do you love making a child smile? Are you passionate about achieving results?",
+          "If you answered yes to the above questions, then apply today at The Picture People. We have over 300 portrait studios located throughout the country and are seeking dedicated, motivated and enthusiastic individuals for part-time opportunities!",
+          "No Photography experience?! No Problem! We offer excellent photography training so that you can gain a skill that can be used for years to come.",
+          "Contact Lucy Wilson: lwilson@picturepeople.com"
+        ],
+        "forras": null
+      },
+      "teendo": "You are interested in the job so you write an email of 120 words to Ms Wilson in which you include the following points:",
+      "iranyito_szempontok": [
+        "introduce yourself",
+        "ask what exactly the job involves",
+        "enquire about the training"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Wilson,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2005-nov-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Sean about a desert expedition",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "220 words"
+      },
+      "helyzet": "Your British friend, Sean, has always been very adventurous. Now he is considering taking part in an expedition. He wants your opinion about it:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": "WIND SAND & STARS",
+        "bekezdesek": [
+          "Tel: 020 7359 7551 Website: www.windsandstars.co.uk",
+          "Wind Sand & Stars are specialists in the Sinai Desert & Mountains and in tribal environments. We run an annual Sinai summer Expedition open to students aged 16 – 24. Participants trek in the central high mountain ranges travelling with the Bedu and sleeping out under the stars. They will also work on community-based projects for the nomadic Bedouin tribes including medical work, garden regeneration and irrigation."
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 220 words to Sean in which you give your opinion. Include the following points:",
+      "iranyito_szempontok": [
+        "possible benefits of such an experience",
+        "dangers of such a trip",
+        "practical advice in case he decides to go"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Sean,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

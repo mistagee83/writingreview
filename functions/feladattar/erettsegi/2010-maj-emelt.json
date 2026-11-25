@@ -1,0 +1,97 @@
+{
+  "formatum_verzio": 1,
+  "id": "2010-maj-emelt",
+  "ev": 2010,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2010-05-06",
+  "kod": "1011",
+  "forras_fajlok": {
+    "feladatlap": "2010. Emeltszintű május-június érettségi/e_angol_10maj_fl.pdf",
+    "utmutato": "2010. Emeltszintű május-június érettségi/e_angol_10maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2010-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to Jason about an art history course in Italy",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "Your American friend Jason took part in a tv contest and won a six-week course for two in Italy. He wants you to go with him and has sent you the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "Art History Abroad’s six-week course is the experience of a lifetime: travelling throughout",
+          "Italy studying at first hand many masterpieces of Italian art which form the foundations of western civilization.",
+          "Venice (10 nights), Verona (4 nights), Florence (10 nights), Siena (4 nights), Naples (4 nights) and Rome (10 nights). The programme also includes one-day visits to at least six of the following towns: Padua, Vicenza, Ravenna, Modena, Urbino, Pisa, San Gimignano, Arezzo, Orvieto, Pompei and Tivoli.",
+          "All that is required of you is curiosity and enthusiasm and you will enjoy a truly enlightening six weeks in the company of brilliant young tutors."
+        ],
+        "forras": "http://www.streetdirectory.com"
+      },
+      "teendo": "Write a letter of 120-150 words to Jason in which you:",
+      "iranyito_szempontok": [
+        "congratulate him and tell him how you feel about the invitation",
+        "tell him what you think of the programme",
+        "choose two of the places which you would particularly like to visit",
+        "enquire about some details: exact dates, transport and accommodation."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Jason,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2010-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Madeleine about an expensive birthday invitation",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You found the following letter on an internet forum called Equal Opportunities:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "My 12-year-old brother has been invited to celebrate a classmate’s birthday at a go-kart circuit. The friend’s parents will provide snacks and drinks, but the guests must pay their own entrance fee if they want to take part. There are four children in our family and, although my little brother is dying to go, my parents can’t afford such an expensive outing.",
+          "I’ve been thinking about this invitation for a while and I wonder if it’s ethical and if there’s anything I could do.",
+          "Madeleine, 18 yrs"
+        ],
+        "forras": "http://teenadvice.about.com"
+      },
+      "teendo": "Write Madeleine a letter of 200-250 words in which you give your opinion. Include the following points:",
+      "iranyito_szempontok": [
+        "What do you think of such an invitation?",
+        "What do you think Madeleine should do about it?",
+        "Have you ever been in /heard of a similar situation?"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Madeleine,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

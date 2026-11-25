@@ -1,0 +1,101 @@
+{
+  "formatum_verzio": 1,
+  "id": "2005-maj-kozep",
+  "ev": 2005,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2005-05-12",
+  "kod": "0513",
+  "forras_fajlok": {
+    "feladatlap": "2005. Középszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_fl.pdf",
+    "utmutato": "2005. Középszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2005-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Message answering an ad for a dog walker",
+      "mufaj": "message",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "50 words"
+      },
+      "helyzet": "You are in the USA, taking part in a language course in a small town called Greenford. In an Internet Forum you find the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "Do you like dogs?",
+          "Would you like to make a little extra money?",
+          "We are looking for someone in Greenford to take our two dogs for a walk every afternoon.",
+          "Interested? Please drop me a message here."
+        ],
+        "forras": null
+      },
+      "teendo": "Write a message of 50 words including the following:",
+      "iranyito_szempontok": [
+        "introduce yourself",
+        "ask about the dogs",
+        "ask about the exact time and length of the walks",
+        "ask how much you would be paid"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "I’ve read your message and…",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2005-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Report on the snowfall on 15 March",
+      "mufaj": "report",
+      "tipus": "egyéb",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "150 words"
+      },
+      "helyzet": "You are a regular reader of an Internet forum on unusual weather. Readers are asked to add a report to the collection, so you decide to write about the snowfall in March. Here are your notes about what happened:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": "Snowfall on 15 March",
+        "bekezdesek": [
+          "6.00 a.m. Snow starts falling",
+          "7.00 a.m. Roads covered with snow",
+          "8.00 a.m. Buses and trains 30-40 minutes late",
+          "8.30 a.m. Driving impossible",
+          "9.00 a.m. Shops and schools close",
+          "9.30 a.m. Rescue teams arrive",
+          "10.00 a.m. Snow stops falling"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a report of 150 words about what happened on 15 March. Include the following points:",
+      "iranyito_szempontok": [
+        "Unusual weather conditions",
+        "Traffic problems",
+        "People’s reactions"
+      ],
+      "zaro_utasitas": "The title of your report is: Traffic chaos in town on 15 March",
+      "kezdes": null,
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

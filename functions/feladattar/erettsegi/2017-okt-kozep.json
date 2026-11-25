@@ -1,0 +1,98 @@
+{
+  "formatum_verzio": 1,
+  "id": "2017-okt-kozep",
+  "ev": 2017,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2017-10-19",
+  "kod": "1713",
+  "forras_fajlok": {
+    "feladatlap": "2017 - Középszintű októberi/k_angol_17okt_fl.pdf",
+    "utmutato": "2017 - Középszintű októberi/k_angol_17okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2017-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Josh about a bike exhibition",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are studying in London. Your friend Josh has sent you the following advertisement for an exhibition opening this weekend and has asked you whether you would like to join him:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "The Design Museum celebrates all things bike, from cycling subcultures to the future of two-wheeled riding",
+          "It’s not just a display of cool bikes, although fans can get within touching distance of some of the most iconic machines of the last 100 years.",
+          "There’s Eddy Merckx’s steel lightweight, which he used to break the 1972 Hour Record, or the priceless Pinarello that Bradley Wiggins rode in a race this year.",
+          "As well as the High Performers above, there are the mountain bikes and BMXs, cargo bikes to transport goods or kids, and plain old city bikes, which probably most of us use.",
+          "Keep pedalling!"
+        ],
+        "forras": "http://www.timeout.com/london/things-to-do/cycle"
+      },
+      "teendo": "Write an email of 80-100 words to Josh in which you accept the invitation and",
+      "iranyito_szempontok": [
+        "say why you are interested in the exhibition,",
+        "ask about the location of the museum,",
+        "ask about opening hours and entrance fees."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Josh,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2017-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Calvin about problems at a new school",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your American friend, Calvin:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I thought I had it all: a great (smart) school, playing the drums in a wonderful band, a bundle of friends. Then my Dad started having problems with his work, so we moved to the West Coast before Christmas. It's as if my life just melted away. The new school is WAY below my expectations, and the band’s just a bunch of hopeless beginners. I keep in touch with my old friends, but nothing's the same.",
+          "On top of that, the kids in my class tease me because I'm a vegetarian and I'm not good at sports – the only thing that seems to matter to THEM. They're constantly telling me how weird I am, and the girl who I have to sit next to enjoys throwing my pens and notebooks off my desk. Sometimes I get so frustrated that I start screaming at them. Then they ask me why I'm so mad. It's like they purposely upset me for fun. What should I do?",
+          "Calvin"
+        ],
+        "forras": "https://uk.answers.yahoo.com/dir/index?sid"
+      },
+      "teendo": "Write an email of 100-120 words to Calvin in which you tell him",
+      "iranyito_szempontok": [
+        "if you have any experience with changing schools,",
+        "what you think of his classmates’ behaviour,",
+        "if Calvin should change his behaviour to improve the situation,",
+        "if it would be a good idea to tell his parents/teachers about the problem."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Calvin,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

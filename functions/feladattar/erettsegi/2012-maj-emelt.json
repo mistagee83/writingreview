@@ -1,0 +1,105 @@
+{
+  "formatum_verzio": 1,
+  "id": "2012-maj-emelt",
+  "ev": 2012,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2012-05-10",
+  "kod": "0911",
+  "forras_fajlok": {
+    "feladatlap": "2012 - Emeltszintű májusi/e_angol_12maj_fl.pdf",
+    "utmutato": "2012 - Emeltszintű májusi/e_angol_12maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2012-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Jeff about a rock climbing trip",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "During your stay in the US your American friend, Jeff, sent you a brochure about a rock climbing trip which he wants to take part in, asking you if you would like to join him.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Rock Climbing (1/2 - 5 days)",
+        "bekezdesek": [
+          "These trips emphasize developing individual climbing technique and skills. They are based on a hands-on approach and are conducted in an amazing alpine setting. Towering peaks and glaciers provide a spectacular backdrop and great terrain to develop climbing skills. Our programs provide an excellent introduction to rock climbing for beginners and valuable practice for more advanced climbers. Our low client to guide ratio allows us the flexibility to accommodate individual goals and expectations. All climbing equipment is provided."
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 120-150 words in which you",
+      "iranyito_szempontok": [
+        "Ask about the destination, the length and the price of the trip Jeff has chosen",
+        "Say what you like about the idea and what your worries are",
+        "Say if you would like to take part and why"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Jeff,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2012-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Article: Law and Order at Home?",
+      "mufaj": "article",
+      "tipus": "esszé",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have read an article on the internet on Home Rules Contracts, which some family therapists find useful for avoiding and settling family problems.",
+      "bemenet": {
+        "fajta": "article",
+        "cim": null,
+        "bekezdesek": [
+          "A Home Rules Contract is a written set of expectations that parents have of their teens. The contract includes basic rules, consequences and privileges. The final contract should be the result of negotiation and compromise, taking everybody's ideas into consideration.",
+          "A list of possible priorities to include in a Home Rules Contract includes:",
+          "Curfew¹",
+          "Chores",
+          "School behavior and grades",
+          "Smoking",
+          "Telephone use",
+          "Computer use",
+          "Use of the car",
+          "Alcohol/drug use",
+          "Expression of anger or violence",
+          "Conflict resolution",
+          "¹ Curfew: time when children must be home in the evening"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an article of 200-250 words for the school magazine in which you give your opinion. Include the following points:",
+      "iranyito_szempontok": [
+        "What do you think of Home Rules Contracts?",
+        "Do you agree with the list of priorities? Give your reasons.",
+        "Do you know any other effective ways of settling family problems?"
+      ],
+      "zaro_utasitas": "This is the title of your article: Law and Order at Home?",
+      "kezdes": null,
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": [
+        "A „Curfew” lábjegyzete a lap alján áll; a bemenet végére tettük (¹ jellel)."
+      ]
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

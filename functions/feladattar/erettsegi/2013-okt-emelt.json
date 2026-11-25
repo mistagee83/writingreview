@@ -1,0 +1,100 @@
+{
+  "formatum_verzio": 1,
+  "id": "2013-okt-emelt",
+  "ev": 2013,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2013-10-17",
+  "kod": "1211",
+  "forras_fajlok": {
+    "feladatlap": "2013 - Emeltszintű októberi/e_angol_13okt_fl.pdf",
+    "utmutato": "2013 - Emeltszintű októberi/e_angol_13okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2013-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Don about a biking tour",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "Your English friend Don has sent you this advertisement and invited you to join him on an eight-day biking tour in July.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Crossing Borders: Biking Tour",
+        "bekezdesek": [
+          "Amsterdam to Brussels",
+          "This biking holiday combines Holland and Belgium in a great way: an eight–day trip through the two countries. One week the trip starts in Amsterdam and finishes in Brussels, the next week we go from Brussels to Antwerp - you choose!",
+          "Optional programmes",
+          "Guided city walks in Amsterdam and Brussels",
+          "Beer tasting in Antwerp",
+          "Boat trip on the river Maas"
+        ],
+        "forras": "http://2wheeltreks.co.uk/Cycling"
+      },
+      "teendo": "Write an email of 120-150 words to Don in which you",
+      "iranyito_szempontok": [
+        "accept the invitation,",
+        "enquire about accommodation, meals and necessary equipment,",
+        "comment on each of the three optional programmes."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Don,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2013-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Tina about a drunk driver in the family",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250"
+      },
+      "helyzet": "You have found the following question on a problem page called Modern Morals on the internet:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "Last Saturday I went to a party with my cousin, Chris. It was quite a long way and there was no public transport in the area so I was happy when Chris said that his dad, my Uncle Joe, would drive us both home at the end of the party. When he arrived to pick us up and I was climbing into the car, there was this strong smell of alcohol; it was like walking into a pub. Chris behaved as if he hadn’t noticed anything, not even when Joe started to drive much too fast, laughing and joking.",
+          "I’m quite close to my parents and they’ve often told me never to get in a car with someone who has been drinking. They have also told me if I ever feel uncomfortable I should call home and they will pick me up, no questions asked. But what if the driver is family? Eventually we got home safe and I haven’t told anyone, but now I wonder whether I should have behaved differently or if there’s something I should do now. What do you think?",
+          "Tina 17"
+        ],
+        "forras": "http://www.timesonline.co.uk"
+      },
+      "teendo": "Write a letter of 200-250 to Tina in which you tell her",
+      "iranyito_szempontok": [
+        "what you think of the situation,",
+        "what you would have done,",
+        "what you think she should do now."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Tina,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": [
+        "A lapon a szószám után hiányzik a „words” szó („200-250”)."
+      ]
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

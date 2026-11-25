@@ -1,0 +1,102 @@
+{
+  "formatum_verzio": 1,
+  "id": "2017-okt-emelt",
+  "ev": 2017,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2017-10-19",
+  "kod": "1713",
+  "forras_fajlok": {
+    "feladatlap": "2017 - Emeltszintű októberi/e_angol_17okt_fl.pdf",
+    "utmutato": "2017 - Emeltszintű októberi/e_angol_17okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2017-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email applying for volunteer work on an Icelandic farm",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "Before you start your studies at university you would like to take a year off to travel and work as a volunteer. You have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Dairy farm and horse farm in Iceland looking for volunteers in the Arctic",
+        "bekezdesek": [
+          "We are a family of 4, and we run a farm in Iceland which is a dairy farm and a horse farm. We speak English, Danish and Icelandic.",
+          "Volunteers can do two kinds of jobs:",
+          "Cooking and cleaning:",
+          "This involves cooking a hot meal once a day (for 6-7 people), and some cleaning when needed, particularly in the kitchen. You need to have basic experience in cooking (we are very open-minded regarding cooking so you can provide your own recipes).",
+          "Stable/cowshed work and working with horses:",
+          "This involves cleaning the stables and the cowsheds, exercising trained horses, occasionally riding inexperienced horses. If you want to work with horses, you need to have experience.",
+          "We live in a beautiful rural area, with lots of space, northern lights and arctic beauty. If you would like to try a different lifestyle in a friendly, international environment, this is a perfect opportunity.",
+          "Email Einar Olafsson: eiol@ghostmail.com"
+        ],
+        "forras": "http://www.workaway.info/494891548.html"
+      },
+      "teendo": "Write an email of 120-150 words to Mr Olafsson in which you",
+      "iranyito_szempontok": [
+        "tell him why you find the opportunity attractive,",
+        "apply for the job which you think you could do best,",
+        "ask about accommodation and costs if any."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Mr Olafsson,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2017-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Noah about plagiarism",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have found the following post on an internet forum called Good Character:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "My girlfriend Phoebe has always been an excellent student but lately she has been more and more overwhelmed by her advanced courses and college applications. She has been sick for the past month and has fallen behind in many of her classes. Her application to Brown University and her Advanced Art History paper were both due on Monday. On Sunday she made a tough decision and copied a whole section of her paper from an article on the internet. Then she finished her application and went to bed. On Monday, she turned in her paper.",
+          "The first time she told me about it was at lunchtime, after her Advanced Art History teacher had spoken to her. He had realized pretty fast that a large portion of her paper was plagiarized and confronted her about it. Phoebe burst into tears and explained about all the pressures of being sick, taking five advanced courses, and being president of the student body. However, he said he would leave it to the principal to decide whether they would inform the colleges she had applied to.",
+          "I feel so sorry for her as she has worked so hard throughout her high school career and is applying to the most competitive colleges and universities. Still I don’t know what advice I should give her. Pls help!",
+          "Noah"
+        ],
+        "forras": "http://www.goodcharacter.com/dilemma/archive"
+      },
+      "teendo": "Write a comment of 200-250 words to Noah in which you include the following:",
+      "iranyito_szempontok": [
+        "if you think copying from the internet should be taken seriously,",
+        "if you think what Phoebe did is justifiable in her situation,",
+        "what you think of the Art Teacher’s attitude,",
+        "if you can think of any solution now."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Noah:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

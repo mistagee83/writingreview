@@ -1,0 +1,101 @@
+{
+  "formatum_verzio": 1,
+  "id": "2021-maj-kozep",
+  "ev": 2021,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2021-05-06",
+  "kod": "1912",
+  "forras_fajlok": {
+    "feladatlap": "2021 - Középszintű májusi/k_angol_21maj_fl.pdf",
+    "utmutato": "2021 - Középszintű májusi/k_angol_21maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2021-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email applying to be a camp counsellor",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are looking for volunteer work for the summer and you have come across the website angloville.com, which offers various summer jobs for secondary school students in England.",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Are you looking for a fun and meaningful way to spend the summer? Do you speak English well? Are you interested in working with children?",
+          "Angloville organizes camps for children between 10 and 14 from around the world and we are looking for camp counsellors. Join our team and work for us!",
+          "What is provided:",
+          "• Free accommodation",
+          "• Full board during your stay",
+          "• An opportunity to connect with people from 10+ countries",
+          "Interested? Send an email to Richard at summercamp@angloville.com."
+        ],
+        "forras": "https://www.gooverseas.com/volunteer-abroad/england"
+      },
+      "teendo": "Write an email of 80-100 words in which you introduce yourself and apply for the job. In your email:",
+      "iranyito_szempontok": [
+        "say who you are and why you are interested in the job,",
+        "say why you think you are suitable,",
+        "ask about the specific tasks that you would have to do."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Richard,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2021-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Max about his broken phone",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have received the following email from your Dutch friend, Max:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "Last night when I was going home from a party, a guy about the same age as me approached me and asked me if he could use my phone as his had just died. I hesitated, but not for long, I’m a trusting person, so sure he could use my phone.",
+          "He phoned his dad telling him he was on his way home and asking him if he needed anything from the kebab takeout round the corner. After he had finished, he hung up and passed the phone to me. Or, at least, he tried to but my phone slipped from his fingers and landed with a crack on the pavement. The screen of my Huawei Honor 5X splintered into a cobweb that covered the bottom half of the screen. I was shocked! But before I could open my mouth, he mumbled an apology and disappeared into the dark night.",
+          "What would you have done in my place? Or, more importantly, what should I do now? His dad’s number is saved in my call history. Do you think it’s a good idea to phone him? And ask for his son’s name and number? Or compensation for my phone? I really don’t know what to do, pls help!",
+          "Max"
+        ],
+        "forras": "https://answers.yahoo.com"
+      },
+      "teendo": "Write an email of 100-120 words to Max in which you tell him",
+      "iranyito_szempontok": [
+        "if you think it is OK to ask for someone else’s phone,",
+        "if you think Max did the right thing lending his phone to a stranger,",
+        "whether contacting the boy’s father is a good idea,",
+        "if there is anything else he could/should do now."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Max,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

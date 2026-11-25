@@ -1,0 +1,95 @@
+{
+  "formatum_verzio": 1,
+  "id": "2012-okt-emelt",
+  "ev": 2012,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2012-10-18",
+  "kod": "1212",
+  "forras_fajlok": {
+    "feladatlap": "2012 - Emeltszintű októberi/e_angol_12okt_fl.pdf",
+    "utmutato": "2012 - Emeltszintű októberi/e_angol_12okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2012-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email applying for a penguin rescue project",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "After leaving school you would like to spend a year abroad doing something useful and living in a place where you can improve your English. You have found the following advertisement on the internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "Work on a Penguin Rescue Project in Capetown, South Africa Volunteer in South Africa and help to rescue and rehabilitate penguins. As a volunteer you will have the opportunity to do hands-on care work and learn about the life cycle and conservation of the African Penguin, which, unfortunately, is still an endangered species on the continent. This project works hard to nurture and rescue penguins and other sea birds in distress from pollution and climate change, with a focus on rehabilitating them to a level where they are ready to be released back into the wild. As a volunteer you will be able to learn about important conservation methods, and take an active part in the penguins’ and other sea birds’ recovery process.",
+          "Provided: accommodation, food, airport pick up and drop off, training Contact: Amy Miller penguin@rescue.com"
+        ],
+        "forras": "http://www.kayavolunteer.com"
+      },
+      "teendo": "Write an email of 120-150 words to Ms Miller in which you",
+      "iranyito_szempontok": [
+        "explain why you are interested in the job,",
+        "say why you are a suitable applicant,",
+        "ask for some details about accommodation, air tickets and training."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Miller,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2012-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Ivan about noisy neighbours",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You found the following letter on the internet forum called Modern Morals:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "This is a bit of a dilemma for me. I do quite a lot of gardening for my grandma, who lives alone and is in her 70s. Recently a fairly loud, young family have moved in next door. They are constantly having parties, mostly in the garden, the children shout and throw stuff over the fence, and they keep allowing their dogs to escape into my grandma’s garden and make a mess there. She has tried to talk to them once or twice but they simply ignore her. This, as you can imagine, stresses her quite badly.",
+          "She also mentioned another neighbour, a middle-aged man, who had complained about them, so I decided I’d better go and visit him. He was very happy that someone else was taking an interest in the constant noise and disruption. He told me that complaining to the council was our best bet, as in these cases the police only “act in an advisory capacity”. However, when I called him the following day to tell him that I had taken steps, he was very irritated. He claimed that he didn’t want to escalate the situation, and that he thought my contacting the council would simply make things worse. To be honest, I’m very frustrated as members of my own family had the same attitude: they said that I should just let things alone.",
+          "What should I do, and am I right to feel very annoyed at everyone’s attitude?",
+          "Ivan 19"
+        ],
+        "forras": "www.timesonline.co.uk"
+      },
+      "teendo": "Write a letter of 200-250 words to Ivan in which you tell him",
+      "iranyito_szempontok": [
+        "what you think of the neighbours’ behaviour,",
+        "whether you approve of how Ivan acted,",
+        "why you think many people have the same attitude as the middle-aged neighbour."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Ivan,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

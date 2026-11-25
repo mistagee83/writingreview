@@ -1,0 +1,101 @@
+{
+  "formatum_verzio": 1,
+  "id": "2020-maj-kozep",
+  "ev": 2020,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2020-05-07",
+  "kod": "1911",
+  "forras_fajlok": {
+    "feladatlap": "2020 - Középszint május/k_angol_20maj_fl.pdf",
+    "utmutato": "2020 - Középszint május/k_angol_20maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2020-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Rob about street performing at the Fringe",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "Your Scottish friend Rob invited you to stay with him during the Edinburgh Festival and take part in the unofficial programme of the Fringe (Alternative) Festival as a street performer. He sent you the advertisement with the following options:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Fringe Unofficial Street Performances",
+        "bekezdesek": [
+          "You can perform on three stages throughout the day. Each performance is 20 minutes long.",
+          "Living statues: Mime artists posing like statues, sometimes with realistic, statue-like make-up.",
+          "Portrait artists / caricaturists: Set up close to St. Giles on the Royal Mile drawing / painting festival visitors.",
+          "Musicians (instrumental and vocal): Pop, jazz, classical, folk. Individual performers and bands as well. Limited spaces and time slots for musicians who are particularly loud.",
+          "Dancing and acrobatics: Ball-room, modern and show dancing, classical and jazz-ballet. For individual performers, pairs and groups too. Limited spaces for large groups.",
+          "Miscellaneous: Performing any kind of show that you think would attract audiences."
+        ],
+        "forras": "https://www.edfringe.com/experience/programme"
+      },
+      "teendo": "Write an email of 80-100 words to Rob in which you",
+      "iranyito_szempontok": [
+        "tell him how you feel about this sort of festivals,",
+        "ask him what performance he has in mind,",
+        "tell him if/what you would like to perform."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2020-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Max about starting a sport",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have received the following email from your Dutch friend, Max:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "Hi – Look, I need some advice. As you know I've always been a couch-potato, but now that I’m at uni I’m feeling awkward with all the guys around me, fit and strong, going to the gym and working out daily or doing sports regularly. Even worse that it’s not only that they do it but they talk about ’what’s a good cardio’ and ’what builds stamina’ all the time. If I don’t start a sport straight away, I’m sure I’ll feel left out and I can only hope that it’s not too late now. Honestly, I’m not sure how I’ll have time for my studies (tests and assignments every week plus presentations, brrr) AND for a sport too.",
+          "Anyway, I’ve made up my mind so I’ll give it a try. The main question is what sport to start? I can swim and there’s always running but is that serious enough? Good for cardio and building stamina? Or shall I start something new? A friend of mine is doing wrestling and there’s also a tennis club near the university.",
+          "What do you think? Any personal experience with sports you have done and been successful in? I’d appreciate your ideas ASAP.",
+          "Best,",
+          "Max"
+        ],
+        "forras": "http://www.teenhut.net/"
+      },
+      "teendo": "Write an email of 100-120 words to Max in which you include the following points:",
+      "iranyito_szempontok": [
+        "what you think of starting university and doing sports at the same time,",
+        "how you feel about the sports he mentions,",
+        "what other sports you would recommend (instead / in addition),",
+        "if you have any personal experience with sports."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Max,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

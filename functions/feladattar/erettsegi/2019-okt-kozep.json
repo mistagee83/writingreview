@@ -1,0 +1,95 @@
+{
+  "formatum_verzio": 1,
+  "id": "2019-okt-kozep",
+  "ev": 2019,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2019-10-17",
+  "kod": "1719",
+  "forras_fajlok": {
+    "feladatlap": "2019 - Középszintű október/k_angol_19okt_fl.pdf",
+    "utmutato": "2019 - Középszintű október/k_angol_19okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2019-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Ian about a walking break in the Highlands",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are studying in Stirling, UK. Your friend Ian wants you to go on a weekend trekking expedition with him. He sent you the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "A Short Walking Break in the Scottish Highlands",
+        "bekezdesek": [
+          "This short break (3 nights - 3 walking days) takes you into the typical scenery of the Scottish Highlands (mountains, lochs and fast-flowing rivers), but is really easily accessible for a short break. The walk starts and finishes at Callander, the \"gateway to the highlands,\" less than one hour by car (under two hours by public transport) from either Glasgow or Edinburgh. The route takes you through the land of highland legend Rob Roy McGregor, following paths that he followed, and stopping at Balquhidder, where he is now buried in the little kirkyard."
+        ],
+        "forras": "www.countours.co.uk; http://www.maketracks.net/rrr.html"
+      },
+      "teendo": "Write an email of 80-100 words to Ian in which you",
+      "iranyito_szempontok": [
+        "tell him if you have any trekking experience,",
+        "ask about accommodation and costs,",
+        "ask about the weather conditions and any necessary equipment."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Ian,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": [
+        "A lapon két forrás áll (a szöveg végén és alatta); mindkettő a forrásba került."
+      ]
+    },
+    {
+      "id": "2019-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Jessica about a vegetarian and a meat lover",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have received the following email from your American friend Jessica:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "You know I’ve been a vegetarian for 5 years, mainly for animal rights reasons. Now I have this new boyfriend, Alex, a nice boy… and a die-hard meat lover. This hasn’t been a problem so far - we sometimes have lunch together and he has a Big Mac or a huge steak while I munch on my tomato and avocado salad.",
+          "It’s his birthday next week and he invited me to his parents’ home in Mesa, Arizona (our first mini-holiday together!). There’s a traditional birthday dish, he told me, expertly made by his mother: bean stew with lamb, pork, and veal. Can you imagine my horror when I heard that there’s going to be a dish with THREE kinds of meat? I immediately said that he had probably noticed I didn’t eat meat but he looked surprised and said he thought I was on a diet or something. And that he hoped I wouldn’t be rude to his mother and refuse the food, which, he assured me, was absolutely wonderful. He even said that after trying it I would certainly change my mind about not eating meat. We haven’t talked about it since then and I’m getting more and more scared (I dream of those people in Mesa, trying to force big chunks of meat down my throat) and I don’t know what to do. What would you do? Pls help!"
+        ],
+        "forras": "http://evilhrlady.org"
+      },
+      "teendo": "Write an email of 100-120 words to Jessica in which you tell her",
+      "iranyito_szempontok": [
+        "your opinion about Alex’s attitude,",
+        "whether you have ever been / know someone who is on a special diet,",
+        "what you think of being a vegetarian,",
+        "what she should do in this situation."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Jessica,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

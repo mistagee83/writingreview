@@ -1,0 +1,92 @@
+{
+  "formatum_verzio": 1,
+  "id": "2009-okt-kozep",
+  "ev": 2009,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2009-10-22",
+  "kod": "0804",
+  "forras_fajlok": {
+    "feladatlap": "2009. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_09okt_fl.pdf",
+    "utmutato": "2009. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_09okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2009-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Brian accepting a museum invitation",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "You are studying in England and you have received an email from a friend, Brian, with the following advertisement. He would like to see the exhibition and wants you to go with him:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Walking with Beasts",
+        "bekezdesek": [
+          "Horniman Museum, 100 London Road, London, SE23 3PQ This is an exhibition of models of creatures that lived 65 million years ago: a life-sized woolly mammoth, a cat-like animal called smilodon, the bear-like megatherium, the llama-like macrauchenia and a 150 kg bird known as a phorusrhacos.",
+          "The exhibition also contains objects from the museum's collection, including the bones of a 10,000-year-old mammoth."
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 50-80 words in which you accept the invitation and",
+      "iranyito_szempontok": [
+        "say why you are interested,",
+        "ask about the length of the programme and entrance fees,",
+        "ask when and where to meet."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi, Brian",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2009-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Jane about mobile phones at school",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have received a letter from your English penfriend, Jane, in which she writes the following:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I have a problem at school. My teachers keep on bugging me for using my mobile in the breaks between lessons. I don't understand why! I always switch off during lessons and I NEVER even TALK, just text my friends. They have told my parents about it and said that I seem to be really addicted. Now my mum insists that I should leave my mobile in my locker for the day and not touch it until after school. I’m desperate! What do you think I should do?"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 100-120 words to Jane in which you give your opinion. Include the following:",
+      "iranyito_szempontok": [
+        "why you think the use of mobile phones should or shouldn’t be allowed at school;",
+        "whether you think Jane is really addicted to mobile phones;",
+        "what you would do if you were Jane."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Jane,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

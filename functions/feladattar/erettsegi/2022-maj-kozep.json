@@ -1,0 +1,101 @@
+{
+  "formatum_verzio": 1,
+  "id": "2022-maj-kozep",
+  "ev": 2022,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2022-05-05",
+  "kod": "2111",
+  "forras_fajlok": {
+    "feladatlap": "2022 - Középszintű május/k_angol_22maj_fl.pdf",
+    "utmutato": "2022 - Középszintű május/k_angol_22maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2022-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Dave about an electric scooter for sale",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are at University College London and as public transport is very expensive, you have decided to use an electric scooter to get about town. You have found the following ad on the website of the university:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "RECHARGEABLE FOLDING SCOOTER BLACK",
+        "bekezdesek": [
+          "ONE CAREFUL OWNER",
+          "MUST GO URGENTLY",
+          "250W POWERFUL MOTOR",
+          "DISC BRAKE",
+          "PORTABLE FOLDING",
+          "8.5 INCH WHEEL",
+          "EASY CONTROL",
+          "DIGITAL DISPLAY SCREEN",
+          "Free local pickup.",
+          "Email Dave dave.menzie@ucl.uk"
+        ],
+        "forras": "http://studentsunionucl.org/home"
+      },
+      "teendo": "Write an email of 80-100 words to Dave in which you ask",
+      "iranyito_szempontok": [
+        "about the price and age of the scooter,",
+        "about its weight and maximum speed,",
+        "where and when you can try it."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2022-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Jan about online language lessons",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have received the following email from your Czech friend, Jan:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "You know I’ve been studying Chinese for years, simply out of interest, no plans for a future career as a diplomat or anything 😊. I’ve been attending a nearby language school which is part of a big and prestigious language school specializing in Oriental languages in Brno. I’m at Level 3, doing fine so far with good exam results. The lessons are fun with wonderful teachers and a bunch of dedicated (crazy?) guys like myself. I have just received an email from the school to say that the branch in my hometown, Vyškov, is going to be shut down from September, which means that I can’t continue my studies the same way as up to now. They offered me the choice of either going to Brno, which is a 30-minute journey there and back, for my course or continuing in the form of on-line video lessons. I’m really upset and can’t make up my mind! I can see the good and the bad sides of both; however, I’m worried that whichever I choose it won’t be the ‘real thing’, if you know what I mean. What do you think?"
+        ],
+        "forras": "https://www.teenhut.net/forums"
+      },
+      "teendo": "Write an email of 100-120 words to Jan in which you tell him",
+      "iranyito_szempontok": [
+        "whether you or any of your friends have ever had on-line video lessons,",
+        "what the main advantage and the main disadvantage of online learning are,",
+        "how you like the other option he has been offered,",
+        "which one you think he should choose and why."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Jan,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

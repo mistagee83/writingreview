@@ -1,0 +1,100 @@
+{
+  "formatum_verzio": 1,
+  "id": "2014-maj-emelt",
+  "ev": 2014,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2014-05-08",
+  "kod": "1312",
+  "forras_fajlok": {
+    "feladatlap": "2014 - Emeltszintű májusi/e_angol_14maj_fl.pdf",
+    "utmutato": "2014 - Emeltszintű májusi/e_angol_14maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2014-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter applying for a summer camp job",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You want to do something useful during your summer holiday and you have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Talisman Programs",
+        "bekezdesek": [
+          "Location:Zirconia, NC",
+          "Dates: August 1 – August 28",
+          "Camp Type:Residential",
+          "Program Type(s):Special Needs Camp",
+          "Travel-Adventure",
+          "Looking for motivated, patient and fun individuals as assistant and expert staff for an adventure-based camp. Talisman is a small summer program that specializes in children with Autism. The programs and camp utilize indoor activities such as arts and craft, dance and music and outdoor adventures such as rock-climbing, white water rafting and backpacking. Staff must be willing to participate in these activities. Experience with children a plus!",
+          "Email: mike.davies@talismancamps.com"
+        ],
+        "forras": "www.talismancamps.crchealth.com"
+      },
+      "teendo": "Write a letter of 120-150 words to Mr Davies in which you",
+      "iranyito_szempontok": [
+        "say why you are interested in the post,",
+        "specify the activities you have the skills to take part in,",
+        "ask whether you need any special skills or training with these children."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Mr Davies,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2014-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Comment on Celia's story about the school president",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have found the following story on the Public Morals Forum for young people on the internet:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": "CELIA",
+        "bekezdesek": [
+          "Friday 07:12 PM",
+          "A boy in my class called Devon Redcliff was recently elected school president of the school. He chose a student senate including me to serve under him, whose job would be to help make all decisions that affect the student body. We were to take up our positions in the fall. Devon is well liked in the school community and respected by both students and teachers. Everything seemed perfect for the start of the new school year.",
+          "The weekend after his election Devon made a dumb mistake. He signed out with some friends to celebrate in town and came back blind drunk. When he bumped into the teacher on duty in his dorm, he tried to apologise but he couldn’t even speak clearly. In the morning he was asked to meet with both the current senior class president with her senate and Devon’s incoming senate. Here is where things got messy. The current senate seemed to be really impressed that this had been Devon’s first offense against school rules. Also, that he was honest enough to admit he’d been drunk (not that there could be any doubt).",
+          "I must say that I totally disagree with this and other members of the incoming senate support me. Some of us even feel betrayed, particularly because we are still being reviewed by the teachers and Devon himself to see if we are “worthy to serve our community” while he is apparently allowed to break a rule before taking office. We feel Devon should be removed from his position and a new election conducted. The school community is up in arms now. Half the school agrees with the old student government and the other agrees with us. What decision would serve the school community best?"
+        ],
+        "forras": "www.freenorthamerica.ca/viewforum"
+      },
+      "teendo": "Write a comment of 200-250 words to Celia’s story including what you think",
+      "iranyito_szempontok": [
+        "of Devon’s behaviour,",
+        "of Celia’s opinion,",
+        "would be best for the community."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Celia,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

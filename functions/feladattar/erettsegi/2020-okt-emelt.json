@@ -1,0 +1,96 @@
+{
+  "formatum_verzio": 1,
+  "id": "2020-okt-emelt",
+  "ev": 2020,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2020-10-22",
+  "kod": "1912",
+  "forras_fajlok": {
+    "feladatlap": "2020 - Emeltszintű október/e_angol_20okt_fl.pdf",
+    "utmutato": "2020 - Emeltszintű október/e_angol_20okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2020-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Message to Ian about skiing lessons",
+      "mufaj": "message",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "During your stay in Glasgow, Scotland your friends invited you to a skiing trip in the mountains. You would like to practise before you go and you have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Glasgow ski and snowboard centre",
+        "bekezdesek": [
+          "Maybe you haven’t been working on your fitness this summer, and are feeling as mothballed as your ski clothing. Perhaps you’re a complete beginner, and fancy a taste of skiing or snowboarding before you set off for your first ever holiday. Or it could just be that you are desperate for the next gravity-driven thrill.",
+          "Whatever the motive, you don’t have to wait till you get to the mountains to ski. Glasgow is home to an indoor, real-snow centre as well as two outdoor, dry slopes, and they’re all there for you to try. We offer many taster sessions for first-timers, as well as more structured courses on proper snow in a snow dome. Compared to the real thing, prices are low; daily lift passes start at about £18pp.",
+          "Tell us about your needs: whether you would prefer individual lessons with an instructor or would rather be part of a group, if you are a beginner or an experienced skier, how frequently you would like to come, and which part of the day would suit you best. We’ll offer a course specially for you!",
+          "Contact Ian here."
+        ],
+        "forras": "http://www.ski-glasgow.co.uk/ -lessons"
+      },
+      "teendo": "Write a message of 120-150 words to Ian in which you",
+      "iranyito_szempontok": [
+        "tell him about your level of skiing and what you would like to achieve,",
+        "describe what kind of course you have in mind and why,",
+        "ask about the prices and the necessary equipment."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ian,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2020-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to George about a cheating girlfriend",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have found the following post on an internet forum called Family and Friends:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "I’m in a really hard position right now. At the weekend I saw my best friend Kevin’s long-time girlfriend cheating on him. No, I couldn’t have misinterpreted the situation: she and this guy were on the bus hugging and kissing. She didn’t see me, and I got off at the next stop. Now I’m not sure if I should tell Kevin or not. I was waiting a few days and asked a couple of neutral questions about the girl to see whether there was a problem between them, but apparently, he doesn’t suspect anything and even told me about their plans for the summer. If I told him, I’m sure that would be the end of their relationship, since he is very honest and also relentless with himself and with others, so whatever she would choose to say to explain it, there is no excuse that he would accept. Still, I haven’t made up my mind yet, as it would certainly make Kevin upset and unhappy and it might also happen that Kevin, even if he realises that I only have his interest in mind that he shouldn’t be deceived, would have mixed feelings about me from that point on. The last thing I want is to jeopardize our friendship. What do you think? Shall I tell Kevin everything even if it means causing trouble between him and his girlfriend (and maybe between the two of us too)? Or keep quiet and feel I’m an accomplice?",
+          "George"
+        ],
+        "forras": "http://www.teenhut.net/"
+      },
+      "teendo": "Write a comment of 200-250 words in which you include the following:",
+      "iranyito_szempontok": [
+        "what you think of cheating in general,",
+        "to what extent you think friends should be honest to each other,",
+        "if you have ever had or heard of a similar dilemma,",
+        "whether you think George should tell his friend about what he saw."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "George:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

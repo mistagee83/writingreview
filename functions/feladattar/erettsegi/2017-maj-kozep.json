@@ -1,0 +1,107 @@
+{
+  "formatum_verzio": 1,
+  "id": "2017-maj-kozep",
+  "ev": 2017,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2017-05-11",
+  "kod": "1711",
+  "forras_fajlok": {
+    "feladatlap": "2017 - Középszintű májusi/k_angol_17maj_fl.pdf",
+    "utmutato": "2017 - Középszintű májusi/k_angol_17maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2017-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email applying to volunteer at Blue Cross",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You study at the University of Cambridge and you have found the following advertisement on the internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "BLUECROSS ANIMAL CHARITY CENTRE, Cambridge",
+        "bekezdesek": [
+          "Looking for a community events volunteer",
+          "Are you fond of animals? Are you an outgoing person who enjoys interacting with people? Do you enjoy attending local shows and events? Blue Cross is looking for reliable and friendly volunteers to help run promotional events in the Cambridgeshire area to promote our Charity Centre.",
+          "What you will be doing:",
+          "• Attending events in the Cambridge area to promote the Blue Cross Charity Centre",
+          "• Giving out information and stickers",
+          "• Helping set up and take down stalls at events",
+          "• Looking after pets taken to events",
+          "We are looking for people who:",
+          "• have good communication skills",
+          "• have a friendly and approachable manner",
+          "• are happy to work with animals",
+          "Email Sarah Bennett sbennett.cambridge@bluecross.com"
+        ],
+        "forras": "https://www.bluecross.org.uk"
+      },
+      "teendo": "Write an email of 80-100 words to Ms Bennett in which you offer to be a volunteer and say",
+      "iranyito_szempontok": [
+        "why you find the job attractive,",
+        "what makes you an ideal candidate,",
+        "which of the tasks you think you would be particularly happy to do and why."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Bennett,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2017-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Amy about her rude cousin",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your American friend Amy:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "How do you politely tell someone, in this case my cousin, that you don't want to go out in public with them because they're rude to others? Or maybe I’m just too sensitive and there’s nothing wrong with him?",
+          "Some background: My 20-year-old cousin Pete is always nice to me and my family. We get along with him pretty well, he often takes me out to a shopping mall. But when he's talking to someone working in a shop or a restaurant he acts like a rude jerk. He swears, calls them names, says things about accents, even threatens to get them fired. I'm rather ashamed to have him as family and to be in his company.",
+          "I’m feeling so uncomfortable and I have no idea what to do. Can you help me?",
+          "Love",
+          "Amy"
+        ],
+        "forras": "http://www.anniefox.com /letters"
+      },
+      "teendo": "Write an email of 100-120 words to Amy in which you tell her",
+      "iranyito_szempontok": [
+        "if you have ever experienced such behaviour,",
+        "what you think of being rude to strangers in public,",
+        "what you think the reason for Pete behaving like this could be,",
+        "if you can think of anything Amy could do about the problem."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Amy,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

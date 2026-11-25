@@ -1,0 +1,95 @@
+{
+  "formatum_verzio": 1,
+  "id": "2008-maj-emelt",
+  "ev": 2008,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2008-05-08",
+  "kod": "0801",
+  "forras_fajlok": {
+    "feladatlap": "2008. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_08maj_fl.pdf",
+    "utmutato": "2008. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_08maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2008-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Application to an animal shelter",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "After you leave school you would like to spend a year in England taking a job to improve your English. You have found the following advertisement on the Internet and decide to apply.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "BE PART OF SOMETHING GOOD, Wood Green Animal Shelters",
+        "bekezdesek": [
+          "We are currently seeking a FULL-TIME ANIMAL CARER to join the dog section at the Godmanchester shelter.",
+          "It is essential that the applicant is able to work in a physically demanding environment and is a good team player. An interest in animal welfare and dog training is essential, however it is not necessary for the candidate to have worked with animals previously as training will be given.",
+          "This position involves working directly with the dogs in our care, however there will be some crossover to dog reception to assist in the rehoming procedure, therefore good administration and customer service skills are essential.",
+          "To apply and for further details contact Diana Holmes (holmes.woodgreen@shelter.com)"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of application of 120-150 words in which you",
+      "iranyito_szempontok": [
+        "introduce yourself;",
+        "write about your experience with animals;",
+        "enquire about: working hours; payment; length of training."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Holmes,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2008-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Article: Lose weight – lose friends?",
+      "mufaj": "article",
+      "tipus": "esszé",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have been asked by the editor of an English language online magazine to write an article reacting to the following story:",
+      "bemenet": {
+        "fajta": "article",
+        "cim": null,
+        "bekezdesek": [
+          "I had a dinner party recently and invited a couple of people. I worked hard because I wanted everything to be just right.",
+          "Two of my guests brought their own food in a jar. It was some kind of diet concoction. I was angry and thought they had a lot of nerve to accept my dinner invitation when they knew they weren’t going to eat anything. I decided to be a good sport, but deep down I was hurt. What do you think of such guests?"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an article of 200-250 words including answers to the following questions:",
+      "iranyito_szempontok": [
+        "How can you avoid such situations?",
+        "What do you consider reasonable and unreasonable about healthy eating?",
+        "Do you live a healthy life? Give your reasons."
+      ],
+      "zaro_utasitas": "This is the title of your article: Lose weight – lose friends?",
+      "kezdes": null,
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

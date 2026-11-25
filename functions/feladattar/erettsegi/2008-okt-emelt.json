@@ -1,0 +1,94 @@
+{
+  "formatum_verzio": 1,
+  "id": "2008-okt-emelt",
+  "ev": 2008,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2008-10-27",
+  "kod": "0819",
+  "forras_fajlok": {
+    "feladatlap": "2008. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_08okt_fl.pdf",
+    "utmutato": "2008. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_08okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2008-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to Mike about a charity fundraising job",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You and your English friend Mike have decided to do charity work in the UK in your summer holidays. He has sent you the following advertisement for a job he is interested in, and wants to know your opinion:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Charity Fundraising",
+        "bekezdesek": [
+          "Our Charity Fundraisers work in teams of 4-5 raising funds for St John Ambulance.",
+          "This is a full time post, with a minimum contract time of 4 weeks. Our fundraising campaigns consist of speaking to people about the work of the Charity so as to gain supporters for the charity.",
+          "This job is all about personality: you need to be bright, bubbly, energetic and have the ability to talk passionately about the charity you represent. If this sounds like you, APPLY NOW!"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 120-150 words to Mike in which you tell him:",
+      "iranyito_szempontok": [
+        "what you think of the job and why;",
+        "why you think you would / wouldn’t be the right person for it;",
+        "what other kinds of charity work you might be interested in doing during your holiday."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Mike,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2008-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Article: To Win at All Costs?",
+      "mufaj": "article",
+      "tipus": "esszé",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "Readers of the Healthy Life Magazine have been invited to give their opinion about the following problem:",
+      "bemenet": {
+        "fajta": "article",
+        "cim": "Doping is becoming a serious problem with young athletes",
+        "bekezdesek": [
+          "The use of performance enhancing drugs among young sportspeople has approximately doubled since 1995, according to a new study.",
+          "\"While there were numerous public and private intervention efforts in the late 1990s and early 2000s, our society continues to greatly reward winning at all costs,\" said Charles Yesalis, professor of health policy and administration and exercise and sport science. \"This negative message constantly bombards our young people and is difficult to contradict. We need to review our strategies, as well as strengthen our moral attitudes toward all kinds of cheating in sports.”"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an article of 200-250 words in which you give your opinion. Include the following:",
+      "iranyito_szempontok": [
+        "the reasons why young sportspeople use anabolic steroids;",
+        "if you think it is more of a health issue or a moral question;",
+        "what could be done to stop it."
+      ],
+      "zaro_utasitas": "This is the title of your article: To Win at All Costs?",
+      "kezdes": null,
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

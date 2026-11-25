@@ -1,0 +1,62 @@
+{
+  "formatum_verzio": 1,
+  "id": "2016-maj-kozep",
+  "ev": 2016,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2016-05-05",
+  "kod": "1611",
+  "forras_fajlok": {
+    "feladatlap": "2016 - Középszintű májusi/k_angol_16maj_fl.pdf",
+    "utmutato": "2016 - Középszintű májusi/k_angol_16maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2016-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Email to Jennifer about a party and her host family",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your American friend Jennifer:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I’ve been staying in Baltimore with my host family, Diane and Ben and their 4-year-old twins, through the National Student Exchange program for more than 2 months.",
+          "Last week rumors started that a party was happening at a girl’s house while the parents are out of town. I don’t know the girl well but she’s one of the most popular people in the class and everyone says this is going to be the best party of the year.",
+          "I’m eager to go but there is no way my host parents will let me go if they realise the parents are out of town. My friends are telling me just not to say anything and only lie if they directly ask me about adults being at the party. OK, but what if I’m caught lying? It’ll ruin our relationship and make the rest of my stay hell. What do you think?"
+        ],
+        "forras": "http://www.goodcharacter.com/archive.html"
+      },
+      "teendo": "Write an email of 100-120 words to Jennifer in which you tell her",
+      "iranyito_szempontok": [
+        "whether you think this is a serious dilemma,",
+        "what you think she should do,",
+        "how your parents would react if you wanted to go to a party like this."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Jennifer,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [
+    {
+      "sorszam": 1,
+      "ok": "kep_szoveg",
+      "megjegyzes": "A darab címe (The Curious Incident of the Dog in the Night-Time) csak a plakát képén áll; a szövegrétegben csak „The production won 7 Olivier Awards…” van, így a feladat (ask two questions about the play) kép nélkül nem érthető."
+    }
+  ],
+  "megjegyzesek": []
+}

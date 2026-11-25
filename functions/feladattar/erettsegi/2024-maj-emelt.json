@@ -1,0 +1,98 @@
+{
+  "formatum_verzio": 1,
+  "id": "2024-maj-emelt",
+  "ev": 2024,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2024-05-09",
+  "kod": "E2412",
+  "forras_fajlok": {
+    "feladatlap": "2024 - Emeltszintű május/e_angol_24maj_fl.pdf",
+    "utmutato": "2024 - Emeltszintű május/e_angol_24maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2024-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to David about joining a student club",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You have just started university and are thinking of joining a student club with your friend David. He sent you the following three descriptions of clubs he is already a member of.",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "“The Climate Society connects like-minded individuals, inspires and educates the next generation of climate leaders, take action towards ambitious emission reductions, and provides platforms for academic, artistic, and social engagement with climate change.”",
+          "“Our aim at the University Dance Society is to offer a variety of dance classes. We welcome people of all levels of experience. For this term, the classes we aim to offer are Ballet, Contemporary Dance, Hip-Hop, Dance Fitness, Yoga, and Body Toning & Stretching.”",
+          "“The Harry Potter Society is for people who are still waiting for their Hogwarts letters. We hold film screenings, arts and crafts nights, quizzes, fanfic sessions and much more. For when you're all Pottered-out, we have regular socials, including a weekly pub lunch. We're a friendly bunch, so why not come along and join us?”"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 120-150 words to your friend in which you",
+      "iranyito_szempontok": [
+        "thank him for the information and say what you think of student clubs in general,",
+        "write about which of the three clubs you would most like to join and why,",
+        "ask about membership fees and the frequency of meetings."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi David,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2024-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Aneka about fireworks at a wedding",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have found the following post on the internet forum Trapped:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "As a child I used to enjoy fireworks on New Year’s Eve or 4th July or even ones set off at parties in the neighbourhood. However, since we adopted a rescue labrador, Holly, I have come to dread all these fireworks seasons as she is petrified with fear by all sorts of loud and sudden noises, especially fireworks. To see her in this state of extreme stress for hours each time makes me really worry that one day she might get a heart attack.",
+          "This experience made me start reading about the traumatizing effects fireworks have not only on pets but on wild animals including birds, too, and also on people with various conditions like autism. Eventually I decided to join an anti-fireworks action group in my hometown. So far our main activities have been signing petitions and spreading information on social media. These are small steps to raise awareness but at least I feel I’ve done something.",
+          "Can you imagine my embarrassment when I received an invitation to my dearest cousin’s wedding ceremony including the reception afterwards, where, according to his email, the main attraction will be the ’sensational’ fireworks organised by my uncle, and guests are encouraged to bring their own fireworks to add to the fun. I really don’t like the idea of missing this family event; however, I also feel that taking part in a fireworks session would mean betraying the goal I’ve set for myself.",
+          "What do you think?",
+          "Aneka, LA, USA"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a comment of 200-250 words to Aneka in which you give your opinion about",
+      "iranyito_szempontok": [
+        "fireworks as a form of celebration,",
+        "Aneka’s argument against them,",
+        "joining an action group for a cause you find important,",
+        "what she should do in this situation."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Aneka:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

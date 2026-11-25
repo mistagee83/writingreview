@@ -1,0 +1,104 @@
+{
+  "formatum_verzio": 1,
+  "id": "2020-okt-kozep",
+  "ev": 2020,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2020-10-22",
+  "kod": "2019",
+  "forras_fajlok": {
+    "feladatlap": "2020 - Középszintű október/k_angol_20okt_fl.pdf",
+    "utmutato": "2020 - Középszintű október/k_angol_20okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2020-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Kushal about an online yoga course",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are a visiting student at Amsterdam University and during your stay you would like to do something useful in your free time. You have found the following advertisement and decided to apply.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "Are you considering doing yoga, deepening your yoga practice or becoming a certified yoga teacher? We have 60-hour online courses for you at 3 levels.",
+          "Each course includes",
+          "• A 2-hour video for home practice, with the best, authentic teachers, tailored to your experience and special needs",
+          "• A mobile app",
+          "• Assignments",
+          "• Certificate of Completion",
+          "Requirements",
+          "• You must buy the book Heart of Yoga by Desikachar",
+          "• Prior yoga knowledge is great but not compulsory (level 1 is for complete beginners)",
+          "Interested? Send us a message and tell us about your experience and needs. Email Kushal: kushal@yogatraining.com"
+        ],
+        "forras": "https:// vinyasa-yoga-teacher-training"
+      },
+      "teendo": "Write an email of 80-100 words to Kushal in which you apply and",
+      "iranyito_szempontok": [
+        "tell him which course you are interested in,",
+        "tell him about your experience of yoga, if any,",
+        "ask him about the course fees and the price of the book mentioned in the ad."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Kushal,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2020-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Letter to Heikki about a birthday present for his sister",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your Finnish friend, Heikki:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "Hey there,",
+          "You know how much I love my sister Liisa, who, being 12 years older than me, has always been like a second mother to me. Since I started high school and moved from our village to Tampere, I’ve been living with her and her family: her husband and twin baby daughters. This has been the happiest time of my life, but it’s nearly over as I’m off to uni in September.",
+          "Luckily her 30th birthday is next month when I’m still here and there will be a big family celebration, our parents will come and also several close and distant relatives from all over the country. Of course I always give Liisa a present for her birthday but this time I thought it should be something really special, some sort of thank you present for the past four years.",
+          "My idea was that together with some friends from school we would learn an all-boy show-dance in Twist and Pulse style (have you seen them on Britain’s Got Talent? they are amazing!?), and perform it in front of the guests at the birthday party. My friends were also enthusiastic, and we have even started putting together the sound track and rehearsing using a teaching video. My mother, however, wasn’t very keen when she heard about the idea. On the contrary in fact, she said such a performance would be in very bad taste and might even shock some of the older aunts and uncles. Why not buy her, she suggested, a necklace or a pair of earrings? Earrings! I’m sure Liisa would know immediately that it can’t have been my own choice of a present and I want something that is really ME. What do you think?"
+        ],
+        "forras": "http://www.teenhut.net/thread/164247"
+      },
+      "teendo": "Write a letter of 100-120 words to Heikki in which you tell him",
+      "iranyito_szempontok": [
+        "whether you like his idea for a present,",
+        "what you think of giving a performance or buying something as a present in general,",
+        "why you think his mother is against the idea,",
+        "what he should do/ give his sister."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Heikki,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

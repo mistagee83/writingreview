@@ -1,0 +1,107 @@
+{
+  "formatum_verzio": 1,
+  "id": "2005-maj2-emelt",
+  "ev": 2005,
+  "idoszak": "maj2",
+  "szint": "emelt",
+  "vizsga_datum": "2005-05-30",
+  "kod": "0512",
+  "forras_fajlok": {
+    "feladatlap": "2005. Emeltszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angolV30_fl.pdf",
+    "utmutato": "2005. Emeltszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angolV30_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2005-maj2-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Susan about Nicole's surprise wedding",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 150 words"
+      },
+      "helyzet": "You have been in the USA for a year, working in a children’s camp, when you receive the following wedding invitation from a local colleague, Nicole Saward:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "Join us for a day in the country and share our happiness as we celebrate our marriage with family and friends.",
+          "Saturday, May 31",
+          "11.30 a.m.",
+          "The Spinning Wheel Inn",
+          "Redding Center, Connecticut",
+          "Reception immediately afterwards",
+          "Nicole Saward and John Simon"
+        ],
+        "forras": null
+      },
+      "teendo": "You are surprised because you didn’t even know Nicole was engaged. You write an e-mail to a mutual friend, Susan, to find out:",
+      "iranyito_szempontok": [
+        "if it was a surprise for her too",
+        "what she knows about the bridegroom",
+        "what sort of present to bring",
+        "what to wear at the wedding",
+        "how to get to the Spinning Wheel Inn"
+      ],
+      "zaro_utasitas": "Write an e-mail of about 150 words.",
+      "kezdes": null,
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": [
+        "Nincs megadott kezdés."
+      ]
+    },
+    {
+      "id": "2005-maj2-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Tony about student councils",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 200 words"
+      },
+      "helyzet": "You are a regular reader of the Internet Forum Letterbox. Every week readers are invited to comment on a problem which is raised in the Letter of the Week. Here is this week’s letter:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "At my school we do have a student council but it is just a joke. I was elected as form representative at the beginning of the year and we still haven’t had a single meeting.",
+          "The problem is that the teachers don’t take it seriously. They don’t think the students have got anything important to say about our school. Most of the students don’t believe we could change anything either.",
+          "I’d like to hear from other people about what sort of problems student councils deal with in other schools.",
+          "Tony, 17"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of about 200 words to Tony. Write about how teachers and students often disagree about the following issues, and say how a student council could help resolve the problem:",
+      "iranyito_szempontok": [
+        "Students' clothes and hair styles",
+        "Being late and missing lessons",
+        "The quality and choice of food available at school",
+        "Mobile phones"
+      ],
+      "zaro_utasitas": "Do not include any dates or postal addresses.",
+      "kezdes": null,
+      "oldalak": {
+        "feladatlap": [
+          38
+        ]
+      },
+      "megjegyzesek": [
+        "Nincs megadott kezdés."
+      ]
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

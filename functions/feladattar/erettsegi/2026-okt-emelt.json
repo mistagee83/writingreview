@@ -1,0 +1,106 @@
+{
+  "formatum_verzio": 1,
+  "id": "2026-okt-emelt",
+  "ev": 2026,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2026-10-15",
+  "kod": "E2612",
+  "forras_fajlok": {
+    "feladatlap": "2026 - Emeltszintű október/e_angol_26okt_fl.pdf",
+    "utmutato": "2026 - Emeltszintű október/e_angol_26okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2026-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Jake applying to share opinions on TV and podcasts",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are looking for a student job and have found the following advertisement on studentjob.co.uk.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Share Your Opinion on TV, Streaming & Podcasts",
+        "bekezdesek": [
+          "Do you love binge-watching series, listening to podcasts, or gaming? Turn your screen time into money!",
+          "What does the job involve?",
+          "By joining our panel, you aren’t just sharing thoughts, you are shaping the future of video and audio content in the UK. Your feedback gives content creators valuable insights into what audiences truly want.",
+          "What will you do?",
+          "Share your views: Complete surveys on your phone or computer. Give your opinion on TV shows, podcasts, streaming services, and even social media or gaming.",
+          "What we offer:",
+          "Total Flexibility: A 100% remote role; you can work from your phone or computer, whenever it suits your study schedule.",
+          "Requirements:",
+          "• No minimum education or experience needed.",
+          "• Tech-savvy: You need access to a smartphone or computer with an internet connection.",
+          "Ready to make your voice heard? Don't just watch the future of entertainment – shape it! Apply at studentjob@YourVoice.com by writing to Jake McReary."
+        ],
+        "forras": "https://www.studentjob.co.uk/vacancies/5505335-share-your-opinion-on-tv-streaming-podcasts-and-win-up-to-100-remote-flexible"
+      },
+      "teendo": "Write an email of 120-150 words to Jake McReary in which you",
+      "iranyito_szempontok": [
+        "say why you think you would be suitable for the job,",
+        "write about what area you would be interested in sharing your views on and why,",
+        "ask about the payment and the required language level."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Mr McReary,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2026-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Norman about drinking at a family wedding",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have found the following post on the internet forum 7 Cups:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "As a child, I saw that drinking alcohol was something adults sometimes did, and as I got older (I’m 19 now), I understood the appeal of my mom and dad’s occasional gin and tonic or glass of wine.",
+          "My girlfriend Rosie and I started dating when we were both in our last year at school. It was clear from the very beginning that although we had many things in common, enjoying a drink would never be one of them. She simply “didn’t like the taste of alcohol”, in any form. It didn’t take me long to realise that it wasn’t just her but her whole family, as when I was invited for lunch in their home, I found that there were only soft drinks and tap water on the table. When I brought up the topic later, she said it was simply a lifestyle choice that they all shared.",
+          "Luckily, she didn’t mind if I ordered a beer with my food in a restaurant and I didn’t mind drinking alone either, it has become a natural state of being. Until her sister’s wedding… It turned out that I would accompany Rosie, who would be one of the bridesmaids. She told me about the whole ceremony, adding that as I would appear at the dinner party as part of their family, she hoped that, in spite of cocktails and champagne being served for other guests, I would be able to refrain from drinking alcohol in front of her parents and close relatives. It would be very disappointing, even upsetting for her parents to see, as she never told them about this ‘habit of mine’. A habit??? As if I was an alcoholic who regularly ended up blind drunk at social events?",
+          "I simply don’t know what to do now. I still love Rosie but I can’t help feeling bad about what she said. What do you think?",
+          "Norman"
+        ],
+        "forras": "https://www.forbes.com/sites/ronniekoenig/2024/02/23/when-you-drink-alcohol-but-your-partner-doesnt/"
+      },
+      "teendo": "Write a comment of 200-250 words to Norman’s post in which you tell him",
+      "iranyito_szempontok": [
+        "how much you think different family norms and habits matter in a relationship,",
+        "if you have ever heard of similar differences causing problems,",
+        "if you think Norman is right to feel offended,",
+        "what he should do now."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Norman:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

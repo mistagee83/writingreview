@@ -1,0 +1,100 @@
+{
+  "formatum_verzio": 1,
+  "id": "2019-maj-emelt",
+  "ev": 2019,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2019-05-09",
+  "kod": "1911",
+  "forras_fajlok": {
+    "feladatlap": "2019 - Emeltszintű május/e_angol_19maj_fl.pdf",
+    "utmutato": "2019 - Emeltszintű május/e_angol_19maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2019-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Message to Ms Swift about a photography course",
+      "mufaj": "message",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "During your stay in Brisbane, Australia you decide to take part in a photography course. You have found the following ad on the internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "PHOTOGRAPHY COURSES IN BRISBANE",
+        "bekezdesek": [
+          "We think the best way to learn photography is to go out and actually take the photo. In our short courses and workshops you will learn photography as you go. Our experienced photographers will guide you towards beautiful and interesting images.",
+          "All our photography courses and workshops are tailored to the needs of amateur photographers.",
+          "Full time and part time courses, flexible workshops",
+          "Beginners’ Course, Beginners Become Masters, Photojournalism and Street Photography, Portrait Photography, Food and Product Photography, Night Photography, Nature Photography.",
+          "Tell us about your experience, needs and availability and we will design a course specially for you.",
+          "To contact our course co-ordinator Erna Swift, click here."
+        ],
+        "forras": "https://phocademy.com.au/brisbane"
+      },
+      "teendo": "Write a message of 120-150 words to Ms Swift in which you",
+      "iranyito_szempontok": [
+        "tell her about your previous experience in photography,",
+        "tell her when you can attend, what kind of photography course(s) you are interested in and give your reasons,",
+        "ask her about the frequency and length of the classes and the price of the course(s) you have chosen."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Swift,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2019-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Patricia about monitoring teenagers",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have read the following post on an internet forum called Privacy Matters:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "My little sister, Clara has just stepped into her teens. Being 19 myself, I realise that this is the time when our parents must closely monitor her; they used to do the same when I was her age or even older and late for home by phoning my friends’ parents to ask about my whereabouts, which was pretty embarrassing. Clara has a habit of sneaking out of the house without telling us and as there are several doors and windows she can use it’s almost impossible for us to monitor her. Even if each one of us had an extra pair of eyes, it would be tricky to keep watch over an adventurous twelve-year-old.",
+          "However, it was a complete shock when my mum came up with the idea that home security systems could help us. She’s already consulted a security expert on installing CCTV cameras in the house. She’s also considering door and window alarms that will sound when the door or window is opened. She’s so enthusiastic about this brilliant solution that she simply refused to listen to me when I drew her attention to the fact that in this case we can call our house a high security prison, which I would definitely refuse to live in. Not to mention the personal rights of all family members (including me and yes, the twelve-year-old too!) whose movements will be permanently monitored.",
+          "I wonder if you have ever heard of anything like this and whether you agree with me that this can’t be the way.",
+          "Patricia"
+        ],
+        "forras": "http://www.teenhut.net/"
+      },
+      "teendo": "Write a comment of 200-250 words to Patricia’s post in which you tell her",
+      "iranyito_szempontok": [
+        "whether you agree that young teenagers should be monitored,",
+        "whether you think it’s a good idea to apply the methods Patricia’s mother suggests,",
+        "what other ways you can think of,",
+        "whether/how your parents used to monitor you when you were younger."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Patricia,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

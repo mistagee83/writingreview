@@ -1,0 +1,93 @@
+{
+  "formatum_verzio": 1,
+  "id": "2011-okt-kozep",
+  "ev": 2011,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2011-10-20",
+  "kod": "1019",
+  "forras_fajlok": {
+    "feladatlap": "2011 - Középszintű októberi/k_angol_11okt_fl.pdf",
+    "utmutato": "2011 - Középszintű októberi/k_angol_11okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2011-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Andrew accepting an anniversary invitation",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "During your stay in the US your friend Andrew invites you to his parents’ wedding anniversary and encloses the following invitation card:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "Tom and Sally Rex invite you to share a special moment in their lives as they celebrate their 25th Wedding Anniversary with a Barbecue and Pool Party at 10:00 a.m. on Saturday, July 12 at the Rex Residence",
+          "457 Miami Road"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 50-80 words to Andrew in which you:",
+      "iranyito_szempontok": [
+        "accept the invitation,",
+        "ask him about what to wear,",
+        "say what you intend to bring as a present and ask his opinion about it."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi, Andrew,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2011-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Susan about a friend's eating disorder",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have found the following message on an internet forum about teen problems :",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I’m worried about my best friend, Pat. A few weeks ago, she ate pizza with extra toppings and drank Cola at my birthday party. And now, she can't bear the thought of pepperoni or any of her other favorite foods (and she seems to know the exact calory content of all of them). She's making excuses not to eat lunch at school and I've seen her take pills. She ’s lost a lot of weight, but she doesn't even seem to notice the change in her appearance. Do you think she could have an eating disorder? If so, how can I help her?",
+          "Susan 17 yrs"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 100-120 words to Susan in which you include the following points:",
+      "iranyito_szempontok": [
+        "If you think Susan’s worries are justified",
+        "If you think Susan should talk to Pat about the problem",
+        "If you think anybody else should be told about it"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi, Susan,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

@@ -1,0 +1,99 @@
+{
+  "formatum_verzio": 1,
+  "id": "2016-okt-emelt",
+  "ev": 2016,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2016-10-20",
+  "kod": "1519",
+  "forras_fajlok": {
+    "feladatlap": "2016 - Emeltszintű októberi/e_angol_16okt_fl.pdf",
+    "utmutato": "2016 - Emeltszintű októberi/e_angol_16okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2016-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email applying for a job at the Sherlock Holmes Museum",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are spending a year in London studying at university and you would like to have a part time job. One of your friends sent you the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "JOB VACANCIES",
+        "bekezdesek": [
+          "The Sherlock Holmes Museum",
+          "221b Baker Street London NW1 6XE",
+          "The Sherlock Holmes Museum is a popular London attraction with an international clientele from all walks of life who share a common interest in the \"Life and Times of Sherlock Holmes\".",
+          "Applicants should have an interest in the late Victorian period, be out-going and friendly and must speak good English. You will be required to meet and greet people at the house (mainly overseas tourists) and to be in attendance to answer any queries. If you have creative ideas, so much the better!",
+          "Often groups of 30 or more young people visit the Museum, so you will need to be able to organise activities for them. We also have a large heritage gift shop on the ground floor where you will be needed to assist with selling memorabilia to Museum visitors, and we have a library where visitors can put their feet up and read a book (silence please!).",
+          "A costume consisting of a long blue dress and white apron, in keeping with the Victorian period, is provided to our younger female employees, and men wear a waistcoat and cravat.",
+          "It's a fun and varied job requiring charisma and sometimes diplomacy!",
+          "There is the option to work part-time or full-time. The starting pay is £80.00 per day.",
+          "Please apply by email to: museum@sherlock-holmes.co.uk"
+        ],
+        "forras": "www.sherlock-holmes.co.uk"
+      },
+      "teendo": "Write an email of 120-150 words to the museum in which you apply for the job. Include the following:",
+      "iranyito_szempontok": [
+        "say why you are interested in the job,",
+        "choose two activities described in the advert which you think you would be good at and say why,",
+        "specify how many days a week (and which days) you would like to work."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Sir / Madam,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2016-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Email to Eric about a cruel photo in an online group",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You received the following email from your American friend Eric:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "You know how difficult it was for me when we moved to New York and I had to change schools but recently I began to hang out with these guys and they asked me to join their group on Facebook. I felt so good about it, and to be sure, it was a lot of fun at first. But yesterday I found someone had posted a photo of a girl in our class and altered it with Photoshop. The image made it look like she was the only girl at a party of boys, holding a bottle, and dancing on the table. I hardly know the girl, and I know it’s a private online group and anything posted there is supposedly for the members’ eyes only but the photo made me feel guilty. Can you think of anything I could do? Say something to the other guys and risk looking like a weirdo? Drop out of the group and forget about it all? That would mean the photo stayed out there and I would just be ignoring the problem. I feel really stuck. What, if anything, should I do?"
+        ],
+        "forras": "www.questia.com"
+      },
+      "teendo": "Write an email of 200-250 words to Eric in which you",
+      "iranyito_szempontok": [
+        "give your opinion about what the other boys have done,",
+        "describe a similar case you’ve heard of,",
+        "give Eric some advice about what to do in this situation."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Eric,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

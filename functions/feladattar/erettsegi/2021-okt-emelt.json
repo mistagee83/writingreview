@@ -1,0 +1,102 @@
+{
+  "formatum_verzio": 1,
+  "id": "2021-okt-emelt",
+  "ev": 2021,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2021-10-21",
+  "kod": "2119",
+  "forras_fajlok": {
+    "feladatlap": "2021 - Emeltszintű október/e_angol_21okt_fl.pdf",
+    "utmutato": "2021 - Emeltszintű október/e_angol_21okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2021-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Colin choosing a day out in London",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "In the summer holidays you are travelling in rural England but on your way home you will spend a day in London. Your English friend Colin offered to spend the day with you and also sent you the descriptions of three programmes to choose from:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "See a world-class exhibition at the Victoria & Albert Museum",
+          "What is it? A cathedral to culture, the V&A is a world-class museum championing the very best of decorative art and design.",
+          "Why go? The V&A houses one of the greatest collections of art, design, fashion and textiles on the planet. The permanent exhibits in this museum are fascinating, free to visit and include a mini pet cemetery.",
+          "Eat your way around Borough Market",
+          "What is it? One of the city’s largest and oldest food markets. Popular with both tourists and locals, offering all sorts of gastronomic delights and mouth-watering free samples.",
+          "Why go? This mega market near London Bridge has a history that goes back to the thirteenth century, and it’s livelier than ever: Borough Market is packed with artisan traders and it’s also home to some of the best restaurants and bars in the city.",
+          "People-watch and party in Soho",
+          "What is it? A West End neighbourhood with a fascinating history, which now teems with a mix of party-goers, foodies, tourists, theatre fans and media people in addition to a few surviving colourful local characters.",
+          "Why go? Soho is home to some of London’s best theatres, restaurants, bars, clubs and shops. The maze of streets, linked by narrow Dickensian alleyways, are always busy and full of life."
+        ],
+        "forras": "https://www.timeout.com/london/things-to-do"
+      },
+      "teendo": "Write an email of 120-150 words to Colin, in which you",
+      "iranyito_szempontok": [
+        "tell him which programme you would like to choose,",
+        "give your reasons,",
+        "suggest another place/activity that could also be interesting to see/do in London."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Colin,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2021-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Claire about parents controlling phones",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have read the following post on an internet forum called The Student Room:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "My mom takes my phone away at night and it makes me really mad. Not only do I use it to wake up in the morning because I hate the sound of a beeping alarm clock, I sometimes need to text people and ask them homework questions after my mom has gone to bed. I’m not one of those people who have late night texting conversations, I love my sleep. And, if I want to go on Facebook or whatever before I go to bed, why shouldn't I?! I'm 16. I don't need her controlling my life in that way. She just doesn't seem to get that I'm not a child anymore. In less than two years I'll be off to uni, so I may be wrong but I'm pretty sure I'm old enough to have my phone at night.",
+          "She also wants to check my messages and control what apps I download. I mean, seriously? It’s none of her business who I chat with and what pages I visit. Yesterday she said that if I don’t want to show her my phone, I obviously have something to hide, so she went through all my messages. When I flipped out, she says she’s just a parent worried about her kid, and that I shouldn’t make such a big deal out of it. She doesn’t seem to get how infuriating and humiliating this is for me. Advice anyone?",
+          "Claire"
+        ],
+        "forras": "https://www.thestudentroom.co.uk/"
+      },
+      "teendo": "Write a comment of 200-250 words to Claire’s post in which you tell her",
+      "iranyito_szempontok": [
+        "whether you think parents have the right to control their children’s screen time,",
+        "whether you think parents should have a say in what apps their children use,",
+        "your personal experiences and ideas about a teenager’s privacy issues,",
+        "what you think she should do."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Claire,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

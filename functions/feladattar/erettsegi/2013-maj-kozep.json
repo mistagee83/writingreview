@@ -1,0 +1,97 @@
+{
+  "formatum_verzio": 1,
+  "id": "2013-maj-kozep",
+  "ev": 2013,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2013-05-09",
+  "kod": "1311",
+  "forras_fajlok": {
+    "feladatlap": "2013 - Középszintű májusi/k_angol_13maj_fl.pdf",
+    "utmutato": "2013 - Középszintű májusi/k_angol_13maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2013-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Chris accepting an astronomy evening",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "You are spending two months in London and your friend Chris has sent you an email inviting you to the following programme on Saturday night:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": "An Evening with the Stars at Royal Observatory Greenwich",
+        "bekezdesek": [
+          "Times: 10:30-11:30 PM, 1:30-2:30 AM, 2:00-3:00 AM",
+          "Venue: Royal Observatory Greenwich",
+          "Come to the Royal Observatory Greenwich for a night of astronomy. The programme consists of a planetarium show to illustrate what’s in the night sky on the day of your visit, a chance to look through our gigantic 18-tonne Victorian telescope, and some time on the Prime Meridian after dark with an amazing view, a hot drink and astronomers to answer your questions."
+        ],
+        "forras": "www.timeout.london"
+      },
+      "teendo": "Write an email of 50-80 words to Chris in which you",
+      "iranyito_szempontok": [
+        "accept the invitation,",
+        "say why you are interested,",
+        "choose the time you prefer and say why."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Chris,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2013-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Reply to Peter about pressure from a talented family",
+      "mufaj": "reply",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You read the following post on an internet forum for teenagers’ problems:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "My family are all extremely talented and I just know I’m going to be the one who breaks the pattern.",
+          "I’m a 17-year-old boy and am in year 11 doing my A level examinations. I’m finding it so much harder than I ever imagined.",
+          "I have an older sister and an older brother and there’s always been a lot of rivalry. My brother is 25 and did brilliantly at everything. He’s now a lawyer. My sister is 19. She got into the national swimming team last year and still got fantastic A levels. She’s at Cambridge University now and everyone is so proud of her.",
+          "I know I’ll never achieve anything like that. Whatever I do, it’s never going to be as good as my sister and my brother. I know I’m the one putting pressure on myself but I get really panicky when I think about it. I feel like I’m going to be a big disappointment to my parents.",
+          "Peter"
+        ],
+        "forras": "www.problem.lancs.edu"
+      },
+      "teendo": "Write a reply of 100-120 words to Peter in which you tell him",
+      "iranyito_szempontok": [
+        "what you think about his problem,",
+        "if he should discuss it with his family,",
+        "what he could do to feel better."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Peter,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

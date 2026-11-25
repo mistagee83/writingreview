@@ -1,0 +1,99 @@
+{
+  "formatum_verzio": 1,
+  "id": "2011-okt-emelt",
+  "ev": 2011,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2011-10-20",
+  "kod": "1111",
+  "forras_fajlok": {
+    "feladatlap": "2011 - Emeltszintű októberi/e_angol_11okt_fl.pdf",
+    "utmutato": "2011 - Emeltszintű októberi/e_angol_11okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2011-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email applying for a learning support job",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "In your gap year you want to go to England to improve your English and you are looking for a job. You have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Learning Support Assistant",
+        "bekezdesek": [
+          "An inclusive multicultural school situated in the Heart of East London need an enthusiastic Learning Support Assistant. He/She is required to support the specific needs of students with learning and behavioural difficulties. The Assistant accompanies the pupil to classes and oversees afternoon activities.",
+          "You will need to be adaptable and calm with a good sense of humour to work as part of a team of teachers and teaching assistants and you will need the ability to react clearly and quickly to the children’s needs. We also require the successful candidate to have appropriate Literacy and Numeracy skills.",
+          "If this sounds like you, please email your cv for immediate consideration.",
+          "Emails to: Emily Sounders impactteachers@educ.com"
+        ],
+        "forras": "www.jobsonline.com"
+      },
+      "teendo": "Write an email of 120-150 words to Ms Sounders in which you",
+      "iranyito_szempontok": [
+        "tell her why you are interested in the job,",
+        "introduce yourself saying why you are the right person and pointing out any special skills you have,",
+        "ask questions about details of the job, working hours and payment."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Sounders,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2011-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Comment on Andrew's dilemma about an offensive website",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have read the following story on a website called Moral Dilemmas:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Andrew:",
+          "Recently, two of my classmates posted a web site that openly attacks some of our classmates, using explicit and offensive language.",
+          "Several weeks ago I learned the identities of the boys who created the website when one of them accidentally said something in a conversation. The two of them then pressured me not to reveal their names and I agreed, not thinking much about it at the time.",
+          "Now, the school principal has obtained a program that enables him to identify anybody who has visited the website. He’s asking students to come forward with the names of the creators of the site, and if no one does, he’s going to question each student who visited the site. I’m one of those who did visit the site and maybe the only one who knows the names of the kids who created it. I can lie and say I don’t know, or I can break my promise not to tell. Or is there anything else I can do?"
+        ],
+        "forras": "http://www.timesonline.co.uk/"
+      },
+      "teendo": "Write your opinion about Andrew’s story in 200-250 words including the following:",
+      "iranyito_szempontok": [
+        "What you think of the whole situation",
+        "What you think Andrew should do now",
+        "A similar dilemma you have come across or heard of"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Andrew, ….",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": [
+        "A lap nem nevez meg műfajt („Write your opinion about Andrew’s story”); a kezdés („Andrew, ….”) fórumhozzászólásra utal, ezért comment."
+      ]
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

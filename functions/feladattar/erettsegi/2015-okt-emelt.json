@@ -1,0 +1,98 @@
+{
+  "formatum_verzio": 1,
+  "id": "2015-okt-emelt",
+  "ev": 2015,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2015-10-15",
+  "kod": "1419",
+  "forras_fajlok": {
+    "feladatlap": "2015 - Emeltszintű októberi/e_angol_15okt_fl.pdf",
+    "utmutato": "2015 - Emeltszintű októberi/e_angol_15okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2015-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email applying for volunteer work in Nepal",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "Before you start your studies at university, you would like to take a year off and do something different. You have found the following advertisement on the internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Volunteer Opportunities in Nepal",
+        "bekezdesek": [
+          "Are you looking for a volunteer work experience? Inside-Nepal offers a variety of volunteering programs around the Kathmandu Valley, Chitwan and Pokhara.",
+          "Our socially acceptable and financially independent volunteering programs are located in a multicultural environment. The perfect way to help others, find purpose, use your skills in a productive way, develop new skills, explore new areas of interest and expand your horizons.",
+          "Our Volunteer opportunities:",
+          "• Teaching English in a Buddhist monastery",
+          "• Taking part in reforestation and natural regeneration projects",
+          "• Organising creative activities for children aged 5-10 in an orphanage",
+          "• Assisting a Nepali family learning new ways of organic farming Accommodation and meals provided.",
+          "Email: Ms E Rosen inside.nepal@gmail.com"
+        ],
+        "forras": "http://www.infonepal.org/#sthash"
+      },
+      "teendo": "Write an email of 120-150 words to Ms Rosen in which you",
+      "iranyito_szempontok": [
+        "introduce yourself and say which program you would be interested in,",
+        "say what skills and/or experience you have that would be useful for the chosen activity,",
+        "ask what preparations are necessary for the job and for life in general in Nepal."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Rosen,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2015-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Reply to Alan about privacy at university",
+      "mufaj": "reply",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You found the following post on an internet forum called Do I have The Right?:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": "Alan",
+        "bekezdesek": [
+          "I have started my second term in college sharing an apartment with three other guys and I’m coping all right. However, when I last went home for the weekend I had a bitter argument with my mum (fuelled by my stepfather) concerning privacy. It all started when my mum found my name on a list on the homepage of the university and found out that I had changed majors (I took up sociology instead of modern languages). I was really disappointed when they questioned me about it and I told them that they should trust me and rely on what I tell them instead of checking on me like that. Apparently they believe that they should still have a say in everything concerning my studies, including my choice of major, and that they have a right to see my grades. I can understand that they want to be involved (especially as they're paying the bill), and I don’t tell them lies, nor do I hide anything from them deliberately but I believe that at 19 I’m supposed to be treated like an adult and given the right to decide what I do and don’t want to share with them. I wonder how they would feel if I asked them to call a teacher when I’m having trouble in a class or contact the dean if I have a disciplinary problem? They say that they’re giving me ‘reasonable guidance’ but I see it as intrusion. What do you think?"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a reply of 200-250 words to Alan in which you include the following:",
+      "iranyito_szempontok": [
+        "which aspects of a university student’s life you think parents should have a say in,",
+        "if you agree with Alan in this particular case,",
+        "if you have had or heard of a similar problem."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Alan:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

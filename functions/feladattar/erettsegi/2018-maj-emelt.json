@@ -1,0 +1,105 @@
+{
+  "formatum_verzio": 1,
+  "id": "2018-maj-emelt",
+  "ev": 2018,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2018-05-10",
+  "kod": "1811",
+  "forras_fajlok": {
+    "feladatlap": "2018 - Emeltszintű májusi/e_angol_18maj_fl.pdf",
+    "utmutato": "2018 - Emeltszintű májusi/e_angol_18maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2018-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Tony about an escape game",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "During your stay in Cardiff as an exchange student you have received the following advertisement from your Welsh friend Tony inviting you to take part in a real-life escape game:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Choose a Real-Life Escape Game",
+        "bekezdesek": [
+          "Ice Breaker (level 1)",
+          "2 -10 people",
+          "You are on a voyage upon a ship which suddenly hits an iceberg and starts sinking. You are staying in a cabin next door to a couple, Jack and Rose. Your objective is to be smarter than Jack and Rose and make it to the top deck first.",
+          "Alien Attack (level 2)",
+          "2-8 people",
+          "Life couldn’t be better for your family in the most cliché American dream home. Or at least until the Big Attack by Aliens in 2025. Your objective is to escape, save your cat and dog and shoot some aliens of course!",
+          "Pirates (level 3)",
+          "2-8 people",
+          "You are stuck on a tropical island but it’s not quite the paradise it looks. An abandoned pirate hut on the cliff has become your trap and its bloodthirsty one-eyed monster owner will be back home soon. You have 60 minutes to escape."
+        ],
+        "forras": "https://citymazes.com/cardiff/"
+      },
+      "teendo": "Write an email of 120-150 words to Tony in which you",
+      "iranyito_szempontok": [
+        "tell him whether you have any experience of real life escape games,",
+        "choose one game you would be ready to join Tony in,",
+        "give reasons for your choice."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Tony,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2018-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Esther about charities",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have read the following post on an internet forum called Charity:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Sometimes I think charities are just there to make people feel good about themselves. Like those big TV charity events like Children in Need and Red Nose Day always seem to me to be a way for people to donate a couple of pounds to some cause so they don't have to feel guilty.",
+          "Also, I often don't feel like they attack the real issues, things that could make more of a difference, or they do things which seem hypocritical to me, like Oxfam, the charity organisation teaming up with Marks & Spencer (a partnership which to me just seemed like an advertising stunt for M&S). Oxfam has campaigns against factories where employees are treated badly but Marks & Spencer’s stock clothes are made in sweatshops. ☹",
+          "Anyway, before I sound too negative (I volunteer for Oxfam), I do think charities can help people if they're properly managed and put their donations into worthwhile projects.",
+          "Esther"
+        ],
+        "forras": "http://www.teenhut.net"
+      },
+      "teendo": "Write a comment of 200-250 words in which you",
+      "iranyito_szempontok": [
+        "say whether you think charities are necessary and useful and why/why not,",
+        "give your opinion about high-profile charity events like the ones mentioned in the post,",
+        "mention a charity project that you have heard of,",
+        "say if you can think of a particular cause that you would be ready to donate to or volunteer for."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Esther:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": [
+        "A lapon a bekezdés végén egy szomorú arc áll (Wingdings-jel); ☹ jellel rögzítettük."
+      ]
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

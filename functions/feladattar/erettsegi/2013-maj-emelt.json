@@ -1,0 +1,109 @@
+{
+  "formatum_verzio": 1,
+  "id": "2013-maj-emelt",
+  "ev": 2013,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2013-05-09",
+  "kod": "1311",
+  "forras_fajlok": {
+    "feladatlap": "2013 - Emeltszintű májusi/e_angol_13maj_fl.pdf",
+    "utmutato": "2013 - Emeltszintű májusi/e_angol_13maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2013-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email applying for a library job",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are studying at Westminster School of Business in London and you would like to find a job. You have read the following advertisement on the homepage of the school:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Library Job for Students",
+        "bekezdesek": [
+          "The position below is open only to current graduate and undergraduate students at Westminster. We are looking for a confident, patient, detail-oriented individual who can work in a dynamic environment within a well-defined range of duties.",
+          "Circulation Clerk",
+          "Description of Duties:",
+          "• Circulating library materials both online and manually",
+          "• Sorting and re-shelving returned materials",
+          "• Assisting the Collection Services Librarian and other library staff as needed",
+          "Job Requirements:",
+          "• Promptness and dependability a must",
+          "• Ability to perform detailed tasks with and without supervision",
+          "• A calm and friendly temperament is indispensable; good \"people skills\"",
+          "• Ability to perform repetitive but essential tasks",
+          "Preferred Skills:",
+          "• Familiarity with computers and the Web",
+          "Interested? Send an email to Anne Hill Collection Services Librarian: ahill@westminster.edu.com"
+        ],
+        "forras": "westminster.edu/job.htm"
+      },
+      "teendo": "Write an email of 120-150 words to Ms Hill in which you",
+      "iranyito_szempontok": [
+        "apply for the job and say why you are interested,",
+        "say why you are the ideal candidate,",
+        "ask questions about working hours and payment."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Hill,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2013-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Brian about unfair wages",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You found the following letter on the Moral Issues internet forum:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "In June I started working as a kitchen-hand at a popular restaurant owned by a friend of my father’s. It was just perfect: they let me work four times a week with my choice of shifts: I could sleep in and make enough money to go to the beach and hang out with my friends.",
+          "I make friends easily and by the end of my first week I knew everyone’s name in the restaurant. One member of the kitchen staff called Rose had been working at the restaurant for four years chopping vegetables for the salad bar and was especially kind to me. One night she casually mentioned her hourly wage in the middle of a conversation and I felt my stomach turn over. It was half of what I was making and she’s 35 with two young children. I felt guilty, ashamed and also angry. How could that even happen?",
+          "When I tried to talk to Rose about it, she grew uncomfortable and nervous. “Please don’t say anything to the boss, Brian. Anyone who complains from the kitchen is usually fired.”",
+          "Apparently, by taking a stand and saying something I could make things even harder and more unfair for Rose and the rest of the kitchen staff. However, by staying silent I’m allowing that injustice to carry on. If nobody is going to do anything, how can things ever change?",
+          "Is there anything I could do? I would appreciate your ideas.",
+          "Brian (18)"
+        ],
+        "forras": "www.moralissues.timeonline.uk"
+      },
+      "teendo": "Write a letter of 200-250 words to Brian in which you",
+      "iranyito_szempontok": [
+        "give your opinion about the situation,",
+        "tell him how typical you think such situations are,",
+        "advise him about what he should do."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Brian,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

@@ -1,0 +1,96 @@
+// A négy érettségi rubrika-sablon (docs/erettsegi-feladattar-terv.md, 3. fejezet).
+// Forrás: a 2026. októberi javítási-értékelési útmutatók íráskészség-része (k_angol_26okt_ut.pdf, e_angol_26okt_ut.pdf).
+// A szempontok neve és pontja a hivatalos; az egyeb_utasitas a sávleírások tömör összefoglalása az MI-nek.
+// Pontlevonás nincs (a hivatalos szószám-levonást és a túl rövid szöveg 0 pontját szándékosan nem vesszük át,
+// a tulajdonos döntése, 2026-11-25); a hivatalos „kiütő” szabály (feladatteljesítés 0 → minden 0) értékelési utasítás.
+// A min_szo/max_szo a 2026. októberi lap feladatainak szószáma; az ellenőrző ezt a kinyert lapon is megnézi.
+
+const FORRAS = "2026 - Középszintű október/k_angol_26okt_ut.pdf; 2026 - Emeltszintű október/e_angol_26okt_ut.pdf";
+
+const SZ = {
+  feladat5: { kulcs: "feladat", cim: "A feladat teljesítése és a szöveg hosszúsága" },
+  feladat: { kulcs: "feladat", cim: "A feladat teljesítése, a megadott szempontok követése" },
+  hangnem: { kulcs: "hangnem", cim: "Hangnem, az olvasóban keltett benyomás" },
+  szovegalkotas: { kulcs: "szovegalkotas", cim: "Szövegalkotás" },
+  szokincs: { kulcs: "szokincs", cim: "Szókincs, kifejezésmód" },
+  nyelvhelyesseg: { kulcs: "nyelvhelyesseg", cim: "Nyelvhelyesség, helyesírás" },
+};
+const sz = (alap, suly) => ({ ...alap, suly });
+
+const KIUTO = "Ha a feladat teljesítése 0 pont (félreértette a feladatot, vagy egyik irányító szempontot sem dolgozta ki megfelelően), a többi szempont is 0 pont.";
+const HOSSZ = "A megadott szószámot a feladat teljesítésénél vedd figyelembe (a jelentősen rövidebb vagy hosszabb szöveg kevésbé teljesíti a feladatot), de külön, gépies pontlevonás nincs.";
+const IGEIDO_KOZEP = "Nyelvhelyességből nem adható maximum, ha ismétlődően előfordulnak (még ha a megértést nem nehezítik is): a szinten elvárható igeidők alakjának vagy használatának hibái; a létige elhagyása a magyarul igétlen mondatokban; a kérdő és tagadó mondatok hibái (szórend, kettős tagadás); a mondaton belüli egyeztetés hibái (szám, személy).";
+
+export function sablonok() {
+  return {
+    formatum_verzio: 1,
+    forras: FORRAS,
+    sablonok: [
+      {
+        id: "kozep-level",
+        nev: "Érettségi – középszint, levél (1. feladat)",
+        rubrika: {
+          nyelv: "angol", tipus: "levél", szint: "B1", min_szo: 80, max_szo: 100,
+          szempontok: [sz(SZ.feladat5, 5), sz(SZ.szokincs, 3), sz(SZ.nyelvhelyesseg, 3)],
+          egyeb_utasitas: [
+            "Ez középszintű angol érettségi írásfeladat (1. feladat, rövid levél/e-mail, 11 pont). A pontot a hivatalos javítási-értékelési útmutató sávjai szerint add, B1 szinthez mérve:",
+            "– A feladat teljesítése és a szöveg hosszúsága (5): 5 = megvalósította a kommunikációs célt, mindhárom irányító szempontot megfelelően kidolgozta; 4 = kettőt megfelelően, a harmadikat részben; 3 = egyet megfelelően, a többit részben; 2 = egyet megfelelően, egyet részben, egyet egyáltalán nem; 1 = kettőt részben, egyet egyáltalán nem; 0 = nem valósította meg a célt, félreértette vagy nem megfelelően dolgozta ki a feladatot. " + HOSSZ,
+            "– Szókincs, kifejezésmód (3): 3 = a B1 szintnek, a témának és a közlési szándéknak megfelelő, változatos szókincs; 2 = erre törekszik, a korlátok miatt van ismétlés, néhol nem megfelelő szóhasználat, de ez a megértést nem befolyásolja; 1 = kevésbé változatos, leegyszerűsített, de még elfogadható szókincs, sok ismétlés, a rossz szóhasználat néhol nehezíti a megértést; 0 = nem felel meg a B1 szintnek, több helyen jelentősen nehezíti a megértést.",
+            "– Nyelvhelyesség, helyesírás (3): 3 = kevés (4–5) nyelvi (mondattani, alaktani, helyesírási) hiba, amely nem befolyásolja a megértést; 2 = 6–8 (ismétlődő) hiba, amely nem befolyásolja a megértést, VAGY csak 3–4 hiba, amely kissé nehezíti; 1 = tíznél több, a megértést nem befolyásoló hiba és 4–5 a megértést jelentősen nehezítő hiba; 0 = a hibák miatt több helyen nem érthető. " + IGEIDO_KOZEP,
+            KIUTO,
+          ].join("\n"),
+        },
+      },
+      {
+        id: "kozep-fogalmazas",
+        nev: "Érettségi – középszint, fogalmazás (2. feladat)",
+        rubrika: {
+          nyelv: "angol", tipus: "esszé", szint: "B1", min_szo: 100, max_szo: 120,
+          szempontok: [sz(SZ.feladat, 6), sz(SZ.hangnem, 2), sz(SZ.szovegalkotas, 4), sz(SZ.szokincs, 5), sz(SZ.nyelvhelyesseg, 5)],
+          egyeb_utasitas: [
+            "Ez középszintű angol érettségi írásfeladat (2. feladat, hosszabb szöveg, 22 pont). A pontot a hivatalos javítási-értékelési útmutató sávjai szerint add, B1 szinthez mérve:",
+            "– A feladat teljesítése, a megadott szempontok követése (6): 6 = megvalósította a kommunikációs célokat, minden irányító szempontot megfelelően kidolgozott; 5 = egy szempontot csak részben, a többit maradéktalanul; 4 = legalább kettőt megfelelően, a többit részben; 3 = egyet megfelelően, az összes többit részben; 2 = egyet megfelelően, egyet részben, a többit egyáltalán nem; 1 = mindet csak részben, vagy hármat részben és egyet egyáltalán nem; 0 = félreértette a feladatot, vagy egyik szempontot sem dolgozta ki megfelelően, csak néhányat részben, és van, amelyet egyáltalán nem. " + HOSSZ,
+            "– Hangnem, az olvasóban keltett benyomás (2): 2 = a szövegfajtának és a szerző–olvasó viszonynak megfelelő hangnem, a szándéknak megfelelő benyomást kelt; 1 = következetlen hangnem; 0 = nem megfelelő hangnem.",
+            "– Szövegalkotás (4): 4 = logikus felépítés és sorrend, megfelelő gondolati tagolás, elkülönülő bevezetés és befejezés, bekezdések, szervesen kapcsolódó mondatok; 3 = kisebb aránytalanságok ellenére logikus, törekszik a tagolásra, bekezdéseket alkalmaz; 2 = külön bekezdésben legalább a bevezetést vagy a befejezést elkülöníti, VAGY a jó gondolati tagolás vizuálisan nem jelenik meg (nincsenek bekezdések), a mondatok általában kapcsolódnak; 1 = nem mindenütt logikus, nincs tagolás, bevezetés és befejezés, nincsenek bekezdések, a mondatok több helyen nem kapcsolódnak; 0 = tagolatlan, összefüggéstelen, vagy szövegként nem értékelhetően rövid.",
+            "– Szókincs, kifejezésmód (5): 5 = a B1 szintnek, a témának és a közlési szándéknak megfelelő, változatos, viszonylag bő szókincs; 4–3 = megfelelő szókincs, a korlátok miatt ismétlés, néhol nem megfelelő szóhasználat, amely a megértést nem vagy alig nehezíti; 2 = kevésbé változatos, egyszerű, de elfogadható szókincs, sok ismétlés; 1 = a nem megfelelő szóhasználat néhány helyen jelentősen nehezíti a megértést; 0 = nagyon egyszerű, nem a témának megfelelő szókincs, több helyen jelentősen nehezíti a megértést.",
+            "– Nyelvhelyesség, helyesírás (5): 5 = kevés (6–8) nyelvi hiba, amely nem befolyásolja a megértést; 4 = több (ismétlődő) hiba, amely a megértést nem befolyásolja; 3 = csak néhány hiba, de ezek nehezítik a megértést; 2 = a nyelvi szint nem mindenhol B1-es, sok, a megértést nem befolyásoló hiba; 1 = több, a megértést nehezítő hiba; 0 = a nyelvi szint B1 alatt marad, a gyakori hibák miatt több helyen nehezen vagy egyáltalán nem érthető. " + IGEIDO_KOZEP,
+            KIUTO,
+          ].join("\n"),
+        },
+      },
+      {
+        id: "emelt-level",
+        nev: "Érettségi – emelt szint, levél (1. feladat)",
+        rubrika: {
+          nyelv: "angol", tipus: "levél", szint: "B2", min_szo: 120, max_szo: 150,
+          szempontok: [sz(SZ.feladat, 4), sz(SZ.hangnem, 2), sz(SZ.szovegalkotas, 3), sz(SZ.szokincs, 3), sz(SZ.nyelvhelyesseg, 3)],
+          egyeb_utasitas: [
+            "Ez emelt szintű angol érettségi írásfeladat (1. feladat, levél/e-mail, 15 pont). A pontot a hivatalos javítási-értékelési útmutató sávjai szerint add, B2 szinthez mérve:",
+            "– A feladat teljesítése, a megadott szempontok követése (4): 4 = megvalósította a kommunikációs célokat, mindhárom irányító szempontot kellő terjedelemben és részletességgel kidolgozta; 3 = kettőt kellően, egyet csak részben; 2 = kettőt kellően, a harmadikat egyáltalán nem, VAGY egyet kellően, kettőt csak részben; 1 = egyet megfelelően, egyet részben, egyet egyáltalán nem, VAGY mindhármat csak részben; 0 = félreértette a feladatot, vagy csak egy-két szempontot dolgozott ki részben, a harmadikat egyáltalán nem. " + HOSSZ,
+            "– Hangnem, az olvasóban keltett benyomás (2): 2 = a szövegfajtának és a szerző–olvasó viszonynak megfelelő hangnem; formális, félformális levélnél helyes megszólítás és elköszönés, udvarias hangnem és kifejezések, kerüli az összevonásokat, a köznyelvi és szleng kifejezéseket; 1 = következetlen (gyakori összevonás, szleng vagy túl hétköznapi kifejezések, hibás megszólítás vagy elköszönés – ez utóbbi önmagában nem ok a pontvesztésre); 0 = nem megfelelő, pl. egyértelműen baráti hangnem ott, ahol udvarias vagy hivatalos stílus kellene.",
+            "– Szövegalkotás (3): 3 = logikus felépítés és sorrend, van bevezetés és befejezés, bekezdések, a szövegösszefüggés eszközeit megfelelően használja, koherens; 2 = kisebb aránytalanságok ellenére logikus, van bevezetés vagy befejezés, a mondatok többnyire kapcsolódnak; 1 = nem mindenütt logikus, hiányzik a bevezetés és a befejezés, a mondatok több helyen nem kapcsolódnak; 0 = nem logikus, tagolatlan, összefüggéstelen.",
+            "– Szókincs, kifejezésmód (3): 3 = a témának és a szándéknak megfelelő, az emelt szinten elvárható szókincs, igényes nyelvhasználat; 2 = viszonylag bő szókincs, törekszik az igényességre, a szóhasználat néhol nem megfelelő, de a megértést nem nehezíti; 1 = kevésbé változatos, leegyszerűsített nyelvhasználat, sok ismétlés, a feladat szövegéből aránytalanul sokat vesz át változtatás nélkül, a rossz szóhasználat esetenként nehezíti a megértést; 0 = szegényes szókincs, igénytelen nyelvhasználat, több helyen nehezíti a megértést.",
+            "– Nyelvhelyesség, helyesírás (3): 3 = változatos, az emelt szintnek megfelelő szerkezetek, igényes mondatszerkesztés, legfeljebb néhány kisebb, a megértést nem nehezítő hiba; 2 = törekszik az igényes szerkezetekre, több, a megértést nem nehezítő vagy egy-két nehezítő hiba; 1 = egyszerű szerkezetek, sok, a megértést nem befolyásoló vagy néhány nehezítő hiba; 0 = túl egyszerű szerkezetek, igénytelen mondatszerkesztés, sok hiba, több a megértést nehezítő.",
+            KIUTO,
+          ].join("\n"),
+        },
+      },
+      {
+        id: "emelt-fogalmazas",
+        nev: "Érettségi – emelt szint, fogalmazás (2. feladat)",
+        rubrika: {
+          nyelv: "angol", tipus: "esszé", szint: "B2", min_szo: 200, max_szo: 250,
+          szempontok: [sz(SZ.feladat, 4), sz(SZ.szovegalkotas, 5), sz(SZ.szokincs, 3), sz(SZ.nyelvhelyesseg, 3)],
+          egyeb_utasitas: [
+            "Ez emelt szintű angol érettségi írásfeladat (2. feladat, véleménykifejtő szöveg, 15 pont). A pontot a hivatalos javítási-értékelési útmutató sávjai szerint add, B2 szinthez mérve. A feladatteljesítésnél azt is nézd, mennyire helyezi a témát tágabb összefüggésbe, és támasztja alá érvekkel a véleményét.",
+            "– A feladat teljesítése, a megadott szempontok követése (4): 4 = mind a négy irányító szempontot kellő terjedelemben és részletességgel kidolgozta, VAGY hármat így, egyet csak részben; 3 = egyet egyáltalán nem, a másik hármat maradéktalanul, VAGY kettőt kellően, kettőt csak részben; 2 = kettőt kellően, egyet részben, egyet egyáltalán nem, VAGY egyet kellően, hármat csak részben; 1 = egyet megfelelően, egyet részben, kettőt egyáltalán nem, VAGY mind a négyet csak részben; 0 = félreértette a feladatot, vagy csak néhány szempontot dolgozott ki részben, a többit egyáltalán nem. " + HOSSZ,
+            "– Szövegalkotás (5): 5 = a szempontok, gondolatok és érvek elrendezése logikus, a szövegösszefüggés eszközeit megfelelően használja, koherens, formailag jól tagolt, bekezdéseket használ; 4–3 = többnyire logikus, a mondatok többnyire kapcsolódnak (ha nincsenek bekezdések, az alacsonyabb pont jár); 2–1 = nem mindenütt logikus, sok gondolati ismétlés, a mondatok több helyen nem kapcsolódnak (bekezdések nélkül az alacsonyabb pont); 0 = nem logikus, tagolatlan, áttekinthetetlen, összefüggéstelen.",
+            "– Szókincs, kifejezésmód (3): 3 = gazdag, változatos, a közlési szándéknak megfelelő szókincs és nyelvhasználat; 2 = viszonylag bő szókincs, néhol nem megfelelő szóhasználat, amely a megértést nem nehezíti jelentősen; 1 = kevésbé változatos, egyszerűbb nyelvhasználat, sok ismétlés, a rossz szóhasználat esetenként nehezíti a megértést; 0 = szegényes szókincs, több helyen nehezíti a megértést.",
+            "– Nyelvhelyesség, helyesírás (3): 3 = igényes nyelvhasználat, változatos és igényes szerkezetek, legfeljebb néhány kisebb, a megértést nem nehezítő hiba; 2 = törekszik az igényes szerkezetekre, több, a megértést nem nehezítő vagy egy-két nehezítő hiba; 1 = egyszerű szerkezetek, sok, a megértést nem befolyásoló vagy néhány nehezítő hiba; 0 = túl egyszerű szerkezetek, sok hiba, több a megértést nehezítő.",
+            KIUTO,
+          ].join("\n"),
+        },
+      },
+    ],
+  };
+}

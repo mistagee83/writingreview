@@ -1,0 +1,102 @@
+{
+  "formatum_verzio": 1,
+  "id": "2011-maj-kozep",
+  "ev": 2011,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2011-05-05",
+  "kod": "1111",
+  "forras_fajlok": {
+    "feladatlap": "2011 - Középszintű májusi/k_angol_11maj_fl.pdf",
+    "utmutato": "2011 - Középszintű májusi/k_angol_11maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2011-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Mr Spencer about music lessons",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "You are spending a year in Cheshire and you would like to take music lessons while you are there. You have found the following advertisement on the internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "Email: REGINALD SPENCER spencermusic@yahoo.com",
+          "Instruments: Voice, Guitar, Piano, Flute, Violin, Drums",
+          "Ability Levels: Beginners to Advanced",
+          "Style(s): classical, pop, jazz, rock, folk",
+          "Qualifications: Music degree, 21 years music teaching",
+          "Fee (30 minutes): £16.00",
+          "Fee (60 minutes): £30.00"
+        ],
+        "forras": "http://www.musicteachers.co.uk/"
+      },
+      "teendo": "Write an email of 50-80 words to Mr Spencer in which you",
+      "iranyito_szempontok": [
+        "introduce yourself,",
+        "tell him about your previous music studies, if any,",
+        "specify what you would like to learn and at which level,",
+        "enquire about the time and place of lessons."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Mr Spencer,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": [
+        "A hirdetés a lapon táblázat; a sorait „fejléc: érték” alakban rögzítettük (a hangszerek vesszővel elválasztva)."
+      ]
+    },
+    {
+      "id": "2011-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Lisa about internet safety for teenagers",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your British friend, Lisa:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I’m really worried about my little sister, Emma. She’s only twelve but since she got that pink laptop of hers – it was absolutely necessary for her project work ☺ - she’s been on the internet all night every night. She may be chatting and sharing pics and stuff with other girls from school but what if she’s giving information about herself to strangers who may be pretending to be someone else? I’ve heard similar stories. I thought I would talk to her about the risks and how to avoid them. Can you help me collect the most important points?"
+        ],
+        "forras": "http://www.org/teen/life/"
+      },
+      "teendo": "Write a letter of 100-120 words to Lisa in which you include the following:",
+      "iranyito_szempontok": [
+        "What are the dangers of young teenagers using the internet?",
+        "What do you think they should and shouldn’t do to avoid these dangers?",
+        "What do you think young teenagers should use the internet for?"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Lisa,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": [
+        "A lapon egy mosolygó arc áll (Wingdings-jel); ☺ jellel rögzítettük."
+      ]
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

@@ -1,0 +1,98 @@
+{
+  "formatum_verzio": 1,
+  "id": "2019-okt-emelt",
+  "ev": 2019,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2019-10-17",
+  "kod": "1714",
+  "forras_fajlok": {
+    "feladatlap": "2019 - Emeltszintű október/e_angol_19okt_fl.pdf",
+    "utmutato": "2019 - Emeltszintű október/e_angol_19okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2019-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Application to a creative writing workshop",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are spending 6 months in New York as a visiting student. You have decided to take a course to improve your writing skills and you have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "GOTHAM TEEN CREATIVE WRITING WORKSHOP IN NEW YORK CITY",
+        "bekezdesek": [
+          "Pressure-free, creativity-stretching, not-like-school courses for writers ages 16-24. Useful for expanding your talent or gaining skills bound to help with essays and schoolwork. We also offer coaching for College Admissions Essays.",
+          "There are no grades, no exams, no wrong answers – just creative writing. Each class is taught by a teacher adept at helping young writers discover and develop their unique voices. The idea is to experiment with both fiction and nonfiction.",
+          "Better writers produce stronger college applications, and an extracurricular writing class is an impressive addition to any profile. When you know how to express yourself well with words, you’ve got a special power.",
+          "In NYC, this course is offered as a 6-week class (with two 3-hour sessions per week), and also as a 4-week class in the summer (with two 2-hour sessions per week). We also offer a 5-hour one-day course.",
+          "Contact: contact@gothamwriters.com"
+        ],
+        "forras": "https://www.writingclasses.com/classes/description/unbound-teen-creative-writing"
+      },
+      "teendo": "Send an email of application of 120-150 words to the address given. Include the following:",
+      "iranyito_szempontok": [
+        "say what you hope/expect to gain by doing this course,",
+        "give information about your previous studies and level of English,",
+        "choose the class you would like to do and ask for more details about the course."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Madam/Sir,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2019-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Reply to Greg about a false rumour",
+      "mufaj": "reply",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have read the following post on the internet forum Feeling Like a Clown:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": "Greg 17 yrs",
+        "bekezdesek": [
+          "I knew something was weird the second I got to class on Tuesday morning. I saw kids whispering and pointing at me. Some were looking at me funny. I sat down next to my best friend, Dylan and picked up the report the teacher, Ms. Crosby, had graded over the weekend. I looked at the “A+” and forgot about the rest of the class for a minute. I had worked hard at that report and was thrilled it had paid off. I looked up and saw a bunch of kids staring at me. While the teacher cleaned up the white board, I whispered to Dylan, “What’s going on?” Dylan, looked down and said quietly, “Frank told everyone you copied your report from the internet.” “But, that’s a lie!” I said. “I never cheat and everyone knows it.” I was hurt and angry. I couldn’t focus the rest of the morning in class.",
+          "In the break, I went up to Frank and asked him if he had really told everyone I had cheated. “It’s no big deal,” Frank scoffed. “I only told a few people. Lighten up. It was just a joke.” I suppose I should have punched him in the face but I didn’t and he just walked away, grinning.",
+          "Is there anything I can do about it NOW?"
+        ],
+        "forras": "http://www.goodcharacter.com/dilemma.html"
+      },
+      "teendo": "Write a reply of 200-250 words to Greg in which you include the following:",
+      "iranyito_szempontok": [
+        "whether you have been in/ heard of a similar situation,",
+        "the difference between a joke and humiliation,",
+        "what you think either Greg or his friend should have done,",
+        "what you think Greg could do now."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Greg,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

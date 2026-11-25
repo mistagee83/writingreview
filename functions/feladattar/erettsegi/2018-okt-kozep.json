@@ -1,0 +1,67 @@
+{
+  "formatum_verzio": 1,
+  "id": "2018-okt-kozep",
+  "ev": 2018,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2018-10-18",
+  "kod": "1714",
+  "forras_fajlok": {
+    "feladatlap": "2018 - Középszintű októberi/k_angol_18okt_fl.pdf",
+    "utmutato": "2018 - Középszintű októberi/k_angol_18okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2018-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Heikki about a gap year in Nepal",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your Finnish friend, Heikki:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "Hi,",
+          "I decided to take a gap year and do some charity work before I go to college, partly, because I want to improve my CV, but also to try myself doing something really and instantly useful.",
+          "I found Alliance Nepal, a charity organisation, which offers a volunteer and internship experience in Nepal (in an area of my choice) where I could teach English and also have the opportunity to assist in other school activities such as sports and extracurricular projects (also trips, I hope).",
+          "It has always been my dream to go to Nepal, which I think is one of the most mysterious places in the world, so I can’t wait to apply but first I’d like to know what you think of this idea.",
+          "Imagine ME standing there? Please reply ASAP.",
+          "Take care,",
+          "Heikki"
+        ],
+        "forras": "https://www.volunteerworld.com/volunteer-program/teacher-assistant/forum"
+      },
+      "teendo": "Write an email of 100-120 words to Heikki in which you tell him",
+      "iranyito_szempontok": [
+        "what you think of taking a gap-year,",
+        "if you like his choice of place and charity,",
+        "whether you have ever taken part/ would like to take part in a similar project,",
+        "what practical questions you think he should ask the organisers."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Heikki,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [
+    {
+      "sorszam": 1,
+      "ok": "kep",
+      "megjegyzes": "„sent you this photo and some interesting facts about Holy Island” – a helyzet a lapon lévő fotóra utal."
+    }
+  ],
+  "megjegyzesek": []
+}

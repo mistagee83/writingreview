@@ -1,0 +1,103 @@
+{
+  "formatum_verzio": 1,
+  "id": "2026-maj-emelt",
+  "ev": 2026,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2026-05-07",
+  "kod": "E2611",
+  "forras_fajlok": {
+    "feladatlap": "2026 - Emeltszintű május/e_angol_26maj_fl.pdf",
+    "utmutato": "2026 - Emeltszintű május/e_angol_26maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2026-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Ms Josífková about a creative writing course",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are a university student and have found the following advertisement on the website of your university:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Creative Writing",
+        "bekezdesek": [
+          "Prague European Summer School",
+          "As children, it is through stories that we begin to learn how the world works. As adults, we often need a story to design a strong presentation, create an effective social media post, apply for a job, or write an academic essay.",
+          "Course aim: to improve writing skills",
+          "• to enable you to sell your idea, concept, or product through a variety of narrative tools and methods;",
+          "• to enhance your English vocabulary, composition and writing style.",
+          "Target group",
+          "Young professionals and university students with at least an intermediate (B2) level of English.",
+          "Interested? And you don’t mind receiving homework before the course starts? Contact our co-ordinator, Andrea Josífková, by email: info@europeansummerschool.com"
+        ],
+        "forras": "https://www.summerschoolsineurope.eu/course/creative-storytelling-and-creative-writing/"
+      },
+      "teendo": "Write an email of 120-150 words to Ms Josífková in which you",
+      "iranyito_szempontok": [
+        "introduce yourself, and say why you think improving your writing skills will be advantageous for your studies/future job,",
+        "ask about the details of the homework you will receive before the course starts,",
+        "ask about the date(s) and duration of the course, and the course fee."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Josífková,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2026-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Emily about photos posted by her mother",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You’ve found the following post in your group chat with your class.",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Hey guys, the most irritating thing has happened, and it’s driving me crazy.",
+          "My mum had her birthday and we had a family get-together at the weekend, where everyone took a lot of pictures, of course. I didn’t think much of it, goofing around with my cousins as usual. To my horror, my mum posted a lot of these photos on social media the next day. We all look ridiculous, especially me. I was wearing no make-up, and I never realized the dress I was wearing looked so hideous!",
+          "I confronted my mum and told her to delete the pictures immediately, because she had no right to post these without my consent, but she says she is my mother, I’m a minor, it was her birthday, and she can share photos of her own party if she likes. We had a huge fight, I even begged her to delete the photos, but she won’t budge, and we are still not speaking.",
+          "What shall I do? I’ll hack her account if I have to, but I can’t have my photos appear on all her social media with me looking like that. It was ok when I was little, I didn’t have a say in it then, but shouldn’t she take my feelings into account now that I’m 17???",
+          "Emily"
+        ],
+        "forras": "https://www.quora.com/Is-it-okay-that-my-mom-posts-pictures-of-me-on-her-social-media-without-my-consent-I-m-16-I-don-t-even-post-on-my-own-accounts-or-take-pictures-She-says-that-I-m-her-child-and-she-can-do-what-she-wants-to-when-I-ask"
+      },
+      "teendo": "Write a comment of 200-250 words to Emily’s post, in which you tell her",
+      "iranyito_szempontok": [
+        "whether anything similar has ever happened to you or anyone you know,",
+        "whether you think parents should post pictures of their children on social media,",
+        "at what age you think a person should be able to control what others post about them,",
+        "what you think she should do in this situation."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Emily,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

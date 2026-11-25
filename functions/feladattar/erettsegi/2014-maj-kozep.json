@@ -1,0 +1,96 @@
+{
+  "formatum_verzio": 1,
+  "id": "2014-maj-kozep",
+  "ev": 2014,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2014-05-08",
+  "kod": "1212",
+  "forras_fajlok": {
+    "feladatlap": "2014 - Középszintű májusi/k_angol_14maj_fl.pdf",
+    "utmutato": "2014 - Középszintű májusi/k_angol_14maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2014-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Steve about a bike for sale",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "You are spending a semester at McGill University, Canada. You are looking for a bike to use during your stay and have found the following small ad on the website of the university:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "21 speed bike for sale",
+        "bekezdesek": [
+          "Posted Thursday",
+          "21 speed road bike with specialized brand helmet, lock and mud guard.",
+          "Steve Logue logue@mcgill.org"
+        ],
+        "forras": "http://www.mcgill.ca/"
+      },
+      "teendo": "Write an email of 50-80 words to Steve in which you",
+      "iranyito_szempontok": [
+        "explain why you are writing,",
+        "ask about the price and request some more information about the bike,",
+        "enquire about seeing and trying out the bike."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Steve,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2014-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Marcus about what to wear for an exam",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "On the internet forum for school-leavers called Exam Worries you found the following problem:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "It’s less than 48 hours before my final piano exam at the music school and I am really nervous. I have to leave early tomorrow and have nowhere to practise before the exam. So the next time I play the pieces will be at the exam. Right now I am fixated on what to wear. As a kid I always did my exams at school, so I was in school uniform. But I don't know what to wear now that I have no school uniform anymore and even if I did, I think it would look a bit silly.",
+          "Do you think examiners get upset by people who wear – decent and clean! – jeans? Even with a white shirt? The reason I am asking is that tomorrow I will be spending most of the day roaming around town and I have a long train journey to get there in the first place and then a long journey back after the exam. But would a suit be better? AND a tie?",
+          "Does anyone else worry about silly things like this, or is it just me projecting all my exam nerves onto the clothing?",
+          "Marcus 18"
+        ],
+        "forras": "http://articles.cnn.com"
+      },
+      "teendo": "Write a letter of 100-120 words to Marcus in which you",
+      "iranyito_szempontok": [
+        "tell him if you think clothes matter in an exam situation,",
+        "give him advice about what to wear,",
+        "tell him how you relax before exams."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Marcus,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

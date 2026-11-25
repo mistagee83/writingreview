@@ -1,0 +1,96 @@
+{
+  "formatum_verzio": 1,
+  "id": "2009-okt-emelt",
+  "ev": 2009,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2009-10-22",
+  "kod": "0802",
+  "forras_fajlok": {
+    "feladatlap": "2009. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_09okt_fl.pdf",
+    "utmutato": "2009. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_09okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2009-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Dr Chester about therapy dog work",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are a regular reader of Dog World, in which you have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "What is Therapy Dogs, Inc?",
+          "It is a goal of Therapy Dogs Inc. to help dog owners use their dogs for therapy work in various places such as nursing homes, hospitals and schools, as well as work with the mentally and physically handicapped. Our objective is to form a network of caring individuals who are willing to share their special animals in order to bring happiness and cheer to people who need something to hold and love. Dogs have been effective in reaching people and children who have withdrawn from the world.",
+          "For more information email Dr. T. W. Chester chester@therapydogs.com"
+        ],
+        "forras": null
+      },
+      "teendo": "You like the idea of doing charity work with your dog, Jenny, but first you need some more information. Write an email of 120-150 words to Dr Chester in which you",
+      "iranyito_szempontok": [
+        "say why you are interested in charity work;",
+        "describe your dog;",
+        "ask if applicants are tested and if there is any training."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Dr Chester,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2009-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Susan about job interviews",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have recently become interested in the School-leavers’ Forum on the Internet. You have found the following message:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I've got a job interview in a few days. I'm really worried about how to act and everything. If you could give me some pointers, I'd really appreciate it.",
+          "Susan, Age 18"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 200-250 words to Susan in which you give your opinion on how to behave at a job interview. Include the following points:",
+      "iranyito_szempontok": [
+        "how to prepare for the interview;",
+        "how to make a good impression: what to wear, how to behave, what questions to ask;",
+        "any relevant personal experiences that either you or one of your friends have had."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Susan,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": [
+        "A lapon a fő pontok „o” jellel, az alpontok (what to wear…) felsorolásjellel állnak; az alpontokat a 2. ponthoz fűztük."
+      ]
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

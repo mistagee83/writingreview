@@ -1,0 +1,912 @@
+[
+ {
+  "id": "2005-maj-emelt",
+  "ev": 2005,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2005-05-12",
+  "kod": "0513",
+  "feladatlap": "2005. Emeltszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_fl.pdf",
+  "utmutato": "2005. Emeltszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_ut.pdf"
+ },
+ {
+  "id": "2005-maj-kozep",
+  "ev": 2005,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2005-05-12",
+  "kod": "0513",
+  "feladatlap": "2005. Középszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_fl.pdf",
+  "utmutato": "2005. Középszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_ut.pdf"
+ },
+ {
+  "id": "2005-maj2-emelt",
+  "ev": 2005,
+  "idoszak": "maj2",
+  "szint": "emelt",
+  "vizsga_datum": "2005-05-30",
+  "kod": "0512",
+  "feladatlap": "2005. Emeltszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angolV30_fl.pdf",
+  "utmutato": "2005. Emeltszintű  május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angolV30_ut.pdf"
+ },
+ {
+  "id": "2005-nov-emelt",
+  "ev": 2005,
+  "idoszak": "nov",
+  "szint": "emelt",
+  "vizsga_datum": "2005-11-04",
+  "kod": "0521",
+  "feladatlap": "2005. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_05nov_fl.pdf",
+  "utmutato": "2005. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_05nov_ut.pdf"
+ },
+ {
+  "id": "2005-nov-kozep",
+  "ev": 2005,
+  "idoszak": "nov",
+  "szint": "kozep",
+  "vizsga_datum": "2005-11-04",
+  "kod": "0521",
+  "feladatlap": "2005. Hagyományos október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_05nov_fl.pdf",
+  "utmutato": "2005. Hagyományos október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_05nov_ut.pdf"
+ },
+ {
+  "id": "2006-febr-emelt",
+  "ev": 2006,
+  "idoszak": "febr",
+  "szint": "emelt",
+  "vizsga_datum": "2006-02-23",
+  "kod": "0613",
+  "feladatlap": "2006. Emeltszintű február-márciusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06febr_fl.pdf",
+  "utmutato": "2006. Emeltszintű február-márciusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06febr_ut.pdf"
+ },
+ {
+  "id": "2006-febr-kozep",
+  "ev": 2006,
+  "idoszak": "febr",
+  "szint": "kozep",
+  "vizsga_datum": "2006-02-23",
+  "kod": "0522",
+  "feladatlap": "2006. Középszintű február-márciusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_06febr_fl.pdf",
+  "utmutato": "2006. Középszintű február-márciusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_06febr_ut.pdf"
+ },
+ {
+  "id": "2006-maj-emelt",
+  "ev": 2006,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2006-05-11",
+  "kod": "0611",
+  "feladatlap": "2006. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06maj_fl.pdf",
+  "utmutato": "2006. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06maj_ut.pdf"
+ },
+ {
+  "id": "2006-maj-kozep",
+  "ev": 2006,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2006-05-11",
+  "kod": "0612",
+  "feladatlap": "2006. Középszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_06maj_fl.pdf",
+  "utmutato": "2006. Középszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_06maj_ut.pdf"
+ },
+ {
+  "id": "2006-okt-emelt",
+  "ev": 2006,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2006-10-27",
+  "kod": "0522",
+  "feladatlap": "2006. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06okt_fl.pdf",
+  "utmutato": "2006. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06okt_ut.pdf"
+ },
+ {
+  "id": "2006-okt-kozep",
+  "ev": 2006,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2006-10-27",
+  "kod": "0611",
+  "feladatlap": "2006. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_06okt_fl.pdf",
+  "utmutato": "2006. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_06okt_ut.pdf"
+ },
+ {
+  "id": "2007-maj-emelt",
+  "ev": 2007,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2007-05-10",
+  "kod": "0623",
+  "feladatlap": "2007. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_07maj_fl.pdf",
+  "utmutato": "2007. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_07maj_ut.pdf"
+ },
+ {
+  "id": "2007-maj-kozep",
+  "ev": 2007,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2007-05-10",
+  "kod": "0621",
+  "feladatlap": "2007. Középszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_07maj_fl.pdf",
+  "utmutato": "2007. Középszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_07maj_ut.pdf"
+ },
+ {
+  "id": "2007-okt-emelt",
+  "ev": 2007,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2007-10-29",
+  "kod": "0621",
+  "feladatlap": "2007. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_07okt_fl.pdf",
+  "utmutato": "2007. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_07okt_ut.pdf"
+ },
+ {
+  "id": "2007-okt-kozep",
+  "ev": 2007,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2007-10-29",
+  "kod": "0622",
+  "feladatlap": "2007. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_07okt_fl.pdf",
+  "utmutato": "2007. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_07okt_ut.pdf"
+ },
+ {
+  "id": "2008-maj-emelt",
+  "ev": 2008,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2008-05-08",
+  "kod": "0801",
+  "feladatlap": "2008. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_08maj_fl.pdf",
+  "utmutato": "2008. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_08maj_ut.pdf"
+ },
+ {
+  "id": "2008-maj-kozep",
+  "ev": 2008,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2008-05-08",
+  "kod": "0803",
+  "feladatlap": "2008. Középszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_08maj_fl.pdf",
+  "utmutato": "2008. Középszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_08maj_ut.pdf"
+ },
+ {
+  "id": "2008-okt-emelt",
+  "ev": 2008,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2008-10-27",
+  "kod": "0819",
+  "feladatlap": "2008. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_08okt_fl.pdf",
+  "utmutato": "2008. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_08okt_ut.pdf"
+ },
+ {
+  "id": "2008-okt-kozep",
+  "ev": 2008,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2008-10-27",
+  "kod": "0801",
+  "feladatlap": "2008. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_08okt_fl.pdf",
+  "utmutato": "2008. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_08okt_ut.pdf"
+ },
+ {
+  "id": "2009-maj-emelt",
+  "ev": 2009,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2009-05-07",
+  "kod": "0912",
+  "feladatlap": "2009. Emeltszintű május-június érettségi/e_angol_09maj_fl.pdf",
+  "utmutato": "2009. Emeltszintű május-június érettségi/e_angol_09maj_ut.pdf"
+ },
+ {
+  "id": "2009-maj-kozep",
+  "ev": 2009,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2009-05-07",
+  "kod": "0819",
+  "feladatlap": "2009. Középszintű május-június érettségi/k_angol_09maj_fl.pdf",
+  "utmutato": "2009. Középszintű május-június érettségi/k_angol_09maj_ut.pdf"
+ },
+ {
+  "id": "2009-okt-emelt",
+  "ev": 2009,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2009-10-22",
+  "kod": "0802",
+  "feladatlap": "2009. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_09okt_fl.pdf",
+  "utmutato": "2009. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_09okt_ut.pdf"
+ },
+ {
+  "id": "2009-okt-kozep",
+  "ev": 2009,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2009-10-22",
+  "kod": "0804",
+  "feladatlap": "2009. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_09okt_fl.pdf",
+  "utmutato": "2009. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_09okt_ut.pdf"
+ },
+ {
+  "id": "2010-maj-emelt",
+  "ev": 2010,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2010-05-06",
+  "kod": "1011",
+  "feladatlap": "2010. Emeltszintű május-június érettségi/e_angol_10maj_fl.pdf",
+  "utmutato": "2010. Emeltszintű május-június érettségi/e_angol_10maj_ut.pdf"
+ },
+ {
+  "id": "2010-maj-kozep",
+  "ev": 2010,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2010-05-06",
+  "kod": "0911",
+  "feladatlap": "2010. Középszintű május-június érettségi/k_angol_10maj_fl.pdf",
+  "utmutato": "2010. Középszintű május-június érettségi/k_angol_10maj_ut.pdf"
+ },
+ {
+  "id": "2010-okt-emelt",
+  "ev": 2010,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2010-10-21",
+  "kod": "0804",
+  "feladatlap": "2010. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_10okt_fl.pdf",
+  "utmutato": "2010. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_10okt_ut.pdf"
+ },
+ {
+  "id": "2010-okt-kozep",
+  "ev": 2010,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2010-10-21",
+  "kod": "1011",
+  "feladatlap": "2010. Középszintű október-november érettségi/k_angol_10okt_fl.pdf",
+  "utmutato": "2010. Középszintű október-november érettségi/k_angol_10okt_ut.pdf"
+ },
+ {
+  "id": "2011-maj-emelt",
+  "ev": 2011,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2011-05-05",
+  "kod": "1012",
+  "feladatlap": "2011 - Emeltszintű májusi/e_angol_11maj_fl.pdf",
+  "utmutato": "2011 - Emeltszintű májusi/e_angol_11maj_ut.pdf"
+ },
+ {
+  "id": "2011-maj-kozep",
+  "ev": 2011,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2011-05-05",
+  "kod": "1111",
+  "feladatlap": "2011 - Középszintű májusi/k_angol_11maj_fl.pdf",
+  "utmutato": "2011 - Középszintű májusi/k_angol_11maj_ut.pdf"
+ },
+ {
+  "id": "2011-okt-emelt",
+  "ev": 2011,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2011-10-20",
+  "kod": "1111",
+  "feladatlap": "2011 - Emeltszintű októberi/e_angol_11okt_fl.pdf",
+  "utmutato": "2011 - Emeltszintű októberi/e_angol_11okt_ut.pdf"
+ },
+ {
+  "id": "2011-okt-kozep",
+  "ev": 2011,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2011-10-20",
+  "kod": "1019",
+  "feladatlap": "2011 - Középszintű októberi/k_angol_11okt_fl.pdf",
+  "utmutato": "2011 - Középszintű októberi/k_angol_11okt_ut.pdf"
+ },
+ {
+  "id": "2012-maj-emelt",
+  "ev": 2012,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2012-05-10",
+  "kod": "0911",
+  "feladatlap": "2012 - Emeltszintű májusi/e_angol_12maj_fl.pdf",
+  "utmutato": "2012 - Emeltszintű májusi/e_angol_12maj_ut.pdf"
+ },
+ {
+  "id": "2012-maj-kozep",
+  "ev": 2012,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2012-05-10",
+  "kod": "1211",
+  "feladatlap": "2012 - Középszintű májusi/k_angol_12maj_fl.pdf",
+  "utmutato": "2012 - Középszintű májusi/k_angol_12maj_ut.pdf"
+ },
+ {
+  "id": "2012-okt-emelt",
+  "ev": 2012,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2012-10-18",
+  "kod": "1212",
+  "feladatlap": "2012 - Emeltszintű októberi/e_angol_12okt_fl.pdf",
+  "utmutato": "2012 - Emeltszintű októberi/e_angol_12okt_ut.pdf"
+ },
+ {
+  "id": "2012-okt-kozep",
+  "ev": 2012,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2012-10-18",
+  "kod": "1119",
+  "feladatlap": "2012 - Középszintű októberi/k_angol_12okt_fl.pdf",
+  "utmutato": "2012 - Középszintű októberi/k_angol_12okt_ut.pdf"
+ },
+ {
+  "id": "2013-maj-emelt",
+  "ev": 2013,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2013-05-09",
+  "kod": "1311",
+  "feladatlap": "2013 - Emeltszintű májusi/e_angol_13maj_fl.pdf",
+  "utmutato": "2013 - Emeltszintű májusi/e_angol_13maj_ut.pdf"
+ },
+ {
+  "id": "2013-maj-kozep",
+  "ev": 2013,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2013-05-09",
+  "kod": "1311",
+  "feladatlap": "2013 - Középszintű májusi/k_angol_13maj_fl.pdf",
+  "utmutato": "2013 - Középszintű májusi/k_angol_13maj_ut.pdf"
+ },
+ {
+  "id": "2013-okt-emelt",
+  "ev": 2013,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2013-10-17",
+  "kod": "1211",
+  "feladatlap": "2013 - Emeltszintű októberi/e_angol_13okt_fl.pdf",
+  "utmutato": "2013 - Emeltszintű októberi/e_angol_13okt_ut.pdf"
+ },
+ {
+  "id": "2013-okt-kozep",
+  "ev": 2013,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2013-10-17",
+  "kod": "1312",
+  "feladatlap": "2013 - Középszintű októberi/k_angol_13okt_fl.pdf",
+  "utmutato": "2013 - Középszintű októberi/k_angol_13okt_ut.pdf"
+ },
+ {
+  "id": "2014-maj-emelt",
+  "ev": 2014,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2014-05-08",
+  "kod": "1312",
+  "feladatlap": "2014 - Emeltszintű májusi/e_angol_14maj_fl.pdf",
+  "utmutato": "2014 - Emeltszintű májusi/e_angol_14maj_ut.pdf"
+ },
+ {
+  "id": "2014-maj-kozep",
+  "ev": 2014,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2014-05-08",
+  "kod": "1212",
+  "feladatlap": "2014 - Középszintű májusi/k_angol_14maj_fl.pdf",
+  "utmutato": "2014 - Középszintű májusi/k_angol_14maj_ut.pdf"
+ },
+ {
+  "id": "2014-okt-emelt",
+  "ev": 2014,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2014-10-16",
+  "kod": "1319",
+  "feladatlap": "2014 - Emeltszintű októberi/e_angol_14okt_fl.pdf",
+  "utmutato": "2014 - Emeltszintű októberi/e_angol_14okt_ut.pdf"
+ },
+ {
+  "id": "2014-okt-kozep",
+  "ev": 2014,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2014-10-16",
+  "kod": "1419",
+  "feladatlap": "2014 - Középszintű októberi/k_angol_14okt_fl.pdf",
+  "utmutato": "2014 - Középszintű októberi/k_angol_14okt_ut.pdf"
+ },
+ {
+  "id": "2015-maj-emelt",
+  "ev": 2015,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2015-05-07",
+  "kod": "1511",
+  "feladatlap": "2015 - Emeltszintű májusi/e_angol_15maj_fl.pdf",
+  "utmutato": "2015 - Emeltszintű májusi/e_angol_15maj_ut.pdf"
+ },
+ {
+  "id": "2015-maj-kozep",
+  "ev": 2015,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2015-05-07",
+  "kod": "1511",
+  "feladatlap": "2015 - Középszintű májusi/k_angol_15maj_fl.pdf",
+  "utmutato": "2015 - Középszintű májusi/k_angol_15maj_ut.pdf"
+ },
+ {
+  "id": "2015-okt-emelt",
+  "ev": 2015,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2015-10-15",
+  "kod": "1419",
+  "feladatlap": "2015 - Emeltszintű októberi/e_angol_15okt_fl.pdf",
+  "utmutato": "2015 - Emeltszintű októberi/e_angol_15okt_ut.pdf"
+ },
+ {
+  "id": "2015-okt-kozep",
+  "ev": 2015,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2015-10-15",
+  "kod": "1412",
+  "feladatlap": "2015 - Középszintű októberi/k_angol_15okt_fl.pdf",
+  "utmutato": "2015 - Középszintű októberi/k_angol_15okt_ut.pdf"
+ },
+ {
+  "id": "2016-maj-emelt",
+  "ev": 2016,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2016-05-05",
+  "kod": "1512",
+  "feladatlap": "2016 - Emeltszintű májusi/e_angol_16maj_fl.pdf",
+  "utmutato": "2016 - Emeltszintű májusi/e_angol_16maj_ut.pdf"
+ },
+ {
+  "id": "2016-maj-kozep",
+  "ev": 2016,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2016-05-05",
+  "kod": "1611",
+  "feladatlap": "2016 - Középszintű májusi/k_angol_16maj_fl.pdf",
+  "utmutato": "2016 - Középszintű májusi/k_angol_16maj_ut.pdf"
+ },
+ {
+  "id": "2016-okt-emelt",
+  "ev": 2016,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2016-10-20",
+  "kod": "1519",
+  "feladatlap": "2016 - Emeltszintű októberi/e_angol_16okt_fl.pdf",
+  "utmutato": "2016 - Emeltszintű októberi/e_angol_16okt_ut.pdf"
+ },
+ {
+  "id": "2016-okt-kozep",
+  "ev": 2016,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2016-10-20",
+  "kod": "1621",
+  "feladatlap": "2016 - Középszintű októberi/k_angol_16okt_fl.pdf",
+  "utmutato": "2016 - Középszintű októberi/k_angol_16okt_ut.pdf"
+ },
+ {
+  "id": "2017-maj-emelt",
+  "ev": 2017,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2017-05-11",
+  "kod": "1712",
+  "feladatlap": "2017 - Emeltszintű májusi/e_angol_17maj_fl.pdf",
+  "utmutato": "2017 - Emeltszintű májusi/e_angol_17maj_ut.pdf"
+ },
+ {
+  "id": "2017-maj-kozep",
+  "ev": 2017,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2017-05-11",
+  "kod": "1711",
+  "feladatlap": "2017 - Középszintű májusi/k_angol_17maj_fl.pdf",
+  "utmutato": "2017 - Középszintű májusi/k_angol_17maj_ut.pdf"
+ },
+ {
+  "id": "2017-okt-emelt",
+  "ev": 2017,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2017-10-19",
+  "kod": "1713",
+  "feladatlap": "2017 - Emeltszintű októberi/e_angol_17okt_fl.pdf",
+  "utmutato": "2017 - Emeltszintű októberi/e_angol_17okt_ut.pdf"
+ },
+ {
+  "id": "2017-okt-kozep",
+  "ev": 2017,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2017-10-19",
+  "kod": "1713",
+  "feladatlap": "2017 - Középszintű októberi/k_angol_17okt_fl.pdf",
+  "utmutato": "2017 - Középszintű októberi/k_angol_17okt_ut.pdf"
+ },
+ {
+  "id": "2018-maj-emelt",
+  "ev": 2018,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2018-05-10",
+  "kod": "1811",
+  "feladatlap": "2018 - Emeltszintű májusi/e_angol_18maj_fl.pdf",
+  "utmutato": "2018 - Emeltszintű májusi/e_angol_18maj_ut.pdf"
+ },
+ {
+  "id": "2018-maj-kozep",
+  "ev": 2018,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2018-05-10",
+  "kod": "1811",
+  "feladatlap": "2018 - Középszintű májusi/k_angol_18maj_fl.pdf",
+  "utmutato": "2018 - Középszintű májusi/k_angol_18maj_ut.pdf"
+ },
+ {
+  "id": "2018-okt-emelt",
+  "ev": 2018,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2018-10-18",
+  "kod": "1818",
+  "feladatlap": "2018 - Emeltszintű októberi/e_angol_18okt_fl.pdf",
+  "utmutato": "2018 - Emeltszintű októberi/e_angol_18okt_ut.pdf"
+ },
+ {
+  "id": "2018-okt-kozep",
+  "ev": 2018,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2018-10-18",
+  "kod": "1714",
+  "feladatlap": "2018 - Középszintű októberi/k_angol_18okt_fl.pdf",
+  "utmutato": "2018 - Középszintű októberi/k_angol_18okt_ut.pdf"
+ },
+ {
+  "id": "2019-maj-emelt",
+  "ev": 2019,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2019-05-09",
+  "kod": "1911",
+  "feladatlap": "2019 - Emeltszintű május/e_angol_19maj_fl.pdf",
+  "utmutato": "2019 - Emeltszintű május/e_angol_19maj_ut.pdf"
+ },
+ {
+  "id": "2019-maj-kozep",
+  "ev": 2019,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2019-05-09",
+  "kod": "1812",
+  "feladatlap": "2019 - Középszint május/k_angol_19maj_fl.pdf",
+  "utmutato": "2019 - Középszint május/k_angol_19maj_ut.pdf"
+ },
+ {
+  "id": "2019-okt-emelt",
+  "ev": 2019,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2019-10-17",
+  "kod": "1714",
+  "feladatlap": "2019 - Emeltszintű október/e_angol_19okt_fl.pdf",
+  "utmutato": "2019 - Emeltszintű október/e_angol_19okt_ut.pdf"
+ },
+ {
+  "id": "2019-okt-kozep",
+  "ev": 2019,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2019-10-17",
+  "kod": "1719",
+  "feladatlap": "2019 - Középszintű október/k_angol_19okt_fl.pdf",
+  "utmutato": "2019 - Középszintű október/k_angol_19okt_ut.pdf"
+ },
+ {
+  "id": "2020-maj-emelt",
+  "ev": 2020,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2020-05-07",
+  "kod": "2012",
+  "feladatlap": "2020 - Emeltszintű május/e_angol_20maj_fl.pdf",
+  "utmutato": "2020 - Emeltszintű május/e_angol_20maj_ut.pdf"
+ },
+ {
+  "id": "2020-maj-kozep",
+  "ev": 2020,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2020-05-07",
+  "kod": "1911",
+  "feladatlap": "2020 - Középszint május/k_angol_20maj_fl.pdf",
+  "utmutato": "2020 - Középszint május/k_angol_20maj_ut.pdf"
+ },
+ {
+  "id": "2020-okt-emelt",
+  "ev": 2020,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2020-10-22",
+  "kod": "1912",
+  "feladatlap": "2020 - Emeltszintű október/e_angol_20okt_fl.pdf",
+  "utmutato": "2020 - Emeltszintű október/e_angol_20okt_ut.pdf"
+ },
+ {
+  "id": "2020-okt-kozep",
+  "ev": 2020,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2020-10-22",
+  "kod": "2019",
+  "feladatlap": "2020 - Középszintű október/k_angol_20okt_fl.pdf",
+  "utmutato": "2020 - Középszintű október/k_angol_20okt_ut.pdf"
+ },
+ {
+  "id": "2021-maj-emelt",
+  "ev": 2021,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2021-05-06",
+  "kod": "2112",
+  "feladatlap": "2021 - Emeltszintű május/e_angol_21maj_fl.pdf",
+  "utmutato": "2021 - Emeltszintű május/e_angol_21maj_ut.pdf"
+ },
+ {
+  "id": "2021-maj-kozep",
+  "ev": 2021,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2021-05-06",
+  "kod": "1912",
+  "feladatlap": "2021 - Középszintű májusi/k_angol_21maj_fl.pdf",
+  "utmutato": "2021 - Középszintű májusi/k_angol_21maj_ut.pdf"
+ },
+ {
+  "id": "2021-okt-emelt",
+  "ev": 2021,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2021-10-21",
+  "kod": "2119",
+  "feladatlap": "2021 - Emeltszintű október/e_angol_21okt_fl.pdf",
+  "utmutato": "2021 - Emeltszintű október/e_angol_21okt_ut.pdf"
+ },
+ {
+  "id": "2021-okt-kozep",
+  "ev": 2021,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2021-10-21",
+  "kod": "2119",
+  "feladatlap": "2021 - Középszintű október/k_angol_21okt_fl.pdf",
+  "utmutato": "2021 - Középszintű október/k_angol_21okt_ut.pdf"
+ },
+ {
+  "id": "2022-maj-emelt",
+  "ev": 2022,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2022-05-05",
+  "kod": "2212",
+  "feladatlap": "2022 - Emeltszintű május/e_angol_22maj_fl.pdf",
+  "utmutato": "2022 - Emeltszintű május/e_angol_22maj_ut.pdf"
+ },
+ {
+  "id": "2022-maj-kozep",
+  "ev": 2022,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2022-05-05",
+  "kod": "2111",
+  "feladatlap": "2022 - Középszintű május/k_angol_22maj_fl.pdf",
+  "utmutato": "2022 - Középszintű május/k_angol_22maj_ut.pdf"
+ },
+ {
+  "id": "2022-okt-emelt",
+  "ev": 2022,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2022-10-20",
+  "kod": "2219",
+  "feladatlap": "2022 - Emeltszintű október/e_angol_22okt_fl.pdf",
+  "utmutato": "2022 - Emeltszintű október/e_angol_22okt_ut.pdf"
+ },
+ {
+  "id": "2022-okt-kozep",
+  "ev": 2022,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2022-10-20",
+  "kod": "2211",
+  "feladatlap": "2022 - Középszintű október/k_angol_22okt_fl.pdf",
+  "utmutato": "2022 - Középszintű október/k_angol_22okt_ut.pdf"
+ },
+ {
+  "id": "2023-maj-emelt",
+  "ev": 2023,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2023-05-11",
+  "kod": "2312",
+  "feladatlap": "2023  - Emeltszintű május/e_angol_23maj_fl.pdf",
+  "utmutato": "2023  - Emeltszintű május/e_angol_23maj_ut.pdf"
+ },
+ {
+  "id": "2023-maj-kozep",
+  "ev": 2023,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2023-05-11",
+  "kod": "2311",
+  "feladatlap": "2023 - Középszintű május/k_angol_23maj_fl.pdf",
+  "utmutato": "2023 - Középszintű május/k_angol_23maj_ut.pdf"
+ },
+ {
+  "id": "2023-okt-emelt",
+  "ev": 2023,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2023-10-19",
+  "kod": "2211",
+  "feladatlap": "2023  - Emeltszintű október/e_angol_23okt_fl.pdf",
+  "utmutato": "2023  - Emeltszintű október/e_angol_23okt_ut.pdf"
+ },
+ {
+  "id": "2023-okt-kozep",
+  "ev": 2023,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2023-10-19",
+  "kod": "2212",
+  "feladatlap": "2023 - Középszintű október/k_angol_23okt_fl.pdf",
+  "utmutato": "2023 - Középszintű október/k_angol_23okt_ut.pdf"
+ },
+ {
+  "id": "2024-maj-emelt",
+  "ev": 2024,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2024-05-09",
+  "kod": "E2412",
+  "feladatlap": "2024 - Emeltszintű május/e_angol_24maj_fl.pdf",
+  "utmutato": "2024 - Emeltszintű május/e_angol_24maj_ut.pdf"
+ },
+ {
+  "id": "2024-maj-kozep",
+  "ev": 2024,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2024-05-09",
+  "kod": "K2412",
+  "feladatlap": "2024 - Középszintű május/k_angol_24maj_fl.pdf",
+  "utmutato": "2024 - Középszintű május/k_angol_24maj_ut.pdf"
+ },
+ {
+  "id": "2024-okt-emelt",
+  "ev": 2024,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2024-10-17",
+  "kod": "E2411",
+  "feladatlap": "2024 - Emeltszintű október/e_angol_24okt_fl.pdf",
+  "utmutato": "2024 - Emeltszintű október/e_angol_24okt_ut.pdf"
+ },
+ {
+  "id": "2024-okt-kozep",
+  "ev": 2024,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2024-10-17",
+  "kod": "K2419",
+  "feladatlap": "2024 - Középszintű október/k_angol_24okt_fl.pdf",
+  "utmutato": "2024 - Középszintű október/k_angol_24okt_ut.pdf"
+ },
+ {
+  "id": "2025-maj-emelt",
+  "ev": 2025,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2025-05-08",
+  "kod": "E2512",
+  "feladatlap": "2025 - Emeltszintű május/e_angol_25maj_fl.pdf",
+  "utmutato": "2025 - Emeltszintű május/e_angol_25maj_ut.pdf"
+ },
+ {
+  "id": "2025-maj-kozep",
+  "ev": 2025,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2025-05-08",
+  "kod": "K2512",
+  "feladatlap": "2025 - Középszintű május/k_angol_25maj_fl.pdf",
+  "utmutato": "2025 - Középszintű május/k_angol_25maj_ut.pdf"
+ },
+ {
+  "id": "2025-okt-emelt",
+  "ev": 2025,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2025-10-16",
+  "kod": "E1919",
+  "feladatlap": "2025 - Emeltszintű október/e_angol_25okt_fl.pdf",
+  "utmutato": "2025 - Emeltszintű október/e_angol_25okt_ut.pdf"
+ },
+ {
+  "id": "2025-okt-kozep",
+  "ev": 2025,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2025-10-16",
+  "kod": "K2511",
+  "feladatlap": "2025 - Középszintű október/k_angol_25okt_fl.pdf",
+  "utmutato": "2025 - Középszintű október/k_angol_25okt_ut.pdf"
+ },
+ {
+  "id": "2026-maj-emelt",
+  "ev": 2026,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2026-05-07",
+  "kod": "E2611",
+  "feladatlap": "2026 - Emeltszintű május/e_angol_26maj_fl.pdf",
+  "utmutato": "2026 - Emeltszintű május/e_angol_26maj_ut.pdf"
+ },
+ {
+  "id": "2026-maj-kozep",
+  "ev": 2026,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2026-05-07",
+  "kod": "K2611",
+  "feladatlap": "2026 - Középszintű május/k_angol_26maj_fl.pdf",
+  "utmutato": "2026 - Középszintű május/k_angol_26maj_ut.pdf"
+ },
+ {
+  "id": "2026-okt-emelt",
+  "ev": 2026,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2026-10-15",
+  "kod": "E2612",
+  "feladatlap": "2026 - Emeltszintű október/e_angol_26okt_fl.pdf",
+  "utmutato": "2026 - Emeltszintű október/e_angol_26okt_ut.pdf"
+ },
+ {
+  "id": "2026-okt-kozep",
+  "ev": 2026,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2026-10-15",
+  "kod": "K2411",
+  "feladatlap": "2026 - Középszintű október/k_angol_26okt_fl.pdf",
+  "utmutato": "2026 - Középszintű október/k_angol_26okt_ut.pdf"
+ }
+]

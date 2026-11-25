@@ -1,0 +1,99 @@
+{
+  "formatum_verzio": 1,
+  "id": "2018-maj-kozep",
+  "ev": 2018,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2018-05-10",
+  "kod": "1811",
+  "forras_fajlok": {
+    "feladatlap": "2018 - Középszintű májusi/k_angol_18maj_fl.pdf",
+    "utmutato": "2018 - Középszintű májusi/k_angol_18maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2018-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Ms Fielding about a barista course",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are studying at Manchester University and you have decided to do a barista course. You have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Barista Training Courses in and around Manchester",
+        "bekezdesek": [
+          "It is extremely simple to make a disastrous espresso and indeed, even easier to make a shocking latte or cappuccino. With our barista training you will be armed with all the knowledge to make great espresso and the skills to start creating some wonderfully textured milk!",
+          "Caffè & Co. is an independently owned and run specialty coffee shop.",
+          "We now offer a choice of barista training courses at our coffee shop in Rainhill Village just 100 metres from Rainhill railway station, on the direct line between Liverpool and Manchester.",
+          "We generally run our courses once a week on Sunday afternoon / evening; however, midweek evenings can be arranged. Please contact us if you are interested.",
+          "Email Rachel Fielding barista@caffeco.com"
+        ],
+        "forras": "http://www.caffeandco.com/barista-training-liverpool.html"
+      },
+      "teendo": "Write an email of 80-100 words to Ms Fielding in which you",
+      "iranyito_szempontok": [
+        "introduce yourself and say why you want to do the course,",
+        "say which day(s) would suit you best,",
+        "ask about the length of the course and course fees."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Fielding,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2018-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Francesca about her sister's debts",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have read the following post on an internet forum called Teen Advice:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Hi guys, I'm seeking advice about my sister, Rosie, who's permanently in debt. She's 22, has a fulltime job but keeps asking people for money, practically every week. She gives us excuses such as \"I need to buy my travelcard today…, please please help me out just this once.\"",
+          "I didn’t really worry when she just asked me or her close friends but now I’ve discovered that she even asks old friends from school who she hasn't spoken to in at least 5 years, and who knows who else.",
+          "The weird thing is that I don't SEE expensive things or new clothes or anything. So I don't know what she spends the money on. I'm desperate to help her, before she gets into serious trouble. I hope it’s not too late… I would appreciate your ideas about it all and what you think I could do to help her get out of it.",
+          "Francesca (18)"
+        ],
+        "forras": "http://www.teenhut.net/"
+      },
+      "teendo": "Write a comment of 100-120 words in which you react to Francesca’s post and",
+      "iranyito_szempontok": [
+        "give your opinion about borrowing money,",
+        "tell Francesca what you think Rosie might need money for,",
+        "tell her what she could do to find out about her sister’s possible problem,",
+        "tell her if you think there is someone she should turn to for help."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Francesca:",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

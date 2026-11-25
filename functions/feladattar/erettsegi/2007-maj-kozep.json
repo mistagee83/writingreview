@@ -1,0 +1,94 @@
+{
+  "formatum_verzio": 1,
+  "id": "2007-maj-kozep",
+  "ev": 2007,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2007-05-10",
+  "kod": "0621",
+  "forras_fajlok": {
+    "feladatlap": "2007. Középszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_07maj_fl.pdf",
+    "utmutato": "2007. Középszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_07maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2007-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Jerry about a computer game for sale",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 60 words"
+      },
+      "helyzet": "You are studying at a language course in Brighton and you are looking for a present to bring back for your 12-year-old cousin. You have found the following advertisement on the Internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "FOR SALE",
+        "bekezdesek": [
+          "Zoo Tycoon is fun!",
+          "An exciting computer game with lots of learning. Build a zoo, manage it and the animals. Player must learn about each animal in the wild to be able to care for them and keep them healthy.",
+          "2/3 days to deliver",
+          "Email Jerry (jerryrhodes@compnet.com)"
+        ],
+        "forras": null
+      },
+      "teendo": "You think that this sounds like the perfect present, but before you make up your mind you need some more information. Write an email of about 60 words to Jerry in which you",
+      "iranyito_szempontok": [
+        "explain why you are interested",
+        "ask about the level of English the game needs; the price of the game; how the game will be delivered"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi, Jerry,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2007-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Amelina about studying for an exam",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 110 words"
+      },
+      "helyzet": "Lately you’ve become interested in various Problems with studying websites on the Internet, where students exchange ideas about school tests and exams. You have found the following letter and decided to give your ideas.",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I will have a very, very, very important exam this June and I have trouble studying. Every day after school, I study for the coming exam for about 3 hours. At about 6.00 p.m., I relax by watching t.v. And I fall asleep almost immediately! This is what ALWAYS happens. Sometimes the telephone wakes me up a couple of hours later, sometimes I don’t wake up until 2 a.m. What can you do at 2 a.m.? I sometimes try to go back to studying but I can’t concentrate. I feel I’m not making any progress and I'm really stressed. Can anyone help me?",
+          "Amelina 17"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of about 110 words to Amelina in which you include the following:",
+      "iranyito_szempontok": [
+        "Ways of relaxing when you are studying",
+        "Types of food and drink that help you concentrate",
+        "Any personal experiences about studying for a test or an exam"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Amelina,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

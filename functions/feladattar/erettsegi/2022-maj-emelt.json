@@ -1,0 +1,102 @@
+{
+  "formatum_verzio": 1,
+  "id": "2022-maj-emelt",
+  "ev": 2022,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2022-05-05",
+  "kod": "2212",
+  "forras_fajlok": {
+    "feladatlap": "2022 - Emeltszintű május/e_angol_22maj_fl.pdf",
+    "utmutato": "2022 - Emeltszintű május/e_angol_22maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2022-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Erin about a puppetry course",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "Tired of studying, you would like to do something different, entertaining and creative in your free time and you have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Adult Puppetry Courses and Workshops",
+        "bekezdesek": [
+          "Online classes, courses and workshops in puppetry performance, puppet making and related arts for adults available for individuals or groups of friends, or you can join one of our group courses.",
+          "Our range of online puppetry and related crafts courses can be taken from anywhere in the world. They are fun, flexible and offer a full puppetry workshop experience from the comfort of your own location.",
+          "You will find both puppet making and puppetry performance workshops available through our online learning and training opportunities. We offer you the chance to join affordable, professional and friendly small group adult classes, or you are welcome to enquire about a tailored private course if you wish to develop your creative practice in puppetry.",
+          "We provide classes online for all levels of puppeteers from complete beginners to experienced professionals.",
+          "The course costs $190 (US Dollars) or £140 (GBP) per person. Discounts available for students.",
+          "Please do get in touch to let us know what you would like to learn and book your place on a course!",
+          "Contact Erin: erin.cohen@puppetworld.com"
+        ],
+        "forras": "https://www.puppetrycourses.com/adult-courses-1-1"
+      },
+      "teendo": "Write an email of 120-150 words to Erin in which you",
+      "iranyito_szempontok": [
+        "specify which aspect of puppetry and which type of course you are interested in and why,",
+        "ask about the details of the course you have chosen (number, length and frequency of sessions; course material and equipment),",
+        "say if and why you would like to get a discount."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Erin,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2022-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Shane about his sister's job offer",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You found the following post on the internet forum Job Issues:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "My older sister, Sandie (25) studied to be an art designer and has been working as an art or production designer for independent, low budget films (very low budget indeed – she practically works for peanuts). Her job involves designing film sets, costumes, sometimes also posters, etc., which she enjoys a lot because of the opportunity for personal growth due to the variety of work, and because there’s always a respectable cause for these films: political, social or environmental.",
+          "Now she has been invited to join the art crew in a show which would feature several (ex-) tv reality show stars competing in stupid games among extreme circumstances (to win several thousands of dollars). The project would take about eight months and she would be paid more than ten times the salary she would normally earn. Someone she used to work with and who appreciates her work recommended her and now she has a week to make up her mind before either signing the contract or turning it down.",
+          "Our family is in turmoil now. Some of us agree with Sandie, who is hesitating, saying that taking part in such rubbish, giving her NAME to it, as she put it, would destroy her reputation and would go against everything that she has professionally done and achieved so far. Others, including me, however, think that this is a wonderful opportunity which she shouldn’t miss.",
+          "I can’t see the moral issue there, can you? I’d appreciate your opinion.",
+          "Shane 18"
+        ],
+        "forras": "https://www.teenhut.net/forums/work"
+      },
+      "teendo": "Write a comment of 200-250 words to Shane’s post in which you tell him",
+      "iranyito_szempontok": [
+        "what the advantages of accepting the job could be,",
+        "what the advantages of rejecting it could be,",
+        "whether you think the problem has a moral aspect,",
+        "what you would do if you were Sandie."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Shane:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

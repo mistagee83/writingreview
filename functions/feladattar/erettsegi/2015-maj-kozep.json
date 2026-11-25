@@ -1,0 +1,98 @@
+{
+  "formatum_verzio": 1,
+  "id": "2015-maj-kozep",
+  "ev": 2015,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2015-05-07",
+  "kod": "1511",
+  "forras_fajlok": {
+    "feladatlap": "2015 - Középszintű májusi/k_angol_15maj_fl.pdf",
+    "utmutato": "2015 - Középszintű májusi/k_angol_15maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2015-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Mr Gabaine about driving lessons",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "You are spending a year at the University of Greenwich, London. You decide to take driving lessons so that you can drive in England. You have found the following advertisement on the homepage of the university:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Greenwich Driving School",
+        "bekezdesek": [
+          "Professional and Friendly Driving Instructors in Greenwich Driving lessons as low as £20.00 per hour",
+          "We offer interactive lectures about driving in Britain and the British Rules of the Road, friendly, professional driving lessons in and around Greenwich for",
+          "• beginners",
+          "• false beginners",
+          "• drivers with an overseas licence who need to practice driving on the left.",
+          "We understand that each student is an individual and requires tuition to suit them.",
+          "Thanks for visiting! Please contact David Gabaine if you have any questions. email dgabaine@gds.com"
+        ],
+        "forras": "http://www.Greenwich-Driving-School.html"
+      },
+      "teendo": "Write an email of 50-80 words to Mr Gabaine in which you",
+      "iranyito_szempontok": [
+        "explain why you would like to take lessons,",
+        "tell him how much driving experience you have,",
+        "ask him when the courses begin."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Mr Gabaine,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2015-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Email to Tania about the student council",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 100-120 words"
+      },
+      "helyzet": "You have received the following letter from your American friend, Tania:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "We have a student council in my school and I was elected as form representative two months ago, but it’s just a joke. We haven’t had a single meeting so far, the teachers don’t take it seriously - they don’t think the students have got anything serious to say about the school and most of the students don’t believe we could change anything either. It’s very frustrating.",
+          "I decided to take steps and make a list of the areas most students have problems with at school and present it when we eventually have our first meeting. I have a lot of ideas but I can’t decide what to include in my list. School rules? Choice of subjects? Quality of food in the canteen? I would appreciate your opinion and any new ideas – what problems would you raise about your school?"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of about 100-120 words to Tania telling her",
+      "iranyito_szempontok": [
+        "if the student council is more efficient in your school,",
+        "if you agree with the steps Tania decided to take,",
+        "what areas you would include in a list about your school."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Tania,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

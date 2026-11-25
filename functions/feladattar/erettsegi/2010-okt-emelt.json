@@ -1,0 +1,92 @@
+{
+  "formatum_verzio": 1,
+  "id": "2010-okt-emelt",
+  "ev": 2010,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2010-10-21",
+  "kod": "0804",
+  "forras_fajlok": {
+    "feladatlap": "2010. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_10okt_fl.pdf",
+    "utmutato": "2010. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_10okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2010-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to James about a kayak holiday in Norway",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "Your Scottish friend James has won a one-week adventure holiday for two and wants you to go with him. He has sent you the programme:",
+      "bemenet": {
+        "fajta": "other",
+        "cim": null,
+        "bekezdesek": [
+          "Explore the best of the Norwegian Fjords! Our Kayak Safaris are arranged exclusively for small groups, with an instructor and guide at your side during the whole period. Sitting in a sea kayak you’ll have a unique opportunity to encounter wildlife at close hand. On the fjords we normally meet seals, small whales and sometimes sea eagles. The shores offer occasional views of deer, moose, mink and a lot of birds. As nature in Norway is so pure, we can refill our drinking bottles directly from small waterfalls.",
+          "We offer paddling instruction adjusted to different paddling levels: for complete beginners, for those who are a little rusty in their techniques, and for experienced paddlers."
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 120-150 words to James in which you thank him for the invitation and include the following points:",
+      "iranyito_szempontok": [
+        "Say what you think of adventure holidays in general;",
+        "Say which parts of the programme you find interesting;",
+        "Ask for any details you need to know before you make up your mind."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear James,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2010-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Article: Is this the solution? (blood tests at school)",
+      "mufaj": "article",
+      "tipus": "esszé",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have found the following story in an online magazine called Right and Wrong and you have decided to comment on it.",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Pequannock High School, which is located in New Jersey, will begin administering random blood tests on Monday to discourage students from drinking. The tests will allow the school faculty to know on Monday if the tested student drank alcohol over the weekend."
+        ],
+        "forras": null
+      },
+      "teendo": "Write an article of 200-250 words in which you give your opinion. Include the following:",
+      "iranyito_szempontok": [
+        "If you believe teenage drinking is a serious problem",
+        "If you think the school has the right to check up on students outside school",
+        "Whose duty it is to help teenagers at risk"
+      ],
+      "zaro_utasitas": "This is the title of your article: Is this the solution?",
+      "kezdes": null,
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

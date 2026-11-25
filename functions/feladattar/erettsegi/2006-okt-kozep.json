@@ -1,0 +1,96 @@
+{
+  "formatum_verzio": 1,
+  "id": "2006-okt-kozep",
+  "ev": 2006,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2006-10-27",
+  "kod": "0611",
+  "forras_fajlok": {
+    "feladatlap": "2006. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_06okt_fl.pdf",
+    "utmutato": "2006. Középszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/k_angol_06okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2006-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Application to a US summer camp",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 70 words"
+      },
+      "helyzet": "You would like to spend some time in the USA to improve your English. You have found the following advertisement on the Internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "APPLICATIONS FOR THE SUMMER HOLIDAY ARE NOW OPEN!",
+          "Camp Counselors USA can place you at an American Summer Camp for the work and travel experience of a lifetime! We work with the top 1000 children's camps across America, from New York to California.",
+          "You choose exactly what age group to work with, and what type of job you want to do - either Specialist (sports, arts or drama) or General (looking after children and organising activities). You must be available for 6 weeks, anytime between mid May and late August.",
+          "Please don't worry if you do not have any experience or qualifications, because as long as you are outgoing, patient, have loads of energy, and enjoy working with children, you are a PERFECT candidate",
+          "Applications in email: Gena Wells wells.ccusai@summercamps.com"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of application of about 70 words in which you include the following points:",
+      "iranyito_szempontok": [
+        "Introduce yourself and say why you want the job.",
+        "Say if you want a specialist or a general job and give your reasons.",
+        "Say which dates would suit you and which part of the USA you would like to go to."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Wells,",
+      "oldalak": {
+        "feladatlap": [
+          29
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2006-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Michelle about becoming a vegetarian",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 110 words"
+      },
+      "helyzet": "You are doing a summer course in England. The editor of the online course magazine has asked you to answer this week’s letters. This is one of them:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I want to be a vegetarian, but I have absolutely no idea whatsoever as to what to eat, how often to eat, where to get what, etc. I don't like the idea of killing animals for food, since we don't \"need\" meat anyway, but I also don't want to drop dead from malnutrition. Any ideas? Thanks.",
+          "Michelle, 16"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of about 110 words to Michelle in which you give your opinion and give her advice. Include the following points:",
+      "iranyito_szempontok": [
+        "Your opinion about being a vegetarian.",
+        "The importance of a balanced diet.",
+        "Where you can find recipes for vegetarian dishes."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Michelle,",
+      "oldalak": {
+        "feladatlap": [
+          31
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

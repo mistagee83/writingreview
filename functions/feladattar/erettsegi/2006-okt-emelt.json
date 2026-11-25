@@ -1,0 +1,94 @@
+{
+  "formatum_verzio": 1,
+  "id": "2006-okt-emelt",
+  "ev": 2006,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2006-10-27",
+  "kod": "0522",
+  "forras_fajlok": {
+    "feladatlap": "2006. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06okt_fl.pdf",
+    "utmutato": "2006. Emeltszintű október-novemberi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2006-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email applying for an assistant camera job",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "120 words"
+      },
+      "helyzet": "You are taking part in a six-month advanced language course in Aberdeen and you would like to take a job in order to earn some money and also practice your English. In one of the local papers you have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Marchant Finngrace Ltd",
+        "bekezdesek": [
+          "We are a publishing & production company, currently undertaking a nationwide project on healthy living. As part of this work, we are looking for one assistant cameraman/woman from Aberdeen, to take part in making short film clips of sporting enthusiasts.",
+          "You will need to approach other students and/or individuals within your community in order to film them.",
+          "To apply please contact John Cooper (email: jc@abreports.com)"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 120 words to Mr Cooper including the following:",
+      "iranyito_szempontok": [
+        "say why you are interested in the job",
+        "say why you think you are the right person for it",
+        "ask how you should prepare for the job"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Mr. Cooper,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2006-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Lisa about a neighbour's dogs",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "220 words"
+      },
+      "helyzet": "You are a regular reader of the teenage Internet forum Rights and Responsibilities. Every week there is a reader’s letter about a situation where the writer of the letter wants other people’s advice on what to do. This is this week’s letter:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "We live in a semi-detached house and my next door neighbour, Mr. Bennett, has two Alsatians. He is a nice man living on his own and he is mad about his dogs but has no idea how to treat them. He never walks them but takes them around with him everywhere he goes in his car instead. The other day I happened to go past the shopping centre and spotted his car. It was a boiling hot day and the dogs were locked in the back of the car. No windows were open and they had no water. I could see they were suffering. Is there anything I could do to help them?",
+          "Lisa, 17"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 220 words to Lisa and give her advice. Include the following points:",
+      "iranyito_szempontok": [
+        "how to give Mr. Bennett advice about dog care",
+        "how to offer Mr. Bennett help with the dogs",
+        "your experience of people treating pets in your community"
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Lisa,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

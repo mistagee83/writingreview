@@ -1,0 +1,102 @@
+{
+  "formatum_verzio": 1,
+  "id": "2026-okt-kozep",
+  "ev": 2026,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2026-10-15",
+  "kod": "K2411",
+  "forras_fajlok": {
+    "feladatlap": "2026 - Középszintű október/k_angol_26okt_fl.pdf",
+    "utmutato": "2026 - Középszintű október/k_angol_26okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2026-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email applying for a lifeguard job at Blue Lagoon",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are a visiting student at the University of Iceland, Reykjavik, studying Icelandic language and culture. You would like to take a part-time job and you have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Part-time assistant lifeguards wanted at Blue Lagoon",
+        "bekezdesek": [
+          "Would you like to join our team at Blue Lagoon as an assistant lifeguard?",
+          "Assistant lifeguards are key members of the Blue Lagoon team. They maintain constant surveillance of the pool and its surroundings while on duty. Apart from this, assistants can choose to escort groups of tourists throughout their stay in Blue Lagoon and provide guidence and information about the facilities available. They can also entertain groups of children in the children’s quarter by organising games and competitions, or they can serve drinks and refreshments in the swim-up bar.",
+          "An assistant lifeguard must be mature and reliable with good communication skills in English.",
+          "We provide you with opportunities to improve your competencies through training. Our employees are provided with gym memberships and discounts on various goods. We also operate a bus for the 45-minute commute between Reykjavík and Blue Lagoon.",
+          "Hours: 6am-12pm, 12pm-6pm, 6pm-10pm",
+          "Days: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday",
+          "To apply email Sigrún: jobs@bluelagoon.is"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 80-100 words to Sigrún in which you apply for the job and",
+      "iranyito_szempontok": [
+        "ask about the necessary training,",
+        "say which tasks of an assistant lifeguard would suit you best and why,",
+        "say which days and what times you are available and ask about pay."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Sigrún,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2026-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Max about a forgotten present for a teacher",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your Dutch friend, Max:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "We have this English teacher, Ms Hunt, who is an exceptional teacher and also a nice person. So we decided that after the final exams we would give her a present, not the usual flowers and chocolate stuff but something more personal that she would really like. As she is a great fan of Edgar Allen Poe, we eventually decided to get her an old edition of Poe’s poems, which I found in an online bookshop. You know the sort of thing, thick, hardback, all leather and gold, quite pricey too, just perfect. I volunteered to order it to make sure it would come through by the time of the farewell party. It was early April so we had plenty of time.",
+          "Can you imagine my horror when the other day a friend of mine casually asked me whether everything was ok with the book – THE BOOK I had completely forgotten about, the book I had never ordered!!! I went back to the page where I had originally found it but it wasn’t there any longer. Nor was it available anywhere else; apparently the copy I had found and missed was the only one in the universe.",
+          "I’m well aware that I completely screwed it up, no need to remind me of that, but can you think of anything I could do now to put it right? So that my friends, who trusted me, won’t hate me for ever and ever? The exams are over and the party will be next Saturday, so it’s pretty urgent, please help, please!"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 100-120 words to Max in which you tell him",
+      "iranyito_szempontok": [
+        "what you think of the situation,",
+        "whether you have ever forgotten something important,",
+        "how you think his friends will react,",
+        "what could be done now."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Max,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": [
+        "A PDF-ben a ti/ft/tt ligatúrák szövegrétege hibás; a szavakat (exceptional, after, edition, time, forgotten, pretty) az oldalkép alapján pótoltuk."
+      ]
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

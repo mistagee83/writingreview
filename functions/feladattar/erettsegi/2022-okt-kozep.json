@@ -1,0 +1,104 @@
+{
+  "formatum_verzio": 1,
+  "id": "2022-okt-kozep",
+  "ev": 2022,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2022-10-20",
+  "kod": "2211",
+  "forras_fajlok": {
+    "feladatlap": "2022 - Középszintű október/k_angol_22okt_fl.pdf",
+    "utmutato": "2022 - Középszintű október/k_angol_22okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2022-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Reply to James about a language exchange",
+      "mufaj": "reply",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You have found the following advertisement on a site called Language Exchange:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "Name: James",
+          "Age: 19",
+          "Languages: Hungarian-English",
+          "City, State or Province: Santa Rosa, California",
+          "Country: US",
+          "Lessons: Conversation online",
+          "Description: Hello, I have been interested in Hungary for some years and also took language lessons a couple of years ago. Now I plan to apply for a teaching assistant job in a Hungarian language school and I have decided to dedicate this year to refreshing my speaking skills. Unfortunately, I have no-one here to practise with, so I’m looking for a native speaker of Hungarian who would be happy to have a chat with me online as many times a week as they can afford. In return, every second occasion we can switch to English so you can improve your colloquial conversational skills too. Reply below if interested."
+        ],
+        "forras": "https://mylanguageexchange.com/"
+      },
+      "teendo": "Write a reply of 80-100 words to James in which you",
+      "iranyito_szempontok": [
+        "say why you find his idea inspiring,",
+        "say how many times and hours a week you are free for online chatting,",
+        "ask him about his level of Hungarian and tell him about your level of English."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi James,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": [
+        "A hirdetés a lapon táblázat; a sorait „fejléc: érték” alakban rögzítettük."
+      ]
+    },
+    {
+      "id": "2022-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Jasmin about a dog-walking job",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your British friend, Jasmin, who is studying in Durham:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "I found a wonderful ad on the internet two weeks ago; someone was looking for a responsible, caring person to walk his dog for him once a day for an hour while he was at work. That’s me, I thought, so I phoned him straight away. It turned out that the dog was an adult Rotweiler, Hansi, a rescue dog, and the guy, Phil, offered me £15 per hour (normally it’s £8-10). I felt very lucky.",
+          "Before the first walk I had a hasty word with Phil, who gave me the key to the back door and that was it. Hansi was also very friendly and seemed to like me immediately.",
+          "The first walk, however, proved to be a disaster. After greeting me enthusiastically, Hansi stopped at the first grassy spot 150 m from the house and refused to move any further. I did everything I could, including begging him, but nothing worked. When I eventually gave up, he was absolutely delighted to be back home and licked my face affectionately.",
+          "The situation hasn’t improved ever since, although Hansi and I have become best friends. And anyway, if Hansi is happy with these super short walks and Phil is happy knowing that his dog is in good hands (and he certainly is), why should I bother? But I felt such a cheat when I found my weekly payment (£75!!!) on my bank account at the end of the first week.",
+          "What do you think? Am I right to feel bad about it? What shalI I do?"
+        ],
+        "forras": "https://www.teenhut.net/"
+      },
+      "teendo": "Write an email of 100-120 words to Jasmin in which you tell her",
+      "iranyito_szempontok": [
+        "whether you think she is really cheating,",
+        "what she could do to improve the situation with the dog,",
+        "whether she should discuss the problem with the dog’s owner,",
+        "who else she could turn to for help."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Jasmin,",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

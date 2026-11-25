@@ -1,0 +1,66 @@
+{
+  "formatum_verzio": 1,
+  "id": "2009-maj-emelt",
+  "ev": 2009,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2009-05-07",
+  "kod": "0912",
+  "forras_fajlok": {
+    "feladatlap": "2009. Emeltszintű május-június érettségi/e_angol_09maj_fl.pdf",
+    "utmutato": "2009. Emeltszintű május-június érettségi/e_angol_09maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2009-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Robert about a weekend in London",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are going to spend a weekend in London and you have just received an email from your British friend Robert, offering to pick you up at the airport and to take you to two of the following places during your stay:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": "Portobello Road Market",
+        "bekezdesek": [
+          "Portobello Road plays host to one of London's largest and most interesting street markets, which really springs into life on a Saturday. No visit to London would be complete without spending a day here.",
+          "Abbey Road",
+          "Walk this historic street in London and you are transported back to the turbulent era of the 1960s and the musical phenomenon of the Beatles.",
+          "Royal Observatory Greenwich",
+          "The prime meridian, zero degrees longitude, runs through the courtyard of the Royal Observatory in Greenwich, near London, which was founded in 1675 by King Charles II.",
+          "British Library",
+          "Divided into public and members-only areas, this superb library includes three exhibition galleries featuring the Illuminated Manuscripts display, original Shakespeare folios and the Gutenburg Bible."
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 120-150 words to Robert in which you include the following:",
+      "iranyito_szempontok": [
+        "tell him when your flight arrives;",
+        "choose the two places you would like to see and give your reasons;",
+        "mention one or two other things you would like to do in London."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi, Robert,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [
+    {
+      "sorszam": 2,
+      "ok": "kep",
+      "megjegyzes": "„…about the following inventions:” – a találmányokat két fotó mutatja (laptop, mobiltelefon). Határeset: a teendő megnevezi őket („computers and mobile phones”), így kép nélkül is megírható lenne."
+    }
+  ],
+  "megjegyzesek": []
+}

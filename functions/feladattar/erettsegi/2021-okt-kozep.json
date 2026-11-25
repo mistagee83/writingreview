@@ -1,0 +1,100 @@
+{
+  "formatum_verzio": 1,
+  "id": "2021-okt-kozep",
+  "ev": 2021,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2021-10-21",
+  "kod": "2119",
+  "forras_fajlok": {
+    "feladatlap": "2021 - Középszintű október/k_angol_21okt_fl.pdf",
+    "utmutato": "2021 - Középszintű október/k_angol_21okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2021-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email applying for a café job in Reykjavik",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 80,
+        "max": 100,
+        "szoveg": "80-100 words"
+      },
+      "helyzet": "You are spending a semester at Reykjavik University, Iceland, as part of your studies, and you have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Reykjavik Roasters looking for Café/Kitchen hand, All Rounder",
+        "bekezdesek": [
+          "We are expanding and looking for part-time staff to join the team. Several jobs available with minimum 2-month contracts. Students welcome.",
+          "You must be available 4 days a week, including weekends, do either morning or afternoon shifs or both, have fluent English and good communication skills.",
+          "You must be enthusiastic, energetic, reliable, willing to learn and able to work in a fast-pace environment.",
+          "We offer a friendly and supportive atmosphere, training in making sandwiches, toasts, omelettes or complete French and English breakfasts, and if you are interested in training as a barista, our coffee experts are there to tutor you for free.",
+          "Send applications and inquiries to Jonas at roasters.rvk@gmail.com."
+        ],
+        "forras": "https://www.icelandeducation.part-time-jobs"
+      },
+      "teendo": "Write an email of 80-100 words to Jonas in which you",
+      "iranyito_szempontok": [
+        "introduce yourself and apply for the job,",
+        "say what you would like to do and learn there,",
+        "ask about the beginning and length of shifts."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Jonas,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2021-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Mia about quitting the piano",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have read the following post on an Internet forum called MyProblems.com.",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "I’ve been playing the piano for 6 years, and I’ve got really tired of it by now. I used to like it as a child when I started playing at 10, but nowadays I don’t really feel like practising – you know how it is, there’s always something more important to do, like homework, or hanging out with friends. I’m thinking about quitting, but I’m afraid I’d be sorry if I really did.",
+          "My piano teacher is really nice, she’s trying to convince me not to quit, telling me all the time that I’m talented, and when I’m there at the music school, I always feel she’s right and I promise myself that I will practise more. I do like playing after all.",
+          "I talked to my Dad about it, which was a big mistake, though. He won’t hear of me quitting and he says playing a musical instrument should be part of someone’s life and that I should pass my exams and stop whining about it.",
+          "I really don’t know what to do.",
+          "Mia, 16"
+        ],
+        "forras": "http://www.teenhut.net/"
+      },
+      "teendo": "Write a comment of 100-120 words to Mia’s post in which you tell her",
+      "iranyito_szempontok": [
+        "whether you think learning to play a musical instrument is important and why (not),",
+        "what you think about her father’s attitude,",
+        "if you’ve ever had a similar dilemma about quitting an activity and what you did about it,",
+        "what you think she should do."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Mia,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

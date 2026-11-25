@@ -1,0 +1,95 @@
+{
+  "formatum_verzio": 1,
+  "id": "2011-maj-emelt",
+  "ev": 2011,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2011-05-05",
+  "kod": "1012",
+  "forras_fajlok": {
+    "feladatlap": "2011 - Emeltszintű májusi/e_angol_11maj_fl.pdf",
+    "utmutato": "2011 - Emeltszintű májusi/e_angol_11maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2011-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to Edna about a cookery course",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "During your stay in the UK you receive the following advertisement from your British friend Edna, who invites you to take part in a cookery course with her:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Ashburton Cookery School",
+        "bekezdesek": [
+          "Voted 'Best Cookery School' by BBC Good Food Magazine",
+          "We offer a fresh approach to cooking with exciting cookery classes that emphasise hands-on cookery training, top quality, local, organic produce and inspirational teaching.",
+          "Working in one of two superbly equipped teaching kitchens, you will learn fundamental cookery techniques that can be applied whether you’re working in a professional kitchen or entertaining at home.",
+          "Our chef tutors are highly regarded, qualified lecturers with extensive experience of working in the catering industry. They will inspire you to cook with imagination, passion and enjoyment."
+        ],
+        "forras": "http://www.timeout.com"
+      },
+      "teendo": "Write a letter of 120-150 words to Edna in which you",
+      "iranyito_szempontok": [
+        "express surprise at her wanting to learn to cook,",
+        "tell her what you think of learning to cook by taking a course,",
+        "give reasons why you would or would not like to take part."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Edna,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2011-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Alicia about a lucky mock exam",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have found the following problem on the Modern Morals Online forum on the internet.",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "When I took a mock GCSE exam at school recently, the paper turned out to be a past paper that I had done at home as part of my revision. Since I will now probably get a very good mark for this exam, am I morally obliged to confess to my teacher (and classmates) the reason why I did so well?",
+          "Alicia 18"
+        ],
+        "forras": "http://www.timesonline.co.uk"
+      },
+      "teendo": "Write a letter to Alicia in which you give your opinion in 200-250 words telling her about",
+      "iranyito_szempontok": [
+        "the difference between cheating and being lucky at a test or an exam,",
+        "an interesting test or exam experience that you or one of your friends had,",
+        "what she should do in this situation."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Alicia,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

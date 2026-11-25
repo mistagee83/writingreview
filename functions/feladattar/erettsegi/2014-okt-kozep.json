@@ -1,0 +1,99 @@
+{
+  "formatum_verzio": 1,
+  "id": "2014-okt-kozep",
+  "ev": 2014,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2014-10-16",
+  "kod": "1419",
+  "forras_fajlok": {
+    "feladatlap": "2014 - Középszintű októberi/k_angol_14okt_fl.pdf",
+    "utmutato": "2014 - Középszintű októberi/k_angol_14okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2014-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Ann about buying a laptop",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "During your stay in the US you have found the following advertisement on the NEVER LIKED IT ANYWAY.COM website for getting rid of unwanted presents. You think that the pink laptop would be a perfect Christmas present for your sister.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Dell Inspiron 9300 Laptop",
+        "bekezdesek": [
+          "Graduation present from my aunt, perfect but not my color. It has a huge screen and a brand new hard drive. Screen measures 15 1/2 inches by 11 inches. Operating with Windows 7. Installed memory (RAM): 2.00 GB System Type: 32-bit operating system. Laptop comes with PINK case and battery but no power cord.",
+          "Price: $250.00",
+          "Interested? Contact the seller and make it happen! holland.ann@yahoo.com"
+        ],
+        "forras": "www.neverlikeditanyway.com"
+      },
+      "teendo": "Write an email of 50-80 words to Ann Holland in which you",
+      "iranyito_szempontok": [
+        "say you are interested in buying the laptop,",
+        "ask if you could get it cheaper giving at least two reasons why,",
+        "ask about delivery and payment."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Ann,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": [
+        "A hirdetésben egy laptop fotója és a „Looks Like This” felirat áll (képként); a feladathoz szükséges adatok a szövegben vannak."
+      ]
+    },
+    {
+      "id": "2014-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Erin about a wrong grade",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You received the following email from your American friend, Erin:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "Hi!",
+          "You’ve got to help me! Here’s the problem...",
+          "Last Wednesday when I got home from school I saw that my school-report had been sent to my parents, and it was lying on the kitchen table. I knew something was weird straight away when they greeted me saying: “Nice report, Honey! We knew you could do it!” When I picked it up this is what I saw: English: A, Math: A-, World Civilization: B+, Chemistry: A. The problem is that I’m absolutely sure that the chemistry grade was wrong, as unfortunately I got a C- on the exam. Mr Thompson, the teacher, must have either miscalculated my grade, or hit a wrong key when he was entering the grades. And now what? I don’t know what to do. Should I tell my parents or the teacher?",
+          "You remember Rachel, my best friend at school? I called her immediately and she said: “Why should you say anything? It was the teacher’s mistake, not yours. That grade could decide whether or not you get into the college you want.” I can see her point but I have to decide for myself if I can live with the idea of always knowing that the grade was a lie.",
+          "I need your advice ASAP!!"
+        ],
+        "forras": "www.allexperts.com/Teenage-Problems"
+      },
+      "teendo": "Write a letter of 100-120 words in which you tell her",
+      "iranyito_szempontok": [
+        "how serious you think the problem is,",
+        "what she should do,",
+        "if you/ a friend ever had a test score miscalculated."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Erin,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

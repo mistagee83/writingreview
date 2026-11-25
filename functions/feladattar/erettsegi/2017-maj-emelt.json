@@ -1,0 +1,97 @@
+{
+  "formatum_verzio": 1,
+  "id": "2017-maj-emelt",
+  "ev": 2017,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2017-05-11",
+  "kod": "1712",
+  "forras_fajlok": {
+    "feladatlap": "2017 - Emeltszintű májusi/e_angol_17maj_fl.pdf",
+    "utmutato": "2017 - Emeltszintű májusi/e_angol_17maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2017-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Olga about dancing lessons",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are staying in New York and you and a couple of friends decided to take a few dancing lessons to give a surprise performance at a friend’s wedding in a month’s time. You have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "DANCE WITH ME",
+        "bekezdesek": [
+          "Olga’s Dancing School",
+          "I've been teaching ballroom dances for a few years. Within the first few lessons, you'll be able to learn a couple of basic moves and start dancing to different kinds of music. As time goes by you'll be able to learn more fun moves and improve in technique and have fun dancing. I specialize in ballroom dancing as well as in wedding dances. I love working with students of all ages and experience levels and I can't wait to meet you!",
+          "Levels taught: Beginner, Intermediate, Advanced",
+          "Email Olga: olga@dancewithme.com"
+        ],
+        "forras": "http://www.care.com/tutoring-programs"
+      },
+      "teendo": "Write an email of 120-150 words to Olga in which you",
+      "iranyito_szempontok": [
+        "say something about the occasion,",
+        "tell her about yourself and your friends,",
+        "ask about the course (number of sessions necessary, fee)."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Olga,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2017-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Emily about a friend's online relationship",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You read the following post on the internet forum Someone’s in Trouble:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": "Emily 16, Oklahoma",
+        "bekezdesek": [
+          "What happens when you know your friend could be in serious trouble and doesn’t want to listen? That was what I suddenly found myself dealing with and, for the first time in my friendship with Bridget, I feel lost.",
+          "A few months ago, Bridget started flirting with some guy on a chat forum. At first, it seemed like no big deal. Bridget and the guy didn’t know each other’s real names. All Bridget knew was that he lived in New York. But, after a while, Bridget stopped being careful and started calling the guy on her cell phone and they talked every day for hours. I found out the guy told her that he was 29 years old and had been arrested twice and was temporarily living in a residential program. Bridget finds that fascinating and sees herself as the heroine of one of her favorite soap operas. Although she heard a lot about people getting into trouble online, she said that this was different and if I couldn’t understand, then maybe we were growing apart or I was just jealous.",
+          "Is there anything I could tell her to convince her? Do you think she is in danger or is it just me exaggerating?"
+        ],
+        "forras": "http://www.goodcharacter.com /archive.html"
+      },
+      "teendo": "Write a comment of 200-250 words in which you give your opinion",
+      "iranyito_szempontok": [
+        "about the risks of communicating with strangers on the internet,",
+        "the situation Bridget got into,",
+        "what Emily should say to convince her friend,",
+        "whether Emily should turn to an adult for help."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Emily:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

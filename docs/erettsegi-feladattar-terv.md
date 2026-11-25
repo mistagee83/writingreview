@@ -173,7 +173,8 @@ pontszámítás változatlan.
 | `bemenet` | objektum \| `null` | a szöveg, amire a diák reagál: `{ fajta, cim, bekezdesek[], forras }`; `fajta`: `email` \| `advertisement` \| `post` \| `article` \| `notice` \| `other`; a `forras` a lapon vagy az útmutató „Források” részében megadott forrás (URL, kiadvány) |
 | `teendo` | szöveg | a „Write an email of … words to … in which you” mondat |
 | `iranyito_szempontok[]` | lista | a felsorolt pontok szó szerint, felsorolásjel nélkül |
-| `kezdes` | szöveg \| `null` | a „Begin like this:” utáni sor, pl. `Hi,` |
+| `zaro_utasitas` | szöveg \| `null` | az irányító szempontok **utáni** utasítás, ha van (pl. „This is the title of your article: …”); a kinyeréskor került be (2026-11-25), 7 régi feladatnál |
+| `kezdes` | szöveg \| `null` | a „Begin like this:” utáni sor, pl. `Hi,` (ritkán két sor, sortöréssel) |
 | `oldalak` | objektum | `{ feladatlap: [3] }` az ellenőrzéshez |
 | `megjegyzesek[]` | lista | ellenőrizendő pontok |
 

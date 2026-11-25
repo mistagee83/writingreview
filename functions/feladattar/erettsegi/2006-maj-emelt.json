@@ -1,0 +1,95 @@
+{
+  "formatum_verzio": 1,
+  "id": "2006-maj-emelt",
+  "ev": 2006,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2006-05-11",
+  "kod": "0611",
+  "forras_fajlok": {
+    "feladatlap": "2006. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06maj_fl.pdf",
+    "utmutato": "2006. Emeltszintű május-júniusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2006-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to a building conservation project",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 120 words"
+      },
+      "helyzet": "You would like to spend a couple of months in England doing something useful and you have found the following advertisement. You are interested and would like to find out more about the project.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Buildings conservation",
+        "bekezdesek": [
+          "Volunteer with us and help to conserve and maintain our unique buildings. How can I help?",
+          "You can join our groundbreaking building volunteer project. We are looking for enthusiasts to assist in important areas of building conservation support; including photography, computerised drawings, archiving and information collection and dissemination.",
+          "If you are interested in finding out more: email volunteers@nationaltrust.org.uk"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of about 120 words to the organisers. Include the following:",
+      "iranyito_szempontok": [
+        "Say which areas you would be interested in.",
+        "Say what skills you have got.",
+        "Ask what their current projects are."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Sir/Madam,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2006-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Frederic about fear of leaving school",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "220 words"
+      },
+      "helyzet": "You have found a page called \"School Leavers’ Forum\" on the Internet. You have decided to answer the following letter:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "This is going to be my last year of high school. And unlike my friends, I don't want to leave high school - I'm scared that this year will go by too fast and I'm scared of the future. The people I've asked about this already have told me to just enjoy my last year and that I'll be fine in the future because I'm smart.",
+          "But why am I so so so scared and unsure? Can you help me figure this out?",
+          "Frederic 17"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 220 words to Frederic in which you give your opinion. Include the following points:",
+      "iranyito_szempontok": [
+        "How you felt before your last year at school.",
+        "How you feel about changes in life.",
+        "How you think you can make good choices."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Frederic,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

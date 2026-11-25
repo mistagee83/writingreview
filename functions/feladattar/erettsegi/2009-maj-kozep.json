@@ -1,0 +1,94 @@
+{
+  "formatum_verzio": 1,
+  "id": "2009-maj-kozep",
+  "ev": 2009,
+  "idoszak": "maj",
+  "szint": "kozep",
+  "vizsga_datum": "2009-05-07",
+  "kod": "0819",
+  "forras_fajlok": {
+    "feladatlap": "2009. Középszintű május-június érettségi/k_angol_09maj_fl.pdf",
+    "utmutato": "2009. Középszintű május-június érettségi/k_angol_09maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2009-maj-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Sinead about a Dublin restaurant",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "You are spending two months at a language school in Dublin, and your parents are coming to visit you. You want to take them to a good restaurant. Your local friend Sinead has sent you this advertisement for the Elisa Blues Restaurant:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "Welcome to Elisa Blues. Looking for a great place to eat in Dublin? Then look no further: Eliza Blues is a family-run Dublin restaurant, which offers the friendliest, brightest and most satisfying dining experience imaginable.",
+          "Our refreshing Dublin restaurant has an informal atmosphere, a warm friendly Irish welcome and excellent cuisine."
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 50-80 words to Sinead in which you",
+      "iranyito_szempontok": [
+        "say thank you for the advertisement and say what you like about this restaurant;",
+        "ask her a few questions about how to get there; the prices; any special dishes to try."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Sinead,",
+      "oldalak": {
+        "feladatlap": [
+          30
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2009-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Bobby about starting a new school",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have received a letter from your American friend, Bobby, in which he writes about his problem and asks for your advice:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "Hi,",
+          "Now that we have moved to Mississippi, I'm going to a new high school and I'm really scared. They say that the first few days at a new school are hell and I don't feel like going through that. You know that I was kind of popular in my last school and I have no idea how I’ll cope with being the new guy that nobody’s interested in. Can you help me?",
+          "Cheers",
+          "Bobby"
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of 100-120 words to Bobby in which you include the following:",
+      "iranyito_szempontok": [
+        "what to do and what not to do to make a good impression;",
+        "sports events and other school activities where you can make friends;",
+        "any personal experience of being new in a class or group."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Bobby,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

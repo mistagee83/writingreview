@@ -1,0 +1,2121 @@
+{
+ "2005-maj-emelt": [
+  {
+   "oldal": 38,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 41,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2005-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2005-maj2-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      244,
+      434,
+      339,
+      478
+     ],
+     "arany": 0.008,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 38,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      76,
+      204,
+      166,
+      408
+     ],
+     "arany": 0.037,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  }
+ ],
+ "2005-nov-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2005-nov-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2006-febr-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2006-febr-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2006-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2006-maj-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2006-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2006-okt-kozep": [
+  {
+   "oldal": 29,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 31,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2007-maj-emelt": [
+  {
+   "oldal": 33,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2007-maj-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2007-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2007-okt-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      260,
+      311,
+      316,
+      368
+     ],
+     "arany": 0.006,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2008-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2008-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2008-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2008-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2009-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      71,
+      166,
+      178,
+      249
+     ],
+     "arany": 0.018,
+     "szoveg_a_kepen": 0
+    },
+    {
+     "bbox": [
+      178,
+      158,
+      269,
+      249
+     ],
+     "arany": 0.016,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  }
+ ],
+ "2009-maj-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2009-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2009-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      251,
+      244,
+      340,
+      333
+     ],
+     "arany": 0.016,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2010-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      221,
+      209,
+      521,
+      410
+     ],
+     "arany": 0.12,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2010-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2010-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      265,
+      209,
+      327,
+      298
+     ],
+     "arany": 0.011,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2010-okt-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2011-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      261,
+      228,
+      348,
+      315
+     ],
+     "arany": 0.015,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2011-maj-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2011-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2011-okt-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2012-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      218,
+      442,
+      380,
+      550
+     ],
+     "arany": 0.035,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2012-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      98,
+      273,
+      405,
+      465
+     ],
+     "arany": 0.118,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2012-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      98,
+      305,
+      179,
+      359
+     ],
+     "arany": 0.009,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2012-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2013-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2013-maj-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2013-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      300,
+      271,
+      515,
+      420
+     ],
+     "arany": 0.064,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2013-okt-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2014-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2014-maj-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2014-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2014-okt-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      63,
+      331,
+      231,
+      499
+     ],
+     "arany": 0.056,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2015-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2015-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2015-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      71,
+      228,
+      221,
+      352
+     ],
+     "arany": 0.037,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2015-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      80,
+      315,
+      212,
+      513
+     ],
+     "arany": 0.052,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2016-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2016-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      114,
+      242,
+      481,
+      455
+     ],
+     "arany": 0.156,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2016-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": []
+  }
+ ],
+ "2016-okt-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "A"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      146,
+      363,
+      343,
+      458
+     ],
+     "arany": 0.037,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "B"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      161,
+      338,
+      261,
+      443
+     ],
+     "arany": 0.021,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  }
+ ],
+ "2017-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      81,
+      303,
+      185,
+      452
+     ],
+     "arany": 0.031,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2017-maj-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      206,
+      286,
+      328,
+      367
+     ],
+     "arany": 0.02,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2017-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      421,
+      304,
+      508,
+      418
+     ],
+     "arany": 0.02,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2017-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      77,
+      322,
+      252,
+      420
+     ],
+     "arany": 0.034,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2018-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      82,
+      319,
+      209,
+      397
+     ],
+     "arany": 0.02,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      129,
+      162,
+      243,
+      227
+     ],
+     "arany": 0.015,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  }
+ ],
+ "2018-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      67,
+      343,
+      210,
+      472
+     ],
+     "arany": 0.037,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2018-okt-emelt": [
+  {
+   "oldal": 36,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      188,
+      438,
+      406,
+      544
+     ],
+     "arany": 0.046,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 40,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2018-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      181,
+      426,
+      414,
+      572
+     ],
+     "arany": 0.068,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      117,
+      324,
+      369,
+      466
+     ],
+     "arany": 0.071,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  }
+ ],
+ "2019-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      68,
+      291,
+      216,
+      390
+     ],
+     "arany": 0.029,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2019-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      98,
+      291,
+      366,
+      381
+     ],
+     "arany": 0.048,
+     "szoveg_a_kepen": 0
+    },
+    {
+     "bbox": [
+      371,
+      277,
+      461,
+      381
+     ],
+     "arany": 0.019,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2019-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2019-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2020-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      76,
+      332,
+      215,
+      471
+     ],
+     "arany": 0.039,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2020-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      73,
+      315,
+      161,
+      435
+     ],
+     "arany": 0.021,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2020-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      71,
+      342,
+      236,
+      451
+     ],
+     "arany": 0.036,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2020-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      380,
+      391,
+      514,
+      480
+     ],
+     "arany": 0.024,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2021-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      90,
+      314,
+      259,
+      433
+     ],
+     "arany": 0.041,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2021-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      212,
+      372,
+      399,
+      464
+     ],
+     "arany": 0.034,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2021-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      394,
+      287,
+      544,
+      352
+     ],
+     "arany": 0.02,
+     "szoveg_a_kepen": 0
+    },
+    {
+     "bbox": [
+      401,
+      433,
+      529,
+      518
+     ],
+     "arany": 0.022,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2021-okt-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      319,
+      283,
+      450,
+      390
+     ],
+     "arany": 0.028,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2022-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      62,
+      288,
+      159,
+      384
+     ],
+     "arany": 0.019,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2022-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      86,
+      339,
+      159,
+      425
+     ],
+     "arany": 0.013,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2022-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      324,
+      317,
+      513,
+      423
+     ],
+     "arany": 0.04,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2022-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2023-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      71,
+      334,
+      160,
+      412
+     ],
+     "arany": 0.014,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2023-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      323,
+      497,
+      453,
+      584
+     ],
+     "arany": 0.022,
+     "szoveg_a_kepen": 0
+    },
+    {
+     "bbox": [
+      114,
+      317,
+      208,
+      442
+     ],
+     "arany": 0.024,
+     "szoveg_a_kepen": 0
+    },
+    {
+     "bbox": [
+      337,
+      316,
+      459,
+      384
+     ],
+     "arany": 0.017,
+     "szoveg_a_kepen": 0
+    },
+    {
+     "bbox": [
+      118,
+      501,
+      243,
+      571
+     ],
+     "arany": 0.018,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2023-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2023-okt-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      74,
+      303,
+      179,
+      460
+     ],
+     "arany": 0.033,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2024-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2024-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      168,
+      292,
+      444,
+      568
+     ],
+     "arany": 0.152,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2024-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      82,
+      475,
+      221,
+      568
+     ],
+     "arany": 0.026,
+     "szoveg_a_kepen": 0
+    },
+    {
+     "bbox": [
+      231,
+      475,
+      373,
+      577
+     ],
+     "arany": 0.029,
+     "szoveg_a_kepen": 0
+    },
+    {
+     "bbox": [
+      383,
+      475,
+      492,
+      584
+     ],
+     "arany": 0.024,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2024-okt-kozep": [
+  {
+   "oldal": 30,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      81,
+      304,
+      243,
+      378
+     ],
+     "arany": 0.024,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 32,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2025-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      85,
+      305,
+      235,
+      404
+     ],
+     "arany": 0.03,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2025-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      240,
+      344,
+      355,
+      518
+     ],
+     "arany": 0.04,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2025-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      79,
+      295,
+      269,
+      403
+     ],
+     "arany": 0.041,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2025-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      80,
+      340,
+      302,
+      488
+     ],
+     "arany": 0.066,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2026-maj-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2026-maj-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      213,
+      297,
+      382,
+      465
+     ],
+     "arany": 0.057,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2026-okt-emelt": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": []
+  },
+  {
+   "oldal": 37,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ],
+ "2026-okt-kozep": [
+  {
+   "oldal": 34,
+   "feladatok": [
+    "1"
+   ],
+   "kepek": [
+    {
+     "bbox": [
+      77,
+      313,
+      256,
+      431
+     ],
+     "arany": 0.042,
+     "szoveg_a_kepen": 0
+    }
+   ]
+  },
+  {
+   "oldal": 36,
+   "feladatok": [
+    "2"
+   ],
+   "kepek": []
+  }
+ ]
+}

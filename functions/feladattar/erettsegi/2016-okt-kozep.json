@@ -1,0 +1,64 @@
+{
+  "formatum_verzio": 1,
+  "id": "2016-okt-kozep",
+  "ev": 2016,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2016-10-20",
+  "kod": "1621",
+  "forras_fajlok": {
+    "feladatlap": "2016 - Középszintű októberi/k_angol_16okt_fl.pdf",
+    "utmutato": "2016 - Középszintű októberi/k_angol_16okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2016-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Email to Annie about a birthday present for Peter",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have received the following email from your British friend Annie:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "My nephew Peter is having his birthday soon (turning 11) and I’d like to buy him a present. Having no brothers myself, I’ve no idea what boys like. (I’m sure he has all the equipment for the outdoor activities he enjoys doing.) The only thing I can think of is a boardgame because, as you know, me and my family love them and the way they bring the whole family (literally from 0 to 99 years!) together around the table. In the one I’ve chosen players have to design various labyrinths that other players will have to go through, which needs strategic thinking, not just mere luck.",
+          "IF Peter likes boardgames at all, he might find this one challenging (and fun for the rest of the family). Or am I completely on the wrong track? What do you think? Annie x"
+        ],
+        "forras": "http://www.boardgamegeek.com/forums/boardgamegeek"
+      },
+      "teendo": "Write an email of 100-120 words to Annie in which you say:",
+      "iranyito_szempontok": [
+        "what you think of toys and games children usually like,",
+        "how you personally feel about board games,",
+        "whether you think this game will make a good present,",
+        "what other possible presents you can think of."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Annie,",
+      "oldalak": {
+        "feladatlap": [
+          32
+        ]
+      },
+      "megjegyzesek": [
+        "A lapon a társasjáték (Labyrinth) fotója áll; a levél szövege leírja a játékot, a feladat nem a képre épül."
+      ]
+    }
+  ],
+  "kimaradt": [
+    {
+      "sorszam": 1,
+      "ok": "kep",
+      "megjegyzes": "„Here is a map of the area where the cinema is” – a térkép csak képként van a lapon; a 3. irányító szempont (ways of getting there) erre épül."
+    }
+  ],
+  "megjegyzesek": []
+}

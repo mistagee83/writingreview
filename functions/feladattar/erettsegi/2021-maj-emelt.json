@@ -1,0 +1,102 @@
+{
+  "formatum_verzio": 1,
+  "id": "2021-maj-emelt",
+  "ev": 2021,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2021-05-06",
+  "kod": "2112",
+  "forras_fajlok": {
+    "feladatlap": "2021 - Emeltszintű május/e_angol_21maj_fl.pdf",
+    "utmutato": "2021 - Emeltszintű május/e_angol_21maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2021-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email applying to be an online English tutor",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are looking for a flexible on-line job to finance your studies and you have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "PREPLY English Online Tutor",
+        "bekezdesek": [
+          "Are you an energetic, patient, responsible and cheerful person? Are you good at English? Would you like to help primary and secondary school students from all over the world to improve their English skills, catch up with schoolwork and prepare for exams?",
+          "PREPLY is an online platform where tutors and students are connected.",
+          "PREPLY is looking for dedicated, enthusiastic, and passionate individuals to coach, tutor and help students achieve their language learning goals.",
+          "With PREPLY, you can have a flexible (self-picked) schedule, self-chosen lesson price, as well as training materials, guidance, and opportunities to help students from all over the world and make a difference in their lives.",
+          "If you are searching for a job opportunity that allows you to work from anywhere, at any time, search no more: all this is provided by the PREPLY platform.",
+          "Native and non-native applicants welcome.",
+          "In order to register with PREPLY email Sandra: sandra.wu@preply.org"
+        ],
+        "forras": "https://preply.com/en/skype/english-tutors"
+      },
+      "teendo": "Write an email of 120-150 words to Sandra in which you",
+      "iranyito_szempontok": [
+        "introduce yourself and tell her about your level of English,",
+        "say why you want this teaching job and what age group and/or level you would like to deal with,",
+        "say which days of the week you are available and how many lessons you can do."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Sandra,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2021-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Sam about an expensive birthday present",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have read the following post on the internet forum Generation Gap:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "So, the thing is this. Ever since I was 11 or so, I’ve had a big passion for computer games. At that time, we were relatively poor since my parents had divorced and my mother had problems with money. It had been like this for a long time until earlier this year when my mother got married for the second time. My stepfather is a rather rich dude who just lets her use his credit card and never asks questions about her spending.",
+          "So, you know, as my 17th bday is in a couple of weeks and she has the money, I told her I'd really like a gamer laptop as a gift. She has been promising for more than a year to me that as soon as she was able economically, she would buy me a really good laptop. However, when I showed her in the catalogue which model I had in mind she came up with the lamest excuses ever, such as a €1000 gift for a teen is too much and stuff like that.",
+          "I don't want to appear ungrateful for what I have but I've been \"dreaming\" of this for like 6 years, and now she has the money, so I can’t see the reason why she should refuse my request just like that.",
+          "What do you think I could do to make her change her mind? I’m even considering turning to my stepfather directly as we are on very good terms. Do you think it’s a good idea?",
+          "Sam 17 (almost)"
+        ],
+        "forras": "https://www.teenhut.net/forums/44-friends-and-family/"
+      },
+      "teendo": "Write a comment of 200-250 words to Sam in which you give your opinion about",
+      "iranyito_szempontok": [
+        "Sam’s feelings and expectations,",
+        "his mother’s attitude,",
+        "expensive presents for teens in general,",
+        "what Sam should do."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Sam:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

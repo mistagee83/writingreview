@@ -1,0 +1,94 @@
+{
+  "formatum_verzio": 1,
+  "id": "2006-febr-emelt",
+  "ev": 2006,
+  "idoszak": "febr",
+  "szint": "emelt",
+  "vizsga_datum": "2006-02-23",
+  "kod": "0613",
+  "forras_fajlok": {
+    "feladatlap": "2006. Emeltszintű február-márciusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06febr_fl.pdf",
+    "utmutato": "2006. Emeltszintű február-márciusi érettségi írásbeli feladatok és javítási-értékelési útmutatók/e_angol_06febr_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2006-febr-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to Gena about a balloon flight",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 120 words"
+      },
+      "helyzet": "You are going to visit your friend Gena in the summer holidays. She has just sent you the following advertisement for a balloon flight and wants to know if you would be interested in going for a flight during your stay:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "The Yorkshire Dales",
+        "bekezdesek": [
+          "The perfect venue for your balloon flight. The Dales is an attractive and interesting area for all ages to visit and balloon over and a practical and convenient area to fly from.",
+          "Join us for a flight over this area of outstanding natural beauty. Gaze down on the magnificent scenery as it gently drifts by. Local features you may have seen a hundred times before are revealed anew from this unfamiliar vantage point. Whether skimming through the treetops or high in the clouds, it will be an experience you will never forget."
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of about 120 words to Gena in which you",
+      "iranyito_szempontok": [
+        "tell her how you feel about unusual or scary experiences;",
+        "ask her about the height and the duration of the flight and how much it costs;",
+        "tell her if you would be interested in a balloon flight and give your reasons."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Gena,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2006-febr-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Letter to Gemma about a summer charity job",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": {
+        "min": null,
+        "max": null,
+        "szoveg": "about 230 words"
+      },
+      "helyzet": "You have received a letter from your English friend, Gemma, who has decided to spend her summer holiday working for a charity organisation. She has also enclosed the advertisement for the job she would like to apply for. She wants your opinion about her decision.",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "MAKE THIS YOUR BEST SUMMER EVER",
+        "bekezdesek": [
+          "Would you like to live and work in a fun and supportive team, travelling around the UK, campaigning and fundraising for some of the world’s leading non-profit and charitable organisations like Amnesty International or Friends of the Earth?",
+          "We are looking for people who are hardworking and self-motivated, friendly and outgoing, with great communication skills. In return, we provide accommodation and transport (so living costs are minimal), comprehensive training and excellent pay.",
+          "This is an excellent way to get involved in the charity sector, gain new skills and boost your CV, as well as a chance to make some life-long friends and have fun along the way."
+        ],
+        "forras": null
+      },
+      "teendo": "Write a letter of about 230 words to Gemma in which you include the following points:",
+      "iranyito_szempontok": [
+        "Your opinion about working for charity and non-profit organisations in general.",
+        "What you think of this particular job offer.",
+        "Whether you would be interested in the job yourself."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi, Gemma,",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

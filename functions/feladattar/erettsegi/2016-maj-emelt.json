@@ -1,0 +1,101 @@
+{
+  "formatum_verzio": 1,
+  "id": "2016-maj-emelt",
+  "ev": 2016,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2016-05-05",
+  "kod": "1512",
+  "forras_fajlok": {
+    "feladatlap": "2016 - Emeltszintű májusi/e_angol_16maj_fl.pdf",
+    "utmutato": "2016 - Emeltszintű májusi/e_angol_16maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2016-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Herman about a cultural English course",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You are in your first year at the University of York, UK. Your Dutch friend Herman asked you whether you would like to take a special English course with him. He sent you the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "English courses with a difference: Cultural Immersion Programmes",
+        "bekezdesek": [
+          "These are courses for your intellectual pleasure as well as to improve your English. The lessons take place in libraries, museums, art galleries, theatres, concert halls, churches or botanical gardens, on a mutually pre-arranged, fixed schedule. In these programmes, we focus on a pre-agreed aspect of culture of your choice:",
+          "• art",
+          "• architecture",
+          "• literature",
+          "• history",
+          "• music",
+          "• cinema",
+          "• theatre",
+          "You do not need any special professional reason to register for these courses. You can enjoy our “Cultural Immersion Programmes” if you have already studied English at least up to European B2 level, have had a general education and are sensitive to the culture of your own country. Whatever the focus, we stimulate your intellectual curiosity and reinforce the precision with which you use the language."
+        ],
+        "forras": "http://www. be/en/cultural-immersions"
+      },
+      "teendo": "Write an email of 120-150 words to Herman in which you",
+      "iranyito_szempontok": [
+        "agree to take part,",
+        "say which aspect(s) of culture you are most interested in and why,",
+        "ask about the number and duration of lessons and about course fees."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hello Herman,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2016-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Reply to Eileen about skipping an audition",
+      "mufaj": "reply",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You have read the following post on an internet forum called Moral Dilemmas:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": "Eileen",
+        "bekezdesek": [
+          "I’m in a local teen theatre group and we regularly perform contemporary musicals. There has been talk going around that some members have been exempted from auditions for the last few productions. I know in the “real world” that can happen sometimes: well known actors and singers sometimes get bumped up into the cast without having to try out. But this isn’t Broadway and the whole idea is to give everyone a chance to prove him- or herself.",
+          "Can you imagine my surprise when my friend Eve, who helps out in the director’s office as a part-time assistant, told me that the director wanted to see me on Monday because I was in for one of the main singing parts in the next production. At first I didn’t quite get it and was ecstatic as it was the role I wanted more than any other. But then I realized it meant I didn’t have to audition. Eve explained that the director simply didn’t have enough time to do auditions for everyone and he knew I was right for the role. “The rest of the cast don’t need to know. This often happens with the strongest performers. Just skip the audition and we’ll take care of the rest,” she said.",
+          "What am I supposed to do on Monday? Do what Eve advised me to do? But what if my friends ask me how the audition went? Or should I insist on an audition - even if it means that the director may not want to work with me again?"
+        ],
+        "forras": "www.goodcharacter.com"
+      },
+      "teendo": "Write a reply in 200-250 words to Eileen in which you tell her what you think of",
+      "iranyito_szempontok": [
+        "the director’s selection practices,",
+        "the advice Eve gave,",
+        "what Eileen should do on Monday."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Eileen:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

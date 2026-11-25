@@ -1,0 +1,105 @@
+{
+  "formatum_verzio": 1,
+  "id": "2015-maj-emelt",
+  "ev": 2015,
+  "idoszak": "maj",
+  "szint": "emelt",
+  "vizsga_datum": "2015-05-07",
+  "kod": "1511",
+  "forras_fajlok": {
+    "feladatlap": "2015 - Emeltszintű májusi/e_angol_15maj_fl.pdf",
+    "utmutato": "2015 - Emeltszintű májusi/e_angol_15maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2015-maj-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email applying for a part-time library job",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You have won a scholarship to study at the University of Queensland, Brisbane, Australia for a year and you would like to have a part-time job there. You have found the following advertisement:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "Matthew Flinders Anglican College Sunshine Coast invites applications from highly committed and innovative people for the following position:",
+          "Part-time Librarian and Research Assistant",
+          "A rewarding and challenging position is available to promote and develop library services in our Secondary School Library. Your responsibilities will include giving students assistance doing research for their assignments and project work in the library and online, particularly in Literature and History.",
+          "What we offer:",
+          "• You will work with remarkable students and colleagues",
+          "• You will be part of an energetic and caring community",
+          "• You can indulge your passion for libraries",
+          "Applicants must have:",
+          "• computer literacy",
+          "• academic skills",
+          "• highly effective communication and relationship building skills",
+          "Email Sandra Kane, Human Resources Manager : kane.hr@mfac.edu.au"
+        ],
+        "forras": "http://www.mfac.edu.au"
+      },
+      "teendo": "Write an email of 120-150 words to Ms Kane in which you include",
+      "iranyito_szempontok": [
+        "who you are and why you are interested in the job,",
+        "why you think you are suitable for the job,",
+        "when you are available for an interview and ask about the format it could take."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Dear Ms Kane,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2015-maj-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Comment on Nick's dilemma at a party",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You found the following post on an internet forum called Moral Dilemmas:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": "Nick 17",
+        "bekezdesek": [
+          "There are certain times when you know things have gone from really bad to out of control. The party started out fine, like they always do. And things got a little crazy, like they always do. But my girlfriend, Sarah had way too much alcohol and was sick for an hour, going in and out of consciousness. There were no adults around and we were at somebody’s vacation home, miles from the nearest town.",
+          "Someone said we should call 911 but one of the girls said that we’d only get ourselves into a lot of trouble. ’My parents mustn’t know I’m even here! If they find out, this will be my last time out of the house before I leave for college!’ she said, and most people agreed.",
+          "I felt more scared than ever before in my life. I had this gut feeling that Sarah could be more ill than any of us could deal with, and if we didn’t get help she might even die. But what if I was wrong? What if everything got better in an hour and everyone hated me for making a huge deal out of just a “bad situation” at a party? Eventually I kept quiet and luckily Sarah was ok when she woke up the following morning. She had no idea what had happened and I haven’t told her although I’m feeling guilty and I’m sure it was a narrow escape.",
+          "What do you think?"
+        ],
+        "forras": "http://www.goodcharacter.com/dilemma"
+      },
+      "teendo": "Write a comment of 200-250 words to this post in which you include your opinion about",
+      "iranyito_szempontok": [
+        "Nick’s behaviour,",
+        "the others’ attitude,",
+        "whether he should tell Sarah about what happened."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Nick 17\nAs I see it…",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

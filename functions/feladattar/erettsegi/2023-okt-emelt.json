@@ -1,0 +1,101 @@
+{
+  "formatum_verzio": 1,
+  "id": "2023-okt-emelt",
+  "ev": 2023,
+  "idoszak": "okt",
+  "szint": "emelt",
+  "vizsga_datum": "2023-10-19",
+  "kod": "2211",
+  "forras_fajlok": {
+    "feladatlap": "2023  - Emeltszintű október/e_angol_23okt_fl.pdf",
+    "utmutato": "2023  - Emeltszintű október/e_angol_23okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2023-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Email to Adam about an online cookery class",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 120,
+        "max": 150,
+        "szoveg": "120-150 words"
+      },
+      "helyzet": "You have come across the following advertisement on the Internet:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Online classes at The Jamie Oliver Cookery School",
+        "bekezdesek": [
+          "Hey lovely people! We at The Jamie Oliver Cookery School have moved our cooking classes online! Discover a specific cuisine and pick up useful tips from our amazing chefs – just from the comfort of your own kitchen.",
+          "Book onto one of our live, interactive, two-hour digital classes, and we’ll send you a recipe card with a shopping list, so you can be ready to go when you log into the session via Zoom. During the class, our helpful English-speaking chefs will walk you through the recipe steps and cook along with you, answering any questions you may have. You’ll be sharing the session with a handful of other food lovers, so prepare yourself for a great experience.",
+          "ITALIAN FAVOURITES: Create your very own Italian feast and master the foundations of this wonderful cuisine in this two-hour class.",
+          "THE ULTIMATE BURGER: Recreate burger perfection at home, complete with mustard, melty cheese, homemade sauce, and super-speedy pickled onions.",
+          "BREAD BAKING: Fill your house with the smell of fresh bread as our chefs guide you through the basics of bread baking.",
+          "So what are you waiting for? Choose the session that makes your mouth water and book now! Write to Adam at adam@jamiescookeryschool.com."
+        ],
+        "forras": "https://www.jamieolivercookeryschool.com/online-cooking-classes/?gclid=CjwKCAjwjbCDBhAwEiwAiudByxSJV8mI0kgK1a3xBafrcF7MZKQnjZ3wSOY2__FDviGoo7XQ9JUfIBoCw10QAvD_BwE"
+      },
+      "teendo": "Write an email of 120-150 words to Adam in which you",
+      "iranyito_szempontok": [
+        "introduce yourself briefly and write about your previous cooking experience, if any,",
+        "choose a class and say why you’re interested in it,",
+        "ask about the price of the class and the equipment needed."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi Adam,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2023-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Comment to Emma about the 100-day dress challenge",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 200,
+        "max": 250,
+        "szoveg": "200-250 words"
+      },
+      "helyzet": "You found the following post on the internet forum Take the Challenge:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": [
+          "Emma U.K.",
+          "Have you heard about the 100-day challenge devised by the US brand Wool&? They produce simple, sustainably sourced merino wool dresses called Rowena, Ellie and other common names. The basic idea is that women who wear the same dress for 100 days and document it with daily pictures get a voucher for a new one.",
+          "I got the idea from my friend Eby in Oregon, who is on day 58 with her grey Fiona dress (I only saw photos of her wearing it on Instagram). She had decided to take part in the challenge because she completely agreed with the brand’s mission statement – “live simply, consume carefully, do good” – and encouraged me to sign up too.",
+          "I quite like the idea of living a simpler life in general; the pandemic showed us that it was possible to survive without a lot of things we had thought of as essential. You also have to be creative to be able to do more with less, so it could even be fun. (Or, as guys manage perfectly with a pair of jeans and a T-shirt for ever and ever, no special challenge there, haha?)",
+          "Anyway, I’m more for it than not but can’t make up my mind; I’d appreciate your opinion. Do you think I should give it a try? Would you? Or your girlfriend?"
+        ],
+        "forras": "https://www.teenhut.net/"
+      },
+      "teendo": "Write a comment of 200-250 words in which you tell her",
+      "iranyito_szempontok": [
+        "whether you agree with the mission statement of the brand,",
+        "whether you think it’s a real challenge worth trying for anyone,",
+        "what problems -if any- you think wearing the same dress for 100 days might cause,",
+        "whether she should take part in the challenge and why/ why not."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Emma:",
+      "oldalak": {
+        "feladatlap": [
+          37
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

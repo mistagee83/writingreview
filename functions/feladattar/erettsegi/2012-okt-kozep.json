@@ -1,0 +1,97 @@
+{
+  "formatum_verzio": 1,
+  "id": "2012-okt-kozep",
+  "ev": 2012,
+  "idoszak": "okt",
+  "szint": "kozep",
+  "vizsga_datum": "2012-10-18",
+  "kod": "1119",
+  "forras_fajlok": {
+    "feladatlap": "2012 - Középszintű októberi/k_angol_12okt_fl.pdf",
+    "utmutato": "2012 - Középszintű októberi/k_angol_12okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2012-okt-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Email to Andy about a room in a shared flat",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": {
+        "min": 50,
+        "max": 80,
+        "szoveg": "50-80 words"
+      },
+      "helyzet": "You are starting your studies at Lancaster University and you are looking for a flat. You have found the following advertisement on the homepage of the university:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": null,
+        "bekezdesek": [
+          "single room in a 4-bedroom flat for rent. gets the morning sun. to share with 2 easy-going guys and a girl, aged 18-22. two of us are university students and the third working for british telecom. flat about 15 mins walk to university. close to pub. we have a puppy and a cat. you need not be tidy but it is welcome if you can cook. rent includes power, phone, tv and wireless internet. drop an email: andy.wilson@linkmail.org"
+        ],
+        "forras": "http://www.lancs.ac.uk"
+      },
+      "teendo": "Write an email of 50-80 words to Andy in which you",
+      "iranyito_szempontok": [
+        "introduce yourself,",
+        "ask about the rent,",
+        "ask about sharing housework."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Hi, Andy,",
+      "oldalak": {
+        "feladatlap": [
+          34
+        ]
+      },
+      "megjegyzesek": []
+    },
+    {
+      "id": "2012-okt-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Comment to Ladybird about self-study for an exam",
+      "mufaj": "comment",
+      "tipus": "vélemény",
+      "szoszam": {
+        "min": 100,
+        "max": 120,
+        "szoveg": "100-120 words"
+      },
+      "helyzet": "You have read the following post on an internet forum called School Matters:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": "Ladybird",
+        "bekezdesek": [
+          "Female",
+          "UK",
+          "12:51",
+          "Post subject: Is this a ridiculous idea?",
+          "I need 3 Advanced-level subjects to enter university. Unfortunately only two of the courses offered at my school are suitable for me.",
+          "So, I have an idea: ask the school to let me sit Advanced-level Italian next summer. I'd have to prepare for the exam entirely on my own, as the subject isn't offered here.",
+          "I'm about to e-mail the headteacher to ask her opinion, but I'd appreciate any comments on this."
+        ],
+        "forras": "http://forum.psyke.org/login"
+      },
+      "teendo": "Write a comment of 100-120 words to Ladybird’s post including what you think about:",
+      "iranyito_szempontok": [
+        "preparing for an exam on your own,",
+        "learning a language to Advanced-level standard in one year,",
+        "what she should do."
+      ],
+      "zaro_utasitas": null,
+      "kezdes": "Ladybird:",
+      "oldalak": {
+        "feladatlap": [
+          36
+        ]
+      },
+      "megjegyzesek": []
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}
