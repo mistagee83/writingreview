@@ -56,6 +56,22 @@ const teendobe = (kezdet) => (f) => {
   f.teendo = B.splice(i, 1)[0] + " " + f.teendo;
   return f;
 };
+/** Az első bekezdés elején álló cím leválasztása (a gép a címet az első bekezdéshez fűzte). */
+const cimLevag = (cim) => (f) => {
+  const B = bek(f);
+  if (!B[0].startsWith(cim)) throw new Error(`kezi.mjs (${f.id}): az első bekezdés nem ezzel kezdődik: ${cim}`);
+  const marad = B[0].slice(cim.length).trim();
+  if (marad) B[0] = marad; else B.shift();
+  f.bemenet.cim = cim;
+  return f;
+};
+/** A megadott szöveggel kezdődő bekezdés a bemenet címe (pl. a szerzői sor után álló cím). */
+const cimLesz = (kezdet, elotag = "") => (f) => {
+  const B = bek(f), i = B.findIndex((b) => b.startsWith(kezdet));
+  if (i < 0) throw new Error(`kezi.mjs (${f.id}): nem találom: ${kezdet}`);
+  f.bemenet.cim = B.splice(i, 1)[0].slice(elotag.length).trim();
+  return f;
+};
 const megjTorol = (re) => (f) => { f.megjegyzesek = f.megjegyzesek.filter((m) => !re.test(m)); return f; };
 const lanc = (...fv) => (f) => fv.reduce((x, g) => g(x) || x, f);
 
@@ -79,13 +95,59 @@ export const KEZI = {
       f.zaro_utasitas = f.teendo;
       f.teendo = B[i];
       f.iranyito_szempontok = pontok;
+      f.bemenet.forras = "www.cardinspirations-usa.com";   // útmutató, FORRÁSOK / Íráskészség, Task A
       return megjTorol(/irányító szempontok/)(f);
     },
   },
+  "2005-maj2-emelt-W2": { post: (f) => { f.bemenet.forras = "Citizenship for All, Edited by John Rowe, Stanley Thomas Publishing Ltd 1998."; return f; } },
   "2005-nov-kozep-W1": {
+    fajta: "notice",   // a klub programismertetője (Mark levelét a lap nem idézi)
     post: tor("chill out in our", "access the internet", "practice karaoke", "engage in indoor-archery", "practice game skills", "participate in all sorts", "play snooker", "take part in weekend", "provides opportunities"),
   },
-  "2007-okt-emelt-W1": { post: tor("On this walk we follow") },
+  "2007-okt-emelt-W1": {
+    // a lapon a kew-i program áll felül, a filmes séta alatta; a -raw kimenet fordított sorrendben adja
+    post: lanc(tor("On this walk we follow"), (f) => {
+      const B = bek(f), i = B.indexOf("Gardens and a Green - Historic Kew");
+      if (i !== 1 || B.length !== 3) throw new Error("kezi.mjs (2007-okt-emelt-W1): váratlan bekezdések");
+      const film = f.bemenet.cim;
+      f.bemenet.cim = B[1];
+      f.bemenet.bekezdesek = [B[2], film, B[0]];
+      return f;
+    }),
+  },
+  "2007-okt-kozep-W1": { fajta: "advertisement" },   // a balett-előadás ismertetője (José e-mailjét a lap nem idézi)
+  "2005-nov-emelt-W2": { fajta: "advertisement" },
+  "2009-maj-emelt-W1": { fajta: "other" },           // négy turisztikai helyismertető (Robert e-mailjét a lap nem idézi)
+  "2009-okt-emelt-W1": { post: cimKiemel },
+  "2010-okt-emelt-W1": { post: cimLevag("Explore the best of the Norwegian Fjords!") },
+  "2010-okt-kozep-W1": { fajta: "advertisement" },
+  "2010-okt-emelt-W2": { fajta: "article" },   // online magazin híre („decided to comment on it”)
+  "2012-okt-emelt-W1": { post: cimLevag("Work on a Penguin Rescue Project in Capetown, South Africa") },
+  "2012-okt-kozep-W2": { post: cimLesz("Post subject: ", "Post subject: ") },
+  "2013-maj-kozep-W1": { fajta: "advertisement" },   // a programhirdetés (Chris e-mailjét a lap nem idézi)
+  "2015-maj-emelt-W1": { post: cimLesz("Part-time Librarian and Research Assistant") },
+  "2017-okt-kozep-W1": { post: cimKiemel },
+  "2020-maj-emelt-W1": { post: cimKiemel },
+  "2020-okt-kozep-W1": { post: cimLevag("Are you considering doing yoga, deepening your yoga practice or becoming a certified yoga teacher?") },
+  "2021-maj-kozep-W1": { fajta: "advertisement" },
+  "2023-okt-kozep-W1": {
+    post: (f) => {
+      if (f.bemenet.cim !== "Pine bookshelf in Morley £25 (Discount for students)") throw new Error("kezi.mjs (2023-okt-kozep-W1): váratlan cím");
+      f.bemenet.cim = "Pine bookshelf in Morley"; bek(f).unshift("£25 (Discount for students)"); return f;
+    },
+  },
+  "2024-okt-kozep-W1": { post: cimKiemel },
+  "2025-okt-emelt-W1": {
+    // a kurzus kétsoros címe a bekezdések közé került, a címmezőben az intézmény neve állt
+    post: (f) => {
+      const B = bek(f);
+      if (B[0] !== "Irish Lives in War and Revolution: Exploring" || B[1] !== "Ireland's History 1912-1923") throw new Error("kezi.mjs (2025-okt-emelt-W1): váratlan bekezdések");
+      B.splice(0, 2, f.bemenet.cim);
+      f.bemenet.cim = "Irish Lives in War and Revolution: Exploring Ireland's History 1912-1923";
+      return f;
+    },
+  },
+  "2025-okt-emelt-W2": { post: cimLesz("Schools let us down") },
   "2008-okt-emelt-W2": { post: lanc(tor("The use of performance enhancing"), cimKiemel) },
   "2009-okt-emelt-W2": {
     post: (f) => {
@@ -129,7 +191,7 @@ export const KEZI = {
     },
     megjegyzes: "A „Curfew” lábjegyzete a lap alján áll; a bemenet végére tettük (¹ jellel).",
   },
-  "2012-maj-kozep-W1": { megjegyzes: "A lapon a bolt fotója áll, a nevével (Baggins Book Bazaar); a szövegrétegben csak a „The largest second-hand bookshop…” mondat van. A feladat nem a képre épül." },
+  "2012-maj-kozep-W1": { fajta: "advertisement", megjegyzes: "A lapon a bolt fotója áll, a nevével (Baggins Book Bazaar); a szövegrétegben csak a „The largest second-hand bookshop…” mondat van. A feladat nem a képre épül." },
   "2013-okt-emelt-W1": { post: tor("Beer tasting in Antwerp") },
   "2014-okt-kozep-W1": { megjegyzes: "A hirdetésben egy laptop fotója és a „Looks Like This” felirat áll (képként); a feladathoz szükséges adatok a szövegben vannak." },
   "2015-maj-emelt-W2": {
@@ -168,7 +230,7 @@ export const KEZI = {
   },
   "2024-maj-emelt-W1": { post: tor("“Our aim at the University Dance Society") },
   "2024-okt-emelt-W1": {
-    post: lanc((f) => {
+    post: lanc(cimKiemel, (f) => {
       const B = bek(f), i = B.findIndex((b) => b.startsWith("City Dog Shelter")), j = B.findIndex((b) => b.startsWith("Want to reserve"));
       B.splice(i, j - i,
         "City Dog Shelter – the place that takes care of and looks for responsible owners for cats and dogs lacking a home",

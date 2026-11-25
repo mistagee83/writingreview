@@ -27,8 +27,9 @@
       "helyzet": "You are studying in Leeds, England and you share a flat with some other students in a nearby town, Morley. You have decided to buy a second hand bookshelf and you have found the following advertisement on the homepage of the university:",
       "bemenet": {
         "fajta": "advertisement",
-        "cim": "Pine bookshelf in Morley £25 (Discount for students)",
+        "cim": "Pine bookshelf in Morley",
         "bekezdesek": [
+          "£25 (Discount for students)",
           "Handmade, used",
           "Pine 2 shelf bookcase on bun feet in good condition. Adjustable shelves. 102cm high x 75cm wide x 27cm deep.",
           "Collection is from Morley. Local delivery possible. Contact Miles by email miles.ash@gmail.com"

@@ -167,10 +167,10 @@ pontszámítás változatlan.
 | `eredeti_jeloles` | szöveg | ahogy a lapon áll: `Task 1`, `Task A` |
 | `cim` | szöveg | rövid angol cím a tárhoz és a WR feladatcímhez (≤ 80 karakter), pl. `Email to Pavel about his girlfriend's blue hair` |
 | `mufaj` | szöveg | az eredeti műfaj: `email`, `letter`, `blog post`, `comment`, `forum post`, `article`, `essay`, … |
-| `tipus` | szöveg | a WR típusa: `levél` (email, letter), `vélemény` (comment, forum post, véleményt kérő blogbejegyzés), `esszé` (article, essay), egyébként `egyéb` |
+| `tipus` | szöveg | a WR típusa: `levél` (email, letter, message, reply, note; a tulajdonos döntése 2026-11-25: a message és a reply is levél, kivéve, ha fórumbejegyzésre válaszol, akkor `vélemény`), `vélemény` (comment, forum post, véleményt kérő blogbejegyzés), `esszé` (article, essay), egyébként `egyéb` |
 | `szoszam` | objektum | `{ min, max, szoveg }`: `100, 120, "100-120 words"`. Ha a lap csak „about N words”-t ad, `min` és `max` `null`, a `szoveg` megmarad (a leírásban látszik). |
 | `helyzet` | szöveg | a bevezető szöveg angolul, szó szerint |
-| `bemenet` | objektum \| `null` | a szöveg, amire a diák reagál: `{ fajta, cim, bekezdesek[], forras }`; `fajta`: `email` \| `advertisement` \| `post` \| `article` \| `notice` \| `other`; a `forras` a lapon vagy az útmutató „Források” részében megadott forrás (URL, kiadvány) |
+| `bemenet` | objektum \| `null` | a szöveg, amire a diák reagál: `{ fajta, cim, bekezdesek[], forras }`; `fajta`: `email` \| `letter` \| `advertisement` \| `post` \| `article` \| `notice` \| `other` (`letter`: levél, amelyről a lap nem mondja meg, hogy e-mail, vagy magazinban közölt olvasói levél; `post`: internetes fórumon, oldalon, csoportban talált szöveg); a `forras` a lapon vagy az útmutató „Források” részében megadott forrás (URL, kiadvány) |
 | `teendo` | szöveg | a „Write an email of … words to … in which you” mondat |
 | `iranyito_szempontok[]` | lista | a felsorolt pontok szó szerint, felsorolásjel nélkül |
 | `zaro_utasitas` | szöveg \| `null` | az irányító szempontok **utáni** utasítás, ha van (pl. „This is the title of your article: …”); a kinyeréskor került be (2026-11-25), 7 régi feladatnál |

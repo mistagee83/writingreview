@@ -68,3 +68,49 @@ test("regresszió: a pdftotext CESU-8 emojija (2022. május közép, 2. feladat)
   const lap = JSON.parse(readFileSync(join(MAPPA, "2022-maj-kozep.json"), "utf8"));
   assert.match(lap.feladatok.find((t) => t.sorszam === 2).bemenet.bekezdesek[0], /anything 😊\./);
 });
+
+test("regresszió (Codex-ellenőrzés): az útmutató forráslistája oldalfejléc, sortörés és „és képek” mellett is átjön", async () => {
+  const { utmutatoForrasokSzovegbol: ut } = await import("../scripts/erettsegi/kinyer.mjs");
+  // 2024. október közép: a cím sorvégen, szóköz nélkül törik, a 2. feladat a letöltés dátuma után áll
+  assert.deepEqual(ut([
+    "ÍRÁSKÉSZSÉG", "integritásának megtartása mellett jöttek létre. Az eredeti szövegek forrása:",
+    "1. feladat: https://www.pdffiller.com/497328158-", "?utm_term=%2Blet",
+    "ter%20%2Binvitation&utm_content=US-0014LR Utolsó letöltés dátuma: 2022. december 20.",
+    "2. feladat: https://www.nytimes.com/x.html Utolsó", "letöltés dátuma:2023. január 29.", "",
+  ].join("\n")), { 1: "https://www.pdffiller.com/497328158-?utm_term=%2Bletter%20%2Binvitation&utm_content=US-0014LR", 2: "https://www.nytimes.com/x.html" });
+  // 2024. május emelt: „Szövegek forrásai”, egymás alatti címek, oldalfejléc a két feladat között; a kép forrása nem kell
+  assert.deepEqual(ut([
+    "ÍRÁSKÉSZSÉG", "Az eredeti szövegek és képek forrása:", "1. feladat:", "Szövegek forrásai: https://a.org/1",
+    "http://b.com/2", "Kép forrása: https://img.com/k-", "36637.jpg", "Utolsó letöltés dátuma: 2024. január 6.",
+    "Javítási-értékelési útmutató", "Angol nyelv 12 / 17 emelt szintű írásbeli vizsga", "E2412 2024. május 9.",
+    "2. feladat:", "A szöveg forrása és a kép forrása: https://c.net/3-", "flexible", "Az íráskészség feladatok értékelési útmutatója",
+  ].join("\n")), { 1: "https://a.org/1 http://b.com/2", 2: "https://c.net/3-flexible" });
+  const f = (lap, n) => JSON.parse(readFileSync(join(MAPPA, lap + ".json"), "utf8")).feladatok.find((t) => t.sorszam === n);
+  assert.match(f("2024-okt-kozep", 1).bemenet.forras, /utm_term=%2Bletter%20%2Binvitation&utm_content=US-0014LR$/);
+  for (const [lap, n] of [["2024-maj-emelt", 1], ["2024-maj-emelt", 2], ["2024-okt-emelt", 1], ["2024-okt-emelt", 2], ["2024-okt-kozep", 2],
+    ["2025-okt-kozep", 1], ["2025-okt-kozep", 2], ["2026-maj-kozep", 2], ["2026-okt-kozep", 1], ["2026-okt-kozep", 2], ["2005-maj2-emelt", 1], ["2005-maj2-emelt", 2]]) {
+    assert.ok(f(lap, n).bemenet.forras, `${lap} ${n}. feladat: van forrás`);
+  }
+});
+
+test("regresszió (Codex-ellenőrzés): szerzői sor nem cím, szószám-tartomány „about”-tal, a 2007-es hirdetések sorrendje", () => {
+  const f = (lap, n) => JSON.parse(readFileSync(join(MAPPA, lap + ".json"), "utf8")).feladatok.find((t) => t.sorszam === n);
+  for (const [lap, szerzo] of [["2015-maj-emelt", "Nick 17"], ["2017-maj-emelt", "Emily 16, Oklahoma"], ["2020-maj-emelt", "Laura D"], ["2012-maj-kozep", "JODY"]]) {
+    const b = f(lap, 2).bemenet;
+    assert.equal(b.cim, null, lap); assert.equal(b.bekezdesek[0], szerzo, lap);
+  }
+  assert.equal(f("2025-okt-emelt", 2).bemenet.cim, "Schools let us down");
+  assert.deepEqual(f("2015-maj-kozep", 2).szoszam, { min: 100, max: 120, szoveg: "about 100-120 words" });
+  const kew = f("2007-okt-emelt", 1).bemenet;
+  assert.equal(kew.cim, "Gardens and a Green - Historic Kew");
+  assert.match(kew.bekezdesek[1], /Follow the Stars/);
+  assert.equal(f("2009-okt-kozep", 2).bemenet.fajta, "letter");
+  assert.equal(f("2011-okt-kozep", 2).bemenet.fajta, "post");
+});
+
+test("regresszió (Codex-ellenőrzés): a sablonok nullázási mondata nem nevezi 0 pontnak a részleges kidolgozást", () => {
+  const s = JSON.parse(readFileSync(join(MAPPA, "sablonok.json"), "utf8")).sablonok;
+  for (const x of s) assert.doesNotMatch(x.rubrika.egyeb_utasitas, /egyik irányító szempontot sem dolgozta ki megfelelően\)/, x.id);
+  const emelt = s.find((x) => x.id === "emelt-level").rubrika.egyeb_utasitas;
+  assert.match(emelt, /2 = [^;]*;[^;]*aránytalanul sok szót vesz át/);
+});

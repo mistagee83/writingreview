@@ -17,8 +17,10 @@ feladatot készít belőlük, négy érettségi sablonnal. A kinyerés formátum
 **Kinyerés: kész (2026-11-25).** 91 lap, 176 feladat + 6 kimaradt képes feladat, és a négy sablon:
 `functions/feladattar/erettsegi/`. Újragenerálás: `node scripts/erettsegi/kinyer.mjs` (kell a forrásmappa és a
 `pdftotext`); ellenőrzés: `node scripts/feladattar-ellenorzes.mjs`, teszt: `node --test tests/feladattar.test.mjs`.
-Jelentés, kétes esetek: [`erettsegi-kinyeres-jelentes.md`](erettsegi-kinyeres-jelentes.md). **Nyitott:** a tulajdonos
-átolvassa a sablonok sávleírásait; a jogi kérdés (terv 7.). Következő lépés: a tár felülete és függvényei (terv 8. 3.).
+Jelentés, kétes esetek: [`erettsegi-kinyeres-jelentes.md`](erettsegi-kinyeres-jelentes.md). A Codex független
+ellenőrzése után javítva (forrás, fajta, cím, sablonok; a jelentés 7. pontja). **Nyitott, a tulajdonos dönt:** a
+sablonok sávleírásai; a 2018. okt. közép 2. bennmaradása. (A `message`/`reply` feladatok `tipus`-a `levél` marad: döntés 2026-11-25.)
+Következő lépés: a tár felülete és függvényei (terv 8. 3.).
 
 ## 0000. Egy hub-fiók: egy kattintás a hubról (2026-11-20) – **élesítve** (hosting, `3953086`), valódi fiókkal még nincs kipróbálva
 

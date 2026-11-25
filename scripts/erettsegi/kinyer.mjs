@@ -148,15 +148,24 @@ function bekezdesKezdetek(sorok, vegek) {
 
 const FORRAS_SOR = /^\(?\s*(?:https?:\/\/|https?\/|www\.)[^()\s]*(?:\s[^()\s]+)?\s*\)?\.?$|^\((?:[^()]*\.(?:com|co\.uk|org|net|uk|ie|au|edu)\b[^()]*)\)$|^(?:Source|Forrás|Adapted from|Based on):/i;
 
-function bemenetFajta(helyzet, mufajTalalat) {
+/**
+ * A bemenet fajtája a helyzetleírásból. Sorrend: hirdetés; internetes fórumon, weboldalon, online csoportban
+ * talált szöveg (post); magazinban, újságban közölt olvasói levél (letter) vagy cikk (article); e-mail; levél,
+ * amelyről a lap nem mondja meg, hogy e-mail-e (letter). Ami ettől eltér, azt a kezi.mjs `fajta` mezője írja felül.
+ */
+function bemenetFajta(helyzet) {
   const h = helyzet.toLowerCase();
   if (/advert|\bad\b|\bads\b|leaflet|flyer|brochure/.test(h)) return "advertisement";
-  if (/e-?mail|letter|message|note from/.test(h)) return "email";
-  if (/\bpost\b|forum|blog|comment|website|web page|webpage|social media|facebook/.test(h)) return "post";
-  if (/article|newspaper|magazine/.test(h)) return "article";
+  if (/\barticle\b/.test(h)) return "article";   // cikk az interneten is cikk
+  if (/forum|on the internet|website|web ?page|online group|social media|facebook|blog|\bpost\b|comment/.test(h)) return "post";
+  if (/magazine|newspaper/.test(h)) return /letter/.test(h) ? "letter" : "article";
+  if (/e-?mail|message|note from/.test(h)) return "email";
+  if (/letter/.test(h)) return "letter";
   if (/notice|announcement|poster/.test(h)) return "notice";
   return "other";
 }
+// fórumbejegyzés szerzői sora (név, életkor, hely), amelyet a gép címnek nézne: „Nick 17”, „Emily 16, Oklahoma”, „Laura D”
+const SZERZOSOR = /^[A-Z][\w’'.-]*(?: [A-Z]\.?)?,? ?(?:\(?\d{1,2}\)?(?: ?yrs| years old)?)?(?:, [A-Z][a-z]+)?$/;
 
 /** A WR típusa a műfajból; a fórumbejegyzésre írt válasz (reply, message, post) véleményszöveg. */
 function tipusMufajbol(mufaj, bemenet) {
@@ -245,8 +254,10 @@ function feladat(lap, blokk, vegek) {
     const bek = bekezdesek(bemenetSorok, vegek);
     let cim = null;
     const elso = bek[0] || "";
-    if (bek.length > 1 && elso.length <= 80 && !/[.!?,;:]$/.test(elso) && !/^(?:Hi|Hello|Dear|Hey)\b/.test(elso)) cim = bek.shift();
-    bemenet = { fajta: bemenetFajta(helyzet), cim, bekezdesek: bek, forras };
+    const fajta = k.fajta || bemenetFajta(helyzet);
+    const szerzo = fajta === "post" && elso.length <= 32 && SZERZOSOR.test(elso);
+    if (bek.length > 1 && elso.length <= 80 && !/[.!?,;:]$/.test(elso) && !/^(?:Hi|Hello|Dear|Hey)\b/.test(elso) && !szerzo) cim = bek.shift();
+    bemenet = { fajta, cim, bekezdesek: bek, forras };
   }
 
   // szószám
@@ -255,7 +266,8 @@ function feladat(lap, blokk, vegek) {
   if (!sz) { szoszam = { min: null, max: null, szoveg: null }; megj.push("Nem találom a szószámot."); }
   else {
     const m = /(\d+)\s*[-–]\s*(\d+)/.exec(sz[0]);
-    szoszam = m && !/about|approx|around/.test(sz[0]) ? { min: +m[1], max: +m[2], szoveg: sz[0] } : { min: null, max: null, szoveg: sz[0] };
+    // tartomány („100-120 words”, „about 100-120 words”): min és max; egyetlen szám („about 150 words”): null, null
+    szoszam = m ? { min: +m[1], max: +m[2], szoveg: sz[0] } : { min: null, max: null, szoveg: sz[0] };
     if (!/words/.test(sz[0])) megj.push(`A lapon a szószám után hiányzik a „words” szó („${sz[0]}”).`);
   }
   const mm = MUFAJ.exec(teendo);
@@ -287,28 +299,52 @@ function feladat(lap, blokk, vegek) {
  * Az útmutató íráskészség-részének forráslistája (2021-től): „1. feladat: <url>” vagy
  * „1. feladat:” + „Szöveg forrása: <url>”. A kép forrása nem kell. Eredmény: { 1: "…", 2: "…" }.
  */
-function utmutatoForrasok(fajl) {
-  const L = pdf(fajl, "-raw").split(/\r?\n/).map((s) => s.trim());
+// az útmutató oldalfejléce/lábléce, amely a forráslista közepére eshet
+const UT_FEJLEC = /^Javítási-értékelési útmutató$|^Angol nyelv\s+\d+\s*\/\s*\d+\b|^[EK]\d{4}\s+\d{4}\.|^\.$/;
+// a letöltés dátuma (a sor végén, akár a következő sorba törve: „… Utolsó” + „letöltés dátuma: …”)
+const LETOLTES = /\s*(?:Utolsó\s+)?letöltés(?:\s+dátuma)?\s*:?.*$|\s*Utolsó$/i;
+// webcímek (és a köztük álló „és”, „;”): ilyen sor a megelőző forrás folytatása
+const URL_DARAB = (t) => /[\/.%=&?_~-]/.test(t) && !/^[A-ZÁÉÍÓÖŐÚÜŰa-záéíóöőúüű]+[.,:]?$/.test(t) || t === "és" || t === ";";
+
+/**
+ * Az útmutató íráskészség-részének forráslistája (2021-től): „1. feladat: <url>”, vagy „1. feladat:” után
+ * „Szöveg(ek) forrása(i): <url>”, „Szöveg és kép forrása: …”, „A szöveg forrása és a kép forrása: …”. A csak
+ * képre vonatkozó forrás nem kell. A cím sorvégen megtörhet, és több cím is állhat egymás alatti sorokban;
+ * a lista közepére oldalfejléc eshet. Eredmény: { 1: "…", 2: "…" }.
+ */
+export function utmutatoForrasokSzovegbol(szoveg) {
+  const L = szoveg.split(/\r?\n/).map((s) => s.trim());
   const iras = L.findIndex((s) => /^(?:IV\. )?ÍRÁSKÉSZSÉG$/.test(s));
   if (iras < 0) return {};
-  const kezd = L.findIndex((s, i) => i > iras && /eredeti szövegek forrása:?$/.test(s));
+  const kezd = L.findIndex((s, i) => i > iras && /eredeti szövegek(?: és képek)? forrása:?$/.test(s));
   if (kezd < 0) return {};
-  const ki = {}; let akt = null, utolso = null;
+  const ki = {}; let akt = null, mod = null;   // mod: "szoveg" (gyűjtjük) | "kep" (átugorjuk)
+  const hozza = (s, uj) => {
+    if (!s) return;
+    if (ki[akt] === undefined) ki[akt] = s;
+    else if (!uj && !/\s/.test(s) && !/^(?:https?:|www\.)/.test(s)) ki[akt] += s;   // sorvégen megtört cím
+    else ki[akt] += (uj ? "; " : " ") + s;
+  };
   for (let i = kezd + 1; i < L.length; i++) {
-    const s = L[i];
+    let s = L[i];
+    if (UT_FEJLEC.test(s)) continue;
+    if (!s) { if (akt !== null && ki[akt] !== undefined) break; continue; }
+    s = s.replace(LETOLTES, "").trim();
     const f = /^(\d)\. feladat:?\s*(.*)$/.exec(s);
-    if (f) { akt = +f[1]; utolso = null; if (f[2]) { ki[akt] = f[2]; utolso = akt; } continue; }
+    if (f) { akt = +f[1]; mod = "szoveg"; hozza(f[2].trim(), false); continue; }
     if (akt === null) break;
-    const sz = /^Szöveg(?: és kép)? forrása:\s*(.*)$/.exec(s);
-    if (sz) { ki[akt] = ki[akt] ? ki[akt] + "; " + sz[1] : sz[1]; utolso = akt; continue; }
-    if (/^(?:Kép forrása|Utolsó letöltés)/.test(s)) { utolso = null; continue; }
-    // a sor végén megtört cím folytatása
-    if (utolso !== null && s && !/\s/.test(s) && /[-\/=?&_]$/.test(ki[utolso])) { ki[utolso] += s; continue; }
+    if (/^Kép(?:ek)? forrása/.test(s)) { mod = "kep"; continue; }
+    const sz = /^(?:A )?[Ss]zöveg(?:ek)?(?: és (?:a )?kép)? forrásai?(?: és a kép forrása)?:\s*(.*)$/.exec(s);
+    if (sz) { mod = "szoveg"; hozza(sz[1].trim(), ki[akt] !== undefined); continue; }
+    if (!s) continue;   // csak a letöltés dátuma állt a sorban
+    const toresVeg = !/\s/.test(s) && /[-\/=?&_%]$/.test(ki[akt] ?? "");   // pl. „…-remote-” + „flexible”
+    if (toresVeg || s.split(/\s+/).every(URL_DARAB)) { if (mod === "szoveg") hozza(s, false); continue; }
     break;
   }
-  for (const k in ki) ki[k] = ki[k].replace(/\s*Utolsó letöltés.*$/, "").replace(/\)$/, "").trim();
+  for (const k in ki) ki[k] = ki[k].replace(/\)$/, "").trim();
   return ki;
 }
+const utmutatoForrasok = (fajl) => utmutatoForrasokSzovegbol(pdf(fajl, "-raw"));
 
 export function kinyerLap(lap) {
   const { sorok, vegek } = irasSorok(join(FORRAS, lap.feladatlap));

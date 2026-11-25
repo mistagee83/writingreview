@@ -27,9 +27,8 @@
       "helyzet": "You are a regular reader of Dog World, in which you have found the following advertisement:",
       "bemenet": {
         "fajta": "advertisement",
-        "cim": null,
+        "cim": "What is Therapy Dogs, Inc?",
         "bekezdesek": [
-          "What is Therapy Dogs, Inc?",
           "It is a goal of Therapy Dogs Inc. to help dog owners use their dogs for therapy work in various places such as nursing homes, hospitals and schools, as well as work with the mentally and physically handicapped. Our objective is to form a network of caring individuals who are willing to share their special animals in order to bring happiness and cheer to people who need something to hold and love. Dogs have been effective in reaching people and children who have withdrawn from the world.",
           "For more information email Dr. T. W. Chester chester@therapydogs.com"
         ],
@@ -65,7 +64,7 @@
       },
       "helyzet": "You have recently become interested in the School-leavers’ Forum on the Internet. You have found the following message:",
       "bemenet": {
-        "fajta": "email",
+        "fajta": "post",
         "cim": null,
         "bekezdesek": [
           "I've got a job interview in a few days. I'm really worried about how to act and everything. If you could give me some pointers, I'd really appreciate it.",

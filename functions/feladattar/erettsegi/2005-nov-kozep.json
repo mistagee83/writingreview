@@ -26,7 +26,7 @@
       },
       "helyzet": "You are going to spend a month in Scotland as an exchange student. You are going to stay with a boy called Mark and his family. You have received a letter from Mark in which he asks if you are interested in any of the programmes of the Youth Club he is a member of:",
       "bemenet": {
-        "fajta": "email",
+        "fajta": "notice",
         "cim": null,
         "bekezdesek": [
           "Conveniently located in the city-centre,",
@@ -74,7 +74,7 @@
       },
       "helyzet": "You are a regular reader of a problem page on the Internet. Recently you have found the following letter:",
       "bemenet": {
-        "fajta": "email",
+        "fajta": "post",
         "cim": null,
         "bekezdesek": [
           "I am a 17-year-old boy living with my mother and two sisters. My elder sister and my mother are working and my younger sister is still at school. I can see how difficult it is for my mother and sister to keep me and my younger sister comfortable and I want to help as much as I can although they say they don’t want me to. Can you suggest any ways which you or any of your friends know about by which I can earn some money?",

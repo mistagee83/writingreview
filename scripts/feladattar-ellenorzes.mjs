@@ -22,7 +22,7 @@ const SEGED = join(GYOKER, "scripts", "erettsegi");
 
 const IDOSZAK = ["maj", "okt", "nov", "febr", "maj2"];
 const TIPUS = ["levél", "vélemény", "esszé", "egyéb"];
-const FAJTA = ["email", "advertisement", "post", "article", "notice", "other"];
+const FAJTA = ["email", "letter", "advertisement", "post", "article", "notice", "other"];
 const KIMARADT_OK = ["kep", "kep_szoveg", "egyeb"];
 const SABLON_OSSZEG = { "kozep-level": 11, "kozep-fogalmazas": 22, "emelt-level": 15, "emelt-fogalmazas": 15 };
 const SZEMPONT = {

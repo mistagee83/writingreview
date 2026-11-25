@@ -26,7 +26,7 @@
       },
       "helyzet": "You are on a two-week holiday in the UK. You have found a very good and cheap second-hand bookshop in Rochester, and you want your English teacher’s advice about what books to get.",
       "bemenet": {
-        "fajta": "other",
+        "fajta": "advertisement",
         "cim": null,
         "bekezdesek": [
           "The largest second-hand bookshop in England. It has everything you will ever want to read!"
@@ -66,8 +66,9 @@
       "helyzet": "You are a member of an internet forum called Student Job Problems. Now you have found the following post:",
       "bemenet": {
         "fajta": "post",
-        "cim": "JODY",
+        "cim": null,
         "bekezdesek": [
+          "JODY",
           "Advanced Member",
           "Posted: yesterday 20:21:09",
           "I regularly babysit three kids aged 5-8 (a boy, a girl and their friend, another girl) while their parents go out on Friday night. There’s always a fight over the TV: the boy wants to watch Cartoon Network, the girl wants CSI and their friend wants House MD (the last two are rated PG). They shout and fight and I’m sure it won’t be long before one of them gets seriously hurt. I have no idea what to do – can you help me? I would appreciate your ideas."

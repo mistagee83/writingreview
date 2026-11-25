@@ -26,7 +26,7 @@
       },
       "helyzet": "You are at a language course in London, staying in a student hostel. One of your classmates, José, has sent you an email to say that he has two tickets for a performance by the Scottish Ballet and wants you to go with him on Saturday night.",
       "bemenet": {
-        "fajta": "email",
+        "fajta": "advertisement",
         "cim": "Scottish Ballet: Cinderella",
         "bekezdesek": [
           "Sadler's Wells Theatre",
@@ -65,7 +65,7 @@
       },
       "helyzet": "You are a regular reader of a teenage magazine called Teen Life. Each week there is a reader’s letter in it and other readers are invited to give advice. Here is this week’s letter:",
       "bemenet": {
-        "fajta": "email",
+        "fajta": "letter",
         "cim": null,
         "bekezdesek": [
           "I’ve been offered a babysitting job for a three-week period during the summer holidays. The couple wants me to stay all day Monday and Wednesday (7:30am- 5:30pm), and from 7:30am to 2:30pm Tuesday and Thursday. They have offered me 10 pounds per week. My sister says that 10 pounds for that much time is completely ridiculous and that I am going to be taken advantage of. Still, I would like to take the job because the children are such sweeties and I’m sure I will enjoy looking after them. What do you think I should do?",

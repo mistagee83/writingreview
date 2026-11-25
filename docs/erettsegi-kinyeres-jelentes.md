@@ -1,7 +1,8 @@
 # Érettségi írásfeladatok: a kinyerés jelentése
 
 *Készült: 2026-11-25. A terv: [`erettsegi-feladattar-terv.md`](erettsegi-feladattar-terv.md) (4. fejezet: formátum,
-5. fejezet: képes feladatok). Csak a `main` ágat érinti; deploy nem volt, commit még nincs.*
+5. fejezet: képes feladatok). Csak a `main` ágat érinti; deploy nem volt. A kinyerés commitja `98e6aa1`; a Codex-ellenőrzés
+utáni javítások a 7. pontban.*
 
 ## Röviden
 
@@ -94,7 +95,7 @@ B1 (közép) és B2 (emelt). Az `egyeb_utasitas` az útmutató sávleírásainak
   eltérést láttam: 2010. október emelt, A (a félkövér hirdetéscím az első bekezdés elején áll, nem külön címként) és
   2023. október emelt, 1. (két bekezdés egybeolvadt). A szöveg mindkettőben teljes. Hasonló apróság más
   hirdetéseknél is előfordulhat (cím vagy rövid sor a szomszéd bekezdésben).
-- **A forrás** (URL) 109 feladatnál van kitöltve: a régi lapokon a feladatlap alján, 2021-től az útmutató „Az eredeti
+- **A forrás** (URL) 121 feladatnál van kitöltve (a Codex-ellenőrzés előtt 109): a régi lapokon a feladatlap alján, 2021-től az útmutató „Az eredeti
   szövegek forrása” részéből. Ahol egyik helyen sincs, ott `null`.
 - **A cím** (`cim`) a tár rövid angol címe; ezeket én írtam (≤ 80 karakter), átírhatók a `kezi.mjs` `CIMEK` listájában.
 - **A szúrópróba mintája:** 2005. május emelt A · 2006. október közép A · 2008. október közép B · 2010. október emelt A ·
@@ -115,3 +116,47 @@ B1 (közép) és B2 (emelt). Az `egyeb_utasitas` az útmutató sávleírásainak
 
 Az ellenőrző a formai pontokat is nézi (kötelező mezők, típusok, a gépi kinyerés maradványai: válaszsor, fejléc,
 helyettesítő jel), és a teszt egy szándékosan elrontott másolaton azt is, hogy a hibát valóban jelzi.
+
+## 7. Codex-ellenőrzés (2026-11-25)
+
+Független ellenőrzés mind a 91 lapon és a négy sablonon (a jelentések az `ellenorzes/erettsegi/` mappában, nincsenek a
+tárolóban). 68 eltérés: 1 szöveg, 5 szerkezet, 13 forrás, 43 apróság, 6 bizonytalan. A javítások a kinyerőben, a
+`kezi.mjs`-ben és a `sablonok.mjs`-ben vannak; a JSON-t újrageneráltam. Az ellenőrző hibátlan, a teszt 8/8 (három új
+regressziós teszt).
+
+**Javítva:**
+
+- **Sablonok:** a nullázás zárójeles magyarázata mind a négy sablonban pontosítva: csak a valódi 0 pont (félreértette a
+  feladatot, vagy a 0 pontos leírás illik rá) nulláz; a részleges kidolgozás az 1 pontos sáv. Az `emelt-level`
+  szókincsénél a „segédanyagból aránytalanul sok szót vesz át változtatás nélkül; saját szókincse többnyire a szint alatt
+  marad” a 2 pontos sávba került (az útmutató 14. oldala szerint), az 1 pontosból kikerült.
+- **Forrás (13):** hibás szabály okozta. Az útmutató forráslistájának olvasója megállt az oldalfejlécnél, a „Szövegek
+  forrásai” és „A szöveg forrása és a kép forrása” alaknál, a szóközzel tört soroknál, és nem ismerte fel a „szövegek és
+  képek forrása” címet. Az új olvasó (`utmutatoForrasokSzovegbol`) mind a 91 útmutatón lefutott: a 11 hiányzó és az 1
+  csonka forrás megvan, a többi nem változott. A 2005. második májusi emelt lap két forrása (a régi „FORRÁSOK /
+  Íráskészség” rész, csak ezen a lapon van ilyen) a `kezi.mjs`-ben. A 2024. májusi közép reddit-címe („…dyed_their
+  hair”) és a 2025. májusi közép „r /comments” alakja a PDF-ben is szóközzel áll; szó szerint hagytam.
+- **Szöveg:** 2007. október emelt, 1.: a két hirdetés sorrendje a lap szerint (Kew felül, a filmes séta alatta).
+- **Szószám:** a tartomány „about”-tal is min/max (2015. május közép, 2.: 100–120). Más lapon nincs ilyen.
+- **A bemenet fajtája:** a szabály új sorrendje: hirdetés → cikk → internetes fórum, oldal, csoport (`post`) → magazin
+  olvasói levele vagy cikke → e-mail → levél. **Új fajta: `letter`** (a terv 4. fejezetében is): levél, amelyről a lap nem
+  mondja meg, hogy e-mail, vagy magazinban közölt olvasói levél. Ide kerültek a „bizonytalan” esetek (2008. máj., 2009.
+  máj., 2009. okt., 2015. máj. közép, 2.), és ugyanígy a hasonló, nem jelzett lapok is (pl. 2006. febr. közép, 2005. máj.
+  emelt). Ahol a lap e-mailt említ, de a bemenet maga hirdetés vagy ismertető (José, Chris, Robert, Mark), ott a
+  `kezi.mjs` `fajta` mezője dönt. A fajták most: 70 hirdetés, 56 post, 20 e-mail, 8 levél, 15 egyéb, 4 cikk, 1 notice;
+  2 feladatnak nincs bemenete. A `tipus` egyik feladatnál sem változott.
+- **Cím:** a fórumbejegyzés szerzői sora (pl. „Nick 17”, „Emily 16, Oklahoma”, „Laura D”, „JODY”) gépi szabállyal nem
+  cím, hanem a bemenet első sora (12 feladat). A többi címhatár a `kezi.mjs`-ben: az első bekezdésbe olvadt vagy
+  bekezdésként álló cím (9 feladat), „Kathy 18” után a valódi cím, a „Post subject:” sor, a Trinity College kurzuscíme
+  (az intézmény neve az első bekezdés), a könyvespolc ára (külön sor).
+
+**A tulajdonos döntött:** a `message`/`reply` műfajú feladatok (2005. máj. közép 1., 2020. okt. emelt 1., 2022. okt.
+közép 1., 2023. máj. közép 1.) `tipus`-a `levél` marad (a Codex `egyéb`-et javasolt); a terv típusszabálya ehhez igazítva.
+
+**Még nyitott, a tulajdonos dönt:**
+
+- 2018. október közép, 2. („Imagine ME standing there?” egy fotó alatt): bennmaradhat-e. A Codex határesetnek tartja;
+  minden irányító szempont kép nélkül is megválaszolható.
+
+**Nem hiba:** 2026. május közép, 1.: a lapon nincs bemeneti szöveg (csak helyzetleírás), a `bemenet: null` helyes. Az
+útmutató ad hozzá szöveg- és képforrást, de a formátumban a forrás a bemenet része, így ennek most nincs helye.

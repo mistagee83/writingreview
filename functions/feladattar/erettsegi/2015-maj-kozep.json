@@ -63,13 +63,13 @@
       "mufaj": "email",
       "tipus": "levél",
       "szoszam": {
-        "min": null,
-        "max": null,
+        "min": 100,
+        "max": 120,
         "szoveg": "about 100-120 words"
       },
       "helyzet": "You have received the following letter from your American friend, Tania:",
       "bemenet": {
-        "fajta": "email",
+        "fajta": "letter",
         "cim": null,
         "bekezdesek": [
           "We have a student council in my school and I was elected as form representative two months ago, but it’s just a joke. We haven’t had a single meeting so far, the teachers don’t take it seriously - they don’t think the students have got anything serious to say about the school and most of the students don’t believe we could change anything either. It’s very frustrating.",

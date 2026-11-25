@@ -56,7 +56,7 @@
       },
       "helyzet": "You have an online group with international friends you used to study with in Britain, and you have recently found the following message from Santokh, a boy from India.",
       "bemenet": {
-        "fajta": "email",
+        "fajta": "post",
         "cim": null,
         "bekezdesek": [
           "Hi Guys, You saw photos of my younger sister, Sriti, from last year, but I bet you wouldn’t recognize her now.",
@@ -64,7 +64,7 @@
           "I’m concerned she may have developed an eating disorder or whatever you call it, but she won’t talk about it, and I don’t know what to do.",
           "Santokh"
         ],
-        "forras": null
+        "forras": "https://butterfly.org.au/story/my-anorexia-story-and-big-realisation/"
       },
       "teendo": "Write a comment of 100-120 words to Santokh in which you tell him",
       "iranyito_szempontok": [

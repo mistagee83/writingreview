@@ -63,7 +63,7 @@
       },
       "helyzet": "You have received a letter from your American friend, Bobby, in which he writes about his problem and asks for your advice:",
       "bemenet": {
-        "fajta": "email",
+        "fajta": "letter",
         "cim": null,
         "bekezdesek": [
           "Hi,",
