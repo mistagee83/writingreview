@@ -30,8 +30,11 @@ A JSON `forras_fajlok` mezője a forrásmappához viszonyított út.
 
 Eszközök:
 - szöveg: `pdftotext -enc UTF-8 -layout <pdf> -` és `-raw` (két hasábos, táblázatos részeknél mindkettőt nézd meg);
-- oldalkép: `py -c "import pymupdf,sys; d=pymupdf.open(sys.argv[1]); d[int(sys.argv[2])-1].get_pixmap(dpi=110).save(sys.argv[3])" <pdf> <oldal> _munka\<név>.png`,
-  majd nézd meg a képet. A kétes helyeken (hasábok, táblázatok, képek, képaláírások, félkövér címek) az oldalkép dönt.
+- oldalkép (a `py`/`python` nincs az útvonalon, a teljes út kell):
+  `& 'C:\Users\huden\AppData\Local\Python\pythoncore-3.14-64\python.exe' -c "import pymupdf,sys; d=pymupdf.open(sys.argv[1]); d[int(sys.argv[2])-1].get_pixmap(dpi=110).save(sys.argv[3])" '<pdf>' <oldal> '_munka\<név>.png'`,
+  majd nézd meg a képet képnézővel. A kétes helyeken (hasábok, táblázatok, képek, képaláírások, félkövér címek) az
+  oldalkép dönt. Hogy melyik oldalon van kép, azt a `D:\dev\writing-review\scripts\erettsegi\oldalkepek.json` is
+  megmutatja (de a saját szemed dönt).
 
 ## Mit ellenőrizz feladatonként
 
