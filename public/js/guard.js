@@ -128,6 +128,11 @@ export function vedettOldal(elvartSzerep, opciok = {}) {
 
       megjelenit(user, profil);
 
+      // A hubon választott avatár a név előtt (users/{uid}.avatar). Dinamikus import: hibája ne akadályozza a belépést.
+      import("./avatar-fejlec.js")
+        .then((m) => m.avatarFejlec(user, profil))
+        .catch((e) => console.warn("Az avatár nem jelent meg:", e));
+
       // Fejléc-navigáció: vissza gomb és a márkanév mint főoldal-link.
       // Telefonon az oldalsáv rejtve van, telepített appban pedig a
       // böngésző vissza gombja sincs – e nélkül nincs navigáció.

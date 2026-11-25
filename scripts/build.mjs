@@ -101,11 +101,15 @@ function helyiImportok(distUtvonal, tartalom) {
  * Egy hivatkozás átírása. Kétféle alakot kezel:
  *   "js/guard.js"          – HTML-ből, gyökér-relatívan
  *   "./firebase-config.js" – egy szomszédos JS modulból
+ *   "./hub/avatar.js"      – egy JS modulból az almappájába (2026-11-25)
  */
 function hivatkozasAtir(tartalom, regi, uj, aktualisFajl) {
   let ki = tartalom.split(regi).join(uj);
   if (dirname(aktualisFajl) === dirname(regi)) {
     ki = ki.split("./" + basename(regi)).join("./" + basename(uj));
+  } else if (regi.startsWith(dirname(aktualisFajl) + "/")) {
+    const al = (p) => "./" + relative(dirname(aktualisFajl), p).replace(/\\/g, "/");
+    ki = ki.split(al(regi)).join(al(uj));
   }
   return ki;
 }

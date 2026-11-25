@@ -1779,3 +1779,26 @@ body.theme-diak { background-image: none; }
 details.beadott-szoveg > summary.panel-header { list-style: none; font-size: 0.95rem; font-weight: 600; }
 details.beadott-szoveg > summary::-webkit-details-marker { display: none; }
 details.beadott-szoveg:not([open]) > summary.panel-header { border-bottom: 0; }
+
+/* ── AVATÁR A FELSŐ SÁVBAN (a hubon választott kép, 2026-11-25) ──
+   Sötét sávon a zöld alapú képek beleolvadnának: 2 px világos gyűrű. */
+.user-info { display: flex; align-items: center; gap: 0.5rem; }
+.user-avatar {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-sizing: border-box;
+  object-fit: cover;
+}
+.user-avatar-betu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-on-dark, #fff);
+  color: var(--ink, #111);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.user-info strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
