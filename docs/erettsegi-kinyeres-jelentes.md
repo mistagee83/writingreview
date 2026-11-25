@@ -13,7 +13,8 @@ utáni javítások a 7. pontban.*
 - **Az ellenőrző hibátlan** (`node scripts/feladattar-ellenorzes.mjs`), a teszt zöld (`node --test tests/feladattar.test.mjs`, 5/5).
 - **Szúrópróba:** 13 lap (2005–2026, 7 közép, 6 emelt) a PDF oldalképével összevetve. A szöveg mindenhol egyezik, két
   apró tördelési eltérés van (lent).
-- **Amit neked kell átnézned:** a négy sablon sávleírásait (`egyeb_utasitas`, lent a 4. pontban), és a kétes eseteket (5. pont).
+- **Átnézve:** a négy sablon sávleírásait (`egyeb_utasitas`, lent a 4. pontban) a tulajdonos 2026-11-25-én jóváhagyta;
+  a kétes esetek az 5. pontban.
 
 ## 1. Hogyan készült
 
@@ -112,7 +113,7 @@ B1 (közép) és B2 (emelt). Az `egyeb_utasitas` az útmutató sávleírásainak
 | 3. szószám: min ≤ max, vagy mindkettő `null` és van szöveg | ellenőrző | rendben |
 | 4. oldalkép: képes feladat és képként tárolt szöveg | `oldalkepek.py` + szemrevételezés, ellenőrző | rendben (53 képes oldal, mind eldöntve) |
 | 5. emberi szúrópróba a PDF-fel szemben | 13 lap | rendben, 2 kozmetikai eltérés |
-| 6. a sablonok sávleírásait a tulajdonos átolvassa | – | **rád vár** |
+| 6. a sablonok sávleírásait a tulajdonos átolvassa | átolvasva (2026-11-25) | rendben, jóváhagyva |
 
 Az ellenőrző a formai pontokat is nézi (kötelező mezők, típusok, a gépi kinyerés maradványai: válaszsor, fejléc,
 helyettesítő jel), és a teszt egy szándékosan elrontott másolaton azt is, hogy a hibát valóban jelzi.
