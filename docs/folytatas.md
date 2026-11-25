@@ -14,6 +14,34 @@ A kétszintű angol érettségi írásfeladatai (2005–2026) közös, Hub passo
 feladatot készít belőlük, négy érettségi sablonnal. A kinyerés formátuma és a lépések:
 [`erettsegi-feladattar-terv.md`](erettsegi-feladattar-terv.md). Következő lépés: a kinyerés (külön munkamenet).
 
+**A terv 3. és 4. lépése (felület, függvények, nyitóoldal): kész fixture-ökkel, a `claude/erettsegi-feladattar-felulet-ec6e0c`
+ágon (2026-11-25; NINCS a `main`-en, nincs kiadva).** A valódi tartalomfájlok még nincsenek; a kód a terv 4. fejezetének
+formátumára épül, és a `tests/fixtures/feladattar/erettsegi/` kézi mintáival (3 feladatsor, 5 feladat, ideiglenes
+`sablonok.json`) van tesztelve.
+- **Betöltő:** `functions/feladattar.js` (tiszta modul). A mappa: `FELADATTAR_KONYVTAR` vagy a
+  `functions/feladattar/erettsegi/`; hiányzó mappa = üres tár. A hibás fájl/feladat kimarad (a `hibak` listába), a sablon
+  nélküli feladat is. A leírás (`feladat_leiras`): helyzet, bemeneti szöveg (cím, bekezdések, „(Source: …)”), teendő +
+  irányító szempontok („– …”), „(about N words)”, ha a szószám csak így adott, és „Begin like this: …”.
+- **Függvények** (`functions/index.js`, „ÉRETTSÉGI FELADATTÁR”): `feladattarLista`, `feladattarElonezet`,
+  `feladattarbolFeladat`, `erettsegiSablonok`; mind tanári, és Hub pass-zárral (`erettsegi_tar` a `HUB_PASS_FUNKCIOK`-ban,
+  hibakód `erettsegi_tar_hub_pass_kell`). A létrehozott feladat mezői ugyanazok, mint a kliens létrehozásánál; a rubrika a
+  sablonból + a feladat saját típusa és szószáma + `tar: { id, verzio }` (a `verzio` most a feladatsor `formatum_verzio`-ja).
+  Jegyskála és visszajelzés-nyelv nélkül: azt a tanár az űrlapon választja. A szabályok nem változtak (emulátoros teszt igazolja).
+- **Felület:** `feladattar.html` (📚 menüpont, szűrők, keresés, előnézet, „már elkészítetted” jelzés, Hub pass nélkül zárkártya).
+  A „Feladat készítése” után a `feladatok.html?szerkeszt=<id>&tarbol=1` nyitja a feladatot az űrlapon. Az űrlap a
+  `rubrika.tar`-t szerkesztéskor és másoláskor megőrzi; a sablonlistában „Érettségi sablonok (Hub pass)” csoport (betölthető,
+  nem törölhető, mentéskor új saját sablon lesz). A nyitóoldalon `#matura` szakasz (csak ahol a Hub pass él) és a Hub
+  pass-kártyán az „Érettségi feladattár” pont.
+- **Tesztek:** `tests/feladattar.test.mjs` (betöltő, leírás, rubrika), `tests/feladattar-adatbazis.test.mjs` (emulátor:
+  zár mind a négy függvényen, hibás azonosító, a tárból készült feladat a teljes úton: létrehozás → kliensoldali szerkesztés
+  a szabályokkal → link → beadás → értékelés), `callable-jogosultsag`, `landing` (`#sso=` és `#matura`), `i18n`, `fejlec`.
+  A teljes sor az emulátorokkal 699/699; `node scripts/build.mjs` lefut. Helyi, Firebase-helyettesítős próbaoldalon asztali
+  és telefonos méretben megnézve (lista, szűrés, előnézet, zár, `#matura`); élő függvényekkel nem.
+- **Hátra:** a valódi fájlok összekötése (a kinyerő munkamenet ága) és a teljes ellenőrzés velük (a terv 2. lépése: az
+  ellenőrző szkript még nincs); a fixture-ök maradhatnak tesztmintának. **Kiadás előtt figyelni:** a menüpont és a `#matura`
+  szakasz a következő `main`-kiadással élesbe menne, a jogi válasz (terv 7.) viszont még nincs – az összefésüléskor el kell
+  dönteni, hogy kapcsoló mögé kerüljön-e. A pilotot nem érinti.
+
 ## 0000. Egy hub-fiók: egy kattintás a hubról (2026-11-20) – **élesítve** (hosting, `3953086`), valódi fiókkal még nincs kipróbálva
 
 - A hub „Open app” gombja `https://review.mrandrewshub.com/#sso=<kód>`-dal nyit; a nyitóoldal (`public/index.html` első szkriptje) a `belepes.html`-re küldi, ott a hub `redeemSsoCode` functionje custom tokenre cseréli (claims nélkül, a `szerep` claim marad) → `signInWithCustomToken` → a szokásos belépés utáni út (`belepesUtan`).

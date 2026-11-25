@@ -1,0 +1,48 @@
+{
+  "formatum_verzio": 1,
+  "id": "2024-maj-kozep",
+  "ev": 2024, "idoszak": "maj", "szint": "kozep",
+  "vizsga_datum": "2024-05-09", "kod": "K2412",
+  "forras_fajlok": {
+    "feladatlap": "2024 - Középszintű május/k_angol_24maj_fl.pdf",
+    "utmutato": "2024 - Középszintű május/k_angol_24maj_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2024-maj-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Email to Pavel about his girlfriend's blue hair",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": { "min": 100, "max": 120, "szoveg": "100-120 words" },
+      "helyzet": "You received the following email from your 18-year-old Polish friend, Pavel:",
+      "bemenet": {
+        "fajta": "email",
+        "cim": null,
+        "bekezdesek": [
+          "You know how opinionated my mum is; …",
+          "You know my girlfriend Dorota. …",
+          "I think you'll understand why I was completely shocked … she had dyed her hair blue!!! …",
+          "What do you think? Is there anything I could do to prevent a catastrophe?"
+        ],
+        "forras": null
+      },
+      "teendo": "Write an email of 100-120 words to Pavel in which you tell him what you think",
+      "iranyito_szempontok": [
+        "of teenagers dying their hair,",
+        "of his mother's opinion,",
+        "of Dorota's explanation,",
+        "he could do in this situation."
+      ],
+      "kezdes": "Hi,",
+      "oldalak": { "feladatlap": [3] },
+      "megjegyzesek": ["TESZT-FIXTURE: a bemeneti szöveg rövidített (a terv 4. fejezetének példája)."]
+    }
+  ],
+  "kimaradt": [
+    { "sorszam": 1, "ok": "kep", "megjegyzes": "„Here's a photo you took of your room” – a 2. irányító szempont a képre épül." }
+  ],
+  "megjegyzesek": []
+}

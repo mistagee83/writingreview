@@ -1,0 +1,63 @@
+{
+  "formatum_verzio": 1,
+  "forras": "TESZT-FIXTURE (ideiglenes): a valódi fájlt a kinyerő munkamenet írja a 2026. októberi útmutatóból.",
+  "sablonok": [
+    {
+      "id": "kozep-level",
+      "nev": "Érettségi – középszint, levél (1. feladat)",
+      "rubrika": {
+        "nyelv": "angol", "tipus": "levél", "szint": "B1", "min_szo": 80, "max_szo": 100,
+        "szempontok": [
+          { "kulcs": "feladat", "cim": "A feladat teljesítése és a szöveg hosszúsága", "suly": 5 },
+          { "kulcs": "szokincs", "cim": "Szókincs, kifejezésmód", "suly": 3 },
+          { "kulcs": "nyelvhelyesseg", "cim": "Nyelvhelyesség, helyesírás", "suly": 3 }
+        ],
+        "egyeb_utasitas": "TESZT-FIXTURE: Ez középszintű angol érettségi írásfeladat (1. feladat, 11 pont)."
+      }
+    },
+    {
+      "id": "kozep-fogalmazas",
+      "nev": "Érettségi – középszint, fogalmazás (2. feladat)",
+      "rubrika": {
+        "nyelv": "angol", "tipus": "esszé", "szint": "B1", "min_szo": 100, "max_szo": 120,
+        "szempontok": [
+          { "kulcs": "feladat", "cim": "A feladat teljesítése, a megadott szempontok követése", "suly": 6 },
+          { "kulcs": "hangnem", "cim": "Hangnem, az olvasóban keltett benyomás", "suly": 2 },
+          { "kulcs": "szovegalkotas", "cim": "Szövegalkotás", "suly": 4 },
+          { "kulcs": "szokincs", "cim": "Szókincs, kifejezésmód", "suly": 5 },
+          { "kulcs": "nyelvhelyesseg", "cim": "Nyelvhelyesség, helyesírás", "suly": 5 }
+        ],
+        "egyeb_utasitas": "TESZT-FIXTURE: Ez középszintű angol érettségi írásfeladat (2. feladat, 22 pont)."
+      }
+    },
+    {
+      "id": "emelt-level",
+      "nev": "Érettségi – emelt szint, levél (1. feladat)",
+      "rubrika": {
+        "nyelv": "angol", "tipus": "levél", "szint": "B2", "min_szo": 120, "max_szo": 150,
+        "szempontok": [
+          { "kulcs": "feladat", "cim": "A feladat teljesítése", "suly": 4 },
+          { "kulcs": "hangnem", "cim": "Hangnem, az olvasóban keltett benyomás", "suly": 2 },
+          { "kulcs": "szovegalkotas", "cim": "Szövegalkotás", "suly": 3 },
+          { "kulcs": "szokincs", "cim": "Szókincs, kifejezésmód", "suly": 3 },
+          { "kulcs": "nyelvhelyesseg", "cim": "Nyelvhelyesség, helyesírás", "suly": 3 }
+        ],
+        "egyeb_utasitas": "TESZT-FIXTURE: Ez emelt szintű angol érettségi írásfeladat (1. feladat, 15 pont)."
+      }
+    },
+    {
+      "id": "emelt-fogalmazas",
+      "nev": "Érettségi – emelt szint, fogalmazás (2. feladat)",
+      "rubrika": {
+        "nyelv": "angol", "tipus": "esszé", "szint": "B2", "min_szo": 200, "max_szo": 250,
+        "szempontok": [
+          { "kulcs": "feladat", "cim": "A feladat teljesítése", "suly": 4 },
+          { "kulcs": "szovegalkotas", "cim": "Szövegalkotás", "suly": 5 },
+          { "kulcs": "szokincs", "cim": "Szókincs, kifejezésmód", "suly": 3 },
+          { "kulcs": "nyelvhelyesseg", "cim": "Nyelvhelyesség, helyesírás", "suly": 3 }
+        ],
+        "egyeb_utasitas": "TESZT-FIXTURE: Ez emelt szintű angol érettségi írásfeladat (2. feladat, 15 pont)."
+      }
+    }
+  ]
+}

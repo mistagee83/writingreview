@@ -167,6 +167,28 @@
     </div>
   </section>
 
+  <!-- MATURA: a Matura íráskészség-helyének célja (https://review.mrandrewshub.com/#matura; docs/erettsegi-feladattar-terv.md 6.).
+       Tájékoztató: a diák csak a tanára feladatlinkjén írhat, ezért a gomb a tanári regisztrációra vagy a tárra visz.
+       A link semmilyen azonosítót nem visz át. Csak ahol a Hub pass él (fizetés); a #sso= kezelését nem érinti
+       (a fejléc első szkriptje csak a #sso= horgonyra irányít át). -->
+  <section class="lp-szakasz" id="matura" data-csak="fizetes" hidden aria-labelledby="matura-cim">
+    <div class="lp-sor lp-keskeny">
+      <h2 id="matura-cim" data-i18n="landing.matura_cim">Érettségi írásfeladatok, a hivatalos szempontok szerint</h2>
+      <p class="lp-szakasz-alcim" data-i18n="landing.matura_leiras">Az angol érettségi írásfeladatai 2005-től 2026-ig, közép- és emelt szinten. Mindegyikhez az érettségi értékelési szempontjai és pontjai tartoznak.</p>
+      <ol class="lp-lepesek">
+        <li><span class="lp-szam" aria-hidden="true">1</span><p data-i18n="landing.matura_lepes1">Kiválasztod a feladatot a tárból: egy kattintással a saját feladatod lesz, és átírhatod.</p></li>
+        <li><span class="lp-szam" aria-hidden="true">2</span><p data-i18n="landing.matura_lepes2">Elindítod a linkjét, a diákok becenévvel, az oldalon írnak.</p></li>
+        <li><span class="lp-szam" aria-hidden="true">3</span><p data-i18n="landing.matura_lepes3">Te indítod az értékelést, átnézed és jóváhagyod. A diák csak ezután látja a visszajelzést.</p></li>
+      </ol>
+      <p class="lp-kozep" data-i18n="landing.matura_hubpass">A feladattár a Hub pass része. Az értékelés kreditbe kerül, mint minden javítás.</p>
+      <div class="lp-gombok lp-kozep-gombok">
+        <a class="btn-primary lp-gomb" href="belepes.html#tanar" data-csak="regisztracio" hidden data-i18n="landing.matura_fiok">Fiók létrehozása</a>
+        <a class="lp-masodlagos" href="feladattar.html" data-i18n="landing.matura_feladattar">Már van fiókod? Nyisd meg a feladattárat →</a>
+      </div>
+      <p class="lp-megjegyzes lp-kozep" data-i18n="landing.matura_diakok">Diákok: kérjétek meg a tanárotokat, hogy adjon ki egy érettségi írásfeladatot.</p>
+    </div>
+  </section>
+
   <!-- KREDIT ÉS HUB PASS (csak ahol a hub-kredit él). A számok (árak, kreditek) a hub fiókoldalán vannak,
        egy helyen; itt csak a modell. -->
   <section class="lp-szakasz" id="csomagok" data-csak="fizetes" hidden aria-labelledby="csomagok-cim">
@@ -190,6 +212,7 @@
             <li data-i18n="landing.pont_elemzes">Osztályelemzés</li>
             <li data-i18n="landing.pont_fejlodes">A diákok fejlődésének követése csoportonként</li>
             <li data-i18n="landing.pont_szinek">Választható színtéma</li>
+            <li data-i18n="landing.pont_erettsegi">Érettségi feladattár (angol írásfeladatok)</li>
             <li data-i18n="landing.pont_minden_app">Mr. Andrew's összes appja</li>
           </ul>
         </li>
@@ -288,6 +311,11 @@
 
   if (KREDIT) document.getElementById('hero-ingyenes').textContent = t('landing.hero_ingyenes');
   if (hubLink) document.getElementById('arak-link').href = `${HUB_URL}/account`;
+
+  // A rejtve induló szakaszra (#matura, #csomagok) a böngésző betöltéskor nem tud odagörgetni: a megjelenítés után igen.
+  const horgony = /^#([\w-]+)$/.exec(location.hash)?.[1];
+  const cel = horgony && document.getElementById(horgony);
+  if (cel && !cel.hidden) cel.scrollIntoView();
 </script>
 </body>
 </html>

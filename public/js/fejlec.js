@@ -35,6 +35,7 @@ const SZULO = {
   "feladatok.html": "tanar.html",
   "javitas.html": "tanar.html",
   "csoportok.html": "tanar.html",
+  "feladattar.html": "tanar.html",
   "admin.html": "tanar.html",
   "ai-hasznalat.html": "tanar.html",
   // Az elemzést egy feladat sorából indítja a tanár, tehát oda tér vissza
@@ -51,6 +52,7 @@ const NEVEK = {
   "feladatok.html": "nav.feladatok",
   "javitas.html": "nav.javitas",
   "csoportok.html": "nav.csoportok",
+  "feladattar.html": "nav.feladattar",
   "admin.html": "nav.szerepkezeles",
   "ai-hasznalat.html": "nav.ai_hasznalat",
 };

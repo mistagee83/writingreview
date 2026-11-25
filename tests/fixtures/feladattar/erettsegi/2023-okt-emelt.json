@@ -1,0 +1,64 @@
+{
+  "formatum_verzio": 1,
+  "id": "2023-okt-emelt",
+  "ev": 2023, "idoszak": "okt", "szint": "emelt",
+  "vizsga_datum": "2023-10-20", "kod": "E9999",
+  "forras_fajlok": {
+    "feladatlap": "TESZT/e_angol_23okt_fl.pdf",
+    "utmutato": "TESZT/e_angol_23okt_ut.pdf"
+  },
+  "feladatok": [
+    {
+      "id": "2023-okt-emelt-W1",
+      "sorszam": 1,
+      "sablon": "emelt-level",
+      "eredeti_jeloles": "Task 1",
+      "cim": "Reply to a club about a volunteering advertisement",
+      "mufaj": "email",
+      "tipus": "levél",
+      "szoszam": { "min": 120, "max": 150, "szoveg": "120-150 words" },
+      "helyzet": "You have seen the following advertisement on the website of a local club:",
+      "bemenet": {
+        "fajta": "advertisement",
+        "cim": "Volunteers wanted",
+        "bekezdesek": [
+          "TEST FIXTURE: invented text. We are looking for young volunteers for our summer festival.",
+          "Write to us and tell us about yourself."
+        ],
+        "forras": "https://example.org/teszt-forras"
+      },
+      "teendo": "Write an email of 120-150 words to the organisers in which you",
+      "iranyito_szempontok": [
+        "introduce yourself,",
+        "explain why you would like to help,",
+        "ask about the working hours."
+      ],
+      "kezdes": null,
+      "oldalak": { "feladatlap": [4] },
+      "megjegyzesek": ["TESZT-FIXTURE: kitalált szöveg."]
+    },
+    {
+      "id": "2023-okt-emelt-W2",
+      "sorszam": 2,
+      "sablon": "emelt-fogalmazas",
+      "eredeti_jeloles": "Task 2",
+      "cim": "Article about screen time in families",
+      "mufaj": "article",
+      "tipus": "esszé",
+      "szoszam": { "min": null, "max": null, "szoveg": "about 200 words" },
+      "helyzet": "TEST FIXTURE: invented text. A youth magazine is inviting readers to write articles about screen time.",
+      "bemenet": null,
+      "teendo": "Write an article for the magazine in which you",
+      "iranyito_szempontok": [
+        "describe how much time young people spend in front of screens,",
+        "discuss the advantages and disadvantages,",
+        "suggest some family rules."
+      ],
+      "kezdes": null,
+      "oldalak": { "feladatlap": [5] },
+      "megjegyzesek": ["TESZT-FIXTURE: kitalált szöveg; a szószám csak „about N words”."]
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

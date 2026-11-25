@@ -57,10 +57,10 @@ test("a szövegek állításai egyeznek a kóddal: nyolc nyelv, kreditből fogy 
   assert.equal(szerver.NYELVEK.length, 8);
   // a GYIK szerint a javítás, a feladatlap és az elemzés is kreditbe kerül
   assert.deepEqual(Object.keys(kredit.AKCIOK).sort(), ["beadas", "elemzes", "feladatlap"]);
-  // a Hub pass-kártya az elemzést, a fejlődéskövetést és a színválasztást ígéri – pontosan a zárt funkciókat
+  // a Hub pass-kártya az elemzést, a fejlődéskövetést, a színválasztást és az érettségi feladattárat ígéri – pontosan a zárt funkciókat
   const hubpass = html.slice(html.indexOf('data-i18n="landing.csomag_hubpass"'), html.indexOf('data-i18n="landing.csomag_kredit"'));
-  for (const p of ["elemzes", "fejlodes", "szinek"]) assert.ok(hubpass.includes(`landing.pont_${p}`), p);
-  assert.deepEqual([...kredit.HUB_PASS_FUNKCIOK].sort(), ["fejlodes", "osztaly_elemzes", "szinvalasztas"]);
+  for (const p of ["elemzes", "fejlodes", "szinek", "erettsegi"]) assert.ok(hubpass.includes(`landing.pont_${p}`), p);
+  assert.deepEqual([...kredit.HUB_PASS_FUNKCIOK].sort(), ["erettsegi_tar", "fejlodes", "osztaly_elemzes", "szinvalasztas"]);
   // a nyitóoldal nem ír ki árat vagy kreditszámot: a számok a hub fiókoldalán vannak
   for (const [nyelv, szotar] of [["hu", hu], ["en", en]]) {
     for (const k of landingKulcsok(szotar).filter((k) => /csomag|pont_|hero_ingyenes|gyik[456]/.test(k))) {
@@ -110,4 +110,43 @@ test("a belépő oldal új helye: BELEPO_OLDAL, 404 és az app indulása a belep
   assert.match(olvas("../public/js/guard.js"), /export const BELEPO_OLDAL = "belepes\.html";/);
   assert.match(olvas("../public/404.html"), /href="belepes\.html"/);
   assert.equal(JSON.parse(olvas("../public/manifest.webmanifest")).start_url, "/belepes.html");
+});
+
+// ── a Matura-szakasz (#matura; docs/erettsegi-feladattar-terv.md 6.) ──
+
+/** A fejléc első (átirányító) szkriptje egy hamis location-nel futtatva: hova irányít át, ha egyáltalán. */
+function elsoSzkript(hash) {
+  const forras = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  let cel = null;
+  const location = { hash, replace: (u) => { cel = u; } };
+  new Function("location", forras)(location);
+  return cel;
+}
+
+test("#sso=: a fejléc első szkriptje a belépőoldalra küld; a #matura és más horgony nem irányít át", () => {
+  // az átirányítás a <head> legelső szkriptje, minden más (stílus, modul) előtt
+  assert.ok(html.indexOf("<script>") < html.indexOf("<link"), "az #sso= átirányítás a fej első eleme");
+  assert.equal(elsoSzkript("#sso=abc123"), "belepes.html#sso=abc123");
+  for (const h of ["#matura", "#csomagok", "", "#matura#sso=x", "#x-sso=1"]) assert.equal(elsoSzkript(h), null, h);
+  // a lap végi görgető csak sima horgonyra illik (az #sso= kód nem azonosító)
+  const modul = html.match(/<script type="module">([\s\S]*?)<\/script>/)[1];
+  assert.ok(modul.includes(String.raw`/^#([\w-]+)$/`), "a görgető horgonymintája");
+  const minta = /^#([\w-]+)$/;
+  assert.ok(minta.test("#matura"));
+  assert.ok(!minta.test("#sso=abc123"));
+});
+
+test("#matura: létezik, a Hub passos részekkel együtt látszik, tanári regisztrációra és a tárra visz, azonosítót nem visz át", () => {
+  const eleje = html.indexOf('id="matura"');
+  assert.ok(eleje > 0, "van #matura szakasz");
+  const szakasz = html.slice(html.lastIndexOf("<section", eleje), html.indexOf("</section>", eleje));
+  assert.match(szakasz, /data-csak="fizetes" hidden/);
+  const hivatkozasok = [...szakasz.matchAll(/href="([^"]+)"/g)].map((m) => m[1]).sort();
+  assert.deepEqual(hivatkozasok, ["belepes.html#tanar", "feladattar.html"]);
+  assert.ok(!/[?&](utm_|uid|token|becenev|k=)/.test(szakasz), "nincs paraméter a hivatkozásokban");
+  for (const k of ["matura_cim", "matura_leiras", "matura_hubpass", "matura_diakok", "matura_fiok", "matura_feladattar"]) {
+    assert.ok(szakasz.includes(`landing.${k}`), k);
+  }
+  // a szakasz angol szövege a diákokat a tanárhoz küldi (diákgyakorlás tanár nélkül nincs)
+  assert.match(en["landing.matura_diakok"], /^Students: ask your teacher/);
 });

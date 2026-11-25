@@ -1779,3 +1779,11 @@ body.theme-diak { background-image: none; }
 details.beadott-szoveg > summary.panel-header { list-style: none; font-size: 0.95rem; font-weight: 600; }
 details.beadott-szoveg > summary::-webkit-details-marker { display: none; }
 details.beadott-szoveg:not([open]) > summary.panel-header { border-bottom: 0; }
+
+/* ── Érettségi feladattár (feladattar.html) ── */
+.tar-alcim { font-size: 0.9rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+.tar-leiras { white-space: pre-wrap; line-height: 1.55; background: var(--paper); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; overflow-wrap: anywhere; }
+.tar-szempontok { list-style: none; padding: 0; margin: 0; }
+.tar-szempontok li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid var(--border); }
+.tar-szempontok li:last-child { border-bottom: 0; font-weight: 600; }
+@media (max-width: 700px) { .harom-hasab.tar-szurok { grid-template-columns: 1fr 1fr; gap: 0 0.75rem; } .tar-szurok .form-group { margin-bottom: 0.75rem; } }

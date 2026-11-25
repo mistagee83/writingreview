@@ -31,6 +31,7 @@ const kredit = require("./kredit");
 const aiHasznalat = require("./ai-hasznalat");
 const tema = require("./tema");
 const fejlodes = require("./fejlodes");
+const feladattar = require("./feladattar");
 const Anthropic = require("@anthropic-ai/sdk");
 
 initializeApp();
@@ -200,6 +201,9 @@ const HIBA_SZOVEG = {
   elemzes_hub_pass_kell: () => "Az osztályszintű elemzés a Hub pass része.",
   fejlodes_hub_pass_kell: () => "A fejlődéskövetés a Hub pass része.",
   szinvalasztas_hub_pass_kell: () => "A színválasztás a Hub pass része.",
+  erettsegi_tar_hub_pass_kell: () => "Az érettségi feladattár a Hub pass része.",
+  tar_feladat_id_kell: () => "Nem derül ki, melyik feladatról van szó a tárban.",
+  tar_feladat_nincs: () => "Ez a feladat nincs a tárban.",
   tema_ervenytelen: () => "Ismeretlen színtéma."
 };
 
@@ -2878,3 +2882,108 @@ exports.takaritas = onSchedule(
 );
 
 Object.assign(exports._teszt, { diakVisszajelzesLogika, takaritasLogika, MEGORZES_MS });
+
+// ══════════════════════════════════════════════════════
+// ÉRETTSÉGI FELADATTÁR (Hub pass; docs/erettsegi-feladattar-terv.md 2. és 3. fejezet)
+//
+// A tartalom a functions/feladattar/erettsegi/ JSON-fájljaiban van (functions/feladattar.js),
+// nem Firestore-ban, és csak ezeken a tanári függvényeken át érhető el: a zár a szerveren van
+// (a lista, az előnézet, a létrehozás és az érettségi sablonok is csak Hub passszal jönnek vissza).
+// A tárból készült feladat a tanár saját, szerkeszthető feladata (tár + másolás); a rubrika
+// eredetjelzője: rubrika.tar = { id, verzio }.
+// ══════════════════════════════════════════════════════
+
+/** A tár mappája: a tesztek átállíthatják (alapból FELADATTAR_KONYVTAR vagy functions/feladattar/erettsegi/). */
+const FELADATTAR = { konyvtar: null };
+const tarTartalom = () => feladattar.betoltes(FELADATTAR.konyvtar);
+
+/** A feladattár zárja: Hub pass (kredites környezetben; a pilotban nincs zár). */
+async function erettsegiTarKapu(firestore, uid, beallitasok) {
+  if (!(await funkcioEngedett(firestore, uid, "erettsegi_tar", beallitasok))) {
+    throw hiba("permission-denied", "erettsegi_tar_hub_pass_kell");
+  }
+}
+
+const TAR_ID_MINTA = /^[0-9]{4}-[a-z0-9]{2,5}-(kozep|emelt)-W[12]$/;
+function tarFeladatId(adat) {
+  const id = adat?.id;
+  if (typeof id !== "string" || !TAR_ID_MINTA.test(id)) throw hiba("invalid-argument", "tar_feladat_id_kell");
+  return id;
+}
+
+/** A tanár tárból készült feladatainak tár-azonosítói (a „már elkészítetted” jelzéshez). */
+async function tarbolKeszitettek(firestore, uid) {
+  const snap = await firestore.collection("feladatok").where("tanar_id", "==", uid).select("rubrika.tar").get();
+  return [...new Set(snap.docs.map((d) => d.get("rubrika.tar")?.id).filter((x) => typeof x === "string"))];
+}
+
+/** A tár listája (szűrés és keresés a kliensen: a lista kicsi, a bemeneti szöveg nincs benne). */
+async function feladattarListaLogika(firestore, uid, beallitasok = BEALLITASOK) {
+  await erettsegiTarKapu(firestore, uid, beallitasok);
+  const tar = tarTartalom();
+  return { feladatok: feladattar.lista(tar), keszitett: await tarbolKeszitettek(firestore, uid) };
+}
+
+/** Egy tárfeladat előnézete: a diáknak szóló feladat és a sablon szempontjai a pontjaikkal. */
+async function feladattarElonezetLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
+  await erettsegiTarKapu(firestore, uid, beallitasok);
+  const id = tarFeladatId(adat);
+  const e = feladattar.elonezet(tarTartalom(), id);
+  if (!e) throw hiba("not-found", "tar_feladat_nincs");
+  return e;
+}
+
+/**
+ * Feladat készítése a tárból: a szerver hozza létre a tanár saját feladatát (a feladat adatai + a
+ * hozzá tartozó érettségi sablon). A dokumentum mezői ugyanazok, mint a kliens létrehozásánál (a
+ * szabály hasOnly-listája), így a tanár utána a megszokott űrlapon szerkesztheti. Nem hív AI-t.
+ */
+async function feladattarbolFeladatLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
+  await erettsegiTarKapu(firestore, uid, beallitasok);
+  const id = tarFeladatId(adat);
+  const f = feladattar.feladatAdat(tarTartalom(), id);
+  if (!f) throw hiba("not-found", "tar_feladat_nincs");
+  const ref = firestore.collection("feladatok").doc();
+  await ref.set({
+    tanar_id: uid,
+    cim: f.cim,
+    hatarido: null,
+    aktiv: true,
+    rubrika: f.rubrika,
+    letrehozva: FieldValue.serverTimestamp()
+  });
+  logger.info("Feladat a tárból", { tanar: uid, tar: id, feladat: ref.id });
+  return { feladatId: ref.id };
+}
+
+/** A négy érettségi sablon a feladat-űrlap sablonlistájához (csak olvasható; saját sablonként menthető). */
+async function erettsegiSablonokLogika(firestore, uid, beallitasok = BEALLITASOK) {
+  await erettsegiTarKapu(firestore, uid, beallitasok);
+  const tar = tarTartalom();
+  return {
+    sablonok: feladattar.SABLON_IDK.filter((id) => tar.sablonok.has(id))
+      .map((id) => feladattar.sablonKimenet(tar.sablonok.get(id)))
+  };
+}
+
+exports.feladattarLista = onCall(HIVAS_OPCIOK, async (request) => {
+  const uid = tanar(request);
+  return feladattarListaLogika(db(), uid);
+});
+exports.feladattarElonezet = onCall(HIVAS_OPCIOK, async (request) => {
+  const uid = tanar(request);
+  return feladattarElonezetLogika(db(), uid, request.data);
+});
+exports.feladattarbolFeladat = onCall(HIVAS_OPCIOK, async (request) => {
+  const uid = tanar(request);
+  return feladattarbolFeladatLogika(db(), uid, request.data);
+});
+exports.erettsegiSablonok = onCall(HIVAS_OPCIOK, async (request) => {
+  const uid = tanar(request);
+  return erettsegiSablonokLogika(db(), uid);
+});
+
+Object.assign(exports._teszt, {
+  FELADATTAR, erettsegiTarKapu, tarbolKeszitettek,
+  feladattarListaLogika, feladattarElonezetLogika, feladattarbolFeladatLogika, erettsegiSablonokLogika
+});

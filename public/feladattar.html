@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="tar.oldalcim">WritingReview – Érettségi feladattár</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
+  <script src="js/tema-korai.js"></script>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
+  </div>
+</div>
+
+<!-- ÉRETTSÉGI FELADATTÁR (docs/erettsegi-feladattar-terv.md 2.): a kétszintű angol érettségi írásfeladatai.
+     A tartalom a szerveren van (functions/feladattar/erettsegi/), és csak Hub passszal jön vissza: a zár a
+     szerveren van (erettsegi_tar_hub_pass_kell), a felület csak a barátságos kártyát mutatja. A „Feladat
+     készítése” a szerveren hozza létre a tanár saját feladatát, és a feladat-űrlapon nyitja meg. -->
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main narrow">
+    <div class="page-header">
+      <h1 data-i18n="tar.cim">📚 Érettségi feladattár</h1>
+      <p data-i18n="tar.alcim">Az angol érettségi írásfeladatai 2005-től, közép- és emelt szinten. Egy kattintással saját feladatot készítesz belőlük, az érettségi értékelési szempontjaival.</p>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <!-- Hub pass nélkül -->
+    <div class="panel" id="zar" hidden>
+      <div class="panel-header"><h2 data-i18n="tar.zar_cim">⭐ A Hub pass része</h2></div>
+      <div class="panel-body">
+        <p data-i18n="tar.zar_szoveg">Az érettségi feladattár a Hub pass része. Benne vannak a közép- és emelt szintű angol érettségik írásfeladatai, és mindegyikhez a hivatalos értékelési szempontok szerinti sablon.</p>
+        <div class="gomb-sor">
+          <a class="btn-primary" href="tanar.html#kredit-panel" data-i18n="tar.zar_gomb">Kredit és Hub pass</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="tar" hidden>
+      <div class="panel">
+        <div class="panel-body">
+          <div class="harom-hasab tar-szurok">
+            <div class="form-group">
+              <label for="sz-szint" data-i18n="tar.szuro_szint">Szint</label>
+              <select id="sz-szint">
+                <option value="" data-i18n="tar.mind">Mind</option>
+                <option value="kozep" data-i18n="tar.szint_kozep">középszint</option>
+                <option value="emelt" data-i18n="tar.szint_emelt">emelt szint</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="sz-ev" data-i18n="tar.szuro_ev">Év</label>
+              <select id="sz-ev"></select>
+            </div>
+            <div class="form-group">
+              <label for="sz-idoszak" data-i18n="tar.szuro_idoszak">Időszak</label>
+              <select id="sz-idoszak"></select>
+            </div>
+          </div>
+          <div class="harom-hasab tar-szurok">
+            <div class="form-group">
+              <label for="sz-sorszam" data-i18n="tar.szuro_feladat">Feladat</label>
+              <select id="sz-sorszam">
+                <option value="" data-i18n="tar.mind">Mind</option>
+                <option value="1" data-i18n="tar.feladat_1">1. feladat (levél)</option>
+                <option value="2" data-i18n="tar.feladat_2">2. feladat (hosszabb szöveg)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="sz-mufaj" data-i18n="tar.szuro_mufaj">Műfaj</label>
+              <select id="sz-mufaj"></select>
+            </div>
+            <div class="form-group">
+              <label for="sz-kereses" data-i18n="tar.kereses">Keresés</label>
+              <input type="text" id="sz-kereses" autocomplete="off" maxlength="80" placeholder="Pl. email, holiday" data-i18n-placeholder="tar.kereses_pelda" />
+            </div>
+          </div>
+          <p class="halvany" id="talalat"></p>
+        </div>
+      </div>
+
+      <!-- ELŐNÉZET -->
+      <div class="panel" id="elonezet" hidden>
+        <div class="panel-header">
+          <h2 id="e-cim"></h2>
+          <button class="btn-sm" id="e-bezar" data-i18n="tar.bezar">✕ Bezár</button>
+        </div>
+        <div class="panel-body">
+          <div class="list-card-meta" id="e-meta"></div>
+          <h3 class="tar-alcim" data-i18n="tar.e_diaknak">A diák ezt látja</h3>
+          <div class="tar-leiras" id="e-leiras"></div>
+          <h3 class="tar-alcim" data-i18n="tar.e_szempontok">Értékelési szempontok</h3>
+          <p class="halvany" id="e-sablon"></p>
+          <ul class="tar-szempontok" id="e-szempontok"></ul>
+          <div class="msg" id="e-msg"></div>
+          <div class="gomb-sor">
+            <button class="btn-primary" id="e-keszit" data-i18n="tar.keszites">➕ Feladat készítése</button>
+          </div>
+          <p class="halvany" data-i18n="tar.keszites_tipp">Saját feladatod lesz belőle: a feladat-űrlapon átírhatod, és ott választod ki a jegyskálát és a visszajelzés nyelvét.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-body flush">
+          <div id="lista"><div class="empty-state bare"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<script type="module">
+  import { t } from './js/i18n.js';
+  import { vedettOldal, esc } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { functions, httpsCallable } from './js/firebase-config.js';
+
+  const { admin } = await vedettOldal('tanar');
+  oldalsav('feladattar.html', { admin });
+
+  const feladattarLista = httpsCallable(functions, 'feladattarLista');
+  const feladattarElonezet = httpsCallable(functions, 'feladattarElonezet');
+  const feladattarbolFeladat = httpsCallable(functions, 'feladattarbolFeladat');
+  const ZAR_KOD = 'erettsegi_tar_hub_pass_kell';
+
+  const IDOSZAK_SORREND = ['febr', 'maj', 'maj2', 'okt', 'nov'];
+  const idoszakNev = (k) => t(`tar.idoszak_${k}`);
+  const szintNev = (k) => t(`tar.szint_${k}`);
+  function szoszamSzoveg(sz) {
+    if (sz?.min && sz?.max) return t('tar.szo', { min: sz.min, max: sz.max });
+    return sz?.szoveg || '';
+  }
+  function metaSorok(f) {
+    return [
+      String(f.ev), idoszakNev(f.idoszak), szintNev(f.szint), t('tar.sorszam', { sorszam: f.sorszam }),
+      f.mufaj, szoszamSzoveg(f.szoszam)
+    ].filter(Boolean);
+  }
+
+  let feladatok = [];
+  let keszitett = new Set();
+  let nyitott = null;
+  const el = (id) => document.getElementById(id);
+
+  function zarMutat() {
+    el('zar').hidden = false;
+    el('tar').hidden = true;
+  }
+
+  // ── SZŰRŐK ──
+  function opciok(select, ertekek, nevFn) {
+    select.innerHTML = `<option value="">${esc(t('tar.mind'))}</option>` +
+      ertekek.map((v) => `<option value="${esc(String(v))}">${esc(nevFn(v))}</option>`).join('');
+  }
+  function szurokFeltolt() {
+    opciok(el('sz-ev'), [...new Set(feladatok.map((f) => f.ev))].sort((a, b) => b - a), String);
+    opciok(el('sz-idoszak'), IDOSZAK_SORREND.filter((k) => feladatok.some((f) => f.idoszak === k)), idoszakNev);
+    opciok(el('sz-mufaj'), [...new Set(feladatok.map((f) => f.mufaj).filter(Boolean))].sort(), String);
+  }
+  const egyszerusit = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  function szurt() {
+    const szint = el('sz-szint').value;
+    const ev = el('sz-ev').value;
+    const idoszak = el('sz-idoszak').value;
+    const sorszam = el('sz-sorszam').value;
+    const mufaj = el('sz-mufaj').value;
+    const szavak = egyszerusit(el('sz-kereses').value).split(/\s+/).filter(Boolean);
+    return feladatok.filter((f) =>
+      (!szint || f.szint === szint) && (!ev || String(f.ev) === ev) && (!idoszak || f.idoszak === idoszak)
+      && (!sorszam || String(f.sorszam) === sorszam) && (!mufaj || f.mufaj === mufaj)
+      && szavak.every((sz) => egyszerusit(`${f.cim} ${f.helyzet}`).includes(sz)));
+  }
+
+  // ── LISTA ──
+  function rajzol() {
+    const lista = szurt();
+    el('talalat').textContent = t('tar.talalat', { db: lista.length, ossz: feladatok.length });
+    if (!feladatok.length) {
+      el('lista').innerHTML = `<div class="empty-state bare"><div class="empty-icon">📭</div><p>${esc(t('tar.ures'))}</p></div>`;
+      return;
+    }
+    if (!lista.length) {
+      el('lista').innerHTML = `<div class="empty-state bare"><p>${esc(t('tar.nincs_talalat'))}</p></div>`;
+      return;
+    }
+    el('lista').innerHTML = lista.map((f) => `
+      <div class="list-card">
+        <div>
+          <h3>${esc(f.cim)}</h3>
+          <div class="list-card-meta">
+            <span>${metaSorok(f).map(esc).join(' · ')}</span>
+            ${keszitett.has(f.id) ? `<span class="badge aktiv">${esc(t('tar.keszult'))}</span>` : ''}
+          </div>
+        </div>
+        <div class="list-card-actions">
+          <button class="btn-sm" data-akcio="elonezet" data-id="${esc(f.id)}">${esc(t('tar.elonezet_gomb'))}</button>
+          <button class="btn-sm kiemelt" data-akcio="keszit" data-id="${esc(f.id)}">${esc(t('tar.keszites'))}</button>
+        </div>
+      </div>`).join('');
+  }
+  for (const id of ['sz-szint', 'sz-ev', 'sz-idoszak', 'sz-sorszam', 'sz-mufaj']) el(id).addEventListener('change', rajzol);
+  el('sz-kereses').addEventListener('input', rajzol);
+
+  // ── ELŐNÉZET ──
+  async function elonezetNyit(id, gomb) {
+    uzenetTorles('msg');
+    const vissza = gombVar(gomb, '…');
+    try {
+      const { data: e } = await feladattarElonezet({ id });
+      nyitott = e.id;
+      el('e-cim').textContent = e.cim;
+      el('e-meta').innerHTML = metaSorok(e).map((m) => `<span>${esc(m)}</span>`).join('');
+      el('e-leiras').textContent = e.leiras;
+      el('e-sablon').textContent = t('tar.e_sablon', { nev: e.sablon_adat.nev });
+      el('e-szempontok').innerHTML = e.sablon_adat.szempontok
+        .map((sz) => `<li><span>${esc(sz.cim)}</span><span>${esc(t('tar.pont', { db: sz.suly }))}</span></li>`).join('')
+        + `<li><span>${esc(t('tar.osszesen'))}</span><span>${esc(t('tar.pont', { db: e.sablon_adat.pont }))}</span></li>`;
+      uzenetTorles('e-msg');
+      el('elonezet').hidden = false;
+      el('elonezet').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      if (err?.details?.kod === ZAR_KOD) { zarMutat(); return; }
+      uzenet('msg', hibaSzoveg(err));
+    } finally {
+      vissza();
+    }
+  }
+  el('e-bezar').addEventListener('click', () => { el('elonezet').hidden = true; nyitott = null; });
+
+  // ── FELADAT KÉSZÍTÉSE ──
+  async function keszit(id, gomb, msgId) {
+    uzenetTorles(msgId);
+    if (keszitett.has(id) && !confirm(t('tar.mar_keszult_kerdes'))) return;
+    const vissza = gombVar(gomb, t('tar.keszites_folyamat'));
+    try {
+      const { data } = await feladattarbolFeladat({ id });
+      window.location.href = `feladatok.html?szerkeszt=${encodeURIComponent(data.feladatId)}&tarbol=1`;
+    } catch (err) {
+      vissza();
+      if (err?.details?.kod === ZAR_KOD) { zarMutat(); return; }
+      uzenet(msgId, hibaSzoveg(err));
+    }
+  }
+  el('e-keszit').addEventListener('click', (e) => { if (nyitott) keszit(nyitott, e.currentTarget, 'e-msg'); });
+  el('lista').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-akcio]');
+    if (!b) return;
+    if (b.dataset.akcio === 'elonezet') elonezetNyit(b.dataset.id, b);
+    if (b.dataset.akcio === 'keszit') keszit(b.dataset.id, b, 'msg');
+  });
+
+  // ── BETÖLTÉS ──
+  try {
+    const { data } = await feladattarLista();
+    feladatok = data.feladatok || [];
+    keszitett = new Set(data.keszitett || []);
+    el('tar').hidden = false;
+    szurokFeltolt();
+    rajzol();
+  } catch (err) {
+    if (err?.details?.kod === ZAR_KOD) zarMutat();
+    else uzenet('msg', hibaSzoveg(err));
+  }
+</script>
+</body>
+</html>

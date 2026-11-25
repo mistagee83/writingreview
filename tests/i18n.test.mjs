@@ -71,7 +71,7 @@ test("a státusz-táblák minden kulcsa létezik minden nyelven", async () => {
 // Az átalakított lapok minden t('…') hívása és data-i18n* kulcsa
 // létezik-e. Új lap átalakításakor add hozzá ide.
 const ATALAKITOTT = [
-  "index.html", "belepes.html",
+  "index.html", "belepes.html", "feladattar.html",
   "tanar.html", "admin.html", "ai-hasznalat.html", "javitas.html", "elemzes.html", "feladatok.html", "megosztas.html", "iras.html",
   "js/ui.js", "js/pwa.js", "js/nav.js", "js/fejlec.js", "js/tema-menu.js",
   "js/skala-urlap.js", "js/visszajelzes-nezet.js",

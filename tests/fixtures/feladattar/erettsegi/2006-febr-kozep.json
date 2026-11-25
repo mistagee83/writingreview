@@ -1,0 +1,50 @@
+{
+  "formatum_verzio": 1,
+  "id": "2006-febr-kozep",
+  "ev": 2006, "idoszak": "febr", "szint": "kozep",
+  "vizsga_datum": "2006-02-20", "kod": "K9998",
+  "forras_fajlok": { "feladatlap": "TESZT/k_angol_06febr_fl.pdf", "utmutato": "TESZT/k_angol_06febr_ut.pdf" },
+  "feladatok": [
+    {
+      "id": "2006-febr-kozep-W1",
+      "sorszam": 1,
+      "sablon": "kozep-level",
+      "eredeti_jeloles": "Task A",
+      "cim": "Letter to a pen friend about a school trip",
+      "mufaj": "letter",
+      "tipus": "levél",
+      "szoszam": { "min": 80, "max": 100, "szoveg": "80-100 words" },
+      "helyzet": "TEST FIXTURE: invented text. Your English pen friend, Kate, wants to know about your last school trip.",
+      "bemenet": null,
+      "teendo": "Write a letter of 80-100 words to Kate in which you",
+      "iranyito_szempontok": ["say where you went,", "describe what you liked most,", "invite her to join next time."],
+      "kezdes": "Dear Kate,",
+      "oldalak": { "feladatlap": [2] },
+      "megjegyzesek": ["TESZT-FIXTURE: kitalált szöveg."]
+    },
+    {
+      "id": "2006-febr-kozep-W2",
+      "sorszam": 2,
+      "sablon": "kozep-fogalmazas",
+      "eredeti_jeloles": "Task B",
+      "cim": "Forum post on part-time jobs for students",
+      "mufaj": "forum post",
+      "tipus": "vélemény",
+      "szoszam": { "min": 100, "max": 120, "szoveg": "100-120 words" },
+      "helyzet": "TEST FIXTURE: invented text. You have read this post on an international student forum:",
+      "bemenet": {
+        "fajta": "post",
+        "cim": null,
+        "bekezdesek": ["TEST FIXTURE: Should students work during the school year? What do you think?"],
+        "forras": null
+      },
+      "teendo": "Write a post of 100-120 words in which you",
+      "iranyito_szempontok": ["give your opinion,", "write about your own experience,", "give advice to the writer."],
+      "kezdes": null,
+      "oldalak": { "feladatlap": [3] },
+      "megjegyzesek": ["TESZT-FIXTURE: kitalált szöveg."]
+    }
+  ],
+  "kimaradt": [],
+  "megjegyzesek": []
+}

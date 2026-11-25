@@ -7,7 +7,7 @@
 // A naplósor (creditLedger) alakja azonos a hub functions/credits-store.js-ével
 // (a hub /account oldala ebből mutatja a történetet).
 //
-// A nem-AI fizetős funkciók (osztályelemzés, fejlődéskövetés, színválasztás) a Hub passhoz
+// A nem-AI fizetős funkciók (osztályelemzés, fejlődéskövetés, színválasztás, érettségi feladattár) a Hub passhoz
 // kötöttek: users/{uid}.entitlements["writing-review"] vagy .all aktív.
 //
 // A számítás a hub shared/credits.js és shared/entitlements.js másolatában van (functions/hub/,
@@ -27,7 +27,7 @@ const AKCIOK = Object.freeze({
 });
 
 /** A Hub passhoz kötött (nem AI-) funkciók. */
-const HUB_PASS_FUNKCIOK = Object.freeze(["osztaly_elemzes", "fejlodes", "szinvalasztas"]);
+const HUB_PASS_FUNKCIOK = Object.freeze(["osztaly_elemzes", "fejlodes", "szinvalasztas", "erettsegi_tar"]);
 
 // Egy osztály beadásai egyszerre érkeznek, mind ugyanarra a users-dokumentumra: az alapértelmezett
 // 5 újrapróbálás ütközésnél kevés (a beadás hibaállapotba kerülne, pedig lenne kredit).
