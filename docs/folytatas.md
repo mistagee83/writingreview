@@ -40,6 +40,15 @@ formátumára épül, és a `tests/fixtures/feladattar/erettsegi/` kézi mintái
 - **Hátra:** a valódi fájlok összekötése (a kinyerő munkamenet ága) és a teljes ellenőrzés velük (a terv 2. lépése: az
   ellenőrző szkript még nincs); a fixture-ök maradhatnak tesztmintának. A jogi kérdés lezárva (terv 7.): kapcsoló nem
   kell, a tár a valódi fájlokkal a szokásos kiadással mehet. A pilotot nem érinti.
+- **Mit vár a betöltő a kinyerés fájljaitól** (ettől eltérő fájl/feladat kimarad): feladatsor `formatum_verzio: 1`, `ev`
+  egész, `szint` kozep|emelt, `idoszak` maj|okt|nov|febr|maj2; feladat `id` = `<feladatsor>-W1|W2`, `sablon` a négy közül,
+  `tipus` levél|vélemény|esszé|egyéb, `szoszam.min/max` egész vagy null, `helyzet` és `teendo` nem üres.
+- **Egyeztetendő a kinyeréssel:** (1) `rubrika.tar.verzio` most a `formatum_verzio`; ha a tár javításait követni kell,
+  feladatonkénti verziómező kellene. (2) A `sablonok.json` `nev`-ét a felület nem mutatja (a négy `id`-hoz hu/en
+  szótárkulcs van). (3) „about N words” esetén a rubrikában nincs szószám, a leírás végére „(about N words)” kerül.
+  (4) A `bemenet.forras` a diák leírásában „(Source: …)” sor.
+- **Folytatás másik gépen:** `git fetch`, majd `git switch claude/erettsegi-feladattar-felulet-ec6e0c`; `npm ci` a
+  `functions` és a `tests` mappában (Java 21 az emulátorhoz, lásd lent).
 
 ## 0000. Egy hub-fiók: egy kattintás a hubról (2026-11-20) – **élesítve** (hosting, `3953086`), valódi fiókkal még nincs kipróbálva
 
