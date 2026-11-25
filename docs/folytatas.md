@@ -8,6 +8,12 @@ folytatni, és mi a következő lépés. (Az 1–5. pont régebbi részei a `wri
 a fenti 0000–00. pont az érvényes.) A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
 
+## Terv: Érettségi feladattár (2026-11-25, jóváhagyva, kód még nincs)
+
+A kétszintű angol érettségi írásfeladatai (2005–2026) közös, Hub passos tárba kerülnek; a tanár egy kattintással
+feladatot készít belőlük, négy érettségi sablonnal. A kinyerés formátuma és a lépések:
+[`erettsegi-feladattar-terv.md`](erettsegi-feladattar-terv.md). Következő lépés: a kinyerés (külön munkamenet).
+
 ## 0000. Egy hub-fiók: egy kattintás a hubról (2026-11-20) – **élesítve** (hosting, `3953086`), valódi fiókkal még nincs kipróbálva
 
 - A hub „Open app” gombja `https://review.mrandrewshub.com/#sso=<kód>`-dal nyit; a nyitóoldal (`public/index.html` első szkriptje) a `belepes.html`-re küldi, ott a hub `redeemSsoCode` functionje custom tokenre cseréli (claims nélkül, a `szerep` claim marad) → `signInWithCustomToken` → a szokásos belépés utáni út (`belepesUtan`).
