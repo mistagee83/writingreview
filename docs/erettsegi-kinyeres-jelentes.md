@@ -151,12 +151,9 @@ regressziós teszt).
   (az intézmény neve az első bekezdés), a könyvespolc ára (külön sor).
 
 **A tulajdonos döntött:** a `message`/`reply` műfajú feladatok (2005. máj. közép 1., 2020. okt. emelt 1., 2022. okt.
-közép 1., 2023. máj. közép 1.) `tipus`-a `levél` marad (a Codex `egyéb`-et javasolt); a terv típusszabálya ehhez igazítva.
-
-**Még nyitott, a tulajdonos dönt:**
-
-- 2018. október közép, 2. („Imagine ME standing there?” egy fotó alatt): bennmaradhat-e. A Codex határesetnek tartja;
-  minden irányító szempont kép nélkül is megválaszolható.
+közép 1., 2023. máj. közép 1.) `tipus`-a `levél` marad (a Codex `egyéb`-et javasolt); a terv típusszabálya ehhez igazítva. A 2018. október közép, 2. („Imagine ME standing there?” egy fotó alatt) **bent marad**: a fotó csak
+illusztráció, a szöveg kép nélkül is érthető, és minden irányító szempont kép nélkül is megválaszolható (a Codex
+határesetnek tartotta).
 
 **Nem hiba:** 2026. május közép, 1.: a lapon nincs bemeneti szöveg (csak helyzetleírás), a `bemenet: null` helyes. Az
 útmutató ad hozzá szöveg- és képforrást, de a formátumban a forrás a bemenet része, így ennek most nincs helye.
