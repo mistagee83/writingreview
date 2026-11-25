@@ -26,7 +26,7 @@ szóló szakaszára mutat.
 | Képes feladatok | **Nem kerülnek be.** |
 | Matura-hivatkozás | A WR nyitóoldalán egy Maturának szóló, angol nyelvű alszakasz; oda vezet a link. |
 | A kinyerés helye | Ez a tároló (a WR fejlesztői tárolója): innen megy a fejlesztés is. |
-| Jogi kérdés | Nyitott, nem döntünk (7. fejezet). |
+| Jogi kérdés | Lezárva (2026-11-25): nem akadálya a kiadásnak; a harmadik fél bemeneti szövegeit a kinyerés kezeli (7. fejezet). |
 
 ---
 
@@ -138,8 +138,8 @@ pontszámítás változatlan.
   Figyelem: a 2005. októberi–novemberi középszintű lap a „2005. Hagyományos október-novemberi…” mappában van;
   mappanév alapján szűrve kimaradna (91 lap, nem 90). A forrásmappát csak olvasni szabad.
 - A kulcsnevek magyarok, a WR rubrikájához igazodva. A diáknak szóló szövegek **angolul, a feladatlap szerint, szó
-  szerint** (a papírra utaló részek nélkül, mint a Maturában). Hogy a felület mit mutat ebből, az a jogi kérdés (7.)
-  után dőlhet el; a kinyerés a teljes szöveget rögzíti.
+  szerint** (a papírra utaló részek nélkül, mint a Maturában). A harmadik féltől átvett bemeneti szövegeket a
+  kinyerés kezeli (7. fejezet).
 - A tartalmat kézzel nem szerkesztjük: a kinyerő és a kézi kiegészítései (mint a Matura `kezi.js`-e) mindig
   újragenerálják. A kinyerő szkriptek helye: `scripts/erettsegi/`.
 
@@ -318,30 +318,16 @@ szakasz angol (a prod angolul nyit; a szótárkulcsok szabálya szerint magyar v
 
 ---
 
-## 7. Jogi kérdés: mit kell tisztázni (6. kérdés)
+## 7. Jogi kérdés (6. kérdés) – lezárva
 
-Nem döntünk; ezeket kell a jogásszal vagy az Oktatási Hivatallal tisztázni, **mielőtt a tár élesben megnyílik** (a
-Matura SPEC 11. „Tisztázandó” 1. pontjával együtt, hiszen ugyanaz a forrás):
+**Döntés (a tulajdonos, 2026-11-25):** a jogi kérdés nem akadálya a kiadásnak.
 
-1. **A feladatlapok szövegének újraközlése:** a feladatsorok az Oktatási Hivatal oldalán nyilvánosak, de a nyilvános
-   elérhetőség nem jelent szabad felhasználást. Közölhető-e a feladatlap szövege (helyzet, utasítás, irányító
-   szempontok) szó szerint egy **fizetős**, belépéshez kötött szolgáltatásban, és milyen forrásmegjelöléssel
-   („Forrás: Oktatási Hivatal, 2024. május, középszint”)?
-2. **Harmadik fél szövegei a feladatokban:** a bemeneti szövegek egy része valódi forrásból átvett vagy átdolgozott
-   hirdetés, cikk, poszt (az útmutató „Források” része URL-lel sorolja őket). Ezekre az Oktatási Hivatal engedélye
-   sem feltétlenül terjed ki. Közölhetők-e, vagy csak összefoglalva (ahogy a WR mostani feladatlap-elemzése teszi),
-   vagy saját szöveggel?
-3. **Az útmutató szempontjai és sávleírásai** a sablonokban (az MI-kérésben és a tanár felületén): szó szerinti
-   átvétel-e, szabad-e, vagy saját megfogalmazás kell?
-4. **Az MI-feldolgozás:** a feladat szövege a Gemini promptjába kerül (a fizetős API nem tanít rajta). Jelent-e ez
-   külön felhasználást a szerzői jog szerint?
-5. **Kereskedelmi felhasználás:** a tár a Hub pass része; a válasz ettől eltérhet egy ingyenes, oktatási
-   felhasználástól.
-6. **A név:** szabad-e „érettségi feladattár”-ként hirdetni (a nyitóoldal Matura-szakaszán is), és kell-e kijelenteni,
-   hogy nem az Oktatási Hivatal szolgáltatása?
-
-A válaszig a kinyerés a teljes szöveget rögzítheti a tárolóban, de a tár élesben **nem nyílik meg**. A válasz
-döntheti el azt is, hogy a diák a bemeneti szöveget szó szerint vagy összefoglalva látja.
+- **A feladatlapok szövegének közlése:** a Matura kapcsán már eldőlt, nem támadható; nincs teendő.
+- **Harmadik fél szövegei a feladatokban** (az útmutató „Források” része szerinti hirdetés, cikk, poszt): valós kérdés,
+  de a **kinyerés** kezeli; a WR felületén és függvényeiben nincs vele teendő.
+- **Az útmutató szempontjai és sávleírásai** a sablonokban: nem jogi kérdés; nincs teendő.
+- **Az MI-feldolgozás** (a feladat szövege a promptban): nem külön felhasználás; nincs teendő.
+- **Kereskedelmi felhasználás, a név** („érettségi feladattár”): nem kérdés; nincs teendő.
 
 ---
 
@@ -356,7 +342,7 @@ döntheti el azt is, hogy a diák a bemeneti szöveget szó szerint vagy összef
    készült feladat a teljes úton, emulátorral).
 4. **Nyitóoldal Matura-szakasza** (`#matura`), teszt a `#sso` mellett; a `landing.test.mjs` ígéretkötése.
 5. **Matura oldali link** (a Matura tárolójában, külön munkamenet).
-6. **Kiadás** a jogi válasz után (`node scripts/deploy.mjs prod --yes --only hosting,functions:wr`; a hub repójában
+6. **Kiadás** (`node scripts/deploy.mjs prod --yes --only hosting,functions:wr`; a hub repójában
    nincs szabályteendő, ha a 2. fejezet szerint épül).
 
 A pilot ágat nem érinti; minden új funkció csak a `main`-re kerül.

@@ -38,9 +38,8 @@ formátumára épül, és a `tests/fixtures/feladattar/erettsegi/` kézi mintái
   A teljes sor az emulátorokkal 699/699; `node scripts/build.mjs` lefut. Helyi, Firebase-helyettesítős próbaoldalon asztali
   és telefonos méretben megnézve (lista, szűrés, előnézet, zár, `#matura`); élő függvényekkel nem.
 - **Hátra:** a valódi fájlok összekötése (a kinyerő munkamenet ága) és a teljes ellenőrzés velük (a terv 2. lépése: az
-  ellenőrző szkript még nincs); a fixture-ök maradhatnak tesztmintának. **Kiadás előtt figyelni:** a menüpont és a `#matura`
-  szakasz a következő `main`-kiadással élesbe menne, a jogi válasz (terv 7.) viszont még nincs – az összefésüléskor el kell
-  dönteni, hogy kapcsoló mögé kerüljön-e. A pilotot nem érinti.
+  ellenőrző szkript még nincs); a fixture-ök maradhatnak tesztmintának. A jogi kérdés lezárva (terv 7.): kapcsoló nem
+  kell, a tár a valódi fájlokkal a szokásos kiadással mehet. A pilotot nem érinti.
 
 ## 0000. Egy hub-fiók: egy kattintás a hubról (2026-11-20) – **élesítve** (hosting, `3953086`), valódi fiókkal még nincs kipróbálva
 
