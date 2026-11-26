@@ -40,7 +40,7 @@ Az angol külön stílust követ: `public/js/i18n-en.js` fejléce az irányadó.
 
 ## Átnézési sorrend
 
-1. Nyitóoldal (`landing.*`): kész, 2026-10-10.
+1. Nyitóoldal (`landing.*`): kész, 2026-10-10; újra átnézve 2026-11-26 (a prod-szövegek, a Hub pass és az érettségi szakasz után: költői kérdés a hero alatt, gondolatjeles szlogenek, „mintázat”, „AI-művelet” kivéve; az angol is).
 2. Belépés és regisztráció (`index.*`, `auth.*`; az oldal jelenleg `belepes.html`): kész (ChatGPT átnézte, javítva).
 2/b. Tanári főoldal, osztályok, feladatok, javítási sor (`tanar.*`, `osztalyok.*`, `fel.*`, `jav.*`): kész, 2026-10-10 (a ragozott `{nev}`-es mondatok átfogalmazva: "…az osztályból: {nev}?", nem "{nev}-t").
 3. Tanári főoldal, osztályok, feladatok, javítási sor (`tanar.*`, `osztalyok.*`, `fel.*`, `jav.*`).
