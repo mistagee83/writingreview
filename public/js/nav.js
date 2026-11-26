@@ -11,14 +11,13 @@
 // a tanar.html modul-kártyái hirdetik, nem a menü.
 import { t } from "./i18n.js";
 import { ERETTSEGI_TAR } from "./kornyezet.js";
-import { FELADATTAR_IKON } from "./feladattar-ikon.js";
 
 const MENU = [
   { label: "nav.menu" },
   { href: "tanar.html",     ikon: "🏠", cim: "nav.fooldal" },
   { href: "feladatok.html", ikon: "📋", cim: "nav.feladatok" },
-  // Az Érettségi feladattár: saját SVG-ikon (nem emoji), és csak ahol a környezetben él (kornyezet.js)
-  ...(ERETTSEGI_TAR ? [{ href: "feladattar.html", ikonHtml: FELADATTAR_IKON, cim: "nav.feladattar" }] : []),
+  // Az Érettségi feladattár: csak ahol a környezetben él (kornyezet.js)
+  ...(ERETTSEGI_TAR ? [{ href: "feladattar.html", ikon: "🎓", cim: "nav.feladattar" }] : []),
   { href: "javitas.html",   ikon: "✏️", cim: "nav.javitas" },
   { href: "csoportok.html", ikon: "👥", cim: "nav.csoportok" }
 ];
@@ -47,7 +46,7 @@ export function oldalsav(aktivHref, opciok = {}) {
     }
     const aktiv = item.href === aktivHref ? " active" : "";
     return `<a class="nav-item${aktiv}" href="${item.href}">
-      <span class="nav-icon">${item.ikonHtml || item.ikon}</span> ${t(item.cim)}
+      <span class="nav-icon">${item.ikon}</span> ${t(item.cim)}
     </a>`;
   }).join("");
 }

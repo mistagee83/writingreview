@@ -626,7 +626,7 @@
   async function erettsegiSablonokBetolt() {
     if (!ERETTSEGI_TAR) return;
     try {
-      const { data } = await httpsCallable(functions, 'erettsegiSablonok')();
+      const { data } = await httpsCallable(functions, 'erettsegiSablonok')({ nyelv: nyelv() });
       erettsegiSablonok = data.sablonok || [];
       sablonValasztoRajzol();
     } catch (e) {

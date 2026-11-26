@@ -56,7 +56,7 @@ test("a zár: Hub pass nélkül, lejárt passszal és kikapcsolt tárnál semmi 
     lista: (uid, b) => logika.feladattarListaLogika(firestore, uid, b),
     elonezet: (uid, b) => logika.feladattarElonezetLogika(firestore, uid, { id: ID }, b),
     keszites: (uid, b) => logika.feladattarbolFeladatLogika(firestore, uid, { id: ID }, b),
-    sablonok: (uid, b) => logika.erettsegiSablonokLogika(firestore, uid, b)
+    sablonok: (uid, b) => logika.erettsegiSablonokLogika(firestore, uid, {}, b)
   };
   for (const [nev, h] of Object.entries(hivasok)) {
     assert.equal(await kodja(() => h("nincs-ilyen", PROD)), "erettsegi_hub_pass_kell", nev);
@@ -89,6 +89,8 @@ test("a feladat elkészítése: a tanár saját, nyitott feladata az érettségi
   assert.ok(f.letrehozva);
   assert.deepEqual(f.rubrika.tar, { id: ID, verzio: 1 });
   assert.equal(f.rubrika.kimeneti_nyelv, "en");
+  // angol felületről készült feladat: angol szempontnevek (a diák is ezt látja a linken)
+  assert.equal(f.rubrika.szempontok[0].cim, "Task achievement, covering the given points");
   assert.deepEqual(f.rubrika.szempontok.map((sz) => [sz.kulcs, sz.suly]),
     [["feladat", 6], ["hangnem", 2], ["szovegalkotas", 4], ["szokincs", 5], ["nyelvhelyesseg", 5]]);
   // a kliens csak az engedett mezőket írhatja (firestore.rules feladatok create): a szerver se tegyen mást rá
@@ -138,7 +140,11 @@ test("a tárból készült feladat a teljes úton: link, a diák nézete, beadá
 });
 
 test("az érettségi sablonok: a négy sablon a sablonlistához, a hivatalos pontokkal", async () => {
-  const { sablonok } = await logika.erettsegiSablonokLogika(firestore, "hub", PROD);
+  const { sablonok } = await logika.erettsegiSablonokLogika(firestore, "hub", {}, PROD);
+  // angol felületen angol szempontnevek
+  const en = await logika.erettsegiSablonokLogika(firestore, "hub", { nyelv: "en" }, PROD);
+  assert.equal(en.sablonok[0].rubrika.szempontok[0].cim, "Task achievement and text length");
+  assert.equal(sablonok[0].rubrika.szempontok[0].cim, "A feladat teljesítése és a szöveg hosszúsága");
   assert.deepEqual(sablonok.map((s) => [s.id, s.rubrika.szempontok.reduce((a, sz) => a + sz.suly, 0)]),
     [["kozep-level", 11], ["kozep-fogalmazas", 22], ["emelt-level", 15], ["emelt-fogalmazas", 15]]);
 });

@@ -173,7 +173,7 @@
   <section class="lp-szakasz lp-matura" id="matura" data-csak="erettsegi" hidden aria-labelledby="matura-cim">
     <div class="lp-sor">
       <div class="lp-matura-fejlec">
-        <span class="lp-matura-ikon" id="matura-ikon"></span>
+        <span class="lp-matura-ikon" aria-hidden="true">🎓</span>
         <h2 id="matura-cim" data-i18n="landing.matura_cim">Érettségi írásfeladatok</h2>
       </div>
       <p class="lp-szakasz-alcim" data-i18n="landing.matura_alcim">A kétszintű angol érettségi írásfeladatai 2005-től, közép- és emelt szinten, a hivatalos értékelési szempontokkal és pontokkal.</p>
@@ -313,7 +313,6 @@
 <script type="module">
   import { t } from './js/i18n.js';
   import { KREDIT, TANARI_ONREGISZTRACIO, HUB_URL, ERETTSEGI_TAR } from './js/kornyezet.js';
-  import { FELADATTAR_IKON } from './js/feladattar-ikon.js';
 
   // A környezet-függő részek: az árazás csak ott, ahol a hub-kredit él; a regisztrációs gomb csak ott,
   // ahol a tanár önállóan regisztrálhat. Ahol egyik sem (pilot), a belépés az egyetlen gomb.
@@ -323,7 +322,6 @@
     fizetes: KREDIT, regisztracio: TANARI_ONREGISZTRACIO, 'belepes-egyedul': !TANARI_ONREGISZTRACIO, 'hub-link': hubLink,
     erettsegi: ERETTSEGI_TAR
   };
-  if (ERETTSEGI_TAR) document.getElementById('matura-ikon').innerHTML = FELADATTAR_IKON;
   document.querySelectorAll('[data-csak]').forEach((el) => {
     el.hidden = !latszik[el.dataset.csak];
   });

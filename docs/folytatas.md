@@ -22,7 +22,7 @@ ellenőrzése után javítva (forrás, fajta, cím, sablonok; a jelentés 7. pon
 sávleírásait a tulajdonos jóváhagyta; a `message`/`reply` feladatok `tipus`-a `levél` marad; a 2018. okt. közép 2. bent marad.
 **A tár felülete és függvényei: kész (2026-11-26, terv 8. 3.)**. A jogi kérdéseket (terv 7.) a tulajdonos 2026-11-25-ig
 tisztázta; a tár 2026-11-26 óta **be van kapcsolva és élesben fut** (`ERETTSEGI_TAR=igen` a `functions/.env.prod`-ban,
-`erettsegi_tar: true` a `config/prod.json`-ban; a kettőt mindig együtt kell állítani). Az ikon a saját „pecsétes lap” rajz (`public/js/feladattar-ikon.js`, nem emoji).
+`erettsegi_tar: true` a `config/prod.json`-ban; a kettőt mindig együtt kell állítani). Az ikon a 🎓 emoji (a tulajdonos döntése 2026-11-26: a saját rajz kilógott a menü emojijai közül).
 Részletek: a terv 8. fejezetének „A 3. lépés megvalósítása” része. **A nyitóoldal Matura-szakasza (`#matura`): kész (2026-11-26, terv 8. 4.)**, ugyanazzal a kapcsolóval, élesben.
 Következő lépés: a Matura oldali link (terv 8. 5., a Matura tárolójában): `https://review.mrandrewshub.com/#matura`.
 

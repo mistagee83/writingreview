@@ -40,11 +40,23 @@ function vizsga(sor) {
   return { id: sor.id, ev: sor.ev, idoszak: sor.idoszak, szint: sor.szint };
 }
 
-/** A sablon szempontjai a pontjaikkal (a tanár és a diák is ezt látja). */
-function sablonNezet(s) {
+/** A felület nyelve: "en" vagy (minden más esetben) "hu". */
+const nyelvKod = (n) => (n === "en" ? "en" : "hu");
+
+/**
+ * A szempontok a kért nyelven: a „cim” a hivatalos magyar név, vagy angolul a „cim_en”. A kimenetben csak
+ * kulcs, cim és suly van (a WR rubrikájának alakja), a cim_en nem kerül ki.
+ */
+function szempontok(rubrika, nyelv) {
+  const en = nyelvKod(nyelv) === "en";
+  return rubrika.szempontok.map(({ kulcs, cim, cim_en, suly }) => ({ kulcs, cim: en && cim_en ? cim_en : cim, suly }));
+}
+
+/** A sablon szempontjai a pontjaikkal (a tanár és a diák is ezt látja), a kért nyelven. */
+function sablonNezet(s, nyelv) {
   return {
     id: s.id,
-    szempontok: s.rubrika.szempontok.map(({ kulcs, cim, suly }) => ({ kulcs, cim, suly })),
+    szempontok: szempontok(s.rubrika, nyelv),
     osszpont: s.rubrika.szempontok.reduce((a, sz) => a + sz.suly, 0)
   };
 }
@@ -100,8 +112,8 @@ function keres(id, mappa) {
   return sablon ? { ...talalat, sablon } : null;
 }
 
-/** Az előnézet: a diáknak szóló feladat és a sablon szempontjai. */
-function elonezet(id, mappa) {
+/** Az előnézet: a diáknak szóló feladat és a sablon szempontjai (a szempontok a felület nyelvén). */
+function elonezet(id, { nyelv } = {}, mappa) {
   const k = keres(id, mappa);
   if (!k) return null;
   const f = k.feladat;
@@ -119,13 +131,14 @@ function elonezet(id, mappa) {
     iranyito_szempontok: f.iranyito_szempontok,
     zaro_utasitas: f.zaro_utasitas,
     kezdes: f.kezdes,
-    sablon: sablonNezet(k.sablon)
+    sablon: sablonNezet(k.sablon, nyelv)
   };
 }
 
 /**
  * A tanár új feladatának rubrikája: az érettségi sablon, a feladat saját típusával, szószámával és leírásával,
  * és az eredetjelzővel (rubrika.tar). A jegyskálát a tanár a feladat-űrlapon választja (hiányában az alapskála).
+ * A szempontok neve a visszajelzés nyelvén kerül a feladatba (angolul a cim_en): a diák is ezt látja a linken.
  */
 function rubrikaTarbol(id, { kimenetiNyelv = "hu" } = {}, mappa) {
   const k = keres(id, mappa);
@@ -134,6 +147,7 @@ function rubrikaTarbol(id, { kimenetiNyelv = "hu" } = {}, mappa) {
   const r = structuredClone(k.sablon.rubrika);
   return {
     ...r,
+    szempontok: szempontok(r, kimenetiNyelv),
     tipus: f.tipus,
     min_szo: f.szoszam.min ?? null,
     max_szo: f.szoszam.max ?? null,
@@ -143,9 +157,11 @@ function rubrikaTarbol(id, { kimenetiNyelv = "hu" } = {}, mappa) {
   };
 }
 
-/** A négy érettségi sablon a feladat-űrlap sablonlistájához (csak olvasható). */
-function sablonok(mappa) {
-  return betolt(mappa).sablonok.map((s) => ({ id: s.id, nev: s.nev, rubrika: structuredClone(s.rubrika) }));
+/** A négy érettségi sablon a feladat-űrlap sablonlistájához (csak olvasható), a szempontok a kért nyelven. */
+function sablonok({ nyelv } = {}, mappa) {
+  return betolt(mappa).sablonok.map((s) => ({
+    id: s.id, nev: s.nev, rubrika: { ...structuredClone(s.rubrika), szempontok: szempontok(s.rubrika, nyelv) }
+  }));
 }
 
 module.exports = { FELADAT_ID, betolt, lista, leiras, keres, elonezet, rubrikaTarbol, sablonok };

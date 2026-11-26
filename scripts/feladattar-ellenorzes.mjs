@@ -59,6 +59,7 @@ export async function ellenoriz(mappa = ALAP_MAPPA) {
       const sum = (r.szempontok || []).reduce((a, x) => a + x.suly, 0);
       if (sum !== osszeg) H(`${id}: a pontösszeg ${sum}, nem ${osszeg}`);
       if (!(r.szempontok || []).every((x) => str(x.cim) && x.cim.length <= 80)) H(`${id}: hiányzó vagy 80 karakternél hosszabb szempontcím`);
+      if (!(r.szempontok || []).every((x) => str(x.cim_en) && x.cim_en.length <= 80)) H(`${id}: hiányzó vagy 80 karakternél hosszabb angol szempontcím (cim_en)`);
       if (r.nyelv !== "angol") H(`${id}: a nyelv nem angol`);
       if (r.szint !== (id.startsWith("kozep") ? "B1" : "B2")) H(`${id}: a szint nem ${id.startsWith("kozep") ? "B1" : "B2"}`);
       if (!str(r.egyeb_utasitas)) H(`${id}: hiányzik az egyeb_utasitas`);

@@ -67,10 +67,9 @@ együtt települ, és **csak tanári hívható függvényen**, Hub pass-ellenőr
 
 ### A folyamat
 
-1. **Tanár: Érettségi feladattár** (új menüpont, új oldal: `feladattar.html`). Ikonja nem emoji, hanem a saját
-   „pecsétes lap” rajz (`public/js/feladattar-ikon.js`, a tulajdonos döntése 2026-11-26). A menüben, a kezdőlap
-   kártyáján és az oldal fejlécében **beágyazva** (inline SVG) jelenik meg, nem `<img>`-ként, mert a színe a `--ink`
-   és az `--accent` változóból jön, így követi a színválasztót. Hub pass nélkül az oldal egy rövid
+1. **Tanár: Érettségi feladattár** (új menüpont, új oldal: `feladattar.html`). Ikonja a 🎓 emoji a menüben, a kezdőlap
+   kártyáján, az oldal fejlécében és a nyitóoldal `#matura` szakaszában (a tulajdonos döntése 2026-11-26; előbb egy
+   saját „pecsétes lap” SVG volt, de kilógott a menü emojijai közül). Hub pass nélkül az oldal egy rövid
    bemutatót mutat a Hub pass linkjével (mint az osztályszintű elemzés zárolt állapota). Hub passszal: szűrők (szint,
    év, időszak, 1./2. feladat, műfaj) és keresés a címben és a helyzetben.
 2. **Előnézet:** a diáknak szóló feladat (helyzet, bemeneti szöveg, teendő, irányító szempontok, szószám) és a
@@ -378,15 +377,18 @@ A pilot ágat nem érinti; minden új funkció csak a `main`-re kerül.
   záró utasítás, „Begin like this:” + kezdés. A forrás (URL), a lapszámok és a kinyerési megjegyzések nem kerülnek
   ki; az előnézet alján „Forrás: Oktatási Hivatal, <vizsga>” áll (a feladat leírásában nem).
 - **Kliens:** `feladattar.html` (szűrők, keresés ékezet nélkül is, előnézet, „Már elkészítetted” jelzés, Hub pass
-  nélkül bemutató kártya), `js/feladattar-nezet.js` (feliratok, szűrés), menüpont és kezdőlap-kártya. A „Feladat
+  nélkül bemutató kártya), `js/feladattar-nezet.js` (feliratok, szűrés), menüpont és kezdőlap-kártya (🎓). A „Feladat
   készítése” után a feladatlista nyílik a feladat szerkesztőjével (`feladatok.html?szerkeszt=<id>&tarbol=1`). A
   feladat-űrlap sablonlistájában külön csoportban a négy érettségi sablon (csak olvasható); Hub pass nélkül nem jelenik meg.
+- **A szempontok neve a felület nyelvén** (2026-11-26): a sablonforrásban (`scripts/erettsegi/sablonok.mjs`) a hivatalos magyar
+  név mellett angol is van (`cim_en`). Az előnézet és a sablonlista a felület nyelvén mutatja; a tárból készült feladatba a
+  visszajelzés nyelvén kerül, `cim` néven (a diák is így látja). Az MI-nek szóló sávleírás (`egyeb_utasitas`) magyar marad.
 - **Tesztek:** `tests/feladattar-tar.test.mjs` (emulátor nélkül) és `tests/feladattar-adatbazis.test.mjs` (zár, létrehozás,
   a teljes linkes út, az értékelő prompt).
 
 ### A 4. lépés megvalósítása (2026-11-26)
 
-- **`index.html#matura`:** cím a feladattár ikonjával, egy mondat a tárról, három lépés (választás a tárból, írás a linken,
+- **`index.html#matura`:** cím a 🎓 ikonnal, egy mondat a tárról, három lépés (választás a tárból, írás a linken,
   értékelés az érettségi szempontjai szerint), a Hub pass-mondat (csak ahol a kredit él), „Próbáld ki ingyen” és belépés,
   egy mondat a diákoknak, és a forrás: „A feladatok az Oktatási Hivatal által közzétett érettségi feladatlapokról
   származnak. A WritingReview nem az Oktatási Hivatal szolgáltatása.” (A 7. fejezet 6. kérdése szerint a jogász még

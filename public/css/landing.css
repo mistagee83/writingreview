@@ -166,5 +166,5 @@
 .lp-matura { border-top: 1px solid var(--border); }
 .lp-matura-fejlec { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 2rem; }
 .lp-matura-fejlec h2 { margin-bottom: 0; }
-.lp-matura-ikon .tar-ikon { width: 2.6rem; height: 2.6rem; display: block; }
+.lp-matura-ikon { font-size: 2.4rem; line-height: 1; }
 .lp-matura-diak { margin-top: 1.75rem; font-weight: 600; }

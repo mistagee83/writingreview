@@ -46,8 +46,12 @@ test("a feladatleírás a feladatlap sorrendjében: helyzet, bemeneti szöveg, t
 
 test("a tárból készült rubrika: az érettségi sablon szempontjai, a feladat típusa, szószáma és eredetjelzője", () => {
   const r = tar.rubrikaTarbol("2024-maj-kozep-W2", { kimenetiNyelv: "en" });
-  const sablon = tar.sablonok().find((s) => s.id === "kozep-fogalmazas");
+  const sablon = tar.sablonok({ nyelv: "en" }).find((s) => s.id === "kozep-fogalmazas");
   assert.deepEqual(r.szempontok, sablon.rubrika.szempontok);
+  // angolul kiadott feladat: angol szempontnevek, a WR rubrikájának alakjában (cim_en nem kerül a feladatba)
+  assert.equal(r.szempontok[0].cim, "Task achievement, covering the given points");
+  assert.ok(r.szempontok.every((sz) => Object.keys(sz).sort().join() === "cim,kulcs,suly"));
+  assert.equal(tar.rubrikaTarbol("2024-maj-kozep-W2").szempontok[0].cim, "A feladat teljesítése, a megadott szempontok követése");
   assert.equal(r.egyeb_utasitas, sablon.rubrika.egyeb_utasitas);
   assert.equal(r.szint, "B1");
   assert.equal(r.tipus, "levél");
@@ -129,12 +133,31 @@ test("a feladat-űrlap szerkesztéskor és másoláskor megőrzi az eredetjelző
   assert.match(html, /tarEredet = null;/, "az űrlap ürítése törli (új feladatnál ne maradjon)");
 });
 
-test("a feladattár ikonja beágyazott SVG a téma színeivel, nem emoji, és csak bekapcsolt tárnál van menüpont", async () => {
-  const { FELADATTAR_IKON } = await import("../public/js/feladattar-ikon.js");
-  assert.match(FELADATTAR_IKON, /^<svg [^>]*aria-hidden="true"/);
-  assert.match(FELADATTAR_IKON, /var\(--accent\)/);
-  assert.match(FELADATTAR_IKON, /var\(--ink\)/);
+test("a feladattár ikonja mindenhol ugyanaz az emoji (🎓, a tulajdonos döntése 2026-11-26), és csak bekapcsolt tárnál van menüpont", () => {
+  // a menü többi ikonja is emoji: egy saját rajz kilógott a sorból
   const nav = olvas("../public/js/nav.js");
-  assert.match(nav, /\.\.\.\(ERETTSEGI_TAR \? \[\{ href: "feladattar\.html", ikonHtml: FELADATTAR_IKON/);
+  assert.ok(nav.includes('...(ERETTSEGI_TAR ? [{ href: "feladattar.html", ikon: "🎓", cim: "nav.feladattar" }] : [])'));
+  assert.ok(olvas("../public/tanar.html").includes('<div class="module-icon">🎓</div>'));
+  assert.ok(olvas("../public/feladattar.html").includes('<span class="tar-fejlec-ikon" aria-hidden="true">🎓</span>'));
+  assert.ok(olvas("../public/index.html").includes('<span class="lp-matura-ikon" aria-hidden="true">🎓</span>'));
   assert.ok(!/📚/.test(nav + olvas("../public/feladattar.html") + olvas("../public/tanar.html")));
+});
+
+test("a szempontnevek a felület nyelvén: magyarul a hivatalos név, angolul a fordítás; ismeretlen nyelv: magyar", () => {
+  const nev = (nyelv) => tar.elonezet("2024-maj-kozep-W2", { nyelv }).sablon.szempontok.map((sz) => sz.cim);
+  assert.deepEqual(nev("hu"), ["A feladat teljesítése, a megadott szempontok követése", "Hangnem, az olvasóban keltett benyomás",
+    "Szövegalkotás", "Szókincs, kifejezésmód", "Nyelvhelyesség, helyesírás"]);
+  assert.deepEqual(nev("en"), ["Task achievement, covering the given points", "Tone and effect on the reader",
+    "Organisation and coherence", "Vocabulary and expression", "Grammar and spelling"]);
+  assert.deepEqual(nev("de"), nev("hu"));
+  assert.deepEqual(nev(undefined), nev("hu"));
+  // minden sablon minden szempontjának van angol neve, és nem azonos a magyarral
+  for (const s of tar.sablonok({ nyelv: "en" })) {
+    const hu = tar.sablonok().find((x) => x.id === s.id).rubrika.szempontok;
+    s.rubrika.szempontok.forEach((sz, i) => {
+      assert.ok(sz.cim && sz.cim !== hu[i].cim, `${s.id} ${sz.kulcs}`);
+      assert.equal(sz.suly, hu[i].suly);
+      assert.ok(!("cim_en" in sz));
+    });
+  }
 });

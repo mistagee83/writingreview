@@ -7,13 +7,15 @@
 
 const FORRAS = "2026 - Középszintű október/k_angol_26okt_ut.pdf; 2026 - Emeltszintű október/e_angol_26okt_ut.pdf";
 
+// cim: a hivatalos magyar név; cim_en: az angol felület (és az angolul kiadott feladat) neve – a szerver a tanár
+// nyelvén adja (functions/feladattar.js), a tanár feladatába csak az egyik kerül, „cim” néven.
 const SZ = {
-  feladat5: { kulcs: "feladat", cim: "A feladat teljesítése és a szöveg hosszúsága" },
-  feladat: { kulcs: "feladat", cim: "A feladat teljesítése, a megadott szempontok követése" },
-  hangnem: { kulcs: "hangnem", cim: "Hangnem, az olvasóban keltett benyomás" },
-  szovegalkotas: { kulcs: "szovegalkotas", cim: "Szövegalkotás" },
-  szokincs: { kulcs: "szokincs", cim: "Szókincs, kifejezésmód" },
-  nyelvhelyesseg: { kulcs: "nyelvhelyesseg", cim: "Nyelvhelyesség, helyesírás" },
+  feladat5: { kulcs: "feladat", cim: "A feladat teljesítése és a szöveg hosszúsága", cim_en: "Task achievement and text length" },
+  feladat: { kulcs: "feladat", cim: "A feladat teljesítése, a megadott szempontok követése", cim_en: "Task achievement, covering the given points" },
+  hangnem: { kulcs: "hangnem", cim: "Hangnem, az olvasóban keltett benyomás", cim_en: "Tone and effect on the reader" },
+  szovegalkotas: { kulcs: "szovegalkotas", cim: "Szövegalkotás", cim_en: "Organisation and coherence" },
+  szokincs: { kulcs: "szokincs", cim: "Szókincs, kifejezésmód", cim_en: "Vocabulary and expression" },
+  nyelvhelyesseg: { kulcs: "nyelvhelyesseg", cim: "Nyelvhelyesség, helyesírás", cim_en: "Grammar and spelling" },
 };
 const sz = (alap, suly) => ({ ...alap, suly });
 

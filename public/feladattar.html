@@ -31,7 +31,7 @@
 
   <main class="main">
     <div class="page-header tar-fejlec">
-      <span class="tar-fejlec-ikon" id="fejlec-ikon"></span>
+      <span class="tar-fejlec-ikon" aria-hidden="true">🎓</span>
       <div>
         <h1 data-i18n="tar.cim">Érettségi feladattár</h1>
         <p data-i18n="tar.alcim">A kétszintű angol érettségi írásfeladatai 2005-től, a hivatalos értékelési szempontokkal.</p>
@@ -52,12 +52,10 @@
   import { oldalsav } from './js/nav.js';
   import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
   import { functions, httpsCallable } from './js/firebase-config.js';
-  import { FELADATTAR_IKON } from './js/feladattar-ikon.js';
   import { vizsgaNev, mufajNev, szuresTar } from './js/feladattar-nezet.js';
 
   const { admin } = await vedettOldal('tanar');
   oldalsav('feladattar.html', { admin });
-  document.getElementById('fejlec-ikon').innerHTML = FELADATTAR_IKON;
 
   const feladattarLista = httpsCallable(functions, 'feladattarLista');
   const feladattarElonezet = httpsCallable(functions, 'feladattarElonezet');
@@ -228,7 +226,7 @@
     if (!elonezetek.has(id)) {
       const vissza = gombVar(gomb, t('kozos.betoltes'));
       try {
-        const { data } = await feladattarElonezet({ id });
+        const { data } = await feladattarElonezet({ id, nyelv: nyelv() });
         elonezetek.set(id, data);
       } catch (e) {
         vissza();

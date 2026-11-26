@@ -2660,7 +2660,7 @@ async function feladattarListaLogika(firestore, uid, beallitasok = BEALLITASOK) 
 /** Egy tárbeli feladat előnézete: a diáknak szóló feladat és a sablon szempontjai. */
 async function feladattarElonezetLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
   await erettsegiTarKapu(firestore, uid, beallitasok);
-  const nezet = feladattar.elonezet(adat?.id);
+  const nezet = feladattar.elonezet(adat?.id, { nyelv: adat?.nyelv });
   if (!nezet) throw hiba("not-found", "tar_feladat_nincs");
   return nezet;
 }
@@ -2682,10 +2682,10 @@ async function feladattarbolFeladatLogika(firestore, uid, adat, beallitasok = BE
   return { feladatId: ref.id };
 }
 
-/** A négy érettségi sablon a feladat-űrlap sablonlistájához. */
-async function erettsegiSablonokLogika(firestore, uid, beallitasok = BEALLITASOK) {
+/** A négy érettségi sablon a feladat-űrlap sablonlistájához (a szempontnevek a felület nyelvén: adat.nyelv). */
+async function erettsegiSablonokLogika(firestore, uid, adat, beallitasok = BEALLITASOK) {
   await erettsegiTarKapu(firestore, uid, beallitasok);
-  return { sablonok: feladattar.sablonok() };
+  return { sablonok: feladattar.sablonok({ nyelv: adat?.nyelv }) };
 }
 
 exports.feladattarLista = onCall(HIVAS_OPCIOK, async (request) => {
@@ -2701,7 +2701,7 @@ exports.feladattarbolFeladat = onCall(HIVAS_OPCIOK, async (request) => {
 });
 
 exports.erettsegiSablonok = onCall(HIVAS_OPCIOK, async (request) => {
-  return erettsegiSablonokLogika(db(), tanar(request));
+  return erettsegiSablonokLogika(db(), tanar(request), request.data);
 });
 
 Object.assign(exports._teszt, {

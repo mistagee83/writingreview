@@ -189,8 +189,6 @@ body {
   font-weight: 500;
 }
 .nav-icon { font-size: 1.1rem; }
-/* Az Érettségi feladattár SVG-ikonja (js/feladattar-ikon.js): az emojik méretéhez igazítva */
-.tar-ikon { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0.25em; }
 
 /* ── MAIN + FEJLÉC ── */
 .main { padding: 2.5rem; }
@@ -1808,8 +1806,7 @@ details.beadott-szoveg:not([open]) > summary.panel-header { border-bottom: 0; }
 
 /* ── ÉRETTSÉGI FELADATTÁR (feladattar.html) ── */
 .tar-fejlec { display: flex; align-items: center; gap: 1rem; }
-.tar-fejlec-ikon .tar-ikon { width: 3rem; height: 3rem; vertical-align: middle; }
-.module-icon .tar-ikon { width: 2.4rem; height: 2.4rem; }
+.tar-fejlec-ikon { font-size: 2.6rem; line-height: 1; }
 .tar-szurok { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0 1rem; margin-bottom: 0.5rem; }
 .tar-szurok .tar-kereso { grid-column: 1 / -1; }
 .tar-szurok select, .tar-szurok input { width: 100%; }
@@ -1831,5 +1828,5 @@ details.beadott-szoveg:not([open]) > summary.panel-header { border-bottom: 0; }
 .tar-zar-lista { margin: 0.75rem 0 0 1.25rem; line-height: 1.7; }
 @media (max-width: 700px) {
   .tar-elonezet { grid-template-columns: 1fr; padding: 1rem; }
-  .tar-fejlec-ikon .tar-ikon { width: 2.4rem; height: 2.4rem; }
+  .tar-fejlec-ikon { font-size: 2.1rem; }
 }

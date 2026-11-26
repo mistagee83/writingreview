@@ -15,16 +15,19 @@
           {
             "kulcs": "feladat",
             "cim": "A feladat teljesítése és a szöveg hosszúsága",
+            "cim_en": "Task achievement and text length",
             "suly": 5
           },
           {
             "kulcs": "szokincs",
             "cim": "Szókincs, kifejezésmód",
+            "cim_en": "Vocabulary and expression",
             "suly": 3
           },
           {
             "kulcs": "nyelvhelyesseg",
             "cim": "Nyelvhelyesség, helyesírás",
+            "cim_en": "Grammar and spelling",
             "suly": 3
           }
         ],
@@ -44,26 +47,31 @@
           {
             "kulcs": "feladat",
             "cim": "A feladat teljesítése, a megadott szempontok követése",
+            "cim_en": "Task achievement, covering the given points",
             "suly": 6
           },
           {
             "kulcs": "hangnem",
             "cim": "Hangnem, az olvasóban keltett benyomás",
+            "cim_en": "Tone and effect on the reader",
             "suly": 2
           },
           {
             "kulcs": "szovegalkotas",
             "cim": "Szövegalkotás",
+            "cim_en": "Organisation and coherence",
             "suly": 4
           },
           {
             "kulcs": "szokincs",
             "cim": "Szókincs, kifejezésmód",
+            "cim_en": "Vocabulary and expression",
             "suly": 5
           },
           {
             "kulcs": "nyelvhelyesseg",
             "cim": "Nyelvhelyesség, helyesírás",
+            "cim_en": "Grammar and spelling",
             "suly": 5
           }
         ],
@@ -83,26 +91,31 @@
           {
             "kulcs": "feladat",
             "cim": "A feladat teljesítése, a megadott szempontok követése",
+            "cim_en": "Task achievement, covering the given points",
             "suly": 4
           },
           {
             "kulcs": "hangnem",
             "cim": "Hangnem, az olvasóban keltett benyomás",
+            "cim_en": "Tone and effect on the reader",
             "suly": 2
           },
           {
             "kulcs": "szovegalkotas",
             "cim": "Szövegalkotás",
+            "cim_en": "Organisation and coherence",
             "suly": 3
           },
           {
             "kulcs": "szokincs",
             "cim": "Szókincs, kifejezésmód",
+            "cim_en": "Vocabulary and expression",
             "suly": 3
           },
           {
             "kulcs": "nyelvhelyesseg",
             "cim": "Nyelvhelyesség, helyesírás",
+            "cim_en": "Grammar and spelling",
             "suly": 3
           }
         ],
@@ -122,21 +135,25 @@
           {
             "kulcs": "feladat",
             "cim": "A feladat teljesítése, a megadott szempontok követése",
+            "cim_en": "Task achievement, covering the given points",
             "suly": 4
           },
           {
             "kulcs": "szovegalkotas",
             "cim": "Szövegalkotás",
+            "cim_en": "Organisation and coherence",
             "suly": 5
           },
           {
             "kulcs": "szokincs",
             "cim": "Szókincs, kifejezésmód",
+            "cim_en": "Vocabulary and expression",
             "suly": 3
           },
           {
             "kulcs": "nyelvhelyesseg",
             "cim": "Nyelvhelyesség, helyesírás",
+            "cim_en": "Grammar and spelling",
             "suly": 3
           }
         ],
