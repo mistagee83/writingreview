@@ -14,7 +14,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import {
   KORNYEZETEK, WEB_KONFIG_KULCSOK, konfigBetoltes, konfigHibak, kornyezetJs, firebaseConfigCsere,
-  kornyezetValasztas, celProjekt, deployParameterHiba, deployAgHiba
+  kornyezetValasztas, celProjekt, deployParameterHiba, deployAgHiba, envBetoltes
 } from "../scripts/kornyezet-config.mjs";
 
 const require = createRequire(new URL("../functions/package.json", import.meta.url));
@@ -78,6 +78,22 @@ test("az önkiszolgáló tanári regisztráció mindkét környezetben él (a pi
   assert.equal(beallitasok({}).tanariOnregisztracio, true);
   // a public/ (helyi előnézet, pilot) a pilot értékét hordozza
   assert.match(publikus("kornyezet.js"), /export const TANARI_ONREGISZTRACIO = true;/);
+});
+
+test("az Érettségi feladattár: a prodban a jogi kérdések tisztázásáig ki van kapcsolva, a kliens és a szerver egyezően", () => {
+  assert.equal(pilot.erettsegi_tar, true, "helyi előnézet és emulátor: él");
+  assert.equal(prod.erettsegi_tar, false, "a prod a jogi válaszig zárva (terv 7.)");
+  // a szerver: a prodban csak ERETTSEGI_TAR=igen nyitja meg (functions/.env.prod)
+  const prodEnv = envBetoltes(new URL("../functions/.env.prod", import.meta.url));
+  assert.equal(beallitasok({ KORNYEZET: "prod", ...prodEnv }).erettsegiTar, prod.erettsegi_tar);
+  assert.equal(beallitasok({ KORNYEZET: "pilot" }).erettsegiTar, pilot.erettsegi_tar);
+  assert.equal(beallitasok({ KORNYEZET: "prod", ERETTSEGI_TAR: "igen" }).erettsegiTar, true);
+  assert.equal(beallitasok({ KORNYEZET: "prod", ERETTSEGI_TAR: "nem" }).erettsegiTar, false);
+  assert.match(publikus("kornyezet.js"), /export const ERETTSEGI_TAR = true;/);
+  assert.match(kornyezetJs(prod, publikus("kornyezet.js")), /export const ERETTSEGI_TAR = false;/);
+  const rossz = structuredClone(pilot);
+  rossz.erettsegi_tar = "igen";
+  assert.ok(konfigHibak(rossz).some((h) => h.startsWith("erettsegi_tar")));
 });
 
 test("a konfig-ellenőrzés elkapja a hibás értékeket", () => {

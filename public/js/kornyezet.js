@@ -20,6 +20,9 @@ export const HUB_URL = "";
 // A szerver ugyanezt a KORNYEZET-ből dönti el (functions/kornyezet.js), ezért a
 // kettőnek egyeznie kell – a tests/kornyezet.test.mjs ellenőrzi.
 export const TANARI_ONREGISZTRACIO = true;
+// Az Érettségi feladattár (menüpont, feladattar.html, az érettségi sablonok a feladat-űrlapon). A szerver a
+// prodban az ERETTSEGI_TAR=igen-ből dönti el (functions/kornyezet.js); a kettő a tests/kornyezet.test.mjs-ben egyeztetve.
+export const ERETTSEGI_TAR = true;
 export const TESZT_SAV = false;
 // Az App Check (reCAPTCHA Enterprise) webkulcsa a diákoldalakhoz (iras.html, visszajelzes.html); üresen nincs App Check.
 // A szerver csak akkor követeli meg, ha a functions/.env.<alias>-ban APP_CHECK=igen (8e, docs/folytatas.md).

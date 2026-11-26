@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="tar.oldalcim">WritingReview – Érettségi feladattár</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f0f0f"/>
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="WritingReview"/>
+  <script src="js/tema-korai.js"></script>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<div id="loading-screen" data-i18n="kozos.betoltes">Betöltés...</div>
+
+<div class="topbar gated" id="topbar">
+  <div class="brand">Writing<span>Review</span></div>
+  <div class="topbar-right">
+    <div class="user-info"><span class="csak-nagy" data-i18n="kozos.tanar_fejlec">👨‍🏫 Tanár &nbsp;|&nbsp;</span><strong id="user-name">–</strong></div>
+    <button class="btn-logout" onclick="logout()" data-i18n="kozos.kilepes">Kilépés</button>
+  </div>
+</div>
+
+<div class="layout gated" id="app-layout">
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <main class="main">
+    <div class="page-header tar-fejlec">
+      <span class="tar-fejlec-ikon" id="fejlec-ikon"></span>
+      <div>
+        <h1 data-i18n="tar.cim">Érettségi feladattár</h1>
+        <p data-i18n="tar.alcim">A kétszintű angol érettségi írásfeladatai 2005-től, a hivatalos értékelési szempontokkal.</p>
+      </div>
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <div id="tartalom">
+      <div class="empty-state bare"><div class="spinner"></div></div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { t, nyelv, tipusNev } from './js/i18n.js';
+  import { vedettOldal, esc } from './js/guard.js';
+  import { oldalsav } from './js/nav.js';
+  import { uzenet, uzenetTorles, hibaSzoveg, gombVar } from './js/ui.js';
+  import { functions, httpsCallable } from './js/firebase-config.js';
+  import { FELADATTAR_IKON } from './js/feladattar-ikon.js';
+  import { vizsgaNev, mufajNev, szuresTar } from './js/feladattar-nezet.js';
+
+  const { admin } = await vedettOldal('tanar');
+  oldalsav('feladattar.html', { admin });
+  document.getElementById('fejlec-ikon').innerHTML = FELADATTAR_IKON;
+
+  const feladattarLista = httpsCallable(functions, 'feladattarLista');
+  const feladattarElonezet = httpsCallable(functions, 'feladattarElonezet');
+  const feladattarbolFeladat = httpsCallable(functions, 'feladattarbolFeladat');
+
+  const tartalom = document.getElementById('tartalom');
+  let feladatok = [];
+  let elkeszitett = new Set();
+  // Az előnézetek gyorstára (egy feladatot csak egyszer kérünk le)
+  const elonezetek = new Map();
+
+  // ══════════════════════════════════════════
+  // ZÁRT ÉS HIBAÁLLAPOTOK
+  // ══════════════════════════════════════════
+  /** Hub pass nélkül: rövid bemutató a Hub pass linkjével (mint az osztályszintű elemzésnél). */
+  function zarKartya() {
+    tartalom.innerHTML = `
+      <div class="panel">
+        <div class="panel-header"><h2>${t('tar.zar_cim')}</h2></div>
+        <div class="panel-body">
+          <p>${t('tar.zar_szoveg')}</p>
+          <ul class="tar-zar-lista">
+            <li>${t('tar.zar_pont1')}</li>
+            <li>${t('tar.zar_pont2')}</li>
+            <li>${t('tar.zar_pont3')}</li>
+          </ul>
+          <div class="gomb-sor">
+            <a class="btn-primary" href="tanar.html#kredit-panel">${t('tar.zar_gomb')}</a>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function uresAllapot(szoveg) {
+    tartalom.innerHTML = `<div class="empty-state"><p>${esc(szoveg)}</p></div>`;
+  }
+
+  // ══════════════════════════════════════════
+  // SZŰRŐK + LISTA
+  // ══════════════════════════════════════════
+  function opciok(ertekek, cimke, osszes) {
+    return `<option value="">${esc(osszes)}</option>` +
+      ertekek.map((v) => `<option value="${esc(v)}">${esc(cimke(v))}</option>`).join('');
+  }
+
+  function vaz() {
+    const evek = [...new Set(feladatok.map((f) => f.vizsga.ev))].sort((a, b) => b - a);
+    const idoszakok = ['febr', 'maj', 'maj2', 'okt', 'nov'].filter((i) => feladatok.some((f) => f.vizsga.idoszak === i));
+    const mufajok = [...new Set(feladatok.map((f) => f.mufaj))].sort((a, b) => mufajNev(a).localeCompare(mufajNev(b)));
+    tartalom.innerHTML = `
+      <div class="tar-szurok">
+        <div class="form-group tar-kereso">
+          <label for="sz-kereses">${t('tar.kereses')}</label>
+          <input type="search" id="sz-kereses" placeholder="${esc(t('tar.kereses_pelda'))}" />
+        </div>
+        <div class="form-group">
+          <label for="sz-szint">${t('tar.szint')}</label>
+          <select id="sz-szint">${opciok(['kozep', 'emelt'], (v) => t(`tar.szint_${v}`), t('tar.mind'))}</select>
+        </div>
+        <div class="form-group">
+          <label for="sz-ev">${t('tar.ev')}</label>
+          <select id="sz-ev">${opciok(evek.map(String), (v) => v, t('tar.mind'))}</select>
+        </div>
+        <div class="form-group">
+          <label for="sz-idoszak">${t('tar.idoszak')}</label>
+          <select id="sz-idoszak">${opciok(idoszakok, (v) => t(`tar.idoszak_${v}`), t('tar.mind'))}</select>
+        </div>
+        <div class="form-group">
+          <label for="sz-sorszam">${t('tar.sorszam')}</label>
+          <select id="sz-sorszam">${opciok(['1', '2'], (v) => t(`tar.sorszam_${v}`), t('tar.mind'))}</select>
+        </div>
+        <div class="form-group">
+          <label for="sz-mufaj">${t('tar.mufaj')}</label>
+          <select id="sz-mufaj">${opciok(mufajok, mufajNev, t('tar.mind'))}</select>
+        </div>
+      </div>
+      <p class="halvany" id="talalatok" aria-live="polite"></p>
+      <div id="tar-lista"></div>`;
+
+    for (const id of ['sz-szint', 'sz-ev', 'sz-idoszak', 'sz-sorszam', 'sz-mufaj']) {
+      document.getElementById(id).addEventListener('change', rajzolLista);
+    }
+    document.getElementById('sz-kereses').addEventListener('input', rajzolLista);
+    document.getElementById('tar-lista').addEventListener('click', kattintas);
+    rajzolLista();
+  }
+
+  function szurok() {
+    const v = (id) => document.getElementById(id).value;
+    return {
+      kereses: v('sz-kereses'), szint: v('sz-szint'), ev: v('sz-ev'),
+      idoszak: v('sz-idoszak'), sorszam: v('sz-sorszam'), mufaj: v('sz-mufaj')
+    };
+  }
+
+  function kartya(f) {
+    const kesz = elkeszitett.has(f.id);
+    return `
+      <div class="tar-kartya" data-id="${esc(f.id)}">
+        <div class="list-card">
+          <div>
+            <h3>${esc(f.cim)}</h3>
+            <div class="list-card-meta">
+              <span>${esc(vizsgaNev(f.vizsga))}</span>
+              <span>${esc(t(`tar.sorszam_${f.sorszam}`))}</span>
+              <span>${esc(mufajNev(f.mufaj))} · ${esc(f.szoszam)}</span>
+              ${kesz ? `<span class="badge aktiv">${t('tar.elkeszitve')}</span>` : ''}
+            </div>
+          </div>
+          <div class="list-card-actions">
+            <button class="btn-sm" data-akcio="elonezet" aria-expanded="false">${t('tar.elonezet_gomb')}</button>
+            <button class="btn-sm kiemelt" data-akcio="keszit">${t('tar.keszit_gomb')}</button>
+          </div>
+        </div>
+        <div class="tar-elonezet" hidden></div>
+      </div>`;
+  }
+
+  function rajzolLista() {
+    const talalat = szuresTar(feladatok, szurok());
+    document.getElementById('talalatok').textContent = t('tar.talalatok', { db: talalat.length, ossz: feladatok.length });
+    document.getElementById('tar-lista').innerHTML = talalat.length
+      ? talalat.map(kartya).join('')
+      : `<div class="empty-state bare"><p>${t('tar.nincs_talalat')}</p></div>`;
+  }
+
+  // ══════════════════════════════════════════
+  // ELŐNÉZET
+  // ══════════════════════════════════════════
+  function elonezetHtml(e) {
+    const bemenet = e.bemenet
+      ? `<div class="tar-bemenet">
+           ${e.bemenet.cim ? `<p><strong>${esc(e.bemenet.cim)}</strong></p>` : ''}
+           ${e.bemenet.bekezdesek.map((b) => `<p>${esc(b)}</p>`).join('')}
+         </div>`
+      : '';
+    const szempontok = e.sablon.szempontok.map((sz) =>
+      `<tr><td>${esc(sz.cim)}</td><td class="tar-pont">${t('tar.pont', { n: sz.suly })}</td></tr>`).join('');
+    return `
+      <div class="tar-feladat" lang="en">
+        <p>${esc(e.helyzet)}</p>
+        ${bemenet}
+        <p>${esc(e.teendo)}</p>
+        <ul>${e.iranyito_szempontok.map((sz) => `<li>${esc(sz)}</li>`).join('')}</ul>
+        ${e.zaro_utasitas ? `<p>${esc(e.zaro_utasitas)}</p>` : ''}
+        ${e.kezdes ? `<p class="halvany">Begin like this:</p><p class="tar-kezdes">${esc(e.kezdes)}</p>` : ''}
+      </div>
+      <div class="tar-adatok">
+        <h4>${t('tar.szempontok_cim', { sablon: t(`tar.sablon_${e.sablon.id}`) })}</h4>
+        <table class="tar-szempontok">
+          <tbody>${szempontok}</tbody>
+          <tfoot><tr><td>${t('tar.osszesen')}</td><td class="tar-pont">${t('tar.pont', { n: e.sablon.osszpont })}</td></tr></tfoot>
+        </table>
+        <p class="halvany">${esc(t('tar.tipus_szoszam', { tipus: tipusNev(e.tipus), szoszam: e.szoszam.szoveg }))}</p>
+        <p class="halvany">${esc(t('tar.forras', { vizsga: vizsgaNev(e.vizsga) }))}</p>
+      </div>`;
+  }
+
+  async function elonezetValt(kartyaEl, gomb) {
+    const doboz = kartyaEl.querySelector('.tar-elonezet');
+    if (!doboz.hidden) {
+      doboz.hidden = true;
+      gomb.setAttribute('aria-expanded', 'false');
+      gomb.textContent = t('tar.elonezet_gomb');
+      return;
+    }
+    const id = kartyaEl.dataset.id;
+    if (!elonezetek.has(id)) {
+      const vissza = gombVar(gomb, t('kozos.betoltes'));
+      try {
+        const { data } = await feladattarElonezet({ id });
+        elonezetek.set(id, data);
+      } catch (e) {
+        vissza();
+        uzenet('msg', hibaSzoveg(e));
+        return;
+      }
+      vissza();
+    }
+    doboz.innerHTML = elonezetHtml(elonezetek.get(id));
+    doboz.hidden = false;
+    gomb.setAttribute('aria-expanded', 'true');
+    gomb.textContent = t('tar.elonezet_zar');
+  }
+
+  // ══════════════════════════════════════════
+  // FELADAT KÉSZÍTÉSE
+  // A szerver hozza létre a tanár saját feladatát; utána a megszokott űrlap nyílik
+  // (jegyskála, határidő, a leírás átírása), a feladatlistán.
+  // ══════════════════════════════════════════
+  async function keszit(kartyaEl, gomb) {
+    uzenetTorles('msg');
+    const id = kartyaEl.dataset.id;
+    if (elkeszitett.has(id) && !confirm(t('tar.mar_kesz_kerdes'))) return;
+    const vissza = gombVar(gomb, t('tar.keszites_folyamat'));
+    try {
+      const { data } = await feladattarbolFeladat({ id, kimenetiNyelv: nyelv() === 'en' ? 'en' : 'hu' });
+      window.location.href = `feladatok.html?szerkeszt=${encodeURIComponent(data.feladatId)}&tarbol=1`;
+    } catch (e) {
+      vissza();
+      if (e?.details?.kod === 'erettsegi_hub_pass_kell') { zarKartya(); return; }
+      uzenet('msg', t('tar.keszites_hiba', { ok: hibaSzoveg(e) }));
+    }
+  }
+
+  function kattintas(ev) {
+    const gomb = ev.target.closest('button[data-akcio]');
+    if (!gomb) return;
+    const kartyaEl = gomb.closest('.tar-kartya');
+    if (gomb.dataset.akcio === 'elonezet') elonezetValt(kartyaEl, gomb);
+    else if (gomb.dataset.akcio === 'keszit') keszit(kartyaEl, gomb);
+  }
+
+  // ══════════════════════════════════════════
+  // INDULÁS
+  // ══════════════════════════════════════════
+  try {
+    const { data } = await feladattarLista();
+    feladatok = data.feladatok || [];
+    elkeszitett = new Set(data.elkeszitett || []);
+    vaz();
+  } catch (e) {
+    const kod = e?.details?.kod;
+    if (kod === 'erettsegi_hub_pass_kell') zarKartya();
+    else if (kod === 'erettsegi_tar_ki') uresAllapot(t('tar.nem_elerheto'));
+    else {
+      console.error(e);
+      uresAllapot(t('tar.betoltesi_hiba', { ok: hibaSzoveg(e) }));
+    }
+  }
+</script>
+</body>
+</html>

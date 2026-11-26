@@ -6,6 +6,7 @@
   "kredit": false,
   "hub_url": "",
   "tanari_onregisztracio": true,
+  "erettsegi_tar": true,
   "app_check_kulcs": "",
   "webConfig": {
     "apiKey": "AIzaSyB7d7ilMAAePfI-v43j-d8XiMwaVUDPQFY",

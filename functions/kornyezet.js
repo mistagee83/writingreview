@@ -59,6 +59,10 @@ function beallitasok(env = process.env) {
     // A hub fiókoldala (kredit, Hub pass) és adminja (kézi jóváírás): HUB_FIOK_URL / HUB_ADMIN_URL a functions/.env.<alias>-ban.
     hubFiokUrl: hubUrl(env.HUB_FIOK_URL, "https://mrandrewshub.com/account"),
     hubAdminUrl: hubUrl(env.HUB_ADMIN_URL, "https://mrandrewshub.com/admin/#/credits"),
+    // Az Érettségi feladattár (docs/erettsegi-feladattar-terv.md): a prodban csak ERETTSEGI_TAR=igen nyitja meg
+    // (a jogi kérdések tisztázásáig ki van kapcsolva, terv 7.); máshol (helyi előnézet, emulátor) él.
+    // A kliens ugyanezt a config/<env>.json erettsegi_tar mezőjéből tudja – a tests/kornyezet.test.mjs egyezteti.
+    erettsegiTar: kornyezet !== "prod" || String(env.ERETTSEGI_TAR || "").trim().toLowerCase() === "igen",
     cors: corsLista(projekt, env.ENGEDELYEZETT_DOMAINEK)
   };
 }

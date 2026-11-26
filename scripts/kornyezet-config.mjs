@@ -116,6 +116,8 @@ export function konfigHibak(cfg, { kitoltott = false, elvartKornyezet, celProjek
     hibak.push("hub_url: https://-eredet (perjel nélkül) vagy üres szöveg");
   }
   if (typeof cfg?.tanari_onregisztracio !== "boolean") hibak.push("tanari_onregisztracio: logikai érték kell");
+  // Az Érettségi feladattár menüpontja és oldala (a szerveren: ERETTSEGI_TAR, functions/kornyezet.js).
+  if (typeof cfg?.erettsegi_tar !== "boolean") hibak.push("erettsegi_tar: logikai érték kell");
   // Az App Check (reCAPTCHA Enterprise) webkulcsa: nem titok, a böngészőbe kerül; üresen nincs App Check.
   if (typeof cfg?.app_check_kulcs !== "string" || !/^[A-Za-z0-9_-]{0,100}$/.test(cfg.app_check_kulcs)) {
     hibak.push("app_check_kulcs: a reCAPTCHA Enterprise webkulcsa (betű, szám, _ vagy -), vagy üres szöveg");
@@ -163,6 +165,7 @@ export function kornyezetJs(cfg, sablon) {
     KREDIT: JSON.stringify(cfg.kredit),
     HUB_URL: JSON.stringify(cfg.hub_url || ""),
     TANARI_ONREGISZTRACIO: JSON.stringify(cfg.tanari_onregisztracio),
+    ERETTSEGI_TAR: JSON.stringify(cfg.erettsegi_tar),
     TESZT_SAV: JSON.stringify(cfg.teszt_sav),
     APP_CHECK_KULCS: JSON.stringify(cfg.app_check_kulcs || "")
   };

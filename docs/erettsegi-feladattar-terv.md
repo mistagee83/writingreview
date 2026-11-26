@@ -67,7 +67,10 @@ együtt települ, és **csak tanári hívható függvényen**, Hub pass-ellenőr
 
 ### A folyamat
 
-1. **Tanár: 📚 Érettségi feladattár** (új menüpont, új oldal: `feladattar.html`). Hub pass nélkül az oldal egy rövid
+1. **Tanár: Érettségi feladattár** (új menüpont, új oldal: `feladattar.html`). Ikonja nem emoji, hanem a saját
+   „pecsétes lap” rajz (`public/js/feladattar-ikon.js`, a tulajdonos döntése 2026-11-26). A menüben, a kezdőlap
+   kártyáján és az oldal fejlécében **beágyazva** (inline SVG) jelenik meg, nem `<img>`-ként, mert a színe a `--ink`
+   és az `--accent` változóból jön, így követi a színválasztót. Hub pass nélkül az oldal egy rövid
    bemutatót mutat a Hub pass linkjével (mint az osztályszintű elemzés zárolt állapota). Hub passszal: szűrők (szint,
    év, időszak, 1./2. feladat, műfaj) és keresés a címben és a helyzetben.
 2. **Előnézet:** a diáknak szóló feladat (helyzet, bemeneti szöveg, teendő, irányító szempontok, szószám) és a
@@ -352,7 +355,7 @@ döntheti el azt is, hogy a diák a bemeneti szöveget szó szerint vagy összef
    `sablonok.json`, a kinyerő szkriptekkel (`scripts/erettsegi/`), ellenőrzővel, oldalképes ellenőrzéssel és emberi
    szúrópróbával; a kimaradt és a kétes esetek listája a tulajdonosnak.
 2. **Tár a kódban:** a fájlok helye, az ellenőrző szkript, teszt (minden fájl átmegy).
-3. **Tár-felület és függvények:** `feladattar.html`, a lista-, előnézet- és létrehozó függvény, az érettségi sablonok
+3. **Tár-felület és függvények** – *kész (2026-11-26), lásd lent a megvalósítás jegyzetét*: `feladattar.html`, a lista-, előnézet- és létrehozó függvény, az érettségi sablonok
    a sablonlistában, Hub pass-zár (`erettsegi_tar`), szótárkulcsok (hu + en); tesztek (jogosultság, zár, a tárból
    készült feladat a teljes úton, emulátorral).
 4. **Nyitóoldal Matura-szakasza** (`#matura`), teszt a `#sso` mellett; a `landing.test.mjs` ígéretkötése.
@@ -361,3 +364,21 @@ döntheti el azt is, hogy a diák a bemeneti szöveget szó szerint vagy összef
    nincs szabályteendő, ha a 2. fejezet szerint épül).
 
 A pilot ágat nem érinti; minden új funkció csak a `main`-re kerül.
+
+### A 3. lépés megvalósítása (2026-11-26)
+
+- **Szerver:** `functions/feladattar.js` (tiszta modul: lista, előnézet, leírás, rubrika) és négy hívható függvény az
+  `index.js` 13/b. részében: `feladattarLista`, `feladattarElonezet`, `feladattarbolFeladat`, `erettsegiSablonok`.
+  Mind tanári, mind a `erettsegiTarKapu` mögött (előbb a környezet kapcsolója, utána a Hub pass: `erettsegi_tar`).
+- **Kapcsoló a jogi válaszig:** a prodban a tár **ki van kapcsolva**, hogy egy más okból kimenő deploy se nyissa meg.
+  Szerveren `ERETTSEGI_TAR=igen` (`functions/.env.prod`), kliensen `erettsegi_tar: true` (`config/prod.json`)
+  nyitja; a kettőt a `tests/kornyezet.test.mjs` egyezteti. Helyi előnézetben és emulátorban él.
+- **A feladat leírása** (`rubrika.feladat_leiras`): helyzet, bemeneti szöveg, teendő, irányító szempontok (`•`),
+  záró utasítás, „Begin like this:” + kezdés. A forrás (URL), a lapszámok és a kinyerési megjegyzések nem kerülnek
+  ki; az előnézet alján „Forrás: Oktatási Hivatal, <vizsga>” áll (a feladat leírásában nem).
+- **Kliens:** `feladattar.html` (szűrők, keresés ékezet nélkül is, előnézet, „Már elkészítetted” jelzés, Hub pass
+  nélkül bemutató kártya), `js/feladattar-nezet.js` (feliratok, szűrés), menüpont és kezdőlap-kártya. A „Feladat
+  készítése” után a feladatlista nyílik a feladat szerkesztőjével (`feladatok.html?szerkeszt=<id>&tarbol=1`). A
+  feladat-űrlap sablonlistájában külön csoportban a négy érettségi sablon (csak olvasható); Hub pass nélkül nem jelenik meg.
+- **Tesztek:** `tests/feladattar-tar.test.mjs` (emulátor nélkül) és `tests/feladattar-adatbazis.test.mjs` (zár, létrehozás,
+  a teljes linkes út, az értékelő prompt).

@@ -238,6 +238,7 @@
   import { biztonsagosUrl } from './js/biztonsag.js';
   import { atmeretez, tulNagy, meret } from './js/kep.js';
   import { beillesztesBekotes } from './js/beillesztes.js';
+  import { ERETTSEGI_TAR } from './js/kornyezet.js';
   import { skalaUrlap, skalaMegjegyzes } from './js/skala-urlap.js';
   import {
     db, storage, functions, httpsCallable,
@@ -288,6 +289,10 @@
 
   // A lista dokumentumai, hogy szerkesztéskor ne kelljen újra lekérni
   const feladatok = {};
+
+  // Az Érettségi feladattárból készült feladat eredetjelzője (rubrika.tar = { id, verzio }). Az űrlap nem
+  // mutatja és nem írja, de szerkesztéskor és másoláskor megőrizzük: ebből tudja a tár, hogy a feladat elkészült.
+  let tarEredet = null;
 
   // Szótári kulcsok – a t() a megjelenítéskor fordít
   const FELIRATOK = {
@@ -347,6 +352,7 @@
       : '';
 
     rubrikaKitolt(f.rubrika || {});
+    tarEredet = f.rubrika?.tar || null;
     document.getElementById('r-leiras').value = f.rubrika?.feladat_leiras || '';
     kimenetEl.value = f.rubrika?.kimeneti_nyelv || 'hu';
     skalaUi.kitolt(f.rubrika);
@@ -535,6 +541,13 @@
   // ══════════════════════════════════════════
   const sablonValaszto = document.getElementById('sablon-valaszto');
   let sablonok = [];
+  // A négy érettségi sablon (Hub pass; a szerver adja: erettsegiSablonok). Csak olvasható: betölthető, nem
+  // törölhető és nem írható felül; a módosított változat a szokásos módon menthető saját sablonként.
+  let erettsegiSablonok = [];
+  const ERETTSEGI_ELOTAG = 'erettsegi:';
+  const valasztottSablon = () => sablonValaszto.value.startsWith(ERETTSEGI_ELOTAG)
+    ? erettsegiSablonok.find((x) => ERETTSEGI_ELOTAG + x.id === sablonValaszto.value)
+    : sablonok.find((x) => x.id === sablonValaszto.value);
 
   function rubrikaBeolvas() {
     return {
@@ -583,27 +596,56 @@
       ));
       sablonok = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-      sablonValaszto.innerHTML =
-        `<option value="">${esc(t('fel.sablon_betolt'))}</option>` +
-        sablonok.map((sb) => {
-          const pont = (sb.rubrika?.szempontok || [])
-            .reduce((a, sz) => a + (Number(sz.suly) || 0), 0);
-          return `<option value="${esc(sb.id)}">${esc(t('fel.sablon_opt', { nev: sb.nev, pont }))}</option>`;
-        }).join('');
+      sablonValasztoRajzol();
     } catch (e) {
       console.error('Sablonok betöltése:', e);
       uzenet('sablon-msg', t('fel.sablon_betoltesi_hiba'));
     }
   }
 
+  function sablonOpcio(ertek, nev, rubrika) {
+    const pont = (rubrika?.szempontok || []).reduce((a, sz) => a + (Number(sz.suly) || 0), 0);
+    return `<option value="${esc(ertek)}">${esc(t('fel.sablon_opt', { nev, pont }))}</option>`;
+  }
+
+  function sablonValasztoRajzol() {
+    const valasztott = sablonValaszto.value;
+    const sajat = sablonok.map((sb) => sablonOpcio(sb.id, sb.nev, sb.rubrika)).join('');
+    sablonValaszto.innerHTML =
+      `<option value="">${esc(t('fel.sablon_betolt'))}</option>` +
+      (erettsegiSablonok.length
+        ? `<optgroup label="${esc(t('fel.sablon_sajat_csoport'))}">${sajat}</optgroup>` +
+          `<optgroup label="${esc(t('fel.sablon_erettsegi_csoport'))}">` +
+          erettsegiSablonok.map((sb) => sablonOpcio(ERETTSEGI_ELOTAG + sb.id, t(`tar.sablon_${sb.id}`), sb.rubrika)).join('') +
+          '</optgroup>'
+        : sajat);
+    sablonValaszto.value = valasztott;
+  }
+
+  // Az érettségi sablonok: Hub pass nélkül a szerver elutasítja, ilyenkor egyszerűen nem jelennek meg.
+  async function erettsegiSablonokBetolt() {
+    if (!ERETTSEGI_TAR) return;
+    try {
+      const { data } = await httpsCallable(functions, 'erettsegiSablonok')();
+      erettsegiSablonok = data.sablonok || [];
+      sablonValasztoRajzol();
+    } catch (e) {
+      if (!['erettsegi_hub_pass_kell', 'erettsegi_tar_ki'].includes(e?.details?.kod)) {
+        console.error('Érettségi sablonok:', e);
+      }
+    }
+  }
+
   sablonValaszto.addEventListener('change', () => {
-    const sb = sablonok.find((x) => x.id === sablonValaszto.value);
-    document.getElementById('btn-sablon-torol').disabled = !sb;
+    const sb = valasztottSablon();
+    // az érettségi sablon csak olvasható: nem törölhető
+    document.getElementById('btn-sablon-torol').disabled = !sb || sablonValaszto.value.startsWith(ERETTSEGI_ELOTAG);
     uzenetTorles('sablon-msg');
     if (!sb) return;
     rubrikaKitolt(sb.rubrika || {});
     document.getElementById('rubrika-badge').style.display = 'none';
-    uzenet('sablon-msg', t('fel.sablon_betoltve', { nev: sb.nev }), 'success');
+    const nev = sablonValaszto.value.startsWith(ERETTSEGI_ELOTAG) ? t(`tar.sablon_${sb.id}`) : sb.nev;
+    uzenet('sablon-msg', t('fel.sablon_betoltve', { nev }), 'success');
   });
 
   document.getElementById('btn-sablon-ment').addEventListener('click', async (e) => {
@@ -667,6 +709,7 @@
   });
 
   sablonokBetolt();
+  erettsegiSablonokBetolt();
 
   // ══════════════════════════════════════════
   // FÁJL → AI RUBRIKA JAVASLAT
@@ -788,7 +831,9 @@
         feladat_leiras: document.getElementById('r-leiras').value.trim(),
         // Nem része a sablonnak: feladatonként állítható
         kimeneti_nyelv: kimenetEl.value,
-        skala: skalaEredmeny.skala
+        skala: skalaEredmeny.skala,
+        // A feladattárból készült feladat eredetjelzője megmarad (a másolaté is a tárból jön)
+        ...(tarEredet ? { tar: tarEredet } : {})
       };
       const hatarido = hataridoStr
         ? Timestamp.fromDate(new Date(hataridoStr + 'T23:59:59'))
@@ -863,6 +908,7 @@
     szintSkalaFrissit('angol');
     fajlPath = null;
     fajlUrl = null;
+    tarEredet = null;
     document.getElementById('fajl-hint').style.display = 'none';
     alapSzempontok();
     sablonValaszto.value = '';
@@ -960,6 +1006,22 @@
   // ══════════════════════════════════════════
   const lista = document.getElementById('lista');
 
+  // A feladattárból érkezve (feladattar.html → feladatok.html?szerkeszt=<id>&tarbol=1) a frissen elkészült
+  // feladat rögtön szerkesztésre nyílik: itt választja a tanár a jegyskálát, a határidőt, és itt írhat bele.
+  const keresParam = new URLSearchParams(location.search);
+  let nyitandoId = keresParam.get('szerkeszt');
+  const tarbolJott = keresParam.get('tarbol') === '1';
+  if (nyitandoId) history.replaceState(null, '', location.pathname);
+
+  async function nyitandoMegnyit() {
+    if (!nyitandoId || !feladatok[nyitandoId]) return;
+    const id = nyitandoId;
+    nyitandoId = null;
+    if (!(await feladatBetolt(id))) return;
+    panelNyit('szerkesztes', id);
+    if (tarbolJott) uzenet('form-msg', t('fel.tarbol_kesz'), 'success');
+  }
+
   onSnapshot(
     query(
       collection(db, 'feladatok'),
@@ -1001,6 +1063,7 @@
             </div>
           </div>`;
       }).join('');
+      nyitandoMegnyit();
     },
     (e) => {
       console.error(e);

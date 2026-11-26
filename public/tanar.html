@@ -80,6 +80,11 @@
         <div class="module-title" data-i18n="tanar.modul_elemzes_cim">Osztályszintű elemzés</div>
         <div class="module-desc"><span data-i18n="tanar.modul_elemzes_leiras">Egy feladat beadásaiból típushibák, javasolt gyakorlatok és kész feladatgeneráló prompt. A feladatlistából, a 📊 gombbal.</span> <strong class="csomag-jegyzet" data-i18n="tanar.jegyzet_hub_pass" hidden>A Hub pass része.</strong></div>
       </a>
+      <a class="module-card" href="feladattar.html" id="modul-feladattar" hidden>
+        <div class="module-icon" id="feladattar-ikon"></div>
+        <div class="module-title" data-i18n="tanar.modul_tar_cim">Érettségi feladattár</div>
+        <div class="module-desc"><span data-i18n="tanar.modul_tar_leiras">A közép- és emelt szintű angol érettségik írásfeladatai 2005-től, a hivatalos szempontokkal. Egy kattintással saját feladat lesz belőlük.</span> <strong class="csomag-jegyzet" data-i18n="tanar.jegyzet_hub_pass" hidden>A Hub pass része.</strong></div>
+      </a>
     </div>
   </main>
 </div>
@@ -89,6 +94,8 @@
   import { oldalsav } from './js/nav.js';
   import { t } from './js/i18n.js';
   import { temaAlkalmaz, ALAP_TEMA } from './js/tema.js';
+  import { ERETTSEGI_TAR } from './js/kornyezet.js';
+  import { FELADATTAR_IKON } from './js/feladattar-ikon.js';
   import {
     db, collection, getDocs, query, where, functions, httpsCallable
   } from './js/firebase-config.js';
@@ -98,6 +105,12 @@
   // a kapuzott UI-ban van, tehát addig nem is látszik.)
   const { user, admin } = await vedettOldal('tanar');
   oldalsav('tanar.html', { admin });
+
+  // Az Érettségi feladattár kártyája: csak ahol a környezetben él; az ikon beágyazott SVG (a színe a témából jön)
+  if (ERETTSEGI_TAR) {
+    document.getElementById('feladattar-ikon').innerHTML = FELADATTAR_IKON;
+    document.getElementById('modul-feladattar').hidden = false;
+  }
 
   // A számokat kliensoldalon összegezzük: egy tanárnál néhány osztály és
   // pár száz beadás a teljes adathalmaz, ez nem indokol számlálókat.

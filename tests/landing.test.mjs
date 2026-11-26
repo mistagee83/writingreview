@@ -60,7 +60,9 @@ test("a szövegek állításai egyeznek a kóddal: nyolc nyelv, kreditből fogy 
   // a Hub pass-kártya az elemzést, a fejlődéskövetést és a színválasztást ígéri – pontosan a zárt funkciókat
   const hubpass = html.slice(html.indexOf('data-i18n="landing.csomag_hubpass"'), html.indexOf('data-i18n="landing.csomag_kredit"'));
   for (const p of ["elemzes", "fejlodes", "szinek"]) assert.ok(hubpass.includes(`landing.pont_${p}`), p);
-  assert.deepEqual([...kredit.HUB_PASS_FUNKCIOK].sort(), ["fejlodes", "osztaly_elemzes", "szinvalasztas"]);
+  // Az érettségi feladattár (erettsegi_tar) is zárt, de a nyitóoldal még nem hirdeti: a jogi kérdések tisztázásáig a
+  // prodban ki van kapcsolva (config/prod.json erettsegi_tar). A Matura-szakasszal (terv 8. 4.) kerül a Hub pass-kártyára.
+  assert.deepEqual([...kredit.HUB_PASS_FUNKCIOK].sort(), ["erettsegi_tar", "fejlodes", "osztaly_elemzes", "szinvalasztas"]);
   // a nyitóoldal nem ír ki árat vagy kreditszámot: a számok a hub fiókoldalán vannak
   for (const [nyelv, szotar] of [["hu", hu], ["en", en]]) {
     for (const k of landingKulcsok(szotar).filter((k) => /csomag|pont_|hero_ingyenes|gyik[456]/.test(k))) {

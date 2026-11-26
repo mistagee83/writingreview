@@ -155,6 +155,10 @@ rubrika: {
   skala: { tipus: 'fokozat', fokozatok: [ { cimke: 1, min: 0 }, { cimke: 2, min: 40 } /* … */ ] }
                              // a jegyskála; régi feladatnál nincs: a ponthatarok-ból magyar 1–5.
                              // Részletek: mukodesi-leiras.md 7.8
+  tar: { id: '2024-maj-kozep-W2', verzio: 1 }
+                             // csak az Érettségi feladattárból készült feladatnál (a szerver írja,
+                             // feladattarbolFeladat): a tárbeli feladat azonosítója és a tár formátumverziója.
+                             // Az űrlap megőrzi szerkesztéskor és másoláskor. Lásd erettsegi-feladattar-terv.md 2.
 }
 ```
 

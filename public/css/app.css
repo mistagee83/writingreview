@@ -189,6 +189,8 @@ body {
   font-weight: 500;
 }
 .nav-icon { font-size: 1.1rem; }
+/* Az Érettségi feladattár SVG-ikonja (js/feladattar-ikon.js): az emojik méretéhez igazítva */
+.tar-ikon { display: inline-block; width: 1.3em; height: 1.3em; vertical-align: -0.25em; }
 
 /* ── MAIN + FEJLÉC ── */
 .main { padding: 2.5rem; }
@@ -284,7 +286,7 @@ label {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-input[type="text"], input[type="email"], input[type="password"], textarea {
+input[type="text"], input[type="email"], input[type="password"], input[type="search"], textarea {
   width: 100%;
   padding: 0.75rem 1rem;
   border: 1.5px solid var(--border);
@@ -378,6 +380,7 @@ input:focus, textarea:focus { border-color: var(--accent); }
   color: inherit;
 }
 .module-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-color: #ccc; }
+.module-card[hidden] { display: none; }
 .module-icon { font-size: 2rem; margin-bottom: 0.8rem; }
 .module-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 0.3rem; }
 .module-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
@@ -1802,3 +1805,31 @@ details.beadott-szoveg:not([open]) > summary.panel-header { border-bottom: 0; }
   font-weight: 700;
 }
 .user-info strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── ÉRETTSÉGI FELADATTÁR (feladattar.html) ── */
+.tar-fejlec { display: flex; align-items: center; gap: 1rem; }
+.tar-fejlec-ikon .tar-ikon { width: 3rem; height: 3rem; vertical-align: middle; }
+.module-icon .tar-ikon { width: 2.4rem; height: 2.4rem; }
+.tar-szurok { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0 1rem; margin-bottom: 0.5rem; }
+.tar-szurok .tar-kereso { grid-column: 1 / -1; }
+.tar-szurok select, .tar-szurok input { width: 100%; }
+#talalatok { margin-bottom: 0.75rem; }
+.tar-kartya { margin-bottom: 0.75rem; }
+.tar-kartya .list-card { margin-bottom: 0; }
+.tar-kartya:has(.tar-elonezet:not([hidden])) .list-card { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.tar-elonezet { background: #fff; border: 1.5px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; padding: 1.25rem 1.5rem; display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 1.5rem; }
+.tar-elonezet[hidden] { display: none; }
+.tar-feladat p, .tar-feladat ul { margin-bottom: 0.75rem; line-height: 1.6; font-size: 0.92rem; }
+.tar-feladat ul { padding-left: 1.25rem; }
+.tar-bemenet { border-left: 3px solid var(--border); padding: 0.25rem 0 0.25rem 1rem; margin-bottom: 0.75rem; color: #3a3833; }
+.tar-kezdes { white-space: pre-line; font-style: italic; }
+.tar-adatok h4 { font-size: 0.9rem; margin-bottom: 0.5rem; }
+.tar-szempontok { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 0.75rem; }
+.tar-szempontok td { padding: 0.35rem 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.tar-szempontok tfoot td { font-weight: 600; border-bottom: none; }
+.tar-pont { text-align: right; white-space: nowrap; padding-left: 0.75rem !important; }
+.tar-zar-lista { margin: 0.75rem 0 0 1.25rem; line-height: 1.7; }
+@media (max-width: 700px) {
+  .tar-elonezet { grid-template-columns: 1fr; padding: 1rem; }
+  .tar-fejlec-ikon .tar-ikon { width: 2.4rem; height: 2.4rem; }
+}
