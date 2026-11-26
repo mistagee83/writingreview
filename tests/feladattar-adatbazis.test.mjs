@@ -40,7 +40,7 @@ beforeEach(async () => {
   await firestore.collection("users").doc("lejart").set({ entitlements: { all: { status: "canceled" } } });
 });
 
-// prod, bekapcsolt tárral · prod, kikapcsolt tárral (a jogi válaszig) · pilot (nincs kredit, nincs zár)
+// prod, bekapcsolt tárral · prod, kikapcsolt tárral (a kapcsoló hatása) · pilot (nincs kredit, nincs zár)
 const PROD = { kredit: true, erettsegiTar: true };
 const PROD_KI = { kredit: true, erettsegiTar: false };
 const PILOT = { kredit: false, erettsegiTar: true };

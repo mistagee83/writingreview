@@ -2636,7 +2636,7 @@ Object.assign(exports._teszt, { fejlodesKapu, csoportFejlodesListaLogika, csopor
 // A tartalom a függvényekkel települő JSON-fájlokban van (functions/feladattar.js), nem a Firestore-ban: így
 // nem nyilvános, és a hub szabályaihoz sem kell nyúlni. A zár a SZERVEREN van (Hub pass: erettsegi_tar), a
 // lista, az előnézet, a feladat elkészítése és az érettségi sablonok is csak utána jönnek vissza. A prodban a
-// tár a jogi kérdések tisztázásáig ki van kapcsolva (BEALLITASOK.erettsegiTar, ERETTSEGI_TAR=igen nyitja).
+// tár kapcsoló mögött van (BEALLITASOK.erettsegiTar, ERETTSEGI_TAR=igen nyitja; 2026-11-26 óta bekapcsolva).
 // A tanár feladatát a szerver hozza létre (a kliens nem tud tárbeli szöveget a Hub pass megkerülésével
 // feladatba írni); utána a feladat a tanár sajátja, a megszokott űrlapon szerkeszthető.
 // ══════════════════════════════════════════════════════

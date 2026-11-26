@@ -8,7 +8,7 @@ folytatni, és mi a következő lépés. (Az 1–5. pont régebbi részei a `wri
 a fenti 0000–00. pont az érvényes.) A program működéséről a
 [`mukodesi-leiras.md`](mukodesi-leiras.md) szól (a 13. fejezet a kétnyelvűségről).*
 
-## Terv: Érettségi feladattár (2026-11-25, jóváhagyva; a kinyerés és a tár felülete kész, a prodban kikapcsolva)
+## Érettségi feladattár (2026-11-25 terv; 2026-11-26 óta ÉLESBEN, `v2.4.0`)
 
 A kétszintű angol érettségi írásfeladatai (2005–2026) közös, Hub passos tárba kerülnek; a tanár egy kattintással
 feladatot készít belőlük, négy érettségi sablonnal. A kinyerés formátuma és a lépések:
@@ -20,10 +20,11 @@ feladatot készít belőlük, négy érettségi sablonnal. A kinyerés formátum
 Jelentés, kétes esetek: [`erettsegi-kinyeres-jelentes.md`](erettsegi-kinyeres-jelentes.md). A Codex független
 ellenőrzése után javítva (forrás, fajta, cím, sablonok; a jelentés 7. pontja). Döntések 2026-11-25: a sablonok
 sávleírásait a tulajdonos jóváhagyta; a `message`/`reply` feladatok `tipus`-a `levél` marad; a 2018. okt. közép 2. bent marad.
-**A tár felülete és függvényei: kész (2026-11-26, terv 8. 3.)**, nincs deployolva. A prodban a tár a jogi kérdések
-tisztázásáig **ki van kapcsolva** (`ERETTSEGI_TAR` a `functions/.env.prod`-ban, `erettsegi_tar` a `config/prod.json`-ban);
-bekapcsolni a kettőt együtt kell. Az ikon a saját „pecsétes lap” rajz (`public/js/feladattar-ikon.js`, nem emoji).
-Részletek: a terv 8. fejezetének „A 3. lépés megvalósítása” része. Következő lépés: a nyitóoldal Matura-szakasza (terv 8. 4.).
+**A tár felülete és függvényei: kész (2026-11-26, terv 8. 3.)**. A jogi kérdéseket (terv 7.) a tulajdonos 2026-11-25-ig
+tisztázta; a tár 2026-11-26 óta **be van kapcsolva és élesben fut** (`ERETTSEGI_TAR=igen` a `functions/.env.prod`-ban,
+`erettsegi_tar: true` a `config/prod.json`-ban; a kettőt mindig együtt kell állítani). Az ikon a saját „pecsétes lap” rajz (`public/js/feladattar-ikon.js`, nem emoji).
+Részletek: a terv 8. fejezetének „A 3. lépés megvalósítása” része. **A nyitóoldal Matura-szakasza (`#matura`): kész (2026-11-26, terv 8. 4.)**, ugyanazzal a kapcsolóval, élesben.
+Következő lépés: a Matura oldali link (terv 8. 5., a Matura tárolójában): `https://review.mrandrewshub.com/#matura`.
 
 **Emulátoros tesztek Windowson:** ha a felhasználói mappa nevében szóköz van, a Firestore-emulátor (Java) nem indul
 („Unable to establish loopback connection”). Megoldás: `JAVA_TOOL_OPTIONS=-Djdk.net.unixdomain.tmpdir=<szóköz nélküli mappa>`.

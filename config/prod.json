@@ -6,7 +6,7 @@
   "kredit": true,
   "hub_url": "https://mrandrewshub.com",
   "tanari_onregisztracio": true,
-  "erettsegi_tar": false,
+  "erettsegi_tar": true,
   "app_check_kulcs": "",
   "webConfig": {
     "apiKey": "AIzaSyDfK-2VYD8bU2lK4JfKbCQGx-foswmIlq8",

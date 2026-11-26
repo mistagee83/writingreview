@@ -324,7 +324,8 @@ szakasz angol (a prod angolul nyit; a szótárkulcsok szabálya szerint magyar v
 
 ## 7. Jogi kérdés: mit kell tisztázni (6. kérdés)
 
-Nem döntünk; ezeket kell a jogásszal vagy az Oktatási Hivatallal tisztázni, **mielőtt a tár élesben megnyílik** (a
+**Tisztázva (a tulajdonos, 2026-11-25-ig): mind a hat kérdés; a tár 2026-11-26-án élesbe ment.** Az eredeti szöveg:
+nem döntünk; ezeket kell a jogásszal vagy az Oktatási Hivatallal tisztázni, **mielőtt a tár élesben megnyílik** (a
 Matura SPEC 11. „Tisztázandó” 1. pontjával együtt, hiszen ugyanaz a forrás):
 
 1. **A feladatlapok szövegének újraközlése:** a feladatsorok az Oktatási Hivatal oldalán nyilvánosak, de a nyilvános
@@ -358,9 +359,9 @@ döntheti el azt is, hogy a diák a bemeneti szöveget szó szerint vagy összef
 3. **Tár-felület és függvények** – *kész (2026-11-26), lásd lent a megvalósítás jegyzetét*: `feladattar.html`, a lista-, előnézet- és létrehozó függvény, az érettségi sablonok
    a sablonlistában, Hub pass-zár (`erettsegi_tar`), szótárkulcsok (hu + en); tesztek (jogosultság, zár, a tárból
    készült feladat a teljes úton, emulátorral).
-4. **Nyitóoldal Matura-szakasza** (`#matura`), teszt a `#sso` mellett; a `landing.test.mjs` ígéretkötése.
+4. **Nyitóoldal Matura-szakasza** (`#matura`), teszt a `#sso` mellett; a `landing.test.mjs` ígéretkötése. – *kész (2026-11-26), lásd lent*.
 5. **Matura oldali link** (a Matura tárolójában, külön munkamenet).
-6. **Kiadás** a jogi válasz után (`node scripts/deploy.mjs prod --yes --only hosting,functions:wr`; a hub repójában
+6. **Kiadás** a jogi válasz után – *kiment 2026-11-26-án (`v2.4.0`)* (`node scripts/deploy.mjs prod --yes --only hosting,functions:wr`; a hub repójában
    nincs szabályteendő, ha a 2. fejezet szerint épül).
 
 A pilot ágat nem érinti; minden új funkció csak a `main`-re kerül.
@@ -370,7 +371,7 @@ A pilot ágat nem érinti; minden új funkció csak a `main`-re kerül.
 - **Szerver:** `functions/feladattar.js` (tiszta modul: lista, előnézet, leírás, rubrika) és négy hívható függvény az
   `index.js` 13/b. részében: `feladattarLista`, `feladattarElonezet`, `feladattarbolFeladat`, `erettsegiSablonok`.
   Mind tanári, mind a `erettsegiTarKapu` mögött (előbb a környezet kapcsolója, utána a Hub pass: `erettsegi_tar`).
-- **Kapcsoló a jogi válaszig:** a prodban a tár **ki van kapcsolva**, hogy egy más okból kimenő deploy se nyissa meg.
+- **Kapcsoló:** a tár egy kapcsoló mögött van (a jogi válaszig ki volt kapcsolva; 2026-11-26 óta be).
   Szerveren `ERETTSEGI_TAR=igen` (`functions/.env.prod`), kliensen `erettsegi_tar: true` (`config/prod.json`)
   nyitja; a kettőt a `tests/kornyezet.test.mjs` egyezteti. Helyi előnézetben és emulátorban él.
 - **A feladat leírása** (`rubrika.feladat_leiras`): helyzet, bemeneti szöveg, teendő, irányító szempontok (`•`),
@@ -382,3 +383,17 @@ A pilot ágat nem érinti; minden új funkció csak a `main`-re kerül.
   feladat-űrlap sablonlistájában külön csoportban a négy érettségi sablon (csak olvasható); Hub pass nélkül nem jelenik meg.
 - **Tesztek:** `tests/feladattar-tar.test.mjs` (emulátor nélkül) és `tests/feladattar-adatbazis.test.mjs` (zár, létrehozás,
   a teljes linkes út, az értékelő prompt).
+
+### A 4. lépés megvalósítása (2026-11-26)
+
+- **`index.html#matura`:** cím a feladattár ikonjával, egy mondat a tárról, három lépés (választás a tárból, írás a linken,
+  értékelés az érettségi szempontjai szerint), a Hub pass-mondat (csak ahol a kredit él), „Próbáld ki ingyen” és belépés,
+  egy mondat a diákoknak, és a forrás: „A feladatok az Oktatási Hivatal által közzétett érettségi feladatlapokról
+  származnak. A WritingReview nem az Oktatási Hivatal szolgáltatása.” (A 7. fejezet 6. kérdése szerint a jogász még
+  módosíthatja.) Magyarul és angolul.
+- **Csak a feladattárral együtt látszik** (`data-csak="erettsegi"`, `ERETTSEGI_TAR`): 2026-11-26 óta a prodban is látszik. A Hub
+  pass-kártya „Érettségi feladattár” pontja ugyanígy; a `landing.test.mjs` köti a `HUB_PASS_FUNKCIOK`-hoz.
+- **A `#sso=`** átirányítását nem érinti (a fej szkriptje csak a `#sso=`-val kezdődő horgonyt viszi tovább; teszt). A rejtve
+  induló szakaszhoz a böngésző betöltéskor nem görgetne, ezért a láthatóság beállítása után a szkript görget a horgonyhoz.
+- **A link**, amit a Matura oldalára kell tenni (5. lépés, a Matura tárolójában): `https://review.mrandrewshub.com/#matura`,
+  paraméter nélkül. Csak a tár élesítése után érdemes kitenni, addig a prodban a szakasz rejtett.

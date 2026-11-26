@@ -167,6 +167,43 @@
     </div>
   </section>
 
+  <!-- ÉRETTSÉGI FELADATTÁR (#matura): ide mutat a Matura íráskészség-helye (docs/erettsegi-feladattar-terv.md 6.).
+       Csak ahol a tár él (js/kornyezet.js ERETTSEGI_TAR), ezért alapból rejtett.
+       A link semmilyen azonosítót nem visz át, és nem diákbelépésre visz: a diák csak a tanára feladatlinkjén ír. -->
+  <section class="lp-szakasz lp-matura" id="matura" data-csak="erettsegi" hidden aria-labelledby="matura-cim">
+    <div class="lp-sor">
+      <div class="lp-matura-fejlec">
+        <span class="lp-matura-ikon" id="matura-ikon"></span>
+        <h2 id="matura-cim" data-i18n="landing.matura_cim">Érettségi írásfeladatok</h2>
+      </div>
+      <p class="lp-szakasz-alcim" data-i18n="landing.matura_alcim">A kétszintű angol érettségi írásfeladatai 2005-től, közép- és emelt szinten, a hivatalos értékelési szempontokkal és pontokkal.</p>
+      <ol class="lp-lepesek">
+        <li>
+          <span class="lp-szam" aria-hidden="true">1</span>
+          <h3 data-i18n="landing.matura_lepes1_cim">Választasz a tárból</h3>
+          <p data-i18n="landing.matura_lepes1_leiras">Szűrsz szintre, évre és műfajra, és megnézed a feladatot. Egy kattintással saját feladatod lesz belőle, amit át is írhatsz.</p>
+        </li>
+        <li>
+          <span class="lp-szam" aria-hidden="true">2</span>
+          <h3 data-i18n="landing.matura_lepes2_cim">A diákok a linken írnak</h3>
+          <p data-i18n="landing.matura_lepes2_leiras">Elindítod a feladat linkjét. A diákok becenévvel, regisztráció nélkül írják meg a levelet vagy a hosszabb szöveget, ahogy a vizsgán.</p>
+        </li>
+        <li>
+          <span class="lp-szam" aria-hidden="true">3</span>
+          <h3 data-i18n="landing.matura_lepes3_cim">Értékelés az érettségi szempontjai szerint</h3>
+          <p data-i18n="landing.matura_lepes3_leiras">Az AI az érettségi szempontjai és pontjai szerint értékel. Te átnézed és jóváhagyod, a diák csak ezután látja a visszajelzést.</p>
+        </li>
+      </ol>
+      <p class="lp-megjegyzes" data-csak="fizetes" hidden data-i18n="landing.matura_hubpass">Az Érettségi feladattár a Hub pass része. Az értékelés kreditbe kerül, mint bármelyik javítás.</p>
+      <div class="lp-gombok">
+        <a class="btn-primary lp-gomb" href="belepes.html#tanar" data-csak="regisztracio" hidden data-i18n="landing.kezdd_ingyen">Próbáld ki ingyen</a>
+        <a class="lp-masodlagos" href="belepes.html" data-i18n="landing.matura_belepes">Már van fiókom: belépés →</a>
+      </div>
+      <p class="lp-matura-diak" data-i18n="landing.matura_diak">Diák vagy? Kérd meg a tanárodat, hogy adjon ki neked egy érettségi írásfeladatot.</p>
+      <p class="lp-megjegyzes" data-i18n="landing.matura_forras">A feladatok az Oktatási Hivatal által közzétett érettségi feladatlapokról származnak. A WritingReview nem az Oktatási Hivatal szolgáltatása.</p>
+    </div>
+  </section>
+
   <!-- KREDIT ÉS HUB PASS (csak ahol a hub-kredit él). A számok (árak, kreditek) a hub fiókoldalán vannak,
        egy helyen; itt csak a modell. -->
   <section class="lp-szakasz" id="csomagok" data-csak="fizetes" hidden aria-labelledby="csomagok-cim">
@@ -190,6 +227,7 @@
             <li data-i18n="landing.pont_elemzes">Osztályelemzés</li>
             <li data-i18n="landing.pont_fejlodes">A diákok fejlődésének követése csoportonként</li>
             <li data-i18n="landing.pont_szinek">Választható színtéma</li>
+            <li data-csak="erettsegi" hidden data-i18n="landing.pont_erettsegi">Érettségi feladattár</li>
             <li data-i18n="landing.pont_minden_app">Mr. Andrew's összes appja</li>
           </ul>
         </li>
@@ -274,17 +312,25 @@
 
 <script type="module">
   import { t } from './js/i18n.js';
-  import { KREDIT, TANARI_ONREGISZTRACIO, HUB_URL } from './js/kornyezet.js';
+  import { KREDIT, TANARI_ONREGISZTRACIO, HUB_URL, ERETTSEGI_TAR } from './js/kornyezet.js';
+  import { FELADATTAR_IKON } from './js/feladattar-ikon.js';
 
   // A környezet-függő részek: az árazás csak ott, ahol a hub-kredit él; a regisztrációs gomb csak ott,
   // ahol a tanár önállóan regisztrálhat. Ahol egyik sem (pilot), a belépés az egyetlen gomb.
+  // Az érettségi szakasz (#matura) és a Hub pass-kártya feladattár-pontja csak ott, ahol a tár él.
   const hubLink = KREDIT && /^https:\/\//.test(HUB_URL);
   const latszik = {
-    fizetes: KREDIT, regisztracio: TANARI_ONREGISZTRACIO, 'belepes-egyedul': !TANARI_ONREGISZTRACIO, 'hub-link': hubLink
+    fizetes: KREDIT, regisztracio: TANARI_ONREGISZTRACIO, 'belepes-egyedul': !TANARI_ONREGISZTRACIO, 'hub-link': hubLink,
+    erettsegi: ERETTSEGI_TAR
   };
+  if (ERETTSEGI_TAR) document.getElementById('matura-ikon').innerHTML = FELADATTAR_IKON;
   document.querySelectorAll('[data-csak]').forEach((el) => {
     el.hidden = !latszik[el.dataset.csak];
   });
+  // A rejtve induló szakaszra (pl. a Matura linkje: #matura) betöltéskor nem tud odagörgetni a böngésző, mert akkor
+  // még rejtett: a láthatóság beállítása után görgetünk oda. Csak egyszerű horgony (#betűk), a #sso= nem jut ide.
+  const horgony = /^#[\w-]+$/.test(location.hash) && document.getElementById(location.hash.slice(1));
+  if (horgony && !horgony.hidden) horgony.scrollIntoView();
 
   if (KREDIT) document.getElementById('hero-ingyenes').textContent = t('landing.hero_ingyenes');
   if (hubLink) document.getElementById('arak-link').href = `${HUB_URL}/account`;
