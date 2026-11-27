@@ -305,7 +305,16 @@ fejlődés-követés, osztályelemzés, színválasztó, új nyitóoldal (árak 
   tartalék modell nincs. A hívás a `claudeKeres()`-ben (`index.js`): a Gemini-formátumú részeket és sémát ott
   alakítjuk át (`claudeTartalom`, `claudeSema`), a hívók változatlanok. Ár: `ai-hasznalat.js` ARAK; a Claude
   a gondolkodást a kimenetben számolja, ezért ott a `gondolkodas` mező 0. Teszt: `tests/claude.test.mjs`.
-- Az Anthropic ajándékkerete és a kulcs 2026-11-30 / 12-04 körül lejár; Geminin ez már nem érint semmit.
+- **Hangolási mérés (2026-11-27):** `scripts/claude-osszevetes.mjs` (csak olvas; a prod Geminivel javított dolgozatait
+  Claude-dal – vagy `--szolgaltato gemini`-vel – újraértékeli), prompt-változatok a `scripts/claude-hangolas/` alatt, az
+  eredmények a gitignore-olt `tests/dolgozatok/claude-hangolas/`-ban. 13 dolgozat (egy B2-es feladat), a tanári jegyhez mérve:
+  az éles prompt −12,1 pp (jegyegyezés 3/13), a `v4-feladatfuggetlen` −2,4 pp (6/13) – csak azt kéri számon, amit a
+  feladat kér, arányos sávokkal és a feladat félreértésének szabályával. Maradék gond: a skála összenyomott (fent kevés,
+  lent kicsit sok pont). Érettségi sávokkal (`v2`/`v3`) a tanár vak pontozásához a v3 már közel van. Tanulság: kitalált
+  tartalmi elvárás (amit a feladat nem kér) szigorúvá teszi a Claude-ot; a sávok jelentésének pontosítása segít.
+  Az éles prompt még változatlan.
+- Az Anthropic ajándékkerete 2026-11-30 körül lejár (utána a saját feltöltött egyenleg megy). A pilot titkában
+  (`ANTHROPIC_API_KEY --project pilot`) régi, már nem érvényes kulcs van; a mérés új kulccsal ment, a titkot még nem cseréltük.
 - A titok a pilot-projektben van (a CLI a deploynál megköveteli). Új kulcsnál:
   `firebase functions:secrets:set ANTHROPIC_API_KEY --project pilot`, utána `node scripts/deploy.mjs pilot --only functions`.
   A Gemini-kulcs továbbra is deklarált (a visszaváltáshoz).
